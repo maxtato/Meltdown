@@ -1197,6 +1197,9 @@ const OPP_FESTIVAL_CHANCE = 0.0008;    // ~21 min — rush festival
 // === ENJEUX P3 — narratif & catastrophique ===
 const CRISIS_GLACIER_CHANCE = 0.0004;  // ~42 min — l'enveloppe de Patrice Glacier (rare, marquant)
 const OPP_ALLIN_CHANCE = 0.0005;       // ~33 min — tout ou rien (risque de Game Over)
+// === PREMIERS DILEMMES (Phase 1) — petites décisions dès le début ===
+const CRISIS_VOISIN_CHANCE = 0.0016;   // ~10 min — voisin mécontent (P1 court, donc + fréquent)
+const OPP_CAFE_CHANCE = 0.0018;        // ~9 min — commande express du café d'en bas
 
 // === INCIDENTS INTERNES (Phase 2+) ===
 // Événements rares qui font baisser le moral et donnent vie à l'équipe.
@@ -1763,6 +1766,28 @@ const EVENT_TYPES = {
     winMultiplier: 2, // caution ×2 si gagné
   },
 
+  // === PREMIERS DILEMMES P1 — petites décisions dès le début ===
+  crisis_voisin: {
+    id: 'crisis_voisin', category: 'tension_crisis', minPhase: 1,
+    name: { fr: 'VOISIN MÉCONTENT', en: 'ANGRY NEIGHBOR', es: 'VECINO MOLESTO', zh: "邻居不满", ru: "НЕДОВОЛЬНЫЙ СОСЕД", it: "VICINO SCONTENTO", de: "VERÄRGERTER NACHBAR" },
+    iconKey: 'alert',
+    intro: { fr: "Le voisin du dessus tambourine à ta porte : le congélateur ronronne toute la nuit et il n'en dort plus. Il parle déjà de pétition et de syndic. Un pack de bières apaiserait peut-être les choses.", en: "Your upstairs neighbor is banging on your door: the freezer hums all night and he can't sleep. He's already talking petition and building management. A pack of beers might smooth things over.", es: "El vecino de arriba aporrea tu puerta: el congelador zumba toda la noche y no pega ojo. Ya habla de petición y de la comunidad. Un pack de cervezas quizá calme las cosas.", zh: "楼上邻居砸你的门：冰柜整夜嗡嗡响，他睡不着。他已经在提联名信和物业了。一箱啤酒也许能平息事态。", ru: "Сосед сверху колотит в дверь: морозильник гудит всю ночь, и он не спит. Уже грозит петицией и управляющей компанией. Упаковка пива, возможно, всё сгладит.", it: "Il vicino di sopra martella alla porta: il congelatore ronza tutta la notte e non dorme più. Parla già di petizione e amministratore. Una cassa di birre forse calmerebbe le acque.", de: "Der Nachbar von oben hämmert an die Tür: die Gefriertruhe brummt die ganze Nacht und er schläft nicht mehr. Er redet schon von Petition und Hausverwaltung. Ein Kasten Bier würde die Lage vielleicht entschärfen." },
+    mitigateLabel: { fr: 'OFFRIR UN PACK · 40€', en: 'OFFER A SIX-PACK · €40', es: 'INVITAR A UN PACK · 40€', zh: "请一箱啤酒 · 40€", ru: "ПОСТАВИТЬ ПИВО · 40€", it: "OFFRIRE UNA CASSA · 40€", de: "EIN KASTEN SPENDIEREN · 40€" },
+    ignoreLabel: { fr: 'IGNORER', en: 'IGNORE', es: 'IGNORAR', zh: "忽略", ru: "ИГНОРИРОВАТЬ", it: "IGNORA", de: "IGNORIEREN" },
+    mitigationCost: 40,
+    ignoreRepLoss: 6,
+  },
+  opp_cafe: {
+    id: 'opp_cafe', category: 'tension_opportunity', minPhase: 1,
+    name: { fr: "URGENCE DU CAFÉ D'EN BAS", en: 'DOWNSTAIRS CAFÉ EMERGENCY', es: 'URGENCIA DEL CAFÉ DE ABAJO', zh: "楼下咖啡馆的急单", ru: "СРОЧНЫЙ ЗАКАЗ КАФЕ СНИЗУ", it: "EMERGENZA DEL BAR DI SOTTO", de: "NOTFALL IM CAFÉ UNTEN" },
+    iconKey: 'trophy',
+    intro: { fr: "Le café d'en bas est en rade de glace en plein coup de feu. Le patron débarque, essoufflé : 20 glaçons tout de suite, payés au triple du prix. C'est pris sur ton stock, maintenant.", en: "The café downstairs ran out of ice mid-rush. The owner shows up, out of breath: 20 ice cubes right now, paid triple. Straight from your stock, now.", es: "El café de abajo se quedó sin hielo en plena hora punta. El dueño aparece sin aliento: 20 cubitos ya, pagados al triple. Sale de tu stock, ahora.", zh: "楼下咖啡馆高峰期冰用光了。老板气喘吁吁跑来：现在就要20块冰，三倍价钱。直接从你的库存出，立刻。", ru: "В кафе снизу кончился лёд в самый час пик. Хозяин прибегает запыхавшийся: 20 кубиков немедленно, по тройной цене. Прямо из твоего запаса, сейчас.", it: "Il bar di sotto è rimasto senza ghiaccio in pieno servizio. Il titolare arriva trafelato: 20 cubetti subito, pagati il triplo. Dal tuo stock, ora.", de: "Dem Café unten ist mitten im Ansturm das Eis ausgegangen. Der Wirt kommt außer Atem: 20 Eiswürfel sofort, dreifach bezahlt. Direkt aus deinem Bestand, jetzt." },
+    acceptLabel: { fr: 'DÉPANNER · 20 GL', en: 'HELP OUT · 20 IC', es: 'AYUDAR · 20 CB', zh: "救急 · 20冰块", ru: "ВЫРУЧИТЬ · 20 К", it: "AIUTARE · 20 CB", de: "AUSHELFEN · 20 EW" },
+    declineLabel: { fr: 'REFUSER', en: 'DECLINE', es: 'RECHAZAR', zh: "拒绝", ru: "ОТКАЗАТЬ", it: "RIFIUTA", de: "ABLEHNEN" },
+    cafeQty: 20,
+    cafePriceMult: 3,
+  },
+
   // === NOUVEAUX ÉVÉNEMENTS — Météo (+3) ===
   hail_storm: {
     id: 'hail_storm', category: 'weather', minPhase: 2, duration: 25,
@@ -1812,8 +1837,8 @@ const EVENT_TYPES = {
   },
 };
 const EVENT_TYPE_KEYS = Object.keys(EVENT_TYPES);
-const TENSION_CRISIS_KEYS = ['crisis_rappel', 'crisis_viral', 'crisis_strike', 'crisis_coldroom', 'crisis_invoice', 'crisis_glacier'];
-const TENSION_OPPORTUNITY_KEYS = ['opp_megacontract', 'opp_tvinterview', 'opp_bourse', 'opp_festival', 'opp_allin'];
+const TENSION_CRISIS_KEYS = ['crisis_rappel', 'crisis_viral', 'crisis_strike', 'crisis_coldroom', 'crisis_invoice', 'crisis_glacier', 'crisis_voisin'];
+const TENSION_OPPORTUNITY_KEYS = ['opp_megacontract', 'opp_tvinterview', 'opp_bourse', 'opp_festival', 'opp_allin', 'opp_cafe'];
 
 // === FRICTION EVENTS — événements négatifs qui ralentissent l'activité ===
 // Catalogue par phase. Chaque événement a un id, un nom, une durée, des effets,
@@ -10922,8 +10947,10 @@ export default function App() {
         const tensionCooldownActive = (gameTimeRef.current - lastTensionAtRef.current) < TENSION_COOLDOWN_SEC;
         const hasPendingTension = !!pendingTensionEventRef.current;
         const hasActiveTension = !!activeTensionEffectRef.current || !!activeMegacontractRef.current;
-        if (phaseRef.current >= TENSION_MIN_PHASE_P2 && !tensionCooldownActive && !hasPendingTension && !hasActiveTension) {
+        if (phaseRef.current >= 1 && !tensionCooldownActive && !hasPendingTension && !hasActiveTension) {
           const inP3 = phaseRef.current >= 3;
+          const inP2plus = phaseRef.current >= 2;
+          const inP1 = phaseRef.current === 1;
           // === Crises P3 (gros impact) ===
           // Crise 1 : RAPPEL SANITAIRE
           if (inP3 && Math.random() < CRISIS_RAPPEL_CHANCE * dt) {
@@ -10968,18 +10995,29 @@ export default function App() {
           }
           // === Enjeux mid-game (éligibles dès la P2) ===
           // Crise P2 : PANNE CHAMBRE FROIDE
-          else if (Math.random() < CRISIS_COLDROOM_CHANCE * dt) {
+          else if (inP2plus && Math.random() < CRISIS_COLDROOM_CHANCE * dt) {
             setPendingTensionEvent({ id: 'crisis_coldroom', expiresAt: gameTimeRef.current + 30 });
             lastTensionAtRef.current = gameTimeRef.current;
           }
           // Crise P2 : LITIGE FACTURE CLIENT
-          else if (Math.random() < CRISIS_INVOICE_CHANCE * dt) {
+          else if (inP2plus && Math.random() < CRISIS_INVOICE_CHANCE * dt) {
             setPendingTensionEvent({ id: 'crisis_invoice', expiresAt: gameTimeRef.current + 30 });
             lastTensionAtRef.current = gameTimeRef.current;
           }
           // Opportunité P2 : RUSH FESTIVAL
-          else if (Math.random() < OPP_FESTIVAL_CHANCE * dt) {
+          else if (inP2plus && Math.random() < OPP_FESTIVAL_CHANCE * dt) {
             setPendingTensionEvent({ id: 'opp_festival', expiresAt: gameTimeRef.current + 25 });
+            lastTensionAtRef.current = gameTimeRef.current;
+          }
+          // === Premiers dilemmes (P1) — petites décisions dès le début ===
+          // Crise P1 : VOISIN MÉCONTENT
+          else if (inP1 && Math.random() < CRISIS_VOISIN_CHANCE * dt) {
+            setPendingTensionEvent({ id: 'crisis_voisin', expiresAt: gameTimeRef.current + 25 });
+            lastTensionAtRef.current = gameTimeRef.current;
+          }
+          // Opportunité P1 : COMMANDE EXPRESS DU CAFÉ D'EN BAS
+          else if (inP1 && Math.random() < OPP_CAFE_CHANCE * dt && stockRef.current >= 20) {
+            setPendingTensionEvent({ id: 'opp_cafe', expiresAt: gameTimeRef.current + 20 });
             lastTensionAtRef.current = gameTimeRef.current;
           }
         }
@@ -12872,11 +12910,20 @@ export default function App() {
                 const profile = getContractProfile(c);
                 const success = reached && !expired;
                 const totalRev = line.revenueAccum || 0;
-                const bonus = success ? Math.round(totalRev * profile.completionBonusPct) : 0;
+                let bonus = success ? Math.round(totalRev * profile.completionBonusPct) : 0;
+                // Lot 4 — PRIME DE PONCTUALITÉ : terminer avec une marge de délai intacte
+                // (= livraison sans accroc, non grignotée par pannes/sabotages) → bonus.
+                let punctual = false;
+                if (success && line.contractExpiresAt != null) {
+                  const remainingFrac = (line.contractExpiresAt - curGameTime) / Math.max(1, profile.globalDeadlineSec);
+                  if (remainingFrac > 0.15) { bonus += Math.round(totalRev * 0.12); punctual = true; }
+                  else if (remainingFrac > 0.05) { bonus += Math.round(totalRev * 0.06); punctual = true; }
+                }
                 if (success) {
                   moneyDelta += bonus;
                   totalsRef.current.moneyEarned += bonus;
                   setReputation(r => Math.min(100, r + 1));
+                  if (punctual) setEventNotif(language === 'fr' ? 'LIVRAISON SANS ACCROC · PRIME PONCTUALITÉ' : 'FLAWLESS DELIVERY · PUNCTUALITY BONUS');
                   // Fidélité : ce client a été honoré → +1 (boost à la prochaine signature).
                   const _cid = line.contractId;
                   if (_cid) {
@@ -14616,6 +14663,39 @@ export default function App() {
         }
       } else {
         setEventNotif(language === 'fr' ? 'TU AS PRÉFÉRÉ LA PRUDENCE' : 'YOU PLAYED IT SAFE');
+      }
+    }
+    // CRISE P1 : VOISIN MÉCONTENT
+    else if (pending.id === 'crisis_voisin') {
+      if (action === 'mitigate') {
+        if (moneyRef.current < def.mitigationCost) {
+          setEventNotif(language === 'fr' ? 'FONDS INSUFFISANTS' : 'INSUFFICIENT FUNDS');
+          return;
+        }
+        setMoney(m => m - def.mitigationCost);
+        setEventNotif(language === 'fr' ? 'PACK OFFERT · VOISIN APAISÉ' : 'SIX-PACK GIFTED · NEIGHBOR CALMED');
+      } else {
+        const repLoss = def.ignoreRepLoss || 6;
+        setReputation(r => Math.max(0, Math.min(100, r - repLoss)));
+        setEventNotif(language === 'fr' ? `VOISIN IGNORÉ · RÉPUTATION −${repLoss}` : `NEIGHBOR IGNORED · REPUTATION −${repLoss}`);
+      }
+    }
+    // OPP P1 : COMMANDE EXPRESS DU CAFÉ D'EN BAS
+    else if (pending.id === 'opp_cafe') {
+      if (action === 'accept') {
+        const qty = Math.min(def.cafeQty || 20, Math.floor(stockRef.current));
+        if (qty <= 0) {
+          setEventNotif(language === 'fr' ? 'STOCK INSUFFISANT' : 'NOT ENOUGH STOCK');
+          return;
+        }
+        const revenue = Math.round(qty * effectiveSell * (def.cafePriceMult || 3) * 100) / 100;
+        setStock(s => Math.max(0, s - qty));
+        setMoney(m => m + revenue);
+        totalsRef.current.moneyEarned += revenue;
+        totalsRef.current.sold += qty;
+        setEventNotif(language === 'fr' ? `CAFÉ DÉPANNÉ · +${fmt2(revenue)}€ (×3)` : `CAFÉ HELPED · +${fmt2(revenue)}€ (×3)`);
+      } else {
+        setEventNotif(language === 'fr' ? 'COMMANDE DÉCLINÉE' : 'ORDER DECLINED');
       }
     }
 
