@@ -369,6 +369,8 @@ const TRANSLATIONS = {
   'status.stock': { fr: 'glaçons en stock', en: 'ice cubes in stock', es: 'cubitos en stock', de: "Eiswürfel auf Lager" , it: "cubetti in scorta", ru: "кубиков на складе", zh: "库存冰块"},
   'status.cap': { fr: 'CAP', en: 'CAP', es: 'CAP', de: "KAP" , it: "CAP", ru: "МАКС", zh: "上限"},
   'status.market_price': { fr: 'prix du marché', en: 'market price', es: 'precio de mercado', de: "Marktpreis" , it: "prezzo di mercato", ru: "рыночная цена", zh: "市场价"},
+  'status.melt_label': { fr: 'fonte', en: 'melt', es: 'fundido', de: "Schmelze", it: "fusione", ru: "таяние", zh: "融化"},
+  'status.melt_season': { fr: 'perdu cette saison', en: 'lost this season', es: 'perdido esta temporada', de: "diese Saison verloren", it: "perso questa stagione", ru: "потеряно за сезон", zh: "本季流失"},
   'status.per_ice': { fr: '/ glaçon', en: '/ ice cube', es: '/ cubito', de: "/ Eiswürfel" , it: "/ cubetto", ru: "/ кубик", zh: "/ 冰块"},
 
   // Rates block
@@ -639,6 +641,7 @@ const TRANSLATIONS = {
   'marketplace.next_in': { fr: 'Prochain tirage dans', en: 'Next roll in', es: 'Próxima tirada en', de: "Nächste Aktualisierung in" , it: "Prossimo aggiornamento tra", ru: "Следующее обновление через", zh: "下次刷新于"},
   'loyalty.badge': { fr: 'FIDÈLE', en: 'LOYAL', es: 'FIEL', de: "TREU", it: "FEDELE", ru: "ПОСТОЯННЫЙ", zh: "忠实"},
   'loyalty.detail': { fr: 'Prime fidélité', en: 'Loyalty premium', es: 'Prima de fidelidad', de: "Treueprämie", it: "Premio fedeltà", ru: "Бонус за лояльность", zh: "忠诚奖励"},
+  'contract.vs_spot': { fr: 'vs vente directe', en: 'vs direct sale', es: 'vs venta directa', de: "vs Direktverkauf", it: "vs vendita diretta", ru: "против прямой продажи", zh: "对比直售"},
 
   // Bank modal
   'bank.no_loan': { fr: 'Aucun prêt actif', en: 'No active loan', es: 'Sin préstamo activo', de: "Kein aktiver Kredit" , it: "Nessun prestito attivo", ru: "Нет активного кредита", zh: "无活跃贷款"},
@@ -6801,6 +6804,10 @@ export default function App() {
   const [phase, setPhase] = useState(1);
   const [stock, setStock] = useState(0);
   const [money, setMoney] = useState(0);
+  // Lot 1 — Fonte rendue tangible : GL fondus dans la saison en cours (coût d'opportunité affiché).
+  const meltedThisSeasonRef = useRef(0);
+  const [meltedSeason, setMeltedSeason] = useState(0);
+  const [meltRateNow, setMeltRateNow] = useState(0);
   const [owned, setOwned] = useState({});
   const [reputation, setReputation] = useState(50);
   const [lines, setLines] = useState([]);
@@ -11218,6 +11225,8 @@ export default function App() {
       newStock = Math.max(0, Math.min(newStock, maxCapNow));
       totalsRef.current.produced += prodGain;
       totalsRef.current.melted += meltLoss;
+      // Lot 1 — fonte tangible : cumul de la saison en cours.
+      meltedThisSeasonRef.current += meltLoss;
 
       // === PHASE 4 : production répartie sur 3 produits ===
       // Si on est en Phase 4, le `cycleBatch` n'alimente PAS `stock` (glaçon),
@@ -11964,6 +11973,9 @@ export default function App() {
         }
         seasonStartTotalsRef.current = { produced: totalsRef.current.produced, deliveries: totalsRef.current.contractsCompleted };
         seasonFuelRef.current = 0;
+        // Lot 1 — nouvelle saison : on remet le compteur de fonte à zéro.
+        meltedThisSeasonRef.current = 0;
+        setMeltedSeason(0);
       }
       if (lastBilledSeasonRef.current < 0) {
         // Première saison de la partie — initialise sans facturer
@@ -13074,6 +13086,8 @@ export default function App() {
       }
 
       setStock(newStock);
+      setMeltedSeason(meltedThisSeasonRef.current);
+      setMeltRateNow(curMelt);
       } catch (err) {
         console.error('[Meltdown tick error]', err);
       }
@@ -17947,6 +17961,12 @@ export default function App() {
         .tail-right { right: -7px; margin-top: -7px; border-top: 7px solid transparent; border-bottom: 7px solid transparent; border-left: 7px solid var(--bg); }
         .tail-right-outer { right: -9px; margin-top: -8px; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-left: 8px solid var(--fg); }
         .sell-mult { margin-left: 8px; opacity: 0.75; }
+        .melt-rate { font-size: 8px; color: var(--m2); text-align: right; padding: 0 4px 4px; font-variant-numeric: tabular-nums; letter-spacing: 0.5px; opacity: 0.8; }
+        .melt-rate b { color: var(--m1); font-weight: 700; }
+        .melt-rate .melt-season { opacity: 0.7; }
+        .melt-rate.is-high { color: var(--fg); opacity: 1; animation: meltPulse 1.1s ease-in-out infinite; }
+        .melt-rate.is-high b { color: var(--fg); }
+        @keyframes meltPulse { 0%,100% { opacity: 0.7; } 50% { opacity: 1; } }
         .stock-side, .demand-side { display: flex; flex-direction: column; align-items: center; gap: 7px; }
         .side-lbl { font-size: 8px; letter-spacing: 2px; color: var(--m2); font-weight: 400; }
         .stock-grid { display: grid; grid-template-columns: repeat(${STOCK_COLS}, ${CUBE_SIZE}px); grid-template-rows: repeat(${STOCK_ROWS}, ${CUBE_SIZE}px); gap: ${CUBE_GAP}px; }
@@ -20598,6 +20618,8 @@ export default function App() {
         .modal-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 10px; letter-spacing: 1px; }
         .modal-lbl { color: var(--m1); font-weight: 400; letter-spacing: 2px; }
         .modal-val { font-weight: 700; font-variant-numeric: tabular-nums; }
+        .modal-val.cmp-good { color: var(--fg); }
+        .modal-val.cmp-bad { color: var(--m2); }
         .modal-val-bad { color: var(--fg); text-decoration: line-through; }
         .modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border-top: 1px solid var(--fg); }
         .modal-hint { padding: 10px 16px 14px; font-size: 10px; line-height: 1.45; color: var(--m1); text-align: center; letter-spacing: 0.5px; font-style: italic; }
@@ -24254,6 +24276,12 @@ export default function App() {
                     <span className="modal-lbl">{t('contract.price')}</span>
                     <span className="modal-val">{fmt2(c.pricePerCube)}{t('contract.per_ice')}</span>
                   </div>
+                  <div className="modal-row">
+                    <span className="modal-lbl">{t('contract.vs_spot')}</span>
+                    <span className={`modal-val ${c.pricePerCube >= effectiveSell ? 'cmp-good' : 'cmp-bad'}`}>
+                      {fmt2(effectiveSell)}€/GL · {c.pricePerCube >= effectiveSell ? '▲' : '▼'} {Math.round(Math.abs(c.pricePerCube / Math.max(0.01, effectiveSell) - 1) * 100)}%
+                    </span>
+                  </div>
                   {loyCount > 0 && (
                     <div className="modal-row">
                       <span className="modal-lbl">★ {t('loyalty.detail')}</span>
@@ -27090,6 +27118,14 @@ export default function App() {
               <span className="sell-mult">({fmt2(BASE_SELL_PRICE * stats.sellMult)} × {fmt2(dynamicDemand * heatDemandMult * droughtDemandMult * autumnRushMult)})</span>
             </span>
           </div>
+          {stock > 0.5 && meltRateNow > 0 && (
+            <div className={`melt-rate ${heatwaveLeft > 0 ? 'is-high' : ''}`}>
+              <span className="melt-rate-text">
+                ❄ {t('status.melt_label')} <b>−{meltRateNow.toFixed(1)}/s</b>
+                <span className="melt-season"> · {t('status.melt_season')} −{fmtInt(meltedSeason)} GL (≈{fmtCash(meltedSeason * effectiveSell)})</span>
+              </span>
+            </div>
+          )}
         </div>
         )}
 
