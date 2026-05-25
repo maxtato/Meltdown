@@ -376,6 +376,7 @@ const TRANSLATIONS = {
   // Rates block
   'rate.production': { fr: 'Production', en: 'Production', es: 'Producción', zh: "生产", ru: "Производство", it: "Produzione", de: "Produktion" },
   'rate.production_short': { fr: 'Prod', en: 'Prod', es: 'Prod', de: "Prod" , it: "Prod", ru: "Произв", zh: "产"},
+  'rate.team_morale': { fr: 'moral équipe', en: 'team morale', es: 'moral equipo', de: "Teammoral", it: "morale team", ru: "мораль", zh: "团队士气"},
   'rate.melt': { fr: 'Fonte', en: 'Melt', es: 'Fundido', de: "Schmelze" , it: "Fusione", ru: "Таяние", zh: "融化"},
   'rate.revenue_short': { fr: 'Revenus', en: 'Revenue', es: 'Ingresos', de: "Umsatz" , it: "Ricavi", ru: "Доход", zh: "收入"},
   'rate.expenses_short': { fr: 'Charges', en: 'Expenses', es: 'Cargas', de: "Kosten" , it: "Costi", ru: "Расходы", zh: "支出"},
@@ -1163,7 +1164,7 @@ const RESIGN_REP_LOSS = 6;
 // === SABOTAGE PHASE 3 ===
 // Phase 3 = la guerre commence. Agressif pour pousser à investir en sécu.
 // Fréquences augmentées : le joueur DOIT voir les sabotages pour comprendre l'enjeu.
-const SABOTAGE_PNEUS_CHANCE = 0.0075;   // ~tous les 135s = 2-3 min de jeu réel
+const SABOTAGE_PNEUS_CHANCE = 0.0040;   // ~tous les 250s = 4 min (Lot 3 : espacé, moins répétitif)
 const SABOTAGE_AVIS_CHANCE = 0.0015;    // ~tous les 670s = 11 min (rare : impact réput fort)
 const SABOTAGE_CYBER_CHANCE = 0.0040;   // ~tous les 250s = 4 min
 const SABOTAGE_FRIGO_CHANCE = 0.0022;   // ~tous les 450s = 7-8 min (reste le plus rare car destructif)
@@ -7963,6 +7964,12 @@ export default function App() {
       if (b.when(snap)) {
         queuePopup({ type: 'character', speaker: 'Patrice Glacier', text: localizeField(b.text, language) });
         setGlacierBeats(prev => ({ ...prev, [b.id]: true }));
+        // Lot 3 — Glacier RÉAGIT : quand tu le dépasses, il déclenche une guerre des prix
+        // (ventes −20% pendant 120s) → on sent un vrai rival, pas juste une réplique.
+        if (b.id === 'g_overtake' && !activeTensionEffectRef.current && !activeMegacontractRef.current) {
+          setActiveTensionEffect({ id: 'glacier_pricewar', expiresAt: gameTimeRef.current + 120, sellMult: 0.8 });
+          setEventNotif(language === 'fr' ? 'GLACIER RIPOSTE · GUERRE DES PRIX · VENTES −20% 120S' : 'GLACIER STRIKES BACK · PRICE WAR · SALES −20% 120S');
+        }
         break; // un beat à la fois
       }
     }
@@ -13311,7 +13318,18 @@ export default function App() {
     setBrigitteMoral(m => Math.max(0, m - 5));
     setJaniceMoral(m => Math.max(0, m - 5));
     lastSabotageAtRef.current = gameTimeRef.current;
-    const msg = {
+    // Lot 3 — un sabotage sur deux est désormais attribué à Glacier Frères (rival incarné,
+    // pas un simple RNG anonyme). Renforce la rivalité ressentie quand la noto monte.
+    const glacierBlamed = (notorietyRef.current || 0) >= 25 && Math.random() < 0.5;
+    const msg = glacierBlamed ? {
+      fr: "Pneus lacérés, toute la flotte. Le gardien a vu une camionnette blanche filer — logo givré sur la portière. Glacier Frères ne signe jamais, mais tout le monde sait. La flotte est immobilisée.",
+      en: "Tires slashed, the whole fleet. The guard saw a white van speed off — a frosted logo on the door. Glacier Frères never signs their work, but everyone knows. The fleet is grounded.",
+      es: "Neumáticos rajados, toda la flota. El vigilante vio una furgoneta blanca huir — logo escarchado en la puerta. Glacier Frères nunca firma, pero todos lo saben. La flota está parada.",
+      zh: "整队轮胎被割。门卫看到一辆白色厢车疾驰而去——车门上有结霜的标志。格拉西耶兄弟从不留名，但人人都懂。车队停摆。",
+      ru: "Шины порезаны, весь парк. Охранник видел, как умчался белый фургон — морозный логотип на дверце. Glacier Frères не подписывается, но все всё понимают. Парк простаивает.",
+      it: "Gomme tagliate, tutta la flotta. Il guardiano ha visto un furgone bianco sfrecciare — logo brinato sulla portiera. Glacier Frères non firma mai, ma lo sanno tutti. La flotta è ferma.",
+      de: "Reifen zerstochen, die ganze Flotte. Der Wächter sah einen weißen Transporter wegrasen — vereistes Logo an der Tür. Glacier Frères signiert nie, aber jeder weiß Bescheid. Die Flotte steht."
+    } : {
       fr: "Les pneus de tous les camions ont été lacérés cette nuit. Aucune trace, aucun vol. Un sabotage ciblé. La flotte est immobilisée tant que les pneus ne sont pas remplacés.",
       en: "All truck tires were slashed overnight. No trace, no theft. A targeted sabotage. The fleet is grounded until the tires are replaced.",
       es: "Los neumáticos de todos los camiones fueron rajados anoche. Sin rastro, sin robo. Un sabotaje dirigido. La flota queda parada hasta cambiar los neumáticos.", zh: "所有卡车轮胎一夜被割。无痕迹，无盗窃。有针对性的破坏。车队停摆直到轮胎更换。", ru: "Все шины грузовиков порезаны за ночь. Ни следа, ни кражи. Целенаправленный саботаж. Парк простаивает, пока шины не заменят.", it: "Tutte le gomme dei camion tagliate nella notte. Nessuna traccia, nessun furto. Un sabotaggio mirato. La flotta è ferma finché le gomme non sono sostituite.", de: "Alle LKW-Reifen wurden über Nacht zerstochen. Keine Spur, kein Diebstahl. Eine gezielte Sabotage. Die Flotte steht, bis die Reifen ersetzt sind."
@@ -16460,6 +16478,12 @@ export default function App() {
               <span className={`prod-melt-cell ${inOutage ? 'off' : ''}`}>{t('rate.production_short')} +{effectivePassive.toFixed(1)}/s</span>
               <span className="prod-melt-sep">·</span>
               <span className="prod-melt-cell">{t('rate.melt')} −{effectiveMelt.toFixed(2)}/s</span>
+              {moralMult < 1 && (
+                <>
+                  <span className="prod-melt-sep">·</span>
+                  <span className="prod-melt-cell morale-pen">{t('rate.team_morale')} −{Math.round((1 - moralMult) * 100)}%</span>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -17888,6 +17912,7 @@ export default function App() {
         .prod-melt-mini { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 4px; font-size: 9px; letter-spacing: 1px; color: var(--m1); font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
         .prod-melt-cell { white-space: nowrap; }
         .prod-melt-cell.off { opacity: 0.4; text-decoration: line-through; }
+        .prod-melt-cell.morale-pen { color: var(--fg); font-weight: 700; }
         .prod-melt-sep { opacity: 0.4; }
         .sell-rate { font-size: 9px; color: var(--m2); text-align: right; padding: 8px 4px 4px; font-variant-numeric: tabular-nums; letter-spacing: 0.5px; font-weight: 400; display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
         .sell-rate b { color: var(--fg); font-weight: 700; font-size: 11px; letter-spacing: 0; }
