@@ -18384,6 +18384,8 @@ export default function App() {
         .upg-name { font-size: 9px; font-weight: 700; margin-bottom: 2px; letter-spacing: 0; line-height: 1.2; color: inherit; }
         .upg-broken-tag { display: block; font-size: 8px; margin-top: 2px; letter-spacing: 1px; color: var(--fg); }
         .upg-desc { font-size: 8px; line-height: 1.3; min-height: 21px; font-weight: 400; color: inherit; opacity: 0.78; margin-bottom: 8px; letter-spacing: 0; }
+        .upg-est { font-size: 8px; font-weight: 700; letter-spacing: 0.3px; color: inherit; opacity: 0.95; margin-bottom: 6px; font-variant-numeric: tabular-nums; }
+        .upg.afford .upg-est { opacity: 1; }
         .upg-cost { margin-top: auto; padding-top: 6px; border-top: 1px dashed currentColor; font-size: 10px; font-weight: 700; letter-spacing: 0.3px; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 4px; color: inherit; opacity: 0.9; }
         .upg.afford .upg-cost { opacity: 1; }
         .upg.owned:not(.broken) .upg-cost { font-weight: 400; opacity: 0.55; text-decoration: line-through; }
@@ -27460,6 +27462,22 @@ export default function App() {
             else if (family.id === 'pers_brigitte') famFriction = fricVis.brigitte;
             else if (family.id === 'pers_janice') famFriction = fricVis.janice;
 
+            // Lot 5 — estimation de l'impact monétaire de la prochaine amélioration (+X€/s).
+            // Rend tangible le gain réel (surtout les % devenus discrets après amortissement).
+            let estPerSec = 0;
+            if (state === 'buy' && displayUpgrade && phase < 4) {
+              try {
+                const sa = computeStats({ ...owned, [displayUpgrade.id]: true });
+                const pfB = stats.passiveProd * stats.prodSpeedMult;
+                const pfA = sa.passiveProd * sa.prodSpeedMult;
+                const extraProdGLs = pfB > 0
+                  ? effectivePassive * (pfA / pfB - 1)
+                  : Math.max(0, pfA - pfB) * getDynamicProdMult(gameTime);
+                const sellRatio = stats.sellMult > 0 ? sa.sellMult / stats.sellMult : 1;
+                estPerSec = Math.max(0, extraProdGLs * effectiveSell + effectivePassive * effectiveSell * (sellRatio - 1));
+              } catch (e) { estPerSec = 0; }
+            }
+
             return (
               <button
                 key={family.id}
@@ -27488,6 +27506,7 @@ export default function App() {
                 <div className="upg-fam-label">{t('family.' + family.id) !== 'family.' + family.id ? t('family.' + family.id) : family.label}</div>
                 <div className="upg-name">{localizeField(displayUpgrade.name, language)}</div>
                 <div className="upg-desc">{localizeField(displayUpgrade.desc, language)}</div>
+                {estPerSec > 0.01 && <div className="upg-est">≈ +{fmt2(estPerSec)}€/s</div>}
                 <div className="upg-cost">{actionLabel}</div>
               </button>
             );
