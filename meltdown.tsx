@@ -880,6 +880,7 @@ const TRANSLATIONS = {
   'profit.base': { fr: 'Loyer & entretien', en: 'Rent & upkeep', es: 'Alquiler y mantenimiento', de: "Miete & Instandhaltung" , it: "Affitto e manutenzione", ru: "Аренда и содержание", zh: "租金与维护"},
   'profit.mark_hint': { fr: 'Recrute Mark (Acheteur) pour optimiser ces postes', en: 'Hire Mark (Buyer) to optimize these items', es: 'Contrata a Mark (Comprador) para optimizar estas partidas', de: "Stelle Mark (Einkäufer) ein, um diese Posten zu optimieren" , it: "Assumi Mark (Acquirente) per ottimizzare queste voci", ru: "Наймите Марка (Закупщика), чтобы оптимизировать эти статьи", zh: "雇用马克（采购员）以优化这些项目"},
   'profit.loan': { fr: 'Prêt bancaire', en: 'Bank loan', es: 'Préstamo bancario', de: "Bankkredit" , it: "Prestito bancario", ru: "Банковский кредит", zh: "银行贷款"},
+  'profit.social': { fr: 'Charges sociales (CA)', en: 'Payroll taxes (rev.)', es: 'Cargas sociales (fact.)', de: "Sozialabgaben (Umsatz)", it: "Oneri sociali (fatt.)", ru: "Соцвзносы (выручка)", zh: "社会缴款（营收）"},
   'profit.net': { fr: 'Solde net', en: 'Net balance', es: 'Saldo neto', de: "Nettosaldo" , it: "Saldo netto", ru: "Чистый баланс", zh: "净结余"},
   'profit.note': { fr: 'Estimation du résultat sur un mois complet : tes revenus récents projetés sur le mois, moins toutes les charges mensuelles (salaires, charges courantes, prêt).', en: 'Estimated result over a full month: your recent revenue projected over the month, minus all monthly expenses (salaries, running costs, loan).', es: 'Estimación del resultado en un mes completo: tus ingresos recientes proyectados al mes, menos todas las cargas mensuales (salarios, cargas corrientes, préstamo).', de: "Geschätztes Ergebnis über einen vollen Monat: dein jüngster Umsatz auf den Monat hochgerechnet, minus aller monatlichen Kosten (Gehälter, laufende Kosten, Kredit)." , it: "Risultato stimato su un mese intero: il tuo ricavo recente proiettato sul mese, meno tutte le spese mensili (stipendi, costi correnti, prestito).", ru: "Расчётный результат за полный месяц: ваша недавняя выручка в проекции на месяц минус все месячные расходы (зарплаты, текущие расходы, кредит).", zh: "整月预估结果：你近期收入按月推算，减去所有月度支出（工资、运营成本、贷款）。"},
   'cheat.dev_unlocked': { fr: 'Menu développeur activé. Clé visible en haut à droite.', en: 'Developer menu activated. Wrench icon now visible top-right.', es: 'Menú de desarrollador activado. Llave visible arriba a la derecha.', de: "Entwicklermenü aktiviert. Schraubenschlüssel-Symbol jetzt oben rechts sichtbar." , it: "Menu sviluppatore attivato. L'icona chiave inglese è ora visibile in alto a destra.", ru: "Меню разработчика активировано. Иконка гаечного ключа теперь видна вверху справа.", zh: "开发者菜单已激活。右上角现可见扳手图标。"},
@@ -1094,6 +1095,12 @@ const BASE_MELT = 0.4;
 const STOCK_MELT_FACTOR = 0.012;
 const BASE_SELL_PRICE = 0.15;
 const BASE_CAP = 24;
+// Lot 2 — petit capital de départ (lisse l'ouverture austère à 0 €). Tunable.
+const START_CASH = 50;
+// Lot 2 — charges sociales/taxes indexées sur le CA mensuel (P2+, rampées par l'exo,
+// bornées car proportionnelles). Maintient un vrai coût même quand l'entreprise grossit.
+// Conservateur, à affiner au playtest.
+const CHARGE_CA_PCT = 0.06;
 const SEASON_DURATION = 120;
 // Découpage mensuel : 3 mois par saison (1 mois = 40 s). TOUTES les
 // charges (loyer, carburant, manutention, énergie, salaires) sont
@@ -7549,6 +7556,8 @@ export default function App() {
   const salaryDebtRef = useRef(null);
   // Buffer glissant 60s pour la rentabilité (chaque entrée = { t: gameTime, amt: revenue })
   const revenueBufferRef = useRef([]);
+  // Lot 2 — snapshot du CA cumulé au dernier prélèvement mensuel (pour les charges indexées CA).
+  const lastBilledMoneyEarnedRef = useRef(0);
   // Buffer parallèle pour le monitoring P4 : { t, gross, mat } sur 60s.
   const p4GrossBufferRef = useRef([]);
   // Snapshot figé de la rentabilité/coûts : moyenne glissante sur les
@@ -9998,8 +10007,8 @@ export default function App() {
   const salaryPerMonthEff = Math.round(salaryPerMonth * _chargeRampMult);
   const chargesPerMonthEff = Math.round(chargesPerMonth * _chargeRampMult);
   const loanPerMonth = _exoFirstYearProfit ? 0 : loanPerMonthRaw;
-  // Total charges du mois.
-  const expensesPerMonth = salaryPerMonthEff + chargesPerMonthEff + loanPerMonth;
+  // Total charges du mois (hors charges indexées CA, ajoutées après le calcul du CA).
+  const _expensesBaseMonth = salaryPerMonthEff + chargesPerMonthEff + loanPerMonth;
   // Revenus = moyenne glissante 60s ramenée au mois (MONTH_DURATION s).
   const _revBuf = revenueBufferRef.current;
   const _cutoff = gameTime - 60;
@@ -10013,6 +10022,9 @@ export default function App() {
   // Revenu moyen par seconde × durée d'un mois → revenu mensuel.
   const revenuePerSecAvg = _validRevs.length > 0 ? (_revenueSum60s / _windowSec) : 0;
   const revenuePerMonth = revenuePerSecAvg * MONTH_DURATION;
+  // Lot 2 — charges sociales/taxes indexées CA (affichées = prélevées). P2+, rampées.
+  const chargesCAPerMonth = phase >= 2 ? Math.round(revenuePerMonth * CHARGE_CA_PCT * _chargeRampMult) : 0;
+  const expensesPerMonth = _expensesBaseMonth + chargesCAPerMonth;
   // Bénéfice mensuel = revenus du mois − toutes charges du mois.
   const profitPerMonth = revenuePerMonth - expensesPerMonth;
   // Conservé pour compat (anciennes références par-seconde / par-min).
@@ -12263,6 +12275,10 @@ export default function App() {
       const curSemester = Math.floor(curGameTime / semesterDur);
       if (curSemester > prevSemester) {
         // Un mois vient de s'écouler
+        // Lot 2 — CA du mois écoulé (snapshot mis à jour CHAQUE mois, même en exo,
+        // pour que le 1er prélèvement de l'an 2 ne porte que sur un mois).
+        const _monthCA = Math.max(0, (totalsRef.current.moneyEarned || 0) - lastBilledMoneyEarnedRef.current);
+        lastBilledMoneyEarnedRef.current = totalsRef.current.moneyEarned || 0;
         // === EXONÉRATION 1ʳᵉ ANNÉE ===
         // Pendant les 12 premiers mois, AUCUNE charge n'est prélevée
         // (salaires, loyer, carburant, manutention, énergie, prêt). Le
@@ -12366,7 +12382,9 @@ export default function App() {
           const chargesUtil = (phaseRef.current < 4) ? Math.max(0, pendingUtilityBillRef.current) : 0;
           // Rampe anti-falaise : charges réelles à 35%→100% sur les mois 12-18.
           const _chargeRampMult = chargeExoMult(prevSemester);
-          const totalDue = Math.round((totalSalary + chargesP4 + chargesUtil) * _chargeRampMult);
+          // Lot 2 — charges sociales/taxes : % du CA du mois (P2+), bornées car proportionnelles.
+          const chargesCA = phaseRef.current >= 2 ? Math.round(_monthCA * CHARGE_CA_PCT) : 0;
+          const totalDue = Math.round((totalSalary + chargesP4 + chargesUtil + chargesCA) * _chargeRampMult);
           // Consommé : la facture utilities est désormais portée par
           // totalDue (payée ou basculée en dette globale selon le cash).
           pendingUtilityBillRef.current = 0;
@@ -15524,7 +15542,8 @@ export default function App() {
   const performReset = () => {
     // New Game+ : capital de départ offert par les Dominations accumulées.
     const ngPlusCash = PRESTIGE_RUNS > 0 ? PRESTIGE_RUNS * PRESTIGE_START_CASH : 0;
-    setStock(0); setMoney(ngPlusCash); setOwned({});
+    setStock(0); setMoney(START_CASH + ngPlusCash); setOwned({});
+    lastBilledMoneyEarnedRef.current = 0;
     // Réinitialise l'état de victoire/narratif pour permettre de re-gagner (et rejouer l'histoire).
     setVictoryAchieved(false); setVictoryModalOpen(false); setVictoryTimestamp(null); setEndgameEpilogueStage(0);
     setGlacierBeats({}); glacierFiredRef.current = {};
@@ -25373,6 +25392,12 @@ export default function App() {
                   <div className="profit-row">
                     <span>{t('profit.loan')}</span>
                     <span>−{fmtInt(loanPerMonth)}{t('unit.eur_month')}</span>
+                  </div>
+                )}
+                {chargesCAPerMonth > 0 && (
+                  <div className="profit-row">
+                    <span>{t('profit.social')}</span>
+                    <span>−{fmtInt(chargesCAPerMonth)}{t('unit.eur_month')}</span>
                   </div>
                 )}
                 <div className="profit-row profit-row-total">
