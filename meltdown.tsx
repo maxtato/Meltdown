@@ -136,6 +136,7 @@ const P4_TRUCK_REPAIR_MAX = 3000;
 const P4_BROKEN_REP_EROSION = 0.04;
 
 const BASE_LINES = 0;
+const TRUCK_REBUY_COST = 9000; // racheter un camion volé (plus cher que la rançon : payer tout de suite vaut mieux)
 const MARKETPLACE_SIZE = 4; // cap absolu
 const MARKET_TARGET_REROLL_MIN = 150; // 2.5min
 const MARKET_TARGET_REROLL_MAX = 300; // 5min
@@ -781,6 +782,131 @@ const EVENT_TYPES = {
     cafePriceMult: 3,
   },
 
+  // === ÉVÉNEMENTS "RACKET" (data-driven) — paye ou perds. Décision 15s. ===
+  // Schéma générique : racket:true, cost (€ à payer), refuse {effet si on ignore}, chance.
+  racket_bruit: { id: 'racket_bruit', category: 'tension_crisis', minPhase: 1, racket: true, chance: 0.0016, iconKey: 'alert',
+    name: { fr: 'CONTRÔLE ANTI-BRUIT', en: 'NOISE CONTROL' },
+    intro: { fr: "La police municipale donne suite à la plainte du voisin. L'agent renifle une « pollution sonore nocturne ». Un petit arrangement à l'amiable et il oublie son carnet.", en: "Municipal police follow up on the neighbor's complaint. The officer sniffs out 'nocturnal noise pollution.' A small under-the-table arrangement and he forgets his notepad." },
+    mitigateLabel: { fr: "ARRANGEMENT · 60€", en: "ARRANGEMENT · €60" }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE' },
+    cost: 60, refuse: { reputation: -5 },
+    payNotif: { fr: "ARRANGÉ À L'AMIABLE", en: 'SETTLED QUIETLY' }, refuseNotif: { fr: 'PV DRESSÉ · RÉPUTATION −5', en: 'TICKET ISSUED · REPUTATION −5' } },
+  racket_protection: { id: 'racket_protection', category: 'tension_crisis', minPhase: 1, racket: true, chance: 0.0013, iconKey: 'alert',
+    name: { fr: 'RACKET DE QUARTIER', en: 'NEIGHBORHOOD RACKET' },
+    intro: { fr: "Un « homme d'affaires » du quartier propose sa « protection ». « Ce serait dommage qu'il arrive quelque chose à ton beau congélateur. » Il sourit. Pas toi.", en: "A neighborhood 'businessman' offers his 'protection.' 'Shame if something happened to your nice freezer.' He smiles. You don't." },
+    mitigateLabel: { fr: "PAYER · 80€", en: "PAY · €80" }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE' },
+    cost: 80, refuse: { stockPct: -0.15, stress: { staff: 'fred', amount: 15 } },
+    payNotif: { fr: 'PROTECTION PAYÉE', en: 'PROTECTION PAID' }, refuseNotif: { fr: 'VANDALISME · STOCK −15%', en: 'VANDALISM · STOCK −15%' } },
+  racket_arnaque: { id: 'racket_arnaque', category: 'tension_opportunity', minPhase: 1, racket: true, trap: true, chance: 0.0012, iconKey: 'trophy',
+    name: { fr: "ARNAQUE À L'AVANCE", en: 'ADVANCE-FEE SCAM' },
+    intro: { fr: "Un inconnu très pressé promet une commande énorme pour un mariage de luxe. Il faut juste verser une « avance fournisseur » de 100€ maintenant. Il a l'air honnête. Trop, peut-être.", en: "A hurried stranger promises a huge order for a luxury wedding. You just need to wire a 100€ 'supplier advance' now. He seems honest. Maybe too honest." },
+    acceptLabel: { fr: "VERSER L'AVANCE · 100€", en: 'WIRE THE ADVANCE · €100' }, declineLabel: { fr: 'REFUSER', en: 'DECLINE' },
+    cost: 100, refuse: {},
+    payNotif: { fr: '...PLUS AUCUNE NOUVELLE. ARNAQUE.', en: '...NEVER HEARD FROM AGAIN. SCAM.' }, refuseNotif: { fr: "TU AS FLAIRÉ L'ARNAQUE", en: 'YOU SMELLED THE SCAM' } },
+
+  racket_vol_camion: { id: 'racket_vol_camion', category: 'tension_crisis', minPhase: 2, racket: true, chance: 0.0007, iconKey: 'truck',
+    name: { fr: 'VOL DE CAMION', en: 'TRUCK THEFT' },
+    intro: { fr: "Un de tes camions a disparu du dépôt cette nuit. Un numéro masqué propose de te le « rendre » contre une rançon. Sinon, tu fais une croix dessus et tu en rachètes un plus tard.", en: "One of your trucks vanished from the depot overnight. A blocked number offers to 'return' it for a ransom. Otherwise, write it off and buy a new one later." },
+    mitigateLabel: { fr: "PAYER LA RANÇON · 5 000€", en: 'PAY RANSOM · €5,000' }, ignoreLabel: { fr: 'REFUSER (perdre le camion)', en: 'REFUSE (lose the truck)' },
+    cost: 5000, refuse: { loseTruckLine: true },
+    payNotif: { fr: 'RANÇON PAYÉE · CAMION RÉCUPÉRÉ', en: 'RANSOM PAID · TRUCK BACK' }, refuseNotif: { fr: 'CAMION PERDU · UNE LIGNE EN MOINS', en: 'TRUCK LOST · ONE LINE FEWER' } },
+  racket_urssaf: { id: 'racket_urssaf', category: 'tension_crisis', minPhase: 2, racket: true, chance: 0.0006, iconKey: 'shield',
+    name: { fr: 'CONTRÔLE URSSAF', en: 'SURPRISE TAX AUDIT' },
+    intro: { fr: "Inspecteur surprise. Il trouve « trois irrégularités », dont deux qu'il vient d'inventer. Un chèque discret et le dossier se classe tout seul.", en: "Surprise inspector. He finds 'three irregularities,' two of which he just invented. A discreet check and the file closes itself." },
+    mitigateLabel: { fr: "ARRANGEMENT · 4 000€", en: 'ARRANGEMENT · €4,000' }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE' },
+    cost: 4000, refuse: { reputation: -10 },
+    payNotif: { fr: 'DOSSIER CLASSÉ', en: 'FILE CLOSED' }, refuseNotif: { fr: 'REDRESSEMENT · RÉPUTATION −10', en: 'REASSESSMENT · REPUTATION −10' } },
+  racket_fournisseur: { id: 'racket_fournisseur', category: 'tension_crisis', minPhase: 2, racket: true, chance: 0.0006, iconKey: 'alert',
+    name: { fr: 'FOURNISSEUR QUI MENACE', en: 'SUPPLIER THREATENS TO LEAVE' },
+    intro: { fr: "Ton fournisseur d'eau menace de te lâcher pour un concurrent. Une « prime de fidélité » le ferait peut-être reconsidérer.", en: "Your water supplier threatens to drop you for a competitor. A 'loyalty bonus' might make him reconsider." },
+    mitigateLabel: { fr: "PRIME · 3 000€", en: 'BONUS · €3,000' }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE' },
+    cost: 3000, refuse: { sellMult: 0.7, duration: 60 },
+    payNotif: { fr: 'FOURNISSEUR FIDÉLISÉ', en: 'SUPPLIER RETAINED' }, refuseNotif: { fr: 'RUPTURE · VENTES −30% (60s)', en: 'CUT OFF · SALES −30% (60s)' } },
+  racket_degradations: { id: 'racket_degradations', category: 'tension_crisis', minPhase: 2, racket: true, chance: 0.0006, iconKey: 'alert',
+    name: { fr: 'DÉGRADATIONS NOCTURNES', en: 'NIGHT VANDALISM' },
+    intro: { fr: "Tags sur la façade, vitre brisée, serrure forcée. Rien volé — juste un « message ». Réparer vite évite que les clients voient ça.", en: "Tags on the facade, broken window, forced lock. Nothing stolen — just a 'message.' Repairing fast keeps clients from seeing it." },
+    mitigateLabel: { fr: "RÉPARER · 2 500€", en: 'REPAIR · €2,500' }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE' },
+    cost: 2500, refuse: { reputation: -8 },
+    payNotif: { fr: 'RÉPARÉ', en: 'REPAIRED' }, refuseNotif: { fr: 'FAÇADE DÉGRADÉE · RÉPUTATION −8', en: 'DAMAGED FACADE · REPUTATION −8' } },
+  racket_gang: { id: 'racket_gang', category: 'tension_crisis', minPhase: 2, racket: true, chance: 0.0005, iconKey: 'alert',
+    name: { fr: 'GANG LOCAL', en: 'LOCAL GANG' },
+    intro: { fr: "Une bande locale s'est invitée au dépôt. Ils repartiront avec « un petit quelque chose » : ton argent, ou ton stock.", en: "A local crew invited themselves to the depot. They'll leave with 'a little something': your cash, or your stock." },
+    mitigateLabel: { fr: "PAYER · 4 000€", en: 'PAY · €4,000' }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE' },
+    cost: 4000, refuse: { stockPct: -0.20 },
+    payNotif: { fr: 'ILS REPARTENT', en: 'THEY LEAVE' }, refuseNotif: { fr: 'PILLAGE · STOCK −20%', en: 'LOOTED · STOCK −20%' } },
+  racket_inspecteur: { id: 'racket_inspecteur', category: 'tension_crisis', minPhase: 2, racket: true, chance: 0.0005, iconKey: 'shield',
+    name: { fr: 'INSPECTEUR TATILLON', en: 'NITPICKING INSPECTOR' },
+    intro: { fr: "Un inspecteur sanitaire pointilleux menace de fermer pour « chaîne du froid douteuse ». Un déjeuner et une enveloppe règlent souvent ça.", en: "A nitpicking health inspector threatens closure for a 'questionable cold chain.' A lunch and an envelope usually fix that." },
+    mitigateLabel: { fr: "DÉJEUNER + ENVELOPPE · 3 500€", en: 'LUNCH + ENVELOPE · €3,500' }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE' },
+    cost: 3500, refuse: { reputation: -9 },
+    payNotif: { fr: 'INSPECTION OK', en: 'INSPECTION PASSED' }, refuseNotif: { fr: 'RAPPORT NÉGATIF · RÉPUTATION −9', en: 'BAD REPORT · REPUTATION −9' } },
+  racket_pollution: { id: 'racket_pollution', category: 'tension_crisis', minPhase: 2, racket: true, chance: 0.0005, iconKey: 'shield',
+    name: { fr: 'AMENDE POLLUTION', en: 'POLLUTION FINE' },
+    intro: { fr: "Un agent t'accuse de rejeter de l'eau glacée dans les égouts. Vrai ou faux, le PV est salé. Sauf si tu « participes à l'effort écologique ».", en: "An officer accuses you of dumping iced water into the sewers. True or not, the fine is steep. Unless you 'contribute to the green effort.'" },
+    mitigateLabel: { fr: "PARTICIPER · 5 000€", en: 'CONTRIBUTE · €5,000' }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE' },
+    cost: 5000, refuse: { reputation: -12 },
+    payNotif: { fr: 'EFFORT ÉCO SALUÉ', en: 'GREEN EFFORT PRAISED' }, refuseNotif: { fr: 'PV POLLUTION · RÉPUTATION −12', en: 'POLLUTION FINE · REPUTATION −12' } },
+  racket_espion: { id: 'racket_espion', category: 'tension_crisis', minPhase: 2, racket: true, chance: 0.0005, iconKey: 'camera',
+    name: { fr: 'ESPION DÉMASQUÉ', en: 'SPY UNMASKED' },
+    intro: { fr: "Tu surprends un type qui photographie ta chaîne pour Glacier Frères. Il propose de « ne rien dire » à son patron contre un dédommagement.", en: "You catch a guy photographing your line for Glacier Frères. He offers to 'say nothing' to his boss for a fee." },
+    mitigateLabel: { fr: "ACHETER SON SILENCE · 4 500€", en: 'BUY HIS SILENCE · €4,500' }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE' },
+    cost: 4500, refuse: { notoriety: -8 },
+    payNotif: { fr: 'SILENCE ACHETÉ', en: 'SILENCE BOUGHT' }, refuseNotif: { fr: 'GLACIER COPIE TES PROCÉDÉS · NOTORIÉTÉ −8', en: 'GLACIER COPIES YOU · NOTORIETY −8' } },
+
+  racket_police: { id: 'racket_police', category: 'tension_crisis', minPhase: 3, racket: true, chance: 0.0005, iconKey: 'shield',
+    name: { fr: 'POLICE & FAUSSES CHARGES', en: 'POLICE & FALSE CHARGES' },
+    intro: { fr: "Un enquêteur véreux a monté un dossier entièrement bidon contre toi. « Ce serait dommage que ça arrive devant un juge. » L'enveloppe est attendue.", en: "A crooked investigator has built an entirely fabricated case against you. 'Shame if this reached a judge.' The envelope is expected." },
+    mitigateLabel: { fr: "GLISSER L'ENVELOPPE · 12 000€", en: 'SLIP THE ENVELOPE · €12,000' }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE' },
+    cost: 12000, refuse: { reputation: -20 },
+    payNotif: { fr: 'LE DOSSIER DISPARAÎT', en: 'THE FILE VANISHES' }, refuseNotif: { fr: 'MISE EN EXAMEN · RÉPUTATION −20', en: 'INDICTED · REPUTATION −20' } },
+  racket_chantage: { id: 'racket_chantage', category: 'tension_crisis', minPhase: 3, racket: true, chance: 0.0004, iconKey: 'alert',
+    name: { fr: 'MAÎTRE-CHANTEUR', en: 'BLACKMAILER' },
+    intro: { fr: "Quelqu'un a des photos compromettantes de ta soirée d'entreprise. Il veut être payé pour ne pas les envoyer à la presse.", en: "Someone has compromising photos from your company party. He wants to be paid not to send them to the press." },
+    mitigateLabel: { fr: "ACHETER LE SILENCE · 15 000€", en: 'BUY SILENCE · €15,000' }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE' },
+    cost: 15000, refuse: { notorietyDivBy: 2 },
+    payNotif: { fr: 'PHOTOS ACHETÉES', en: 'PHOTOS BOUGHT' }, refuseNotif: { fr: 'SCANDALE PUBLIC · NOTORIÉTÉ ÷2', en: 'PUBLIC SCANDAL · NOTORIETY ÷2' } },
+  racket_douane: { id: 'racket_douane', category: 'tension_crisis', minPhase: 3, racket: true, chance: 0.0005, iconKey: 'truck',
+    name: { fr: 'DOUANE BLOQUANTE', en: 'CUSTOMS BLOCKADE' },
+    intro: { fr: "Un douanier bloque tes exportations pour « contrôle approfondi » d'une durée indéterminée. Un geste accélérerait les choses.", en: "A customs officer blocks your exports for an 'in-depth check' of indefinite length. A gesture would speed things up." },
+    mitigateLabel: { fr: "GESTE · 10 000€", en: 'GESTURE · €10,000' }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE' },
+    cost: 10000, refuse: { blockContracts: 90 },
+    payNotif: { fr: 'EXPORTS DÉBLOQUÉS', en: 'EXPORTS CLEARED' }, refuseNotif: { fr: 'CONTRATS BLOQUÉS (90s)', en: 'CONTRACTS BLOCKED (90s)' } },
+  racket_syndicat: { id: 'racket_syndicat', category: 'tension_crisis', minPhase: 3, racket: true, chance: 0.0005, iconKey: 'alert',
+    name: { fr: 'DÉLÉGUÉ SYNDICAL', en: 'UNION REP' },
+    intro: { fr: "Un délégué menace d'un débrayage si tu ne « régularises » pas certaines primes. Payer évite la grève.", en: "A union rep threatens a walkout unless you 'regularize' certain bonuses. Paying avoids the strike." },
+    mitigateLabel: { fr: "RÉGULARISER · 8 000€", en: 'REGULARIZE · €8,000' }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE' },
+    cost: 8000, refuse: { blockContracts: 90 },
+    payNotif: { fr: 'PAIX SOCIALE', en: 'LABOR PEACE' }, refuseNotif: { fr: 'DÉBRAYAGE · CONTRATS BLOQUÉS (90s)', en: 'WALKOUT · CONTRACTS BLOCKED (90s)' } },
+  racket_journaliste: { id: 'racket_journaliste', category: 'tension_crisis', minPhase: 3, racket: true, chance: 0.0005, iconKey: 'megaphone',
+    name: { fr: 'JOURNALISTE À CHARGE', en: 'HOSTILE JOURNALIST' },
+    intro: { fr: "Une journaliste prépare un papier au vitriol sur tes « méthodes glaçantes ». Un « partenariat publicitaire » pourrait adoucir le ton.", en: "A journalist is preparing a scathing piece on your 'chilling methods.' An 'advertising partnership' might soften the tone." },
+    mitigateLabel: { fr: "PARTENARIAT · 9 000€", en: 'PARTNERSHIP · €9,000' }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE' },
+    cost: 9000, refuse: { notoriety: -15 },
+    payNotif: { fr: 'ARTICLE ADOUCI', en: 'ARTICLE SOFTENED' }, refuseNotif: { fr: 'ARTICLE ASSASSIN · NOTORIÉTÉ −15', en: 'HIT PIECE · NOTORIETY −15' } },
+  racket_maire: { id: 'racket_maire', category: 'tension_crisis', minPhase: 3, racket: true, chance: 0.0004, iconKey: 'shield',
+    name: { fr: 'LE MAIRE', en: 'THE MAYOR' },
+    intro: { fr: "Le maire « adorerait » que tu finances la fête municipale. Refuser, c'est s'attirer mille tracasseries administratives.", en: "The mayor 'would love' you to fund the town festival. Refusing means a thousand administrative headaches." },
+    mitigateLabel: { fr: "FINANCER · 14 000€", en: 'FUND IT · €14,000' }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE' },
+    cost: 14000, refuse: { reputation: -15 },
+    payNotif: { fr: 'LE MAIRE TE SOURIT', en: 'THE MAYOR SMILES' }, refuseNotif: { fr: 'TRACASSERIES · RÉPUTATION −15', en: 'RED TAPE · REPUTATION −15' } },
+  racket_fisc: { id: 'racket_fisc', category: 'tension_crisis', minPhase: 3, racket: true, chance: 0.0005, iconKey: 'shield',
+    name: { fr: 'REDRESSEMENT FISCAL', en: 'TAX REASSESSMENT' },
+    intro: { fr: "Contrôle fiscal. L'inspecteur a « des doutes » sur tes marges. Solde tout de suite, ou conteste et subis des mois d'enfer.", en: "Tax audit. The inspector has 'doubts' about your margins. Settle now, or contest and endure months of hell." },
+    mitigateLabel: { fr: "SOLDER · 18 000€", en: 'SETTLE · €18,000' }, ignoreLabel: { fr: 'CONTESTER', en: 'CONTEST' },
+    cost: 18000, refuse: { reputation: -12, sellMult: 0.7, duration: 90 },
+    payNotif: { fr: 'FISC SOLDÉ', en: 'TAXES SETTLED' }, refuseNotif: { fr: 'CONTENTIEUX · RÉPUT −12 · VENTES −30% (90s)', en: 'LITIGATION · REP −12 · SALES −30% (90s)' } },
+  racket_mafia: { id: 'racket_mafia', category: 'tension_crisis', minPhase: 3, racket: true, chance: 0.0004, iconKey: 'alert',
+    name: { fr: 'LA MAFIA DU FROID', en: 'THE COLD MAFIA' },
+    intro: { fr: "Un cartel du froid veut sa « part de marché ». L'émissaire est très poli, et très armé. La somme est ronde.", en: "A cold cartel wants its 'market share.' The envoy is very polite, and very armed. The sum is round." },
+    mitigateLabel: { fr: "PAYER LE CARTEL · 20 000€", en: 'PAY THE CARTEL · €20,000' }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE' },
+    cost: 20000, refuse: { stockPct: -0.30, notoriety: -10 },
+    payNotif: { fr: 'LE CARTEL TE LAISSE', en: 'THE CARTEL BACKS OFF' }, refuseNotif: { fr: 'REPRÉSAILLES · STOCK −30% · NOTORIÉTÉ −10', en: 'REPRISALS · STOCK −30% · NOTORIETY −10' } },
+  racket_hacker: { id: 'racket_hacker', category: 'tension_crisis', minPhase: 3, racket: true, chance: 0.0005, iconKey: 'lock',
+    name: { fr: 'RANÇONGICIEL', en: 'RANSOMWARE' },
+    intro: { fr: "Un rançongiciel a chiffré ta gestion des commandes. Les pirates veulent être payés en cryptos pour rendre l'accès.", en: "Ransomware has encrypted your order system. The hackers want to be paid in crypto to restore access." },
+    mitigateLabel: { fr: "PAYER LA RANÇON · 16 000€", en: 'PAY RANSOM · €16,000' }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE' },
+    cost: 16000, refuse: { blockContracts: 120 },
+    payNotif: { fr: 'ACCÈS RESTAURÉ', en: 'ACCESS RESTORED' }, refuseNotif: { fr: 'SYSTÈMES BLOQUÉS · CONTRATS (120s)', en: 'SYSTEMS LOCKED · CONTRACTS (120s)' } },
+
   // === NOUVEAUX ÉVÉNEMENTS — Météo (+3) ===
   hail_storm: {
     id: 'hail_storm', category: 'weather', minPhase: 2, duration: 25,
@@ -832,6 +958,25 @@ const EVENT_TYPES = {
 const EVENT_TYPE_KEYS = Object.keys(EVENT_TYPES);
 const TENSION_CRISIS_KEYS = ['crisis_rappel', 'crisis_viral', 'crisis_strike', 'crisis_coldroom', 'crisis_invoice', 'crisis_glacier', 'crisis_voisin'];
 const TENSION_OPPORTUNITY_KEYS = ['opp_megacontract', 'opp_tvinterview', 'opp_bourse', 'opp_festival', 'opp_allin', 'opp_cafe'];
+
+// Liste des events "racket" data-driven (pour la boucle du scheduler).
+const RACKET_KEYS = ['racket_bruit', 'racket_protection', 'racket_arnaque', 'racket_vol_camion', 'racket_urssaf', 'racket_fournisseur', 'racket_degradations', 'racket_gang', 'racket_inspecteur', 'racket_pollution', 'racket_espion', 'racket_police', 'racket_chantage', 'racket_douane', 'racket_syndicat', 'racket_journaliste', 'racket_maire', 'racket_fisc', 'racket_mafia', 'racket_hacker'];
+
+// Formate l'effet "si on refuse" d'un event racket (affichage des enjeux). FR/EN (fallback FR).
+function formatRefuseEffect(eff, fr) {
+  if (!eff) return fr ? 'rien' : 'nothing';
+  const p = [];
+  if (eff.notorietyDivBy) p.push((fr ? 'notoriété ÷' : 'notoriety ÷') + eff.notorietyDivBy);
+  if (typeof eff.notoriety === 'number') p.push((fr ? 'notoriété ' : 'notoriety ') + eff.notoriety);
+  if (typeof eff.reputation === 'number') p.push((fr ? 'réputation ' : 'reputation ') + eff.reputation);
+  if (typeof eff.stockPct === 'number') p.push('stock ' + Math.round(eff.stockPct * 100) + '%');
+  if (eff.sellMult && eff.duration) p.push((fr ? 'ventes ' : 'sales ') + Math.round((eff.sellMult - 1) * 100) + `% (${eff.duration}s)`);
+  if (eff.prodMult && eff.duration) p.push((fr ? 'prod ' : 'prod ') + Math.round((eff.prodMult - 1) * 100) + `% (${eff.duration}s)`);
+  if (eff.blockContracts) p.push((fr ? 'contrats bloqués ' : 'contracts blocked ') + eff.blockContracts + 's');
+  if (eff.loseTruckLine) p.push(fr ? "perte d'un camion" : 'lose a truck');
+  if (eff.money) p.push((eff.money < 0 ? '−' : '+') + Math.abs(eff.money).toLocaleString('fr-FR') + '€');
+  return p.join(' · ') || (fr ? 'rien' : 'nothing');
+}
 
 // === FRICTION EVENTS — événements négatifs qui ralentissent l'activité ===
 // Catalogue par phase. Chaque événement a un id, un nom, une durée, des effets,
@@ -6188,6 +6333,13 @@ export default function App() {
   // === ÉVÉNEMENTS DE TENSION P3 ===
   // Crise/opportunité en cours qui attend une décision du joueur (modale).
   const [pendingTensionEvent, setPendingTensionEvent] = useState(null); // {id, expiresAt, ...}
+  // Modale d'événement réduite en bandeau (on peut y revenir tant qu'elle est active).
+  const [tensionMinimized, setTensionMinimized] = useState(false);
+  useEffect(() => { if (pendingTensionEvent) setTensionMinimized(false); }, [pendingTensionEvent]);
+  // Camions volés (vol de camion non racheté) : réduit le nombre de lignes de livraison. Persisté.
+  const [stolenTrucks, setStolenTrucks] = useState(0);
+  const stolenTrucksRef = useRef(0);
+  useEffect(() => { stolenTrucksRef.current = stolenTrucks; }, [stolenTrucks]);
   // Effets durables actifs (provenant de crises subies)
   const [activeTensionEffect, setActiveTensionEffect] = useState(null); // {id, expiresAt, sellMult, blockTrucks}
   // Méga-contrat actif (chrono livraison en cours)
@@ -8387,7 +8539,8 @@ export default function App() {
   };
 
   const maxCap = BASE_CAP + rawStats.capBonus;
-  const maxLines = BASE_LINES + rawStats.linesBonus;
+  const stolenEff = Math.min(stolenTrucks, rawStats.linesBonus);
+  const maxLines = Math.max(0, BASE_LINES + rawStats.linesBonus - stolenEff);
   const displayStock = Math.ceil(stock);
   const atCap = displayStock >= maxCap;
 
@@ -9339,6 +9492,7 @@ export default function App() {
             setClientLoyalty(s.clientLoyalty);
             clientLoyaltyRef.current = s.clientLoyalty;
           }
+          if (typeof s.stolenTrucks === 'number') { setStolenTrucks(s.stolenTrucks); stolenTrucksRef.current = s.stolenTrucks; }
           if (s.chainBroken && typeof s.chainBroken === 'object') {
             setChainBroken(s.chainBroken);
             chainBrokenRef.current = s.chainBroken;
@@ -9480,6 +9634,7 @@ export default function App() {
       achievementsUnlocked,
       contractRejections,
       clientLoyalty,
+      stolenTrucks,
       chainBroken,
       segFamille, segJeunesse, segPro, segLuxe, segEco, brandPositioning, competitors,
       notorietyHistory, pressArticles,
@@ -9736,71 +9891,85 @@ export default function App() {
           // === Crises P3 (gros impact) ===
           // Crise 1 : RAPPEL SANITAIRE
           if (inP3 && Math.random() < CRISIS_RAPPEL_CHANCE * dt) {
-            setPendingTensionEvent({ id: 'crisis_rappel', expiresAt: gameTimeRef.current + 30 });
+            setPendingTensionEvent({ id: 'crisis_rappel', expiresAt: gameTimeRef.current + 15 });
             lastTensionAtRef.current = gameTimeRef.current;
           }
           // Crise 2 : CRISE MÉDIATIQUE VIRALE
           else if (inP3 && Math.random() < CRISIS_VIRAL_CHANCE * dt) {
-            setPendingTensionEvent({ id: 'crisis_viral', expiresAt: gameTimeRef.current + 30 });
+            setPendingTensionEvent({ id: 'crisis_viral', expiresAt: gameTimeRef.current + 15 });
             lastTensionAtRef.current = gameTimeRef.current;
           }
           // Crise 3 : GRÈVE TRANSPORT
           else if (inP3 && Math.random() < CRISIS_STRIKE_CHANCE * dt && linesRef.current.some(l => l && l.contractId)) {
             // Ne déclenche que si au moins un camion est actif
-            setPendingTensionEvent({ id: 'crisis_strike', expiresAt: gameTimeRef.current + 30 });
+            setPendingTensionEvent({ id: 'crisis_strike', expiresAt: gameTimeRef.current + 15 });
             lastTensionAtRef.current = gameTimeRef.current;
           }
           // Crise P3 narrative : L'ENVELOPPE DE PATRICE GLACIER (rare, marquant)
           else if (inP3 && Math.random() < CRISIS_GLACIER_CHANCE * dt && moneyRef.current >= 40000) {
-            setPendingTensionEvent({ id: 'crisis_glacier', expiresAt: gameTimeRef.current + 35 });
+            setPendingTensionEvent({ id: 'crisis_glacier', expiresAt: gameTimeRef.current + 15 });
             lastTensionAtRef.current = gameTimeRef.current;
           }
           // Opportunité 1 : MÉGA-CONTRAT
           else if (inP3 && Math.random() < OPP_MEGACONTRACT_CHANCE * dt) {
-            setPendingTensionEvent({ id: 'opp_megacontract', expiresAt: gameTimeRef.current + 25 });
+            setPendingTensionEvent({ id: 'opp_megacontract', expiresAt: gameTimeRef.current + 15 });
             lastTensionAtRef.current = gameTimeRef.current;
           }
           // Opportunité 2 : INTERVIEW TV
           else if (inP3 && Math.random() < OPP_TVINTERVIEW_CHANCE * dt) {
-            setPendingTensionEvent({ id: 'opp_tvinterview', expiresAt: gameTimeRef.current + 25 });
+            setPendingTensionEvent({ id: 'opp_tvinterview', expiresAt: gameTimeRef.current + 15 });
             lastTensionAtRef.current = gameTimeRef.current;
           }
           // Opportunité 3 : PARI BOURSIER
           else if (inP3 && Math.random() < OPP_BOURSE_CHANCE * dt && moneyRef.current >= 10000) {
-            setPendingTensionEvent({ id: 'opp_bourse', expiresAt: gameTimeRef.current + 25 });
+            setPendingTensionEvent({ id: 'opp_bourse', expiresAt: gameTimeRef.current + 15 });
             lastTensionAtRef.current = gameTimeRef.current;
           }
           // Opportunité P3 catastrophique : TOUT OU RIEN (risque de Game Over)
           else if (inP3 && Math.random() < OPP_ALLIN_CHANCE * dt && moneyRef.current >= 20000) {
-            setPendingTensionEvent({ id: 'opp_allin', expiresAt: gameTimeRef.current + 25 });
+            setPendingTensionEvent({ id: 'opp_allin', expiresAt: gameTimeRef.current + 15 });
             lastTensionAtRef.current = gameTimeRef.current;
           }
           // === Enjeux mid-game (éligibles dès la P2) ===
           // Crise P2 : PANNE CHAMBRE FROIDE
           else if (inP2plus && Math.random() < CRISIS_COLDROOM_CHANCE * dt) {
-            setPendingTensionEvent({ id: 'crisis_coldroom', expiresAt: gameTimeRef.current + 30 });
+            setPendingTensionEvent({ id: 'crisis_coldroom', expiresAt: gameTimeRef.current + 15 });
             lastTensionAtRef.current = gameTimeRef.current;
           }
           // Crise P2 : LITIGE FACTURE CLIENT
           else if (inP2plus && Math.random() < CRISIS_INVOICE_CHANCE * dt) {
-            setPendingTensionEvent({ id: 'crisis_invoice', expiresAt: gameTimeRef.current + 30 });
+            setPendingTensionEvent({ id: 'crisis_invoice', expiresAt: gameTimeRef.current + 15 });
             lastTensionAtRef.current = gameTimeRef.current;
           }
           // Opportunité P2 : RUSH FESTIVAL
           else if (inP2plus && Math.random() < OPP_FESTIVAL_CHANCE * dt) {
-            setPendingTensionEvent({ id: 'opp_festival', expiresAt: gameTimeRef.current + 25 });
+            setPendingTensionEvent({ id: 'opp_festival', expiresAt: gameTimeRef.current + 15 });
             lastTensionAtRef.current = gameTimeRef.current;
           }
           // === Premiers dilemmes (P1) — petites décisions dès le début ===
           // Crise P1 : VOISIN MÉCONTENT
           else if (inP1 && Math.random() < CRISIS_VOISIN_CHANCE * dt) {
-            setPendingTensionEvent({ id: 'crisis_voisin', expiresAt: gameTimeRef.current + 25 });
+            setPendingTensionEvent({ id: 'crisis_voisin', expiresAt: gameTimeRef.current + 15 });
             lastTensionAtRef.current = gameTimeRef.current;
           }
           // Opportunité P1 : COMMANDE EXPRESS DU CAFÉ D'EN BAS
           else if (inP1 && Math.random() < OPP_CAFE_CHANCE * dt && stockRef.current >= 20) {
-            setPendingTensionEvent({ id: 'opp_cafe', expiresAt: gameTimeRef.current + 20 });
+            setPendingTensionEvent({ id: 'opp_cafe', expiresAt: gameTimeRef.current + 15 });
             lastTensionAtRef.current = gameTimeRef.current;
+          }
+          // === Events "racket" (data-driven) — si aucun event bespoke n'a tiré ===
+          else {
+            for (const rk of RACKET_KEYS) {
+              const rd = EVENT_TYPES[rk];
+              if (!rd || phaseRef.current < rd.minPhase) continue;
+              // Le vol de camion n'a de sens que si au moins un camion tourne.
+              if (rk === 'racket_vol_camion' && !linesRef.current.some(l => l && l.contractId)) continue;
+              if (Math.random() < (rd.chance || 0.0005) * dt) {
+                setPendingTensionEvent({ id: rk, expiresAt: gameTimeRef.current + 15 });
+                lastTensionAtRef.current = gameTimeRef.current;
+                break;
+              }
+            }
           }
         }
       }
@@ -9829,6 +9998,7 @@ export default function App() {
       // Auto-expire la modale si pas de décision (ou si expiresAt est invalide → on ferme net).
       if (pendingTensionEventRef.current && (!Number.isFinite(pendingTensionEventRef.current.expiresAt) || gameTimeRef.current >= pendingTensionEventRef.current.expiresAt)) {
         setPendingTensionEvent(null);
+        setTensionMinimized(false);
       }
 
       // === FRICTIONS — cleanup des frictions expirées ===
@@ -13209,6 +13379,19 @@ export default function App() {
       const setter = STRESS_SETTERS[staff];
       if (setter && amount > 0) setter(s => Math.min(100, s + amount));
     };
+    // Helper générique : applique l'effet "refuse" (ou piège) d'un event racket.
+    const applyRacketEffect = (eff, eventId) => {
+      if (!eff) return;
+      if (typeof eff.notoriety === 'number') setNotoriety(n => Math.max(0, Math.min(100, n + eff.notoriety)));
+      if (eff.notorietyDivBy) setNotoriety(n => Math.max(0, Math.floor(n / eff.notorietyDivBy)));
+      if (typeof eff.reputation === 'number') setReputation(r => Math.max(0, Math.min(100, r + eff.reputation)));
+      if (typeof eff.money === 'number') setMoney(m => Math.max(0, m + eff.money));
+      if (typeof eff.stockPct === 'number') setStock(s => Math.max(0, Math.floor(s * (1 + eff.stockPct))));
+      if (eff.sellMult && eff.duration && !activeTensionEffectRef.current) setActiveTensionEffect({ id: eventId, expiresAt: gameTimeRef.current + eff.duration, sellMult: eff.sellMult });
+      if (eff.blockContracts && !activeTensionEffectRef.current) setActiveTensionEffect({ id: eventId, expiresAt: gameTimeRef.current + eff.blockContracts, blockTrucks: true });
+      if (eff.loseTruckLine) setStolenTrucks(s => s + 1);
+      if (eff.stress) bumpStress(eff.stress.staff, eff.stress.amount);
+    };
 
     // CRISE 1 : RAPPEL SANITAIRE
     if (pending.id === 'crisis_rappel') {
@@ -13477,7 +13660,26 @@ export default function App() {
         setEventNotif(language === 'fr' ? 'COMMANDE DÉCLINÉE' : 'ORDER DECLINED');
       }
     }
+    // === RÉSOLVEUR GÉNÉRIQUE (events "racket" data-driven) ===
+    else if (def && def.racket) {
+      const pay = (action === 'mitigate' || action === 'accept');
+      if (pay) {
+        const cost = def.cost || 0;
+        if (cost > 0 && moneyRef.current < cost) {
+          setEventNotif(language === 'fr' ? 'FONDS INSUFFISANTS' : 'INSUFFICIENT FUNDS');
+          return;
+        }
+        if (cost > 0) setMoney(m => m - cost);
+        if (def.payGain) { setMoney(m => m + def.payGain); totalsRef.current.moneyEarned += def.payGain; }
+        if (def.trap) applyRacketEffect(def.refuse, pending.id); // payer = se faire avoir
+        setEventNotif(language === 'fr' ? (def.payNotif ? def.payNotif.fr : 'PAYÉ') : (def.payNotif ? def.payNotif.en : 'PAID'));
+      } else {
+        if (!def.trap) applyRacketEffect(def.refuse, pending.id);
+        setEventNotif(language === 'fr' ? (def.refuseNotif ? def.refuseNotif.fr : 'REFUSÉ') : (def.refuseNotif ? def.refuseNotif.en : 'REFUSED'));
+      }
+    }
 
+    setTensionMinimized(false);
     setPendingTensionEvent(null);
   };
 
@@ -13663,6 +13865,17 @@ export default function App() {
     } : l));
     setReputation(r => Math.max(0, r - RESIGN_REP_LOSS));
     setEventNotif(`${t('notif.contract_cancelled')} · −${RESIGN_REP_LOSS} ${t('notif.reputation')}`);
+  };
+  // Racheter un camion volé (restaure une ligne de livraison perdue).
+  const handleRebuyTruck = () => {
+    if (stolenTrucksRef.current <= 0) return;
+    if (moneyRef.current < TRUCK_REBUY_COST) {
+      setEventNotif(language === 'fr' ? `FONDS INSUFFISANTS · ${TRUCK_REBUY_COST.toLocaleString('fr-FR')}€` : `INSUFFICIENT FUNDS · €${TRUCK_REBUY_COST.toLocaleString('fr-FR')}`);
+      return;
+    }
+    setMoney(m => m - TRUCK_REBUY_COST);
+    setStolenTrucks(s => Math.max(0, s - 1));
+    setEventNotif(language === 'fr' ? 'NOUVEAU CAMION · LIGNE RESTAURÉE' : 'NEW TRUCK · LINE RESTORED');
   };
   const REPAIR_DURATION = 9; // secondes game time (panne normale, augmenté +5s)
   const SABOTAGE_REPAIR_DURATION = 15; // pneus sabotés : réparation longue
@@ -14425,6 +14638,7 @@ export default function App() {
     setVictoryAchieved(false); setVictoryModalOpen(false); setVictoryTimestamp(null); setEndgameEpilogueStage(0);
     setGlacierBeats({}); glacierFiredRef.current = {};
     setClientLoyalty({}); clientLoyaltyRef.current = {};
+    setStolenTrucks(0); stolenTrucksRef.current = 0;
     setGameTime(0); setHeatwaveLeft(0); setDroughtLeft(0); setOutageLeft(0);
     setTempJitter(0);
     setPhase(1); setReputation(50); setLines([]); setMarketplace([]); setFreezingLeft(0); setFreezingTotal(0);
@@ -16128,6 +16342,18 @@ export default function App() {
           margin-bottom: 16px;
           font-style: italic;
         }
+        .tension-stakes { display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; padding: 8px 10px; border: 1px dashed var(--line); border-radius: 4px; }
+        .tension-stakes .stake-row { font-size: 10px; letter-spacing: 0.5px; color: var(--m1); font-variant-numeric: tabular-nums; }
+        .tension-stakes .stake-row b { color: var(--fg); }
+        .tension-stakes .stake-refuse { color: var(--m2); }
+        /* Bandeau "décision en attente" (modale réduite) */
+        .tension-banner { position: fixed; left: 50%; transform: translateX(-50%); bottom: 16px; z-index: 2500; display: flex; align-items: center; gap: 8px; max-width: 90vw; padding: 8px 14px; background: var(--bg); border: 2px solid var(--fg); border-radius: 6px; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.25); animation: bannerPulse 1.2s ease-in-out infinite; }
+        .tension-banner.is-crisis { border-color: var(--fg); }
+        .tension-banner-icon { font-size: 13px; }
+        .tension-banner-name { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40vw; }
+        .tension-banner-timer { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; color: var(--m1); font-variant-numeric: tabular-nums; }
+        .tension-banner-cta { font-size: 9px; font-weight: 700; letter-spacing: 1px; }
+        @keyframes bannerPulse { 0%,100% { box-shadow: 0 4px 16px rgba(0,0,0,0.25); } 50% { box-shadow: 0 4px 22px rgba(0,0,0,0.45); } }
         .tension-timer {
           font-family: 'JetBrains Mono', monospace;
           font-size: 11px;
@@ -16495,6 +16721,9 @@ export default function App() {
         .btn-campaigns.active { background: var(--fg); color: var(--bg); animation: campaignsPulse 2s ease-in-out infinite; }
         @keyframes campaignsPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
         .market-body { padding: 14px 14px 16px; max-height: 70vh; overflow-y: auto; }
+        .truck-rebuy-banner { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; padding: 10px 12px; border: 2px solid var(--fg); border-radius: 5px; }
+        .truck-rebuy-banner .trb-text { font-size: 10px; font-weight: 600; letter-spacing: 0.3px; }
+        .truck-rebuy-banner .trb-btn { flex: 0 0 auto; padding: 6px 12px; font-size: 10px; }
         .market-empty { padding: 30px 12px; text-align: center; font-size: 9px; letter-spacing: 2px; color: var(--m1); }
         /* === Phase 4 : contrats groupés par produit === */
         .market-p4 { display: flex; flex-direction: column; gap: 18px; }
@@ -22205,6 +22434,14 @@ export default function App() {
                 </button>
               </div>
               <div className={`market-body ${cyberLockout > 0 ? 'cyber-glitched' : ''}`}>
+                {phase < 4 && stolenTrucks > 0 && (
+                  <div className="truck-rebuy-banner">
+                    <span className="trb-text">{language === 'fr' ? `🚚 ${stolenTrucks} camion${stolenTrucks > 1 ? 's' : ''} volé${stolenTrucks > 1 ? 's' : ''} — autant de lignes de livraison en moins` : `🚚 ${stolenTrucks} truck${stolenTrucks > 1 ? 's' : ''} stolen — that many fewer delivery lines`}</span>
+                    <button className="modal-btn modal-btn-accept trb-btn" disabled={money < TRUCK_REBUY_COST} onClick={handleRebuyTruck}>
+                      {money < TRUCK_REBUY_COST ? (language === 'fr' ? 'FONDS INSUFFISANTS' : 'INSUFFICIENT FUNDS') : (language === 'fr' ? `RACHETER · ${TRUCK_REBUY_COST.toLocaleString('fr-FR')}€` : `BUY · €${TRUCK_REBUY_COST.toLocaleString('fr-FR')}`)}
+                    </button>
+                  </div>
+                )}
                 {cyberLockout > 0 ? (
                   <div className="cyber-lockout-screen">
                     <div className="cyber-glitch-bars" aria-hidden="true">
@@ -23991,10 +24228,14 @@ export default function App() {
         })()}
 
         {/* === MODALE ÉVÉNEMENT DE TENSION P3 (crise ou opportunité) === */}
-        {pendingTensionEvent && (() => {
+        {pendingTensionEvent && !tensionMinimized && (() => {
           const def = EVENT_TYPES[pendingTensionEvent.id];
           if (!def) return null;
           const isCrisis = def.category === 'tension_crisis';
+          // Enjeux affichés clairement (payer vs refuser).
+          const _fr = language === 'fr';
+          const stakePay = def.cost != null ? `−${def.cost.toLocaleString('fr-FR')}€` : (def.mitigationCost ? `−${def.mitigationCost.toLocaleString('fr-FR')}€` : null);
+          const stakeRefuse = def.racket ? formatRefuseEffect(def.refuse, _fr) : null;
           // Robuste anti-NaN : si expiresAt/gameTime sont invalides, on n'affiche jamais "NaNs"
           // (le tick auto-ferme la modale invalide).
           const _exp = Number(pendingTensionEvent.expiresAt);
@@ -24016,14 +24257,20 @@ export default function App() {
           const canAfford = mitigateCost === 0 || money >= mitigateCost;
           const canBet = pendingTensionEvent.id !== 'opp_bourse' || money >= 10000;
           return (
-            <div className="modal-backdrop" onClick={() => setPendingTensionEvent(null)}>
+            <div className="modal-backdrop" onClick={() => setTensionMinimized(true)}>
               <div className={`modal tension-modal ${isCrisis ? 'is-crisis' : 'is-opportunity'}`} onClick={e => e.stopPropagation()}>
                 <div className="modal-header">
                   <span className="modal-title">{isCrisis ? '⚠ ' : '✦ '}{name}</span>
-                  <button className="modal-close" onClick={() => setPendingTensionEvent(null)}><X size={14} strokeWidth={2} /></button>
+                  <button className="modal-close" onClick={() => setTensionMinimized(true)}><X size={14} strokeWidth={2} /></button>
                 </div>
                 <div className="tension-body">
                   <div className="tension-intro">{intro}</div>
+                  {(stakePay || stakeRefuse) && (
+                    <div className="tension-stakes">
+                      {stakePay && <div className="stake-row stake-pay"><b>{_fr ? 'Payer' : 'Pay'}</b> · {stakePay}</div>}
+                      {stakeRefuse && <div className="stake-row stake-refuse"><b>{_fr ? 'Refuser' : 'Refuse'}</b> · {stakeRefuse}</div>}
+                    </div>
+                  )}
                   <div className="tension-timer">{language === 'fr' ? `Décision dans ${Math.ceil(remaining)}s` : `Decision in ${Math.ceil(remaining)}s`}</div>
                 </div>
                 <div className="modal-actions">
@@ -24056,6 +24303,23 @@ export default function App() {
                   )}
                 </div>
               </div>
+            </div>
+          );
+        })()}
+
+        {/* Bandeau "décision en attente" (modale réduite) — cliquable pour y revenir tant qu'active */}
+        {pendingTensionEvent && tensionMinimized && (() => {
+          const def = EVENT_TYPES[pendingTensionEvent.id];
+          if (!def) return null;
+          const isCrisis = def.category === 'tension_crisis';
+          const nm = def.name[language] || def.name.fr;
+          const rem = Math.max(0, Math.ceil((Number(pendingTensionEvent.expiresAt) - Number(gameTime)) || 0));
+          return (
+            <div className={`tension-banner ${isCrisis ? 'is-crisis' : 'is-opportunity'}`} onClick={() => setTensionMinimized(false)} role="button" tabIndex={0}>
+              <span className="tension-banner-icon">{isCrisis ? '⚠' : '✦'}</span>
+              <span className="tension-banner-name">{nm}</span>
+              <span className="tension-banner-timer">{rem}s</span>
+              <span className="tension-banner-cta">{language === 'fr' ? 'DÉCIDER →' : 'DECIDE →'}</span>
             </div>
           );
         })()}
