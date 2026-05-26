@@ -6285,6 +6285,7 @@ export default function App() {
   const activeEventRef = useRef(null);
   const nextEventAtRef = useRef(0);
   const moneyRef = useRef(0);
+  const lastGoodMoneyRef = useRef(0); // Anti-NaN : dernière valeur d'argent finie connue (auto-réparation).
   const prevGrumpyRef = useRef({ fred: false, brigitte: false, janice: false, lenny: false });
   const meltTutorialShownRef = useRef(false);
   const seasonStartTotalsRef = useRef({ produced: 0, deliveries: 0 });
@@ -9588,8 +9589,13 @@ export default function App() {
     const id = setInterval(() => {
       try {
       if (isPausedRef.current) return;
-      const dt = (TICK_MS / 1000) * timeMultiplierRef.current;
-      setGameTime(t => t + dt);
+      // Anti-NaN : si l'argent est devenu NaN (bloquerait les ventes), on restaure la dernière
+      // valeur finie connue ; sinon on la mémorise.
+      if (!Number.isFinite(moneyRef.current)) { moneyRef.current = lastGoodMoneyRef.current; setMoney(lastGoodMoneyRef.current); }
+      else { lastGoodMoneyRef.current = moneyRef.current; }
+      const _mult = Number.isFinite(timeMultiplierRef.current) ? timeMultiplierRef.current : 1;
+      const dt = (TICK_MS / 1000) * _mult;
+      setGameTime(t => { const n = t + dt; return Number.isFinite(n) ? n : t; });
 
       // Notoriety slow decay (Phase 3+) — perd ~0.5 par année si pas entretenue
       if (phaseRef.current >= 3 && notorietyRef.current > 0) {
@@ -9824,8 +9830,8 @@ export default function App() {
           : (language === 'fr' ? 'MÉGA-CONTRAT MANQUÉ' : 'MEGA-CONTRACT MISSED');
         setEventNotif(`${failLabel} · −${Math.abs(notoPen)} ${language === 'fr' ? 'NOTORIÉTÉ' : 'NOTORIETY'}`);
       }
-      // Auto-expire la modale si pas de décision
-      if (pendingTensionEventRef.current && gameTimeRef.current >= pendingTensionEventRef.current.expiresAt) {
+      // Auto-expire la modale si pas de décision (ou si expiresAt est invalide → on ferme net).
+      if (pendingTensionEventRef.current && (!Number.isFinite(pendingTensionEventRef.current.expiresAt) || gameTimeRef.current >= pendingTensionEventRef.current.expiresAt)) {
         setPendingTensionEvent(null);
       }
 
@@ -11937,9 +11943,12 @@ export default function App() {
         } // fin else (pas de cyberLockout)
       }
 
+      // Anti-NaN : un stock NaN bloquerait toute vente — on le verrouille à une valeur finie.
+      if (!Number.isFinite(newStock)) newStock = 0;
+      if (!Number.isFinite(meltedThisSeasonRef.current)) meltedThisSeasonRef.current = 0;
       setStock(newStock);
       setMeltedSeason(meltedThisSeasonRef.current);
-      setMeltRateNow(curMelt);
+      setMeltRateNow(Number.isFinite(curMelt) ? curMelt : 0);
       } catch (err) {
         console.error('[Meltdown tick error]', err);
       }
@@ -13464,11 +13473,13 @@ export default function App() {
     else if (pending.id === 'opp_cafe') {
       if (action === 'accept') {
         const qty = Math.min(def.cafeQty || 20, Math.floor(stockRef.current));
-        if (qty <= 0) {
+        if (!Number.isFinite(qty) || qty <= 0) {
           setEventNotif(language === 'fr' ? 'STOCK INSUFFISANT' : 'NOT ENOUGH STOCK');
           return;
         }
-        const revenue = Math.round(qty * effectiveSell * (def.cafePriceMult || 3) * 100) / 100;
+        // Anti-NaN : repli sur le prix de base si effectiveSell est invalide.
+        const _sell = Number.isFinite(effectiveSell) ? effectiveSell : BASE_SELL_PRICE;
+        const revenue = Math.round(qty * _sell * (def.cafePriceMult || 3) * 100) / 100;
         setStock(s => Math.max(0, s - qty));
         setMoney(m => m + revenue);
         totalsRef.current.moneyEarned += revenue;
@@ -24004,7 +24015,11 @@ export default function App() {
           const def = EVENT_TYPES[pendingTensionEvent.id];
           if (!def) return null;
           const isCrisis = def.category === 'tension_crisis';
-          const remaining = Math.max(0, pendingTensionEvent.expiresAt - gameTime);
+          // Robuste anti-NaN : si expiresAt/gameTime sont invalides, on n'affiche jamais "NaNs"
+          // (le tick auto-ferme la modale invalide).
+          const _exp = Number(pendingTensionEvent.expiresAt);
+          const _gt = Number(gameTime);
+          const remaining = (Number.isFinite(_exp) && Number.isFinite(_gt)) ? Math.max(0, _exp - _gt) : 0;
           const name = def.name[language] || def.name.fr;
           const intro = def.intro[language] || def.intro.fr;
           // Calcul coût mitigation pour grève
