@@ -13387,17 +13387,22 @@ export default function App() {
       if (setter && amount > 0) setter(s => Math.min(100, s + amount));
     };
     // Helper générique : applique l'effet "refuse" (ou piège) d'un event racket.
+    // Renvoie true si l'effet a créé un bandeau persistant à décompte
+    // (activeTensionEffect) — dans ce cas le résolveur n'affiche PAS le
+    // toast eventNotif redondant (le bandeau montre déjà nom + effet + secondes).
     const applyRacketEffect = (eff, eventId) => {
-      if (!eff) return;
+      if (!eff) return false;
+      let madeBanner = false;
       if (typeof eff.notoriety === 'number') setNotoriety(n => Math.max(0, Math.min(100, n + eff.notoriety)));
       if (eff.notorietyDivBy) setNotoriety(n => Math.max(0, Math.floor(n / eff.notorietyDivBy)));
       if (typeof eff.reputation === 'number') setReputation(r => Math.max(0, Math.min(100, r + eff.reputation)));
       if (typeof eff.money === 'number') setMoney(m => Math.max(0, m + eff.money));
       if (typeof eff.stockPct === 'number') setStock(s => Math.max(0, Math.floor(s * (1 + eff.stockPct))));
-      if (eff.sellMult && eff.duration && !activeTensionEffectRef.current) setActiveTensionEffect({ id: eventId, expiresAt: gameTimeRef.current + eff.duration, sellMult: eff.sellMult });
-      if (eff.blockContracts && !activeTensionEffectRef.current) setActiveTensionEffect({ id: eventId, expiresAt: gameTimeRef.current + eff.blockContracts, blockTrucks: true });
+      if (eff.sellMult && eff.duration && !activeTensionEffectRef.current) { setActiveTensionEffect({ id: eventId, expiresAt: gameTimeRef.current + eff.duration, sellMult: eff.sellMult }); madeBanner = true; }
+      if (eff.blockContracts && !activeTensionEffectRef.current) { setActiveTensionEffect({ id: eventId, expiresAt: gameTimeRef.current + eff.blockContracts, blockTrucks: true }); madeBanner = true; }
       if (eff.loseTruckLine) setStolenTrucks(s => s + 1);
       if (eff.stress) bumpStress(eff.stress.staff, eff.stress.amount);
+      return madeBanner;
     };
 
     // CRISE 1 : RAPPEL SANITAIRE
@@ -13681,8 +13686,10 @@ export default function App() {
         if (def.trap) applyRacketEffect(def.refuse, pending.id); // payer = se faire avoir
         setEventNotif(def.payNotif ? (def.payNotif[language] || def.payNotif.fr) : 'PAYÉ');
       } else {
-        if (!def.trap) applyRacketEffect(def.refuse, pending.id);
-        setEventNotif(def.refuseNotif ? (def.refuseNotif[language] || def.refuseNotif.fr) : 'REFUSÉ');
+        const madeBanner = def.trap ? false : applyRacketEffect(def.refuse, pending.id);
+        // Si un bandeau persistant à décompte a été créé, on n'affiche pas le
+        // toast redondant (évite deux bandeaux pour le même événement).
+        if (!madeBanner) setEventNotif(def.refuseNotif ? (def.refuseNotif[language] || def.refuseNotif.fr) : 'REFUSÉ');
       }
     }
 
