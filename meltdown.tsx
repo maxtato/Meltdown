@@ -1707,11 +1707,11 @@ const UPGRADES = [
     salary: { bas: 1180, std: 1890, haut: 2860 }, salaryRole: 'brigitte', gradeName: { fr: "Assistante de Direction", en: "Executive Assistant", es: "Asistente de Dirección", zh: "行政助理", ru: "Исполнительный ассистент", it: "Assistente di Direzione", de: "Chefassistentin" },
     longDesc: { fr: "Brigitte devient ton assistante de direction. Elle gère ton agenda, négocie les contrats les plus stratégiques, et te représente dans les réunions où tu ne peux pas être. C'est elle qui ouvre les portes des plus gros clients internationaux (Niveau 5-7 selon son salaire, Skyline uniquement en HAUT).", en: "Brigitte becomes your executive assistant. She manages your calendar, negotiates the most strategic contracts, and represents you in meetings you can't attend. She opens the doors to your biggest international clients (Level 5-7 based on her salary, Skyline only on HIGH).", es: "Brigitte se convierte en tu asistente de dirección. Gestiona tu agenda, negocia los contratos más estratégicos y te representa en reuniones donde no puedes estar. Es ella quien abre las puertas a los mayores clientes internacionales (Nivel 5-7 según su salario, Skyline solo en ALTO).", zh: "布丽吉特成为你的行政助理。她管理你的日程，谈判最具战略性的合同，并在你无法出席的会议上代表你。她为你打开最大国际客户的大门（按工资5-7级,,Skyline仅限高薪）。", ru: "Брижит становится вашим исполнительным ассистентом. Она ведёт ваш календарь, договаривается о самых стратегических контрактах и представляет вас на встречах, где вы не можете быть. Она открывает двери к вашим крупнейшим международным клиентам (Уровни 5-7 в зависимости от зарплаты, Skyline только на ВЫСОКОЙ).", it: "Brigitte diventa la tua assistente di direzione. Gestisce la tua agenda, negozia i contratti più strategici e ti rappresenta nelle riunioni a cui non puoi partecipare. Apre le porte ai tuoi maggiori clienti internazionali (Livello 5-7 in base allo stipendio, Skyline solo su ALTO).", de: "Brigitte wird deine Chefassistentin. Sie managt deinen Kalender, verhandelt die strategischsten Verträge und vertritt dich in Meetings, die du nicht wahrnehmen kannst. Sie öffnet die Türen zu deinen größten internationalen Kunden (Stufe 5-7 je nach Gehalt, Skyline nur bei HOCH)." },
     apply: s => ({ ...s, hasBrigitte: true }) },
-  { id: 'preventive',      Icon: ShieldCheck, count: 1, destructible: false, phase: 1, name: { fr: 'Maintenance préventive', en: 'Preventive maintenance', es: 'Mantenimiento preventivo', zh: "预防性维护", ru: "Профилактическое обслуживание", it: "Manutenzione preventiva", de: "Vorbeugende Wartung" }, desc: { fr: 'Destruction × 0.5', en: 'Destruction × 0.5', es: 'Destrucción × 0.5', zh: "损毁 × 0.5", ru: "Разрушение × 0.5", it: "Distruzione × 0.5", de: "Zerstörung × 0.5" }, cost: 2500,
+  { id: 'preventive',      Icon: ShieldCheck, count: 1, destructible: false, phase: 1, name: { fr: 'Inspection anti-surchauffe', en: 'Anti-overheat inspection', es: 'Inspección antisobrecalentamiento', zh: "防过热检查", ru: "Проверка от перегрева", it: "Ispezione anti-surriscaldamento", de: "Überhitzungs-Inspektion" }, desc: { fr: 'Destruction × 0.5', en: 'Destruction × 0.5', es: 'Destrucción × 0.5', zh: "损毁 × 0.5", ru: "Разрушение × 0.5", it: "Distruzione × 0.5", de: "Zerstörung × 0.5" }, cost: 2500,
     longDesc: { fr: "Tu fais des check-ups réguliers de ton matériel. Risque de destruction du Mini-congélateur et du Pro divisé par 2. Indispensable dès que tu possèdes des congélateurs vulnérables à la canicule.", en: "You run regular check-ups on your equipment. Risk of destruction of the Mini-freezer and Pro is halved. Essential as soon as you own freezers vulnerable to heatwaves.", es: "Haces revisiones regulares de tu material. Riesgo de destrucción del Mini-congelador y del Pro reducido a la mitad. Esencial en cuanto tienes congeladores vulnerables a olas de calor.", zh: "你定期检查设备。迷你冷冻柜和专业柜的损毁风险减半。一旦拥有易受热浪影响的冷冻柜便必备。", ru: "Вы регулярно проверяете оборудование. Риск разрушения Мини-морозильника и Про уполовинивается. Необходимо, как только у вас есть морозильники, уязвимые к жаре.", it: "Esegui controlli regolari sull'attrezzatura. Il rischio di distruzione del Mini-congelatore e del Pro è dimezzato. Essenziale non appena possiedi congelatori vulnerabili alle ondate di caldo.", de: "Du führst regelmäßige Kontrollen deiner Ausrüstung durch. Zerstörungsrisiko der Mini- und Profi-Gefriertruhe halbiert. Essenziell, sobald du hitzewellenanfällige Gefriertruhen besitzt." },
     apply: s => ({ ...s, destructionMult: s.destructionMult * 0.5 }) },
   { id: 'joint_renforce',  Icon: ShieldCheck, count: 2, destructible: false, phase: 1, name: { fr: 'Joint renforcé', en: 'Reinforced seal', es: 'Junta reforzada', zh: "加固密封", ru: "Усиленное уплотнение", it: "Guarnizione rinforzata", de: "Verstärkte Dichtung" }, desc: { fr: 'Destruction × 0.5 (cumul)', en: 'Destruction × 0.5 (stack)', es: 'Destrucción × 0.5 (acum.)', zh: "损毁 × 0.5（叠加）", ru: "Разрушение × 0.5 (стак)", it: "Distruzione × 0.5 (cumula)", de: "Zerstörung × 0.5 (kumuliert)" }, cost: 10000,
-    longDesc: { fr: "Joints d'étanchéité haute résistance sur tous tes congélateurs. Risque de destruction ×0.5 (cumul avec Maintenance préventive = ×0.25). Quasi-immunité contre les pannes thermiques.", en: "High-resistance seals on all your freezers. Destruction risk ×0.5 (stacks with Preventive maintenance = ×0.25). Near-immunity to thermal failures.", es: "Juntas de alta resistencia en todos tus congeladores. Riesgo de destrucción ×0.5 (acumula con Mantenimiento preventivo = ×0.25). Casi inmunidad a fallos térmicos.", zh: "所有冷冻柜采用高强度密封。损毁风险 ×0.5（与预防性维护叠加 = ×0.25）。几乎免疫热故障。", ru: "Высокопрочные уплотнения на всех морозильниках. Риск разрушения ×0.5 (складывается с Профилактическим обслуживанием = ×0.25). Почти иммунитет к тепловым отказам.", it: "Guarnizioni ad alta resistenza su tutti i congelatori. Rischio distruzione ×0.5 (si cumula con Manutenzione preventiva = ×0.25). Quasi immunità ai guasti termici.", de: "Hochfeste Dichtungen an allen Gefriertruhen. Zerstörungsrisiko ×0.5 (kumuliert mit Vorbeugender Wartung = ×0.25). Nahezu Immunität gegen thermische Ausfälle." },
+    longDesc: { fr: "Joints d'étanchéité haute résistance sur tous tes congélateurs. Risque de destruction ×0.5 (cumul avec Inspection anti-surchauffe = ×0.25). Quasi-immunité contre les pannes thermiques.", en: "High-resistance seals on all your freezers. Destruction risk ×0.5 (stacks with Anti-overheat inspection = ×0.25). Near-immunity to thermal failures.", es: "Juntas de alta resistencia en todos tus congeladores. Riesgo de destrucción ×0.5 (acumula con Inspección antisobrecalentamiento = ×0.25). Casi inmunidad a fallos térmicos.", zh: "所有冷冻柜采用高强度密封。损毁风险 ×0.5（与防过热检查叠加 = ×0.25）。几乎免疫热故障。", ru: "Высокопрочные уплотнения на всех морозильниках. Риск разрушения ×0.5 (складывается с Проверкой от перегрева = ×0.25). Почти иммунитет к тепловым отказам.", it: "Guarnizioni ad alta resistenza su tutti i congelatori. Rischio distruzione ×0.5 (si cumula con Ispezione anti-surriscaldamento = ×0.25). Quasi immunità ai guasti termici.", de: "Hochfeste Dichtungen an allen Gefriertruhen. Zerstörungsrisiko ×0.5 (kumuliert mit Überhitzungs-Inspektion = ×0.25). Nahezu Immunität gegen thermische Ausfälle." },
     apply: s => ({ ...s, destructionMult: s.destructionMult * 0.5 }) },
   // === INVESTISSEMENTS RH ===
   { id: 'machine_cafe',    Icon: Coffee,   count: 1, destructible: false, phase: 1, name: { fr: 'Machine à café pro', en: 'Pro coffee machine', es: 'Cafetera profesional', zh: "专业咖啡机", ru: "Проф. кофемашина", it: "Macchina caffè pro", de: "Profi-Kaffeemaschine" }, desc: { fr: 'Moral +0.2/30s · tous', en: 'Morale +0.2/30s · all', es: 'Moral +0.2/30s · todos', zh: "士气 +0.2/30秒 · 全员", ru: "Мораль +0.2/30с · всем", it: "Morale +0.2/30s · a tutti", de: "Moral +0.2/30s · alle" }, cost: 5000,
@@ -1829,8 +1829,8 @@ const UPGRADES = [
   { id: 'chambre_froide_indus', Icon: Snowflake, count: 1, destructible: false, phase: 2, name: { fr: 'Chambre froide industrielle', en: 'Industrial cold room', es: 'Cámara fría industrial', zh: "工业冷库", ru: "Промышленная холодильная камера", it: "Camera fredda industriale", de: "Industrielle Kühlkammer" }, desc: { fr: 'cap +5000 · fonte ×0.15', en: 'cap +5000 · melt ×0.15', es: 'cap +5000 · fundido ×0.15', zh: "容量 +5000 · 融化 ×0.15", ru: "ёмк +5000 · таяние ×0.15", it: "cap +5000 · fusione ×0.15", de: "Kap +5000 · Schmelze ×0.15" }, cost: 120000,
     longDesc: { fr: "Tu installes une vraie chambre froide industrielle. 5000 places de stockage en plus et la fonte tombe à 30% de la normale. Tu peux constituer des stocks tampons solides pour les grosses commandes.", en: "You install a real industrial cold room. 5000 extra storage slots and melt drops to 30% of normal. You can build solid buffer stocks for large orders.", es: "Instalas una verdadera cámara fría industrial. 5000 plazas extra y el fundido cae al 30% del normal. Puedes constituir stocks tampón sólidos para grandes pedidos.", zh: "你安装一座真正的工业冷库。多5000个仓储位，融化降到正常的30%。可以为大订单构建坚实的缓冲库存。", ru: "Устанавливаете настоящую промышленную холодильную камеру. +5000 ячеек, таяние падает до 30% от нормы. Можно создавать надёжные буферные запасы для крупных заказов.", it: "Installi una vera camera fredda industriale. 5000 posti in più e la fusione scende al 30% del normale. Puoi costituire scorte cuscinetto solide per grandi ordini.", de: "Du installierst eine echte industrielle Kühlkammer. 5000 Lagerplätze mehr und Schmelze sinkt auf 30% des Normalen. Du kannst solide Pufferbestände für Großaufträge aufbauen." },
     apply: s => ({ ...s, capBonus: s.capBonus + 5000, meltMult: s.meltMult * 0.15 }) },
-  { id: 'maintenance_preventive', Icon: Wrench, count: 1, destructible: false, phase: 2, name: { fr: 'Maintenance préventive', en: 'Preventive maintenance', es: 'Mantenimiento preventivo', zh: "预防性维护", ru: "Профилактическое обслуживание", it: "Manutenzione preventiva", de: "Vorbeugende Wartung" }, desc: { fr: 'risque panne ÷3', en: 'breakdown risk ÷3', es: 'riesgo avería ÷3', zh: "故障风险 ÷3", ru: "риск поломки ÷3", it: "rischio guasti ÷3", de: "Ausfallrisiko ÷3" }, cost: 70000,
-    longDesc: { fr: "Tu contractes une équipe de techniciens qui vérifie chaque mois tes appareils de production : groupes froids, chaîne, capteurs, joints. Le risque de panne suite à un sabotage frigo passe de 40% à 12%. C'est l'assurance vie de ton outil de production.", en: "You hire a technician team that checks your production gear every month: cooling units, line, sensors, seals. Breakdown risk after a freezer sabotage drops from 40% to 12%. It's the life insurance of your production rig.", es: "Contratas un equipo de técnicos que verifica cada mes tus equipos de producción: grupos fríos, línea, sensores, juntas. El riesgo de avería tras un sabotaje frigo cae del 40% al 12%. Es el seguro de vida de tu producción.", zh: "你聘请技术团队每月检查生产设备：制冷机组、生产线、传感器、密封件。冷冻柜被破坏后的故障风险从40%降到12%。这是你生产工具的人寿保险。", ru: "Вы нанимаете команду техников, которая каждый месяц проверяет производственное оборудование: холодильные агрегаты, линию, датчики, уплотнения. Риск поломки после саботажа морозильника падает с 40% до 12%. Это страховка жизни производства.", it: "Assumi un team di tecnici che controlla mensilmente i tuoi impianti: gruppi frigoriferi, linea, sensori, guarnizioni. Il rischio di guasto dopo un sabotaggio frigorifero scende dal 40% al 12%. È l'assicurazione sulla vita del tuo strumento di produzione.", de: "Du beauftragst ein Technikerteam, das deine Produktionsanlagen monatlich prüft: Kühlaggregate, Linie, Sensoren, Dichtungen. Das Ausfallrisiko nach einer Kühl-Sabotage sinkt von 40 % auf 12 %. Es ist die Lebensversicherung deines Werkzeugs." },
+  { id: 'maintenance_preventive', Icon: Wrench, count: 1, destructible: false, phase: 2, name: { fr: 'Maintenance préventive', en: 'Preventive maintenance', es: 'Mantenimiento preventivo', zh: "预防性维护", ru: "Профилактическое обслуживание", it: "Manutenzione preventiva", de: "Vorbeugende Wartung" }, desc: { fr: 'risque panne ÷4 · fonte réduite', en: 'breakdown risk ÷4 · less melt', es: 'riesgo avería ÷4 · menos fundido', zh: "故障风险 ÷4 · 减少融化", ru: "риск поломки ÷4 · меньше таяния", it: "rischio guasti ÷4 · meno fusione", de: "Ausfallrisiko ÷4 · weniger Schmelze" }, cost: 70000,
+    longDesc: { fr: "Tu contractes une équipe de techniciens qui vérifie chaque mois tes groupes froids, ta chaîne et tes joints. Les pannes de chaîne — d'autant plus fréquentes que ton usine grossit et qu'il fait chaud — voient leur risque divisé par 4, et la part de stock qui fond à chaque panne est réduite de moitié. L'assurance-vie de ton outil de production dès que tu montes en cadence.", en: "You hire a technician team that checks your cooling units, line and seals every month. Chain breakdowns — which get more frequent as your factory grows and the heat rises — see their risk divided by 4, and the share of stock that melts per breakdown is halved. The life insurance of your production rig once you scale up.", es: "Contratas un equipo de técnicos que revisa cada mes tus grupos fríos, tu línea y tus juntas. Las averías de línea —cada vez más frecuentes según crece tu fábrica y sube el calor— ven su riesgo dividido por 4, y la parte de stock que se funde por avería se reduce a la mitad. El seguro de vida de tu producción en cuanto subes de cadencia.", zh: "你聘请技术团队每月检查制冷机组、生产线和密封件。生产线故障——工厂越大、天气越热就越频繁——风险降为四分之一，每次故障融化的库存减半。当你提升产能时，这是你生产工具的人寿保险。", ru: "Вы нанимаете команду техников, которая ежемесячно проверяет холодильные агрегаты, линию и уплотнения. Поломки линии — тем более частые, чем больше фабрика и сильнее жара — снижают риск вчетверо, а доля запаса, тающая при каждой поломке, уменьшается вдвое. Страховка жизни производства, как только вы наращиваете темп.", it: "Assumi un team di tecnici che controlla ogni mese gruppi frigoriferi, linea e guarnizioni. I guasti di linea — sempre più frequenti man mano che la fabbrica cresce e il caldo aumenta — vedono il rischio diviso per 4, e la quota di scorta che si scioglie a ogni guasto è dimezzata. L'assicurazione sulla vita della produzione appena sali di cadenza.", de: "Du beauftragst ein Technikerteam, das monatlich Kühlaggregate, Linie und Dichtungen prüft. Linienausfälle — umso häufiger, je größer die Fabrik und je heißer es wird — sehen ihr Risiko geviertelt, und der bei jedem Ausfall schmelzende Bestandsanteil wird halbiert. Die Lebensversicherung deiner Produktion, sobald du hochskalierst." },
     apply: s => s },
   { id: 'entrepot_xl', Icon: Factory, count: 1, destructible: false, phase: 2, name: { fr: 'Entrepôt XL', en: 'XL warehouse', es: 'Almacén XL', zh: "超大仓库", ru: "Склад XL", it: "Magazzino XL", de: "XL-Lager" }, desc: { fr: '+10000 cap', en: '+10000 cap', es: '+10000 cap', zh: "+10000 容量", ru: "+10000 ёмкость", it: "+10000 cap", de: "+10000 Kap" }, cost: 350000,
     longDesc: { fr: "Tu signes pour un entrepôt XL avec quai de chargement double. 10000 places en plus. Tu peux désormais gérer des contrats massifs sans saturation.", en: "You sign for an XL warehouse with double loading dock. 10000 extra slots. You can now handle massive contracts without saturation.", es: "Firmas por un almacén XL con muelle de carga doble. 10000 plazas extra. Ya puedes gestionar contratos masivos sin saturación.", zh: "你签下双装卸台的超大仓库。多10000个位。现在可以处理大型合同而不饱和。", ru: "Подписываешь договор на XL-склад с двойной погрузочной зоной. +10000 мест. Можно обрабатывать массивные контракты без насыщения.", it: "Firmi per un magazzino XL con doppia banchina di carico. 10000 posti in più. Puoi gestire contratti enormi senza saturazione.", de: "Du unterschreibst für ein XL-Lager mit doppelter Laderampe. 10000 Plätze mehr. Du kannst jetzt massive Verträge ohne Sättigung bewältigen." },
@@ -9854,20 +9854,31 @@ export default function App() {
       }
 
       // === PANNE NATURELLE DE LA CHAÎNE (usure normale) ===
-      // En P2+, sans maintenance préventive, la chaîne peut tomber toute seule.
-      // Chance par seconde calibrée pour ~1 panne / 12 min sans maintenance, ~1 panne / 45 min avec.
-      // Ne se déclenche pas si déjà cassée, en pause, ou production déjà à 0.
+      // En P2+, la chaîne peut tomber toute seule. Le RISQUE et la DURÉE montent
+      // avec l'intensité de l'opé : plus de congélateurs, canicule, phase avancée
+      // = plus de casse et arrêts plus longs. La maintenance préventive divise le
+      // risque par 4 et limite la fonte → elle devient rentable dès qu'on scale.
       if (phaseRef.current >= 2 && !chainBrokenRef.current && !isPausedRef.current && !gameOverRef.current) {
         const hasMaintenance = !!ownedRef.current['maintenance_preventive'];
-        const natChance = hasMaintenance ? 0.00037 : 0.00139; // /s
+        const _fc = 1 + (ownedRef.current['mini_freezer'] ? 1 : 0) + (ownedRef.current['pro_freezer'] ? 2 : 0);
+        const _heatFactor = heatwaveLeftRef.current > 0 ? 2.2 : 1;
+        const _phaseFactor = phaseRef.current >= 3 ? 1.5 : 1;
+        const intensity = (1 + 0.35 * (_fc - 1)) * _heatFactor * _phaseFactor;
+        const natChance = (0.00075 * intensity) / (hasMaintenance ? 4 : 1); // /s
         if (Math.random() < natChance * dt) {
-          const dur = 12;
+          // Durée qui scale avec la taille de l'opé (arrêt plus coûteux à grande échelle).
+          const dur = Math.round(14 + 3 * (_fc - 1) + (phaseRef.current >= 3 ? 6 : 0));
           setChainBroken({
             startedAt: gameTimeRef.current,
             repairUntil: gameTimeRef.current + dur,
             brokenMsg: { fr: 'Panne chaîne · usure', en: 'Chain breakdown · wear', es: 'Avería línea · desgaste', zh: '生产线故障·磨损', ru: 'Поломка линии · износ', it: 'Guasto linea · usura', de: 'Linienausfall · Verschleiß' },
           });
-          setEventNotif(language === 'fr' ? '⚠ PANNE CHAÎNE · 12S' : language === 'en' ? '⚠ CHAIN BREAKDOWN · 12S' : '⚠ CHAIN BREAKDOWN');
+          // Sting immédiat : les bacs tampon se réchauffent et une part du stock fond.
+          // La maintenance amortit la perte (joints/groupes froids tenus).
+          const lossPct = hasMaintenance ? 0.05 : 0.12;
+          const _melted = Math.floor(stockRef.current * lossPct);
+          if (_melted > 0) setStock(s => Math.max(0, s - _melted));
+          setEventNotif(language === 'fr' ? `⚠ PANNE CHAÎNE · ${dur}S · −${_melted} GL` : `⚠ CHAIN BREAKDOWN · ${dur}S · −${_melted} IC`);
         }
       }
 
@@ -13906,6 +13917,20 @@ export default function App() {
     setStolenTrucks(s => Math.max(0, s - 1));
     setEventNotif(language === 'fr' ? 'NOUVEAU CAMION · LIGNE RESTAURÉE' : 'NEW TRUCK · LINE RESTORED');
   };
+  // Coût pour réparer instantanément une panne de chaîne (au lieu d'attendre).
+  const chainRepairCost = (ph) => Math.round(400 + 600 * (ph || 1));
+  const handleRepairChain = () => {
+    if (!chainBrokenRef.current || chainBrokenRef.current.repairUntil <= gameTimeRef.current) return;
+    const cost = chainRepairCost(phaseRef.current);
+    if (moneyRef.current < cost) {
+      setEventNotif(language === 'fr' ? `FONDS INSUFFISANTS · ${cost.toLocaleString('fr-FR')}€` : `INSUFFICIENT FUNDS · €${cost.toLocaleString('fr-FR')}`);
+      return;
+    }
+    setMoney(m => m - cost);
+    setChainBroken(null);
+    chainBrokenRef.current = null;
+    setEventNotif(language === 'fr' ? 'CHAÎNE RÉPARÉE · PRODUCTION REPRISE' : 'CHAIN REPAIRED · PRODUCTION RESUMED');
+  };
   const REPAIR_DURATION = 9; // secondes game time (panne normale, augmenté +5s)
   const SABOTAGE_REPAIR_DURATION = 15; // pneus sabotés : réparation longue
   const handleRepairVehicle = (lineIdx) => {
@@ -16050,6 +16075,9 @@ export default function App() {
         .banner-uniform .banner-main { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
         .banner-uniform .banner-title { font-size: 11px; letter-spacing: 2px; }
         .banner-uniform .banner-sub { font-size: 8.5px; letter-spacing: 1.2px; font-weight: 500; opacity: 0.78; text-transform: uppercase; }
+        .chain-repair-btn { margin-top: 4px; width: 100%; padding: 6px 10px; font-size: 9.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; cursor: pointer; border: 1.5px solid currentColor; border-radius: 4px; background: transparent; color: inherit; font-family: inherit; transition: opacity 0.12s; }
+        .chain-repair-btn:hover:not(:disabled) { opacity: 0.7; }
+        .chain-repair-btn:disabled { opacity: 0.45; cursor: not-allowed; }
         /* === BANNIÈRES UNIFIÉES — 3 CATÉGORIES === */
         /* Toutes les bannières partagent la même structure (.banner-uniform).
            Seule la catégorie change le style visuel : NEGATIF / POSITIF / SABOTAGE. */
@@ -21680,7 +21708,9 @@ export default function App() {
               );
             })}
             {chainBroken && chainBroken.repairUntil > gameTime && (() => {
-              const remain = Math.max(0, Math.ceil(chainBroken.repairUntil - gameTime));
+              const remain = Math.max(0, Math.ceil(chainBroken.repairUntil - gameTime)) || 0;
+              const repairCost = chainRepairCost(phase);
+              const canPay = money >= repairCost;
               return (
                 <div className="banner cat-negative banner-uniform">
                   <div className="banner-main">
@@ -21688,6 +21718,11 @@ export default function App() {
                     <div className="banner-right">{remain}s</div>
                   </div>
                   <div className="banner-sub">{language === 'fr' ? 'Production figée' : 'Production frozen'}</div>
+                  <button className="chain-repair-btn" disabled={!canPay} onClick={canPay ? handleRepairChain : undefined}>
+                    {canPay
+                      ? (language === 'fr' ? `RÉPARER MAINTENANT · ${repairCost.toLocaleString('fr-FR')}€` : `REPAIR NOW · €${repairCost.toLocaleString('fr-FR')}`)
+                      : (language === 'fr' ? 'FONDS INSUFFISANTS' : 'INSUFFICIENT FUNDS')}
+                  </button>
                 </div>
               );
             })()}
