@@ -6789,9 +6789,9 @@ export default function App() {
       try {
       if (isPausedRef.current) return;
       const now = gameTimeRef.current;
-      // Auto-fin de l'event actuel
+      // Auto-fin de l'event actuel (+ purge si expiresAt invalide → anti-bandeau « NaNs » figé)
       const cur = activeEventRef.current;
-      if (cur && now >= cur.expiresAt) {
+      if (cur && (!Number.isFinite(cur.expiresAt) || now >= cur.expiresAt)) {
         setActiveEvent(null);
       }
       // PHASE 4 : purge tout event hérité encore actif (transition P3→P4
@@ -6822,6 +6822,11 @@ export default function App() {
         const eligible = EVENT_TYPE_KEYS
           .map(k => EVENT_TYPES[k])
           .filter(e => e.minPhase <= curPhase)
+          // Les événements de tension (crise/opportunité + rackets) ont leur PROPRE
+          // planificateur (pendingTensionEvent, modale + chrono 15s) et n'ont pas de
+          // champ `duration`. Les inclure ici créerait un activeEvent avec
+          // expiresAt = now + undefined = NaN → bandeau « NaNs » + jamais expiré.
+          .filter(e => e.category !== 'tension_crisis' && e.category !== 'tension_opportunity')
           // PHASE 4 : table rase. AUCUN event de EVENT_TYPES ne se déclenche
           // en P4 (météo, segment, ponctuel, crisis, bonus — tous coupés).
           // Des events spécifiques P4 seront reconstruits séparément.
@@ -6860,7 +6865,7 @@ export default function App() {
             setEventNotif(localizeField(picked.name, language).toUpperCase() + ' · CONTRAT AU MARCHÉ');
           } else if ((picked.category === 'crisis' || picked.category === 'bonus') && picked.duration <= 1) {
             applyCrisisInstant(picked);
-          } else {
+          } else if (Number.isFinite(picked.duration) && picked.duration > 0) {
             // Effets instantanés appliqués au démarrage même si l'event a une durée
             if (picked.effects && picked.effects.instantMoney) {
               setMoney(m => Math.max(0, m + picked.effects.instantMoney));
@@ -9244,7 +9249,7 @@ export default function App() {
   // Bonus de demande Janice Directrice : +15% (s'éteint si Janice grumpy)
   const janiceDemandMult = (stats.janiceDemandBonus && !janiceGrumpy) ? (1 + stats.janiceDemandBonus) : 1;
   // Effet durable d'événement de tension (crise médiatique, rappel sanitaire, ou bonus interview TV)
-  const tensionSellMult = (activeTensionEffect && typeof activeTensionEffect.sellMult === 'number') ? activeTensionEffect.sellMult : 1.0;
+  const tensionSellMult = (activeTensionEffect && Number.isFinite(activeTensionEffect.sellMult)) ? activeTensionEffect.sellMult : 1.0;
   // === RÉÉQUILIBRAGE P2+ ===
   // En Phase 2+, la vente directe (marché unitaire / surplus Brigitte) devient
   // un complément, plus la source principale. Les contrats B2B sont le cœur du jeu.
@@ -9271,7 +9276,11 @@ export default function App() {
     premiumWater: visibleFrictions.find(f => f.effects && f.effects.disablePremium),
   };
   const fricDirectDemMult = fricForSell.directDemMult;
-  const effectiveSell = BASE_SELL_PRICE * directSellMultEffective * (fricForSell.disablePremium ? 1 : getPremiumWaterMult(owned)) * dynamicDemand * heatDemandMult * droughtDemandMult * autumnRushMult * campaignBonuses.spotMult * janiceMultTotal * janiceDemandMult * tensionSellMult * fricDirectDemMult;
+  const _rawEffectiveSell = BASE_SELL_PRICE * directSellMultEffective * (fricForSell.disablePremium ? 1 : getPremiumWaterMult(owned)) * dynamicDemand * heatDemandMult * droughtDemandMult * autumnRushMult * campaignBonuses.spotMult * janiceMultTotal * janiceDemandMult * tensionSellMult * fricDirectDemMult;
+  // Garde-fou anti-NaN au point de convergence : si un multiplicateur amont
+  // devient invalide (NaN/Infinity/négatif), on retombe sur le prix de base
+  // plutôt que de propager un NaN qui afficherait « NaN€ » et bloquerait les ventes.
+  const effectiveSell = Number.isFinite(_rawEffectiveSell) ? Math.max(0, _rawEffectiveSell) : BASE_SELL_PRICE;
   const netRate = effectivePassive - effectiveMelt;
   const dynamicTemp = getDynamicTemp(gameTime);
   const displayTemp = dynamicTemp + (inHeatwave ? 9 : 0) + (inDrought ? 3 : 0) + tempJitter;
@@ -9987,7 +9996,7 @@ export default function App() {
       // === Décompte de l'effet durable + chrono méga-contrat (TOUTES PHASES) ===
       // Doit s'exécuter en P1/P2 aussi pour nettoyer les événements ponctuels
       // (Fête de quartier, etc.) qui peuvent se déclencher dès la phase 1.
-      if (activeTensionEffectRef.current && gameTimeRef.current >= activeTensionEffectRef.current.expiresAt) {
+      if (activeTensionEffectRef.current && (!Number.isFinite(activeTensionEffectRef.current.expiresAt) || gameTimeRef.current >= activeTensionEffectRef.current.expiresAt)) {
         setActiveTensionEffect(null);
       }
       if (activeMegacontractRef.current && gameTimeRef.current >= activeMegacontractRef.current.expiresAt) {
@@ -12548,9 +12557,12 @@ export default function App() {
     const chunk = niceThird(maxCap);
     const n = Math.min(displayStock, chunk);
     if (n < 1) return;
-    setStock(s => Math.max(0, s - n));
     const evMods = getEventMods();
     const revenue = n * effectiveSell * evMods.sellPriceMult;
+    // Anti-NaN : on ne consomme JAMAIS le stock si le revenu est invalide
+    // (sinon le stock disparaîtrait sans contrepartie → « vente bloquée »).
+    if (!Number.isFinite(revenue) || revenue < 0) return;
+    setStock(s => Math.max(0, s - n));
     setMoney(m => m + revenue);
     recordRevenue(revenue);
     totalsRef.current.sold += n;
@@ -12561,9 +12573,11 @@ export default function App() {
     if (phase >= 4) return; // pas de vente glaçon en Phase 4
     const n = displayStock;
     if (n < 1) return;
-    setStock(s => Math.max(0, s - n));
     const evMods = getEventMods();
     const revenue = n * effectiveSell * evMods.sellPriceMult;
+    // Anti-NaN : pas de vente si revenu invalide (cf. handleSell).
+    if (!Number.isFinite(revenue) || revenue < 0) return;
+    setStock(s => Math.max(0, s - n));
     setMoney(m => m + revenue);
     recordRevenue(revenue);
     totalsRef.current.sold += n;
@@ -21613,7 +21627,7 @@ export default function App() {
             )}
             {/* === BANNIÈRES TENSION ACTIVES === */}
             {activeMegacontract && (() => {
-              const remain = Math.max(0, Math.ceil(activeMegacontract.expiresAt - gameTime));
+              const remain = Math.max(0, Math.ceil(activeMegacontract.expiresAt - gameTime)) || 0;
               const delivered = activeMegacontract.deliveredFromStart || 0;
               const required = activeMegacontract.requiredStock;
               return (
@@ -21627,7 +21641,7 @@ export default function App() {
               );
             })()}
             {activeTensionEffect && (() => {
-              const remain = Math.max(0, Math.ceil(activeTensionEffect.expiresAt - gameTime));
+              const remain = Math.max(0, Math.ceil(activeTensionEffect.expiresAt - gameTime)) || 0;
               const def = EVENT_TYPES[activeTensionEffect.id];
               if (!def) return null;
               const isPositive = activeTensionEffect.sellMult && activeTensionEffect.sellMult > 1;
@@ -21767,7 +21781,7 @@ export default function App() {
             {activeEvent && (() => {
               const def = EVENT_TYPES[activeEvent.id];
               if (!def) return null;
-              const remaining = Math.max(0, activeEvent.expiresAt - gameTime);
+              const remaining = Math.max(0, activeEvent.expiresAt - gameTime) || 0;
               const impact = def.shortImpact ? localizeField(def.shortImpact, language) : '';
               // Catégorisation : ponctuels = positifs, crisis = négatifs
               const cat = def.category === 'ponctuel' || def.category === 'bonus' ? 'cat-positive' : 'cat-negative';
