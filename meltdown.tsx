@@ -26670,7 +26670,12 @@ export default function App() {
               onClick = null;
             }
 
-            if (state === 'max' && family.hideWhenMax) return null;
+            // Famille entièrement achetée → on cache la carte (plus rien à acheter
+            // dans cette phase). Évite de garder « Cuve cryogénique · ✓ MAX » et
+            // autres améliorations déjà possédées qui encombrent la liste.
+            // Si une phase ultérieure ajoute un palier, la carte réapparaît
+            // automatiquement avec le nouveau tier achetable.
+            if (state === 'max') return null;
             if (state === 'locked') return null; // cache complètement les familles dont la prochaine amélio est en phase non atteinte
             if (!displayUpgrade) return null;
 
