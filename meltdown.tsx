@@ -31,13 +31,21 @@ const PREFS_KEY = 'meltdown:prefs:v1';
 // Stockage SÉPARÉ qui survit à l'effacement de la sauvegarde (nouvelle partie).
 // Chaque Domination accumulée octroie un bonus permanent : prod & vente, et un capital de départ.
 const PRESTIGE_KEY = 'meltdown:prestige:v1';
+const PRESTIGE_PERKS_KEY = 'meltdown:prestige_perks:v1'; // Lot 7 — héritages choisis (stockage séparé, pas de migration)
 const PRESTIGE_SELL_PER_RUN = 0.20;   // +20% vente par Domination (hors plafond)
 const PRESTIGE_PROD_PER_RUN = 0.15;   // +15% vitesse prod par Domination (hors plafond)
 const PRESTIGE_START_CASH = 5000;     // capital de départ par Domination en NG+
+// Lot 7 — perks d'héritage (1 choix par Domination), s'empilent par-dessus le bonus plat.
+const PERK_PROD = 0.10;   // +10% prod / niveau
+const PERK_SELL = 0.12;   // +12% vente / niveau
+const PERK_CASH = 4000;   // +4000€ capital de départ / niveau
 let PRESTIGE_RUNS = 0;                 // nombre de Dominations (chargé au démarrage)
-function getPrestigeSellMult() { return 1 + PRESTIGE_RUNS * PRESTIGE_SELL_PER_RUN; }
-function getPrestigeProdMult() { return 1 + PRESTIGE_RUNS * PRESTIGE_PROD_PER_RUN; }
-function getPrestigeBonusPct() { return Math.round(PRESTIGE_RUNS * PRESTIGE_SELL_PER_RUN * 100); }
+let PRESTIGE_PERKS = { prod: 0, sell: 0, cash: 0, calm: 0 };
+function getPrestigeSellMult() { return 1 + PRESTIGE_RUNS * PRESTIGE_SELL_PER_RUN + (PRESTIGE_PERKS.sell || 0) * PERK_SELL; }
+function getPrestigeProdMult() { return 1 + PRESTIGE_RUNS * PRESTIGE_PROD_PER_RUN + (PRESTIGE_PERKS.prod || 0) * PERK_PROD; }
+function getPrestigeStartCash() { return PRESTIGE_RUNS * PRESTIGE_START_CASH + (PRESTIGE_PERKS.cash || 0) * PERK_CASH; }
+function getPrestigeCalmBonus() { return 1 + (PRESTIGE_PERKS.calm || 0) * 0.4; } // récupération du stress accélérée
+function getPrestigeBonusPct() { return Math.round((getPrestigeSellMult() - 1) * 100); }
 function loadPrestigeRuns() {
   try { const r = parseInt(localStorage.getItem(PRESTIGE_KEY) || '0', 10); PRESTIGE_RUNS = isNaN(r) ? 0 : Math.max(0, r); } catch (e) { PRESTIGE_RUNS = 0; }
   return PRESTIGE_RUNS;
@@ -45,6 +53,14 @@ function loadPrestigeRuns() {
 function savePrestigeRuns(n) {
   PRESTIGE_RUNS = Math.max(0, n | 0);
   try { localStorage.setItem(PRESTIGE_KEY, String(PRESTIGE_RUNS)); } catch (e) {}
+}
+function loadPrestigePerks() {
+  try { const o = JSON.parse(localStorage.getItem(PRESTIGE_PERKS_KEY) || '{}'); PRESTIGE_PERKS = { prod: o.prod | 0, sell: o.sell | 0, cash: o.cash | 0, calm: o.calm | 0 }; } catch (e) { PRESTIGE_PERKS = { prod: 0, sell: 0, cash: 0, calm: 0 }; }
+  return PRESTIGE_PERKS;
+}
+function savePrestigePerks(p) {
+  PRESTIGE_PERKS = { prod: p.prod | 0, sell: p.sell | 0, cash: p.cash | 0, calm: p.calm | 0 };
+  try { localStorage.setItem(PRESTIGE_PERKS_KEY, JSON.stringify(PRESTIGE_PERKS)); } catch (e) {}
 }
 const TICK_MS = 100;
 const SAVE_INTERVAL = 1500;
@@ -5771,7 +5787,16 @@ export default function App() {
   const [victoryAchieved, setVictoryAchieved] = useState(false);
   // New Game+ : nombre de Dominations accumulées (miroir UI du stockage prestige persistant).
   const [prestigeRuns, setPrestigeRuns] = useState(0);
-  useEffect(() => { setPrestigeRuns(loadPrestigeRuns()); }, []);
+  const [prestigePerks, setPrestigePerks] = useState({ prod: 0, sell: 0, cash: 0, calm: 0 });
+  const [prestigeChoiceOpen, setPrestigeChoiceOpen] = useState(false); // Lot 7 — modale de choix d'héritage à la victoire
+  useEffect(() => { setPrestigeRuns(loadPrestigeRuns()); setPrestigePerks(loadPrestigePerks()); }, []);
+  // Lot 7 — choisir un héritage de prestige (perk) : incrémente + persiste + ferme la modale.
+  const choosePrestigePerk = (perkId) => {
+    const next = { ...PRESTIGE_PERKS, [perkId]: (PRESTIGE_PERKS[perkId] || 0) + 1 };
+    savePrestigePerks(next);
+    setPrestigePerks(next);
+    setPrestigeChoiceOpen(false);
+  };
   // Arc Némésis Glacier Frères : map des beats déjà déclenchés (persisté).
   const [glacierBeats, setGlacierBeats] = useState({});
   const glacierFiredRef = useRef({});
@@ -6851,10 +6876,11 @@ export default function App() {
       setVictoryAchieved(true);
       setVictoryModalOpen(true);
       setVictoryTimestamp(gameTime);
-      // New Game+ : cette Domination octroie un palier de prestige permanent.
-      // (Ne se déclenche qu'une fois par partie grâce au garde !victoryAchieved.)
+      // New Game+ : cette Domination octroie un palier de prestige permanent
+      // + un héritage au choix (perk). (Une seule fois par partie grâce au garde !victoryAchieved.)
       savePrestigeRuns(PRESTIGE_RUNS + 1);
       setPrestigeRuns(PRESTIGE_RUNS);
+      setPrestigeChoiceOpen(true);
     }
   }, [phase, notoriety, reputation, competitors, lines, phase3Semesters, victoryAchieved, gameTime]);
 
@@ -6881,7 +6907,8 @@ export default function App() {
     if (!loaded || screen !== 'game') return;
     const tick = () => {
       if (isPausedRef.current) return;
-      const decay = phaseRef.current >= 3 ? 2 : 3;
+      // Lot 7 — l'héritage "Sang-froid" accélère la récupération du stress.
+      const decay = (phaseRef.current >= 3 ? 2 : 3) * getPrestigeCalmBonus();
       setFredStress(s => Math.max(0, s - decay));
       setBrigitteStress(s => Math.max(0, s - decay));
       setJaniceStress(s => Math.max(0, s - decay));
@@ -14392,7 +14419,7 @@ export default function App() {
 
   const performReset = () => {
     // New Game+ : capital de départ offert par les Dominations accumulées.
-    const ngPlusCash = PRESTIGE_RUNS > 0 ? PRESTIGE_RUNS * PRESTIGE_START_CASH : 0;
+    const ngPlusCash = getPrestigeStartCash();
     setStock(0); setMoney(START_CASH + ngPlusCash); setOwned({});
     lastBilledMoneyEarnedRef.current = 0;
     // Réinitialise l'état de victoire/narratif pour permettre de re-gagner (et rejouer l'histoire).
@@ -19092,6 +19119,11 @@ export default function App() {
         }
         .victory-ngplus-title { font-size: 11px; font-weight: 700; letter-spacing: 3px; color: var(--m1); margin-bottom: 6px; }
         .victory-ngplus-text { font-size: 9px; line-height: 1.6; color: var(--m2); }
+        .prestige-perks { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+        .perk-btn { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; text-align: left; padding: 12px; border: 1px solid var(--line); border-radius: 4px; background: transparent; color: var(--fg); cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+        .perk-btn:hover { border-color: var(--fg); background: var(--m1); color: var(--bg); }
+        .perk-name { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+        .perk-fx { font-size: 8px; opacity: 0.8; line-height: 1.3; }
         .victory-btn {
           width: 100%;
           padding: 14px;
@@ -24586,6 +24618,27 @@ export default function App() {
             </div>
           );
         })()}
+
+        {/* === MODALE CHOIX D'HÉRITAGE (NG+) — Lot 7 === */}
+        {prestigeChoiceOpen && (
+          <div className="modal-backdrop" style={{ zIndex: 4000 }}>
+            <div className="modal" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <Crown size={14} strokeWidth={2.2} />
+                <span className="modal-title">★ {t('ngplus.choose_title')}</span>
+              </div>
+              <div className="modal-narrative">{t('ngplus.choose_sub')}</div>
+              <div className="prestige-perks">
+                {[['prod', 'perk.prod', 'perk.prod_fx'], ['sell', 'perk.sell', 'perk.sell_fx'], ['cash', 'perk.cash', 'perk.cash_fx'], ['calm', 'perk.calm', 'perk.calm_fx']].map(([id, nameK, fxK]) => (
+                  <button key={id} className="perk-btn" onClick={() => choosePrestigePerk(id)}>
+                    <span className="perk-name">{t(nameK)}{prestigePerks[id] > 0 ? ` · ${prestigePerks[id] + 1}` : ''}</span>
+                    <span className="perk-fx">{t(fxK)}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* === MODALE VICTOIRE — 5 missions P3 validées === */}
         {victoryModalOpen && (() => {
