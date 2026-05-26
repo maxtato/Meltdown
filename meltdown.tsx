@@ -6813,7 +6813,7 @@ export default function App() {
       // pendant les 3 premières minutes (premier semestre). Ensuite les events
       // P1 peuvent apparaître pour donner du rythme dès le début.
       const inGracePeriod = now < SEASON_DURATION * 1.5; // 180s = 3 min
-      if (!inGracePeriod && !activeEventRef.current && !pendingPonctuelEvent && !anyCrisisActive && (now - lastEventAtRef.current) >= 5 && now >= nextEventAtRef.current) {
+      if (!inGracePeriod && !anyEventActiveNow() && !activeEventRef.current && !pendingPonctuelEvent && !anyCrisisActive && (now - lastEventAtRef.current) >= 5 && now >= nextEventAtRef.current) {
         const curPhase = phaseRef.current;
         const curSeason = SEASONS[Math.floor(now / SEASON_DURATION) % SEASONS.length].id;
         // Mois courant (1-12) : 12 mois par an, MONTH_DURATION sec par mois.
@@ -7061,6 +7061,23 @@ export default function App() {
       truckBreakMult: def.effects.truckBreakMult || 1,
       transitMult: def.effects.transitMult || 1,
     };
+  };
+
+  // === UN SEUL ÉVÉNEMENT À LA FOIS ===
+  // Vrai si un bandeau d'événement quelconque est déjà actif (météo, friction,
+  // tension/racket, méga-contrat, panne chaîne, sabotage). Les déclencheurs
+  // aléatoires consultent ce garde-fou pour ne jamais empiler deux événements.
+  const anyEventActiveNow = () => {
+    const g = gameTimeRef.current;
+    if (activeEventRef.current && activeEventRef.current.expiresAt > g) return true;
+    if (pendingTensionEventRef.current) return true;
+    if (activeTensionEffectRef.current && activeTensionEffectRef.current.expiresAt > g) return true;
+    if (activeMegacontractRef.current && activeMegacontractRef.current.expiresAt > g) return true;
+    if (chainBrokenRef.current && chainBrokenRef.current.repairUntil > g) return true;
+    if (Object.values(activeFrictionsRef.current || {}).some(f => f && f.expiresAt > g)) return true;
+    if (heatwaveLeftRef.current > 0 || droughtLeftRef.current > 0 || outageLeftRef.current > 0 || autumnRushLeftRef.current > 0) return true;
+    if (cyberLockoutRef.current > 0) return true;
+    return false;
   };
 
   // === Stress decay toutes les 6s real-time.
@@ -9858,7 +9875,7 @@ export default function App() {
       // avec l'intensité de l'opé : plus de congélateurs, canicule, phase avancée
       // = plus de casse et arrêts plus longs. La maintenance préventive divise le
       // risque par 4 et limite la fonte → elle devient rentable dès qu'on scale.
-      if (phaseRef.current >= 2 && !chainBrokenRef.current && !isPausedRef.current && !gameOverRef.current) {
+      if (phaseRef.current >= 2 && !chainBrokenRef.current && !isPausedRef.current && !gameOverRef.current && !anyEventActiveNow()) {
         const hasMaintenance = !!ownedRef.current['maintenance_preventive'];
         const _fc = 1 + (ownedRef.current['mini_freezer'] ? 1 : 0) + (ownedRef.current['pro_freezer'] ? 2 : 0);
         const _heatFactor = heatwaveLeftRef.current > 0 ? 2.2 : 1;
@@ -9914,7 +9931,7 @@ export default function App() {
         const tensionCooldownActive = (gameTimeRef.current - lastTensionAtRef.current) < TENSION_COOLDOWN_SEC;
         const hasPendingTension = !!pendingTensionEventRef.current;
         const hasActiveTension = !!activeTensionEffectRef.current || !!activeMegacontractRef.current;
-        if (phaseRef.current >= 1 && !tensionCooldownActive && !hasPendingTension && !hasActiveTension) {
+        if (phaseRef.current >= 1 && !tensionCooldownActive && !hasPendingTension && !hasActiveTension && !anyEventActiveNow()) {
           const inP3 = phaseRef.current >= 3;
           const inP2plus = phaseRef.current >= 2;
           const inP1 = phaseRef.current === 1;
@@ -10055,7 +10072,7 @@ export default function App() {
       const isFirstYearForFriction = gameTimeRef.current < SEASON_DURATION * 4;
       // Probabilité de tirer une friction : ~1 par minute en moyenne
       const FRICTION_BASE_CHANCE = 0.018; // par seconde
-      if (!isFirstYearForFriction && !fricCooldownActive
+      if (!isFirstYearForFriction && !fricCooldownActive && !anyEventActiveNow()
           && Math.random() < FRICTION_BASE_CHANCE * dt) {
         const curPhase = phaseRef.current;
         // Contexte pour les prérequis : ce qui est actif/débloqué en jeu
@@ -10134,8 +10151,9 @@ export default function App() {
             const mult = hasSabineDg ? 0.2 : hasSabineSr ? 0.4 : hasSabineJr ? 0.65 : 3.0;
             setMoney(m => m - baseFine * mult);
           }
-          // Friction durable
-          if (picked.duration > 1) {
+          // Friction durable → bandeau persistant (nom + timer + effet).
+          const durableFriction = picked.duration > 1;
+          if (durableFriction) {
             setActiveFrictions(prev => ({
               ...prev,
               [picked.id]: {
@@ -10146,9 +10164,13 @@ export default function App() {
             }));
           }
           lastFrictionAtRef.current = gameTimeRef.current;
-          // Notification
-          const lbl = (picked.name && picked.name[language]) || picked.name.fr || picked.id;
-          setEventNotif(lbl);
+          // Un seul bandeau par événement : pas de toast nom-seul si le bandeau
+          // persistant à décompte existe déjà. Le toast ne sert qu'aux frictions
+          // instantanées (one-shot sans bandeau).
+          if (!durableFriction) {
+            const lbl = (picked.name && picked.name[language]) || picked.name.fr || picked.id;
+            setEventNotif(lbl);
+          }
         }
       }
 
@@ -21661,7 +21683,7 @@ export default function App() {
               return (
                 <div className="banner cat-positive banner-uniform">
                   <div className="banner-main">
-                    <div className="banner-left"><span className="banner-title">{language === 'fr' ? 'MÉGA-CONTRAT' : 'MEGA-CONTRACT'}</span></div>
+                    <div className="banner-left"><Award size={11} strokeWidth={2} /> <span className="banner-title">{language === 'fr' ? 'MÉGA-CONTRAT' : 'MEGA-CONTRACT'}</span></div>
                     <div className="banner-right">{remain}s</div>
                   </div>
                   <div className="banner-sub">{delivered.toLocaleString()} / {required.toLocaleString()} GL · +{activeMegacontract.rewardMoney.toLocaleString()}€</div>
@@ -21683,7 +21705,7 @@ export default function App() {
               return (
                 <div className={`banner ${isPositive ? 'cat-positive' : 'cat-negative'} banner-uniform`}>
                   <div className="banner-main">
-                    <div className="banner-left"><span className="banner-title">{label}</span></div>
+                    <div className="banner-left">{isPositive ? <Award size={11} strokeWidth={2} /> : <AlertTriangle size={11} strokeWidth={2} />} <span className="banner-title">{label}</span></div>
                     <div className="banner-right">{remain}s</div>
                   </div>
                   {effectTxt && <div className="banner-sub">{effectTxt}</div>}
@@ -21700,7 +21722,7 @@ export default function App() {
               return (
                 <div key={f.id} className="banner cat-negative banner-uniform">
                   <div className="banner-main">
-                    <div className="banner-left"><span className="banner-title">{label}</span></div>
+                    <div className="banner-left"><AlertTriangle size={11} strokeWidth={2} /> <span className="banner-title">{label}</span></div>
                     <div className="banner-right">{remain}s</div>
                   </div>
                   {sub && <div className="banner-sub">{sub}</div>}
@@ -21714,7 +21736,7 @@ export default function App() {
               return (
                 <div className="banner cat-negative banner-uniform">
                   <div className="banner-main">
-                    <div className="banner-left"><span className="banner-title">{localizeField(chainBroken.brokenMsg, language)}</span></div>
+                    <div className="banner-left"><Wrench size={11} strokeWidth={2} /> <span className="banner-title">{localizeField(chainBroken.brokenMsg, language)}</span></div>
                     <div className="banner-right">{remain}s</div>
                   </div>
                   <div className="banner-sub">{language === 'fr' ? 'Production figée' : 'Production frozen'}</div>
@@ -21819,11 +21841,12 @@ export default function App() {
               const remaining = Math.max(0, activeEvent.expiresAt - gameTime) || 0;
               const impact = def.shortImpact ? localizeField(def.shortImpact, language) : '';
               // Catégorisation : ponctuels = positifs, crisis = négatifs
-              const cat = def.category === 'ponctuel' || def.category === 'bonus' ? 'cat-positive' : 'cat-negative';
+              const isPos = def.category === 'ponctuel' || def.category === 'bonus';
+              const cat = isPos ? 'cat-positive' : 'cat-negative';
               return (
                 <div className={`banner ${cat} banner-uniform`}>
                   <div className="banner-main">
-                    <div className="banner-left"><span className="banner-title">{localizeField(def.name, language)}</span></div>
+                    <div className="banner-left">{isPos ? <Award size={11} strokeWidth={2} /> : <AlertTriangle size={11} strokeWidth={2} />} <span className="banner-title">{localizeField(def.name, language)}</span></div>
                     <div className="banner-right">{Math.ceil(remaining)}s</div>
                   </div>
                   {impact && <div className="banner-sub">{impact}</div>}
