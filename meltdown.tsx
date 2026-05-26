@@ -117,7 +117,7 @@ const FREEZE_BASE_OUTPUT = 8;
 const BASE_TRUCK_MELT = 0.010;
 
 const HEATWAVE_CHANCE = 0.0004;
-const DROUGHT_CHANCE = 0.0007;
+const DROUGHT_CHANCE = 0.0003;
 const OUTAGE_CHANCE = 0.0006;
 const AUTUMN_RUSH_CHANCE = 0.0008;
 const AUTUMN_RUSH_MIN = 25;
@@ -11065,7 +11065,7 @@ export default function App() {
       } else if (phaseRef.current < 4 && !isFirstYear && canTriggerEvent && seasonIdxRef.current === 2 && Math.random() < HEATWAVE_CHANCE) {
         // P1-3 uniquement. Table rase en P4 : l'effet POP ICE sera
         // reconstruit via de futurs events spécifiques Phase 4.
-        const dur = 34 + Math.random() * 24;
+        const dur = 25 + Math.random() * 20;
         setHeatwaveLeft(dur);
         heatwaveLeftRef.current = dur;
         lastEventAtRef.current = evtNow;
@@ -11073,7 +11073,7 @@ export default function App() {
       if (droughtLeftRef.current > 0) {
         setDroughtLeft(l => Math.max(0, l - dt));
       } else if (phaseRef.current < 4 && !isFirstYear && canTriggerEvent && heatwaveLeftRef.current === 0 && seasonIdxRef.current === 2 && Math.random() < DROUGHT_CHANCE) {
-        const dur = 40 + Math.random() * 18;
+        const dur = 30 + Math.random() * 15;
         setDroughtLeft(dur);
         droughtLeftRef.current = dur;
         lastEventAtRef.current = evtNow;
