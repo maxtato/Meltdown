@@ -8,6 +8,7 @@ import {
   Coffee, Sofa, Dumbbell, Baby, GraduationCap, Cake, Gift, PartyPopper, TreePine, Egg, Contact, Building2, FlaskConical,
   ShoppingCart, Scale, ChevronLeft, ChevronRight,
   Box, Home, Droplet, Shield, Warehouse, Network, Award, Cpu, UserCog, Activity, Building, Package, DollarSign, Container, Globe, Crown,
+  Cloud, Star, TrendingUp, TrendingDown, Tv, Flame, Volume2,
 } from 'lucide-react';
 import { TRANSLATIONS } from './i18n';
 import { B2B_CONTRACTS } from './contracts';
@@ -654,7 +655,7 @@ const EVENT_TYPES = {
   crisis_strike: {
     id: 'crisis_strike', category: 'tension_crisis', minPhase: 3,
     name: { fr: 'GRÈVE TRANSPORT NATIONAL', en: 'NATIONAL TRANSPORT STRIKE', es: 'HUELGA TRANSPORTE NACIONAL', zh: "全国运输罢工", ru: "ВСЕОБЩАЯ ТРАНСПОРТНАЯ ЗАБАСТОВКА", it: "SCIOPERO NAZIONALE TRASPORTI", de: "NATIONALER TRANSPORTSTREIK" },
-    iconKey: 'truck',
+    iconKey: 'users',
     intro: { fr: "Grève surprise des transporteurs. Tous tes camions sont bloqués. Lenny refuse de passer les piquets sans prime de risque.", en: "Surprise truckers' strike. All your trucks are blocked. Lenny refuses to cross picket lines without hazard pay.", es: "Huelga sorpresa de transportistas. Tus camiones bloqueados. Lenny no cruza piquetes sin prima de riesgo.", zh: "卡车司机突然罢工。你所有的卡车都被拦下。莱尼拒绝在没有风险津贴的情况下穿越纠察线。", ru: "Внезапная забастовка дальнобойщиков. Все ваши грузовики заблокированы. Ленни отказывается проходить пикеты без надбавки за риск.", it: "Sciopero a sorpresa dei trasportatori. Tutti i tuoi camion bloccati. Lenny rifiuta di passare i picchetti senza premio di rischio.", de: "Überraschungsstreik der Spediteure. Alle LKWs blockiert. Lenny weigert sich, ohne Gefahrenzulage durch die Streikposten zu fahren." },
     mitigateLabel: { fr: 'PRIME RISQUE · 5 000€/camion', en: 'HAZARD PAY · €5,000/truck', es: 'PRIMA RIESGO · 5 000€/camión', zh: "风险津贴 · 5 000€/卡车", ru: "НАДБАВКА · 5 000€/грузовик", it: "PREMIO RISCHIO · 5 000€/camion", de: "GEFAHRENZULAGE · 5 000€/LKW" },
     ignoreLabel: { fr: 'ATTENDRE', en: 'WAIT', es: 'ESPERAR', zh: "等待", ru: "ЖДАТЬ", it: "ASPETTARE", de: "WARTEN" },
@@ -700,7 +701,7 @@ const EVENT_TYPES = {
   crisis_coldroom: {
     id: 'crisis_coldroom', category: 'tension_crisis', minPhase: 2,
     name: { fr: 'PANNE CHAMBRE FROIDE', en: 'COLD ROOM FAILURE', es: 'AVERÍA CÁMARA FRIGORÍFICA', zh: "冷库故障", ru: "ПОЛОМКА ХОЛОДИЛЬНОЙ КАМЕРЫ", it: "GUASTO CELLA FRIGORIFERA", de: "KÜHLRAUM-AUSFALL" },
-    iconKey: 'alert',
+    iconKey: 'snowflake',
     intro: { fr: "Le compresseur de la chambre froide lâche en pleine nuit. Fred est déjà sur place, en pyjama, une lampe torche entre les dents. Si tu ne fais rien, une partie du stock fond avant l'aube.", en: "The cold room compressor dies in the middle of the night. Fred is already on site, in pajamas, a flashlight between his teeth. Do nothing and part of your stock melts before dawn.", es: "El compresor de la cámara frigorífica se avería en plena noche. Fred ya está allí, en pijama, con una linterna entre los dientes. Si no haces nada, parte del stock se derrite antes del amanecer.", zh: "冷库压缩机半夜罢工了。弗雷德已经穿着睡衣赶到现场，嘴里叼着手电筒。如果你什么都不做，一部分库存会在黎明前融化。", ru: "Компрессор холодильной камеры выходит из строя посреди ночи. Фред уже на месте, в пижаме, с фонариком в зубах. Ничего не предпримешь — часть запаса растает до рассвета.", it: "Il compressore della cella frigorifera si guasta in piena notte. Fred è già sul posto, in pigiama, con una torcia tra i denti. Se non fai nulla, parte dello stock si scioglie prima dell'alba.", de: "Der Kompressor des Kühlraums fällt mitten in der Nacht aus. Fred ist schon da, im Schlafanzug, eine Taschenlampe zwischen den Zähnen. Tust du nichts, schmilzt ein Teil des Bestands vor Sonnenaufgang." },
     mitigateLabel: { fr: 'TECHNICIEN URGENCE · 4 000€', en: 'EMERGENCY TECH · €4,000', es: 'TÉCNICO URGENCIA · 4 000€', zh: "紧急技师 · 4 000€", ru: "СРОЧНЫЙ ТЕХНИК · 4 000€", it: "TECNICO URGENZA · 4 000€", de: "NOT-TECHNIKER · 4 000€" },
     ignoreLabel: { fr: 'LAISSER FRED BRICOLER', en: 'LET FRED PATCH IT', es: 'DEJAR QUE FRED LO APAÑE', zh: "让弗雷德自己修", ru: "ПУСТЬ ФРЕД ЧИНИТ САМ", it: "LASCIAR ARRANGIARE FRED", de: "FRED BASTELN LASSEN" },
@@ -712,7 +713,7 @@ const EVENT_TYPES = {
   crisis_invoice: {
     id: 'crisis_invoice', category: 'tension_crisis', minPhase: 2,
     name: { fr: 'LITIGE FACTURE CLIENT', en: 'CLIENT INVOICE DISPUTE', es: 'DISPUTA FACTURA CLIENTE', zh: "客户发票纠纷", ru: "СПОР ПО СЧЁТУ КЛИЕНТА", it: "CONTENZIOSO FATTURA CLIENTE", de: "KUNDEN-RECHNUNGSSTREIT" },
-    iconKey: 'alert',
+    iconKey: 'file_text',
     intro: { fr: "Un gros client conteste sa facture : « livraison tiède », prétend-il. Brigitte a vérifié trois fois, c'est faux. Mais il menace d'en parler à tout le secteur si tu ne lâches rien.", en: "A big client disputes his invoice: 'lukewarm delivery,' he claims. Brigitte checked three times — it's false. But he's threatening to tell the whole sector if you don't give ground.", es: "Un cliente importante impugna su factura: «entrega tibia», alega. Brigitte lo comprobó tres veces, es falso. Pero amenaza con contárselo a todo el sector si no cedes.", zh: "一个大客户对账单提出异议：他声称『送来的冰是温的』。布丽吉特核对了三遍，纯属胡说。但他威胁说，如果你不让步，就把这事捅给整个行业。", ru: "Крупный клиент оспаривает счёт: «доставка была тёплой», утверждает он. Брижит проверила трижды — это ложь. Но он грозится рассказать всему сектору, если не уступишь.", it: "Un grosso cliente contesta la fattura: «consegna tiepida», sostiene. Brigitte ha verificato tre volte, è falso. Ma minaccia di dirlo a tutto il settore se non cedi.", de: "Ein Großkunde bestreitet seine Rechnung: «lauwarme Lieferung», behauptet er. Brigitte hat es dreimal geprüft — falsch. Aber er droht, es der ganzen Branche zu erzählen, wenn du nicht nachgibst." },
     mitigateLabel: { fr: 'GESTE COMMERCIAL · 6 000€', en: 'GOODWILL GESTURE · €6,000', es: 'GESTO COMERCIAL · 6 000€', zh: "商业让步 · 6 000€", ru: "ЖЕСТ ДОБРОЙ ВОЛИ · 6 000€", it: "GESTO COMMERCIALE · 6 000€", de: "KULANZ-GESTE · 6 000€" },
     ignoreLabel: { fr: 'TENIR BON', en: 'STAND FIRM', es: 'MANTENERSE FIRME', zh: "坚持立场", ru: "СТОЯТЬ НА СВОЁМ", it: "TENER DURO", de: "STANDHAFT BLEIBEN" },
@@ -725,7 +726,7 @@ const EVENT_TYPES = {
   opp_festival: {
     id: 'opp_festival', category: 'tension_opportunity', minPhase: 2,
     name: { fr: 'RUSH FESTIVAL', en: 'FESTIVAL RUSH', es: 'AVALANCHA FESTIVAL', zh: "音乐节抢购", ru: "ФЕСТИВАЛЬНЫЙ АВРАЛ", it: "CORSA AL FESTIVAL", de: "FESTIVAL-ANSTURM" },
-    iconKey: 'trophy',
+    iconKey: 'star',
     intro: { fr: "Le festival de la ville a sous-estimé la canicule. L'organisateur t'appelle, paniqué : 600 GL en 45 secondes, payés double. Sinon, dit-il, il appelle Glacier Frères.", en: "The town festival underestimated the heatwave. The organizer calls, panicking: 600 IC in 45 seconds, paid double. Otherwise, he says, he'll call Glacier Frères.", es: "El festival de la ciudad subestimó la ola de calor. El organizador te llama, en pánico: 600 CB en 45 segundos, pagados el doble. Si no, dice, llama a Glacier Frères.", zh: "市音乐节低估了这场热浪。组织者惊慌失措地打来电话：45秒内要600冰块，双倍价钱。否则，他说，他就打给格拉西耶兄弟。", ru: "Городской фестиваль недооценил жару. Организатор звонит в панике: 600 К за 45 секунд, оплата вдвойне. Иначе, говорит, позвонит в Glacier Frères.", it: "Il festival cittadino ha sottovalutato l'ondata di caldo. L'organizzatore chiama, nel panico: 600 CB in 45 secondi, pagati il doppio. Altrimenti, dice, chiama Glacier Frères.", de: "Das Stadtfestival hat die Hitzewelle unterschätzt. Der Veranstalter ruft panisch an: 600 EW in 45 Sekunden, doppelt bezahlt. Sonst, sagt er, ruft er Glacier Frères an." },
     acceptLabel: { fr: 'ACCEPTER', en: 'ACCEPT', es: 'ACEPTAR', zh: "接受", ru: "ПРИНЯТЬ", it: "ACCETTA", de: "ANNEHMEN" },
     declineLabel: { fr: 'REFUSER', en: 'DECLINE', es: 'RECHAZAR', zh: "拒绝", ru: "ОТКЛОНИТЬ", it: "RIFIUTA", de: "ABLEHNEN" },
@@ -739,7 +740,7 @@ const EVENT_TYPES = {
   crisis_glacier: {
     id: 'crisis_glacier', category: 'tension_crisis', minPhase: 3,
     name: { fr: "L'ENVELOPPE DE PATRICE GLACIER", en: "PATRICE GLACIER'S ENVELOPE", es: "EL SOBRE DE PATRICE GLACIER", zh: "帕特里斯·格拉西耶的信封", ru: "КОНВЕРТ ПАТРИСА ГЛАСЬЕ", it: "LA BUSTA DI PATRICE GLACIER", de: "PATRICE GLACIERS UMSCHLAG" },
-    iconKey: 'alert',
+    iconKey: 'briefcase',
     intro: { fr: "Patrice Glacier t'invite dans une brasserie vide. Il pose une enveloppe épaisse sur la table. « Un arrangement entre gens du froid. Vous ralentissez, je ralentis. Tout le monde gagne. » Il sourit. L'enveloppe ne bouge pas.", en: "Patrice Glacier invites you to an empty brasserie. He sets a thick envelope on the table. 'An arrangement between men of the cold. You slow down, I slow down. Everybody wins.' He smiles. The envelope doesn't move.", es: "Patrice Glacier te invita a una brasería vacía. Pone un sobre grueso sobre la mesa. «Un arreglo entre gente del frío. Usted afloja, yo aflojo. Todos ganan.» Sonríe. El sobre no se mueve.", zh: "帕特里斯·格拉西耶约你去一家空荡荡的小餐馆。他把一个厚厚的信封放在桌上。『冰行人之间的一点安排。你慢下来，我也慢下来。大家都赢。』他微笑着。信封一动不动。", ru: "Патрис Гласье приглашает тебя в пустую брассери. Кладёт на стол толстый конверт. «Договорённость между людьми холода. Вы притормозите, я притормозю. Все в выигрыше.» Он улыбается. Конверт не двигается.", it: "Patrice Glacier ti invita in una brasserie vuota. Posa una busta spessa sul tavolo. «Un accordo tra gente del freddo. Lei rallenta, io rallento. Vincono tutti.» Sorride. La busta non si muove.", de: "Patrice Glacier lädt dich in eine leere Brasserie ein. Er legt einen dicken Umschlag auf den Tisch. «Eine Abmachung unter Leuten der Kälte. Sie bremsen, ich bremse. Alle gewinnen.» Er lächelt. Der Umschlag bewegt sich nicht." },
     mitigateLabel: { fr: 'REFUSER · le regarder dans les yeux', en: 'REFUSE · look him in the eye', es: 'RECHAZAR · mirarlo a los ojos', zh: "拒绝 · 直视他的眼睛", ru: "ОТКАЗАТЬ · смотреть ему в глаза", it: "RIFIUTARE · guardarlo negli occhi", de: "ABLEHNEN · ihm in die Augen sehen" },
     ignoreLabel: { fr: "PRENDRE L'ENVELOPPE · 60 000€", en: 'TAKE THE ENVELOPE · €60,000', es: 'COGER EL SOBRE · 60 000€', zh: "拿走信封 · 60 000€", ru: "ВЗЯТЬ КОНВЕРТ · 60 000€", it: "PRENDERE LA BUSTA · 60 000€", de: "UMSCHLAG NEHMEN · 60 000€" },
@@ -764,7 +765,7 @@ const EVENT_TYPES = {
   crisis_voisin: {
     id: 'crisis_voisin', category: 'tension_crisis', minPhase: 1,
     name: { fr: 'VOISIN MÉCONTENT', en: 'ANGRY NEIGHBOR', es: 'VECINO MOLESTO', zh: "邻居不满", ru: "НЕДОВОЛЬНЫЙ СОСЕД", it: "VICINO SCONTENTO", de: "VERÄRGERTER NACHBAR" },
-    iconKey: 'alert',
+    iconKey: 'volume',
     intro: { fr: "Le voisin du dessus tambourine à ta porte : le congélateur ronronne toute la nuit et il n'en dort plus. Il parle déjà de pétition et de syndic. Un pack de bières apaiserait peut-être les choses.", en: "Your upstairs neighbor is banging on your door: the freezer hums all night and he can't sleep. He's already talking petition and building management. A pack of beers might smooth things over.", es: "El vecino de arriba aporrea tu puerta: el congelador zumba toda la noche y no pega ojo. Ya habla de petición y de la comunidad. Un pack de cervezas quizá calme las cosas.", zh: "楼上邻居砸你的门：冰柜整夜嗡嗡响，他睡不着。他已经在提联名信和物业了。一箱啤酒也许能平息事态。", ru: "Сосед сверху колотит в дверь: морозильник гудит всю ночь, и он не спит. Уже грозит петицией и управляющей компанией. Упаковка пива, возможно, всё сгладит.", it: "Il vicino di sopra martella alla porta: il congelatore ronza tutta la notte e non dorme più. Parla già di petizione e amministratore. Una cassa di birre forse calmerebbe le acque.", de: "Der Nachbar von oben hämmert an die Tür: die Gefriertruhe brummt die ganze Nacht und er schläft nicht mehr. Er redet schon von Petition und Hausverwaltung. Ein Kasten Bier würde die Lage vielleicht entschärfen." },
     mitigateLabel: { fr: 'OFFRIR UN PACK · 40€', en: 'OFFER A SIX-PACK · €40', es: 'INVITAR A UN PACK · 40€', zh: "请一箱啤酒 · 40€", ru: "ПОСТАВИТЬ ПИВО · 40€", it: "OFFRIRE UNA CASSA · 40€", de: "EIN KASTEN SPENDIEREN · 40€" },
     ignoreLabel: { fr: 'IGNORER', en: 'IGNORE', es: 'IGNORAR', zh: "忽略", ru: "ИГНОРИРОВАТЬ", it: "IGNORA", de: "IGNORIEREN" },
@@ -774,7 +775,7 @@ const EVENT_TYPES = {
   opp_cafe: {
     id: 'opp_cafe', category: 'tension_opportunity', minPhase: 1,
     name: { fr: "URGENCE DU CAFÉ D'EN BAS", en: 'DOWNSTAIRS CAFÉ EMERGENCY', es: 'URGENCIA DEL CAFÉ DE ABAJO', zh: "楼下咖啡馆的急单", ru: "СРОЧНЫЙ ЗАКАЗ КАФЕ СНИЗУ", it: "EMERGENZA DEL BAR DI SOTTO", de: "NOTFALL IM CAFÉ UNTEN" },
-    iconKey: 'trophy',
+    iconKey: 'briefcase',
     intro: { fr: "Le café d'en bas est en rade de glace en plein coup de feu. Le patron débarque, essoufflé : 20 glaçons tout de suite, payés au triple du prix. C'est pris sur ton stock, maintenant.", en: "The café downstairs ran out of ice mid-rush. The owner shows up, out of breath: 20 ice cubes right now, paid triple. Straight from your stock, now.", es: "El café de abajo se quedó sin hielo en plena hora punta. El dueño aparece sin aliento: 20 cubitos ya, pagados al triple. Sale de tu stock, ahora.", zh: "楼下咖啡馆高峰期冰用光了。老板气喘吁吁跑来：现在就要20块冰，三倍价钱。直接从你的库存出，立刻。", ru: "В кафе снизу кончился лёд в самый час пик. Хозяин прибегает запыхавшийся: 20 кубиков немедленно, по тройной цене. Прямо из твоего запаса, сейчас.", it: "Il bar di sotto è rimasto senza ghiaccio in pieno servizio. Il titolare arriva trafelato: 20 cubetti subito, pagati il triplo. Dal tuo stock, ora.", de: "Dem Café unten ist mitten im Ansturm das Eis ausgegangen. Der Wirt kommt außer Atem: 20 Eiswürfel sofort, dreifach bezahlt. Direkt aus deinem Bestand, jetzt." },
     acceptLabel: { fr: 'DÉPANNER · 20 GL', en: 'HELP OUT · 20 IC', es: 'AYUDAR · 20 CB', zh: "救急 · 20冰块", ru: "ВЫРУЧИТЬ · 20 К", it: "AIUTARE · 20 CB", de: "AUSHELFEN · 20 EW" },
     declineLabel: { fr: 'REFUSER', en: 'DECLINE', es: 'RECHAZAR', zh: "拒绝", ru: "ОТКАЗАТЬ", it: "RIFIUTA", de: "ABLEHNEN" },
@@ -784,13 +785,13 @@ const EVENT_TYPES = {
 
   // === ÉVÉNEMENTS "RACKET" (data-driven) — paye ou perds. Décision 15s. ===
   // Schéma générique : racket:true, cost (€ à payer), refuse {effet si on ignore}, chance.
-  racket_bruit: { id: 'racket_bruit', category: 'tension_crisis', minPhase: 1, racket: true, chance: 0.0016, iconKey: 'alert',
+  racket_bruit: { id: 'racket_bruit', category: 'tension_crisis', minPhase: 1, racket: true, chance: 0.0016, iconKey: 'volume',
     name: { fr: 'CONTRÔLE ANTI-BRUIT', en: 'NOISE CONTROL', es: 'CONTROL ANTIRRUIDO', zh: '噪音检查', ru: 'КОНТРОЛЬ ШУМА', it: 'CONTROLLO ANTIRUMORE', de: 'LÄRMKONTROLLE' },
     intro: { fr: "La police municipale donne suite à la plainte du voisin. L'agent renifle une « pollution sonore nocturne ». Un petit arrangement à l'amiable et il oublie son carnet.", en: "Municipal police follow up on the neighbor's complaint. The officer sniffs out 'nocturnal noise pollution.' A small under-the-table arrangement and he forgets his notepad.", es: "La policía municipal da curso a la queja del vecino. El agente olfatea una «contaminación acústica nocturna». Un pequeño arreglo amistoso y se olvida del cuaderno.", zh: "市政警察跟进了邻居的投诉。警员嗅出了「夜间噪音污染」。私下小小通融一下，他就合上记事本。", ru: "Муниципальная полиция отреагировала на жалобу соседа. Агент учуял «ночное шумовое загрязнение». Небольшая полюбовная договорённость — и он забудет про блокнот.", it: "La polizia municipale dà seguito alla denuncia del vicino. L'agente fiuta un «inquinamento acustico notturno». Un piccolo accordo amichevole e dimentica il taccuino.", de: "Die Stadtpolizei geht der Beschwerde des Nachbarn nach. Der Beamte wittert eine „nächtliche Lärmbelästigung\". Eine kleine gütliche Einigung und er vergisst sein Notizbuch." },
     mitigateLabel: { fr: "ARRANGEMENT · 60€", en: "ARRANGEMENT · €60", es: "ARREGLO · 60€", zh: "私了 · 60€", ru: "ДОГОВОРИТЬСЯ · 60€", it: "ACCORDO · 60€", de: "EINIGUNG · 60€" }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE', es: 'RECHAZAR', zh: '拒绝', ru: 'ОТКАЗАТЬ', it: 'RIFIUTARE', de: 'ABLEHNEN' },
     cost: 60, refuse: { reputation: -5 },
     payNotif: { fr: "ARRANGÉ À L'AMIABLE", en: 'SETTLED QUIETLY', es: 'ARREGLADO AMISTOSAMENTE', zh: '私下了结', ru: 'УЛАЖЕНО ПОЛЮБОВНО', it: 'RISOLTO IN VIA AMICHEVOLE', de: 'GÜTLICH GEREGELT' }, refuseNotif: { fr: 'PV DRESSÉ · RÉPUTATION −5', en: 'TICKET ISSUED · REPUTATION −5', es: 'MULTA PUESTA · REPUTACIÓN −5', zh: '开具罚单 · 声誉 −5', ru: 'ШТРАФ ВЫПИСАН · РЕПУТАЦИЯ −5', it: 'MULTA ELEVATA · REPUTAZIONE −5', de: 'STRAFZETTEL · RUF −5' } },
-  racket_protection: { id: 'racket_protection', category: 'tension_crisis', minPhase: 1, racket: true, chance: 0.0013, iconKey: 'alert',
+  racket_protection: { id: 'racket_protection', category: 'tension_crisis', minPhase: 1, racket: true, chance: 0.0013, iconKey: 'shield',
     name: { fr: 'RACKET DE QUARTIER', en: 'NEIGHBORHOOD RACKET', es: 'EXTORSIÓN DE BARRIO', zh: '街区保护费', ru: 'РЭКЕТ КВАРТАЛА', it: 'PIZZO DI QUARTIERE', de: 'VIERTEL-SCHUTZGELD' },
     intro: { fr: "Un « homme d'affaires » du quartier propose sa « protection ». « Ce serait dommage qu'il arrive quelque chose à ton beau congélateur. » Il sourit. Pas toi.", en: "A neighborhood 'businessman' offers his 'protection.' 'Shame if something happened to your nice freezer.' He smiles. You don't.", es: "Un «hombre de negocios» del barrio ofrece su «protección». «Sería una pena que le pasara algo a tu bonito congelador.» Él sonríe. Tú no.", zh: "街区里一位「生意人」上门兜售「保护」。「要是你那台漂亮的冷柜出点事就太可惜了。」他笑了，你没笑。", ru: "Местный «бизнесмен» предлагает свою «защиту». «Будет жаль, если с твоим красивым морозильником что-то случится.» Он улыбается. Ты — нет.", it: "Un «uomo d'affari» del quartiere offre la sua «protezione». «Sarebbe un peccato se succedesse qualcosa al tuo bel congelatore.» Lui sorride. Tu no.", de: "Ein „Geschäftsmann\" aus dem Viertel bietet seinen „Schutz\" an. „Wäre schade, wenn deinem schönen Gefrierschrank was passiert.\" Er lächelt. Du nicht." },
     mitigateLabel: { fr: "PAYER · 80€", en: "PAY · €80", es: "PAGAR · 80€", zh: "支付 · 80€", ru: "ЗАПЛАТИТЬ · 80€", it: "PAGARE · 80€", de: "ZAHLEN · 80€" }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE', es: 'RECHAZAR', zh: '拒绝', ru: 'ОТКАЗАТЬ', it: 'RIFIUTARE', de: 'ABLEHNEN' },
@@ -809,13 +810,13 @@ const EVENT_TYPES = {
     mitigateLabel: { fr: "PAYER LA RANÇON · 5 000€", en: 'PAY RANSOM · €5,000', es: 'PAGAR EL RESCATE · 5 000€', zh: '支付赎金 · 5 000€', ru: 'ЗАПЛАТИТЬ ВЫКУП · 5 000€', it: 'PAGARE IL RISCATTO · 5 000€', de: 'LÖSEGELD ZAHLEN · 5 000€' }, ignoreLabel: { fr: 'REFUSER (perdre le camion)', en: 'REFUSE (lose the truck)', es: 'RECHAZAR (perder el camión)', zh: '拒绝（失去卡车）', ru: 'ОТКАЗАТЬ (потерять грузовик)', it: 'RIFIUTARE (perdere il camion)', de: 'ABLEHNEN (LKW verlieren)' },
     cost: 5000, refuse: { loseTruckLine: true },
     payNotif: { fr: 'RANÇON PAYÉE · CAMION RÉCUPÉRÉ', en: 'RANSOM PAID · TRUCK BACK', es: 'RESCATE PAGADO · CAMIÓN RECUPERADO', zh: '赎金已付 · 卡车找回', ru: 'ВЫКУП УПЛАЧЕН · ГРУЗОВИК ВЕРНУЛИ', it: 'RISCATTO PAGATO · CAMION RECUPERATO', de: 'LÖSEGELD GEZAHLT · LKW ZURÜCK' }, refuseNotif: { fr: 'CAMION PERDU · UNE LIGNE EN MOINS', en: 'TRUCK LOST · ONE LINE FEWER', es: 'CAMIÓN PERDIDO · UNA LÍNEA MENOS', zh: '卡车丢失 · 少一条线路', ru: 'ГРУЗОВИК ПОТЕРЯН · ОДНОЙ ЛИНИЕЙ МЕНЬШЕ', it: 'CAMION PERSO · UNA LINEA IN MENO', de: 'LKW VERLOREN · EINE LINIE WENIGER' } },
-  racket_urssaf: { id: 'racket_urssaf', category: 'tension_crisis', minPhase: 2, racket: true, chance: 0.0006, iconKey: 'shield',
+  racket_urssaf: { id: 'racket_urssaf', category: 'tension_crisis', minPhase: 2, racket: true, chance: 0.0006, iconKey: 'file_text',
     name: { fr: 'CONTRÔLE URSSAF', en: 'SURPRISE TAX AUDIT', es: 'INSPECCIÓN DE LA SEGURIDAD SOCIAL', zh: '社保突击检查', ru: 'ВНЕЗАПНАЯ ПРОВЕРКА ВЗНОСОВ', it: 'ISPEZIONE CONTRIBUTI', de: 'SOZIALABGABEN-PRÜFUNG' },
     intro: { fr: "Inspecteur surprise. Il trouve « trois irrégularités », dont deux qu'il vient d'inventer. Un chèque discret et le dossier se classe tout seul.", en: "Surprise inspector. He finds 'three irregularities,' two of which he just invented. A discreet check and the file closes itself.", es: "Inspector sorpresa. Encuentra «tres irregularidades», dos de las cuales acaba de inventar. Un cheque discreto y el expediente se archiva solo.", zh: "突击检查员。他找出了「三处违规」，其中两处是他刚编出来的。一张悄悄的支票，案卷就自动归档了。", ru: "Внезапный инспектор. Он находит «три нарушения», два из которых только что выдумал. Скромный чек — и дело закрывается само собой.", it: "Ispettore a sorpresa. Trova «tre irregolarità», due delle quali appena inventate. Un assegno discreto e la pratica si archivia da sola.", de: "Überraschungsinspektor. Er findet „drei Unregelmäßigkeiten\", zwei davon gerade erfunden. Ein diskreter Scheck und die Akte schließt sich von selbst." },
     mitigateLabel: { fr: "ARRANGEMENT · 4 000€", en: 'ARRANGEMENT · €4,000', es: 'ARREGLO · 4 000€', zh: '私了 · 4 000€', ru: 'ДОГОВОРИТЬСЯ · 4 000€', it: 'ACCORDO · 4 000€', de: 'EINIGUNG · 4 000€' }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE', es: 'RECHAZAR', zh: '拒绝', ru: 'ОТКАЗАТЬ', it: 'RIFIUTARE', de: 'ABLEHNEN' },
     cost: 4000, refuse: { reputation: -10 },
     payNotif: { fr: 'DOSSIER CLASSÉ', en: 'FILE CLOSED', es: 'EXPEDIENTE ARCHIVADO', zh: '案卷已归档', ru: 'ДЕЛО ЗАКРЫТО', it: 'PRATICA ARCHIVIATA', de: 'AKTE GESCHLOSSEN' }, refuseNotif: { fr: 'REDRESSEMENT · RÉPUTATION −10', en: 'REASSESSMENT · REPUTATION −10', es: 'RECARGO · REPUTACIÓN −10', zh: '补缴处罚 · 声誉 −10', ru: 'ДОНАЧИСЛЕНИЕ · РЕПУТАЦИЯ −10', it: 'ACCERTAMENTO · REPUTAZIONE −10', de: 'NACHFORDERUNG · RUF −10' } },
-  racket_fournisseur: { id: 'racket_fournisseur', category: 'tension_crisis', minPhase: 2, racket: true, chance: 0.0006, iconKey: 'alert',
+  racket_fournisseur: { id: 'racket_fournisseur', category: 'tension_crisis', minPhase: 2, racket: true, chance: 0.0006, iconKey: 'package',
     name: { fr: 'FOURNISSEUR QUI MENACE', en: 'SUPPLIER THREATENS TO LEAVE', es: 'PROVEEDOR QUE AMENAZA', zh: '供应商威胁', ru: 'ПОСТАВЩИК УГРОЖАЕТ', it: 'FORNITORE CHE MINACCIA', de: 'LIEFERANT DROHT' },
     intro: { fr: "Ton fournisseur d'eau menace de te lâcher pour un concurrent. Une « prime de fidélité » le ferait peut-être reconsidérer.", en: "Your water supplier threatens to drop you for a competitor. A 'loyalty bonus' might make him reconsider.", es: "Tu proveedor de agua amenaza con dejarte por un competidor. Una «prima de fidelidad» quizá le haga reconsiderarlo.", zh: "你的水供应商威胁要转投竞争对手。也许一笔「忠诚奖金」能让他回心转意。", ru: "Твой поставщик воды грозится уйти к конкуренту. «Премия за лояльность», возможно, заставит его передумать.", it: "Il tuo fornitore d'acqua minaccia di mollarti per un concorrente. Un «premio fedeltà» forse lo farebbe ripensare.", de: "Dein Wasserlieferant droht, zu einem Konkurrenten zu wechseln. Eine „Treueprämie\" könnte ihn umstimmen." },
     mitigateLabel: { fr: "PRIME · 3 000€", en: 'BONUS · €3,000', es: 'PRIMA · 3 000€', zh: '奖金 · 3 000€', ru: 'ПРЕМИЯ · 3 000€', it: 'PREMIO · 3 000€', de: 'PRÄMIE · 3 000€' }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE', es: 'RECHAZAR', zh: '拒绝', ru: 'ОТКАЗАТЬ', it: 'RIFIUTARE', de: 'ABLEHNEN' },
@@ -827,7 +828,7 @@ const EVENT_TYPES = {
     mitigateLabel: { fr: "RÉPARER · 2 500€", en: 'REPAIR · €2,500', es: 'REPARAR · 2 500€', zh: '修复 · 2 500€', ru: 'ОТРЕМОНТИРОВАТЬ · 2 500€', it: 'RIPARARE · 2 500€', de: 'REPARIEREN · 2 500€' }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE', es: 'RECHAZAR', zh: '拒绝', ru: 'ОТКАЗАТЬ', it: 'RIFIUTARE', de: 'ABLEHNEN' },
     cost: 2500, refuse: { reputation: -8 },
     payNotif: { fr: 'RÉPARÉ', en: 'REPAIRED', es: 'REPARADO', zh: '已修复', ru: 'ОТРЕМОНТИРОВАНО', it: 'RIPARATO', de: 'REPARIERT' }, refuseNotif: { fr: 'FAÇADE DÉGRADÉE · RÉPUTATION −8', en: 'DAMAGED FACADE · REPUTATION −8', es: 'FACHADA DAÑADA · REPUTACIÓN −8', zh: '外墙受损 · 声誉 −8', ru: 'ФАСАД ИСПОРЧЕН · РЕПУТАЦИЯ −8', it: 'FACCIATA ROVINATA · REPUTAZIONE −8', de: 'FASSADE BESCHÄDIGT · RUF −8' } },
-  racket_gang: { id: 'racket_gang', category: 'tension_crisis', minPhase: 2, racket: true, chance: 0.0005, iconKey: 'alert',
+  racket_gang: { id: 'racket_gang', category: 'tension_crisis', minPhase: 2, racket: true, chance: 0.0005, iconKey: 'users',
     name: { fr: 'GANG LOCAL', en: 'LOCAL GANG', es: 'BANDA LOCAL', zh: '本地帮派', ru: 'МЕСТНАЯ БАНДА', it: 'BANDA LOCALE', de: 'ÖRTLICHE BANDE' },
     intro: { fr: "Une bande locale s'est invitée au dépôt. Ils repartiront avec « un petit quelque chose » : ton argent, ou ton stock.", en: "A local crew invited themselves to the depot. They'll leave with 'a little something': your cash, or your stock.", es: "Una banda local se ha autoinvitado al depósito. Se irán con «algo»: tu dinero o tu stock.", zh: "一伙本地混混自己跑到了车库。他们走时总要带上「点东西」：你的钱，或你的库存。", ru: "Местная компания заявилась на склад без приглашения. Они уйдут с «небольшим чем-нибудь»: твоими деньгами или твоим запасом.", it: "Una banda locale si è autoinvitata al deposito. Se ne andranno con «qualcosina»: i tuoi soldi, o la tua scorta.", de: "Eine örtliche Truppe hat sich selbst ins Depot eingeladen. Sie gehen mit „einer Kleinigkeit\": deinem Geld oder deinem Bestand." },
     mitigateLabel: { fr: "PAYER · 4 000€", en: 'PAY · €4,000', es: 'PAGAR · 4 000€', zh: '支付 · 4 000€', ru: 'ЗАПЛАТИТЬ · 4 000€', it: 'PAGARE · 4 000€', de: 'ZAHLEN · 4 000€' }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE', es: 'RECHAZAR', zh: '拒绝', ru: 'ОТКАЗАТЬ', it: 'RIFIUTARE', de: 'ABLEHNEN' },
@@ -839,7 +840,7 @@ const EVENT_TYPES = {
     mitigateLabel: { fr: "DÉJEUNER + ENVELOPPE · 3 500€", en: 'LUNCH + ENVELOPE · €3,500', es: 'ALMUERZO + SOBRE · 3 500€', zh: '午餐 + 信封 · 3 500€', ru: 'ОБЕД + КОНВЕРТ · 3 500€', it: 'PRANZO + BUSTA · 3 500€', de: 'MITTAGESSEN + UMSCHLAG · 3 500€' }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE', es: 'RECHAZAR', zh: '拒绝', ru: 'ОТКАЗАТЬ', it: 'RIFIUTARE', de: 'ABLEHNEN' },
     cost: 3500, refuse: { reputation: -9 },
     payNotif: { fr: 'INSPECTION OK', en: 'INSPECTION PASSED', es: 'INSPECCIÓN OK', zh: '检查通过', ru: 'ПРОВЕРКА ПРОЙДЕНА', it: 'ISPEZIONE OK', de: 'PRÜFUNG BESTANDEN' }, refuseNotif: { fr: 'RAPPORT NÉGATIF · RÉPUTATION −9', en: 'BAD REPORT · REPUTATION −9', es: 'INFORME NEGATIVO · REPUTACIÓN −9', zh: '负面报告 · 声誉 −9', ru: 'ОТРИЦАТЕЛЬНЫЙ ОТЧЁТ · РЕПУТАЦИЯ −9', it: 'RAPPORTO NEGATIVO · REPUTAZIONE −9', de: 'NEGATIVER BERICHT · RUF −9' } },
-  racket_pollution: { id: 'racket_pollution', category: 'tension_crisis', minPhase: 2, racket: true, chance: 0.0005, iconKey: 'shield',
+  racket_pollution: { id: 'racket_pollution', category: 'tension_crisis', minPhase: 2, racket: true, chance: 0.0005, iconKey: 'droplets',
     name: { fr: 'AMENDE POLLUTION', en: 'POLLUTION FINE', es: 'MULTA POR CONTAMINACIÓN', zh: '污染罚款', ru: 'ШТРАФ ЗА ЗАГРЯЗНЕНИЕ', it: 'MULTA INQUINAMENTO', de: 'UMWELTSTRAFE' },
     intro: { fr: "Un agent t'accuse de rejeter de l'eau glacée dans les égouts. Vrai ou faux, le PV est salé. Sauf si tu « participes à l'effort écologique ».", en: "An officer accuses you of dumping iced water into the sewers. True or not, the fine is steep. Unless you 'contribute to the green effort.'", es: "Un agente te acusa de verter agua helada al alcantarillado. Cierto o no, la multa es salada. Salvo que «contribuyas al esfuerzo ecológico».", zh: "一名执法人员指控你往下水道排放冰水。无论真假，罚单都很重。除非你「为环保事业出一份力」。", ru: "Чиновник обвиняет тебя в сбросе ледяной воды в канализацию. Правда или нет, штраф солидный. Если только ты не «внесёшь вклад в экологию».", it: "Un agente ti accusa di scaricare acqua gelata nelle fogne. Vero o no, la multa è salata. A meno che tu non «contribuisca allo sforzo ecologico».", de: "Ein Beamter wirft dir vor, Eiswasser in die Kanalisation zu kippen. Ob wahr oder nicht, die Strafe ist saftig. Es sei denn, du „beteiligst dich am Öko-Beitrag\"." },
     mitigateLabel: { fr: "PARTICIPER · 5 000€", en: 'CONTRIBUTE · €5,000', es: 'CONTRIBUIR · 5 000€', zh: '出资 · 5 000€', ru: 'ВНЕСТИ ВКЛАД · 5 000€', it: 'CONTRIBUIRE · 5 000€', de: 'BEITRAGEN · 5 000€' }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE', es: 'RECHAZAR', zh: '拒绝', ru: 'ОТКАЗАТЬ', it: 'RIFIUTARE', de: 'ABLEHNEN' },
@@ -852,55 +853,55 @@ const EVENT_TYPES = {
     cost: 4500, refuse: { notoriety: -8 },
     payNotif: { fr: 'SILENCE ACHETÉ', en: 'SILENCE BOUGHT', es: 'SILENCIO COMPRADO', zh: '封口成功', ru: 'МОЛЧАНИЕ КУПЛЕНО', it: 'SILENZIO COMPRATO', de: 'SCHWEIGEN GEKAUFT' }, refuseNotif: { fr: 'GLACIER COPIE TES PROCÉDÉS · NOTORIÉTÉ −8', en: 'GLACIER COPIES YOU · NOTORIETY −8', es: 'GLACIER COPIA TUS MÉTODOS · NOTORIEDAD −8', zh: '冰川兄弟抄走你的工艺 · 知名度 −8', ru: 'ГЛАСЬЕ КОПИРУЕТ ТВОИ МЕТОДЫ · ИЗВЕСТНОСТЬ −8', it: 'GLACIER COPIA I TUOI METODI · NOTORIETÀ −8', de: 'GLACIER KOPIERT DEINE VERFAHREN · BEKANNTHEIT −8' } },
 
-  racket_police: { id: 'racket_police', category: 'tension_crisis', minPhase: 3, racket: true, chance: 0.0005, iconKey: 'shield',
+  racket_police: { id: 'racket_police', category: 'tension_crisis', minPhase: 3, racket: true, chance: 0.0005, iconKey: 'siren',
     name: { fr: 'POLICE & FAUSSES CHARGES', en: 'POLICE & FALSE CHARGES', es: 'POLICÍA Y CARGOS FALSOS', zh: '警察与莫须有的指控', ru: 'ПОЛИЦИЯ И ЛОЖНЫЕ ОБВИНЕНИЯ', it: 'POLIZIA E ACCUSE FALSE', de: 'POLIZEI & FALSCHE ANSCHULDIGUNGEN' },
     intro: { fr: "Un enquêteur véreux a monté un dossier entièrement bidon contre toi. « Ce serait dommage que ça arrive devant un juge. » L'enveloppe est attendue.", en: "A crooked investigator has built an entirely fabricated case against you. 'Shame if this reached a judge.' The envelope is expected.", es: "Un investigador corrupto ha montado un caso totalmente falso contra ti. «Sería una pena que esto llegara ante un juez.» Se espera el sobre.", zh: "一名腐败的调查员对你炮制了一份纯属捏造的卷宗。「要是闹到法官那儿就太可惜了。」他在等那个信封。", ru: "Продажный следователь сфабриковал против тебя полностью липовое дело. «Будет жаль, если это дойдёт до судьи.» Ждут конверт.", it: "Un investigatore corrotto ti ha montato un dossier del tutto inventato. «Sarebbe un peccato se finisse davanti a un giudice.» La busta è attesa.", de: "Ein korrupter Ermittler hat eine völlig erfundene Akte gegen dich aufgebaut. „Wäre schade, wenn das vor einen Richter käme.\" Der Umschlag wird erwartet." },
     mitigateLabel: { fr: "GLISSER L'ENVELOPPE · 12 000€", en: 'SLIP THE ENVELOPE · €12,000', es: 'DESLIZAR EL SOBRE · 12 000€', zh: '塞信封 · 12 000€', ru: 'СУНУТЬ КОНВЕРТ · 12 000€', it: 'INFILARE LA BUSTA · 12 000€', de: 'UMSCHLAG ZUSTECKEN · 12 000€' }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE', es: 'RECHAZAR', zh: '拒绝', ru: 'ОТКАЗАТЬ', it: 'RIFIUTARE', de: 'ABLEHNEN' },
     cost: 12000, refuse: { reputation: -20 },
     payNotif: { fr: 'LE DOSSIER DISPARAÎT', en: 'THE FILE VANISHES', es: 'EL EXPEDIENTE DESAPARECE', zh: '卷宗消失了', ru: 'ДЕЛО ИСЧЕЗАЕТ', it: 'IL DOSSIER SPARISCE', de: 'DIE AKTE VERSCHWINDET' }, refuseNotif: { fr: 'MISE EN EXAMEN · RÉPUTATION −20', en: 'INDICTED · REPUTATION −20', es: 'IMPUTADO · REPUTACIÓN −20', zh: '被立案 · 声誉 −20', ru: 'ПРЕДЪЯВЛЕНО ОБВИНЕНИЕ · РЕПУТАЦИЯ −20', it: 'INCRIMINATO · REPUTAZIONE −20', de: 'ANGEKLAGT · RUF −20' } },
-  racket_chantage: { id: 'racket_chantage', category: 'tension_crisis', minPhase: 3, racket: true, chance: 0.0004, iconKey: 'alert',
+  racket_chantage: { id: 'racket_chantage', category: 'tension_crisis', minPhase: 3, racket: true, chance: 0.0004, iconKey: 'lock',
     name: { fr: 'MAÎTRE-CHANTEUR', en: 'BLACKMAILER', es: 'CHANTAJISTA', zh: '勒索者', ru: 'ШАНТАЖИСТ', it: 'RICATTATORE', de: 'ERPRESSER' },
     intro: { fr: "Quelqu'un a des photos compromettantes de ta soirée d'entreprise. Il veut être payé pour ne pas les envoyer à la presse.", en: "Someone has compromising photos from your company party. He wants to be paid not to send them to the press.", es: "Alguien tiene fotos comprometedoras de tu fiesta de empresa. Quiere cobrar para no enviarlas a la prensa.", zh: "有人手里有你公司派对上的不雅照片。他要收钱才肯不把照片捅给媒体。", ru: "У кого-то есть компрометирующие фото с твоей корпоративной вечеринки. Он хочет денег за то, чтобы не отправлять их в прессу.", it: "Qualcuno ha foto compromettenti della tua festa aziendale. Vuole essere pagato per non mandarle alla stampa.", de: "Jemand hat kompromittierende Fotos von deiner Firmenfeier. Er will Geld dafür, sie nicht an die Presse zu schicken." },
     mitigateLabel: { fr: "ACHETER LE SILENCE · 15 000€", en: 'BUY SILENCE · €15,000', es: 'COMPRAR EL SILENCIO · 15 000€', zh: '买断封口 · 15 000€', ru: 'КУПИТЬ МОЛЧАНИЕ · 15 000€', it: 'COMPRARE IL SILENZIO · 15 000€', de: 'SCHWEIGEN KAUFEN · 15 000€' }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE', es: 'RECHAZAR', zh: '拒绝', ru: 'ОТКАЗАТЬ', it: 'RIFIUTARE', de: 'ABLEHNEN' },
     cost: 15000, refuse: { notorietyDivBy: 2 },
     payNotif: { fr: 'PHOTOS ACHETÉES', en: 'PHOTOS BOUGHT', es: 'FOTOS COMPRADAS', zh: '照片已买下', ru: 'ФОТО ВЫКУПЛЕНЫ', it: 'FOTO COMPRATE', de: 'FOTOS GEKAUFT' }, refuseNotif: { fr: 'SCANDALE PUBLIC · NOTORIÉTÉ ÷2', en: 'PUBLIC SCANDAL · NOTORIETY ÷2', es: 'ESCÁNDALO PÚBLICO · NOTORIEDAD ÷2', zh: '公开丑闻 · 知名度 ÷2', ru: 'ПУБЛИЧНЫЙ СКАНДАЛ · ИЗВЕСТНОСТЬ ÷2', it: 'SCANDALO PUBBLICO · NOTORIETÀ ÷2', de: 'ÖFFENTLICHER SKANDAL · BEKANNTHEIT ÷2' } },
-  racket_douane: { id: 'racket_douane', category: 'tension_crisis', minPhase: 3, racket: true, chance: 0.0005, iconKey: 'truck',
+  racket_douane: { id: 'racket_douane', category: 'tension_crisis', minPhase: 3, racket: true, chance: 0.0005, iconKey: 'globe',
     name: { fr: 'DOUANE BLOQUANTE', en: 'CUSTOMS BLOCKADE', es: 'ADUANA BLOQUEANTE', zh: '海关扣留', ru: 'ТАМОЖНЯ БЛОКИРУЕТ', it: 'DOGANA CHE BLOCCA', de: 'ZOLL-BLOCKADE' },
     intro: { fr: "Un douanier bloque tes exportations pour « contrôle approfondi » d'une durée indéterminée. Un geste accélérerait les choses.", en: "A customs officer blocks your exports for an 'in-depth check' of indefinite length. A gesture would speed things up.", es: "Un aduanero bloquea tus exportaciones por un «control exhaustivo» de duración indefinida. Un gesto aceleraría las cosas.", zh: "一名海关官员以「深度查验」为由无限期扣下你的出口货物。来点「表示」就能加快进度。", ru: "Таможенник блокирует твой экспорт для «углублённой проверки» неопределённого срока. «Жест» ускорил бы дело.", it: "Un doganiere blocca le tue esportazioni per un «controllo approfondito» di durata indefinita. Un gesto accelererebbe le cose.", de: "Ein Zollbeamter blockiert deine Exporte für eine „eingehende Prüfung\" von unbestimmter Dauer. Eine Geste würde die Sache beschleunigen." },
     mitigateLabel: { fr: "GESTE · 10 000€", en: 'GESTURE · €10,000', es: 'GESTO · 10 000€', zh: '表示 · 10 000€', ru: 'ЖЕСТ · 10 000€', it: 'GESTO · 10 000€', de: 'GESTE · 10 000€' }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE', es: 'RECHAZAR', zh: '拒绝', ru: 'ОТКАЗАТЬ', it: 'RIFIUTARE', de: 'ABLEHNEN' },
     cost: 10000, refuse: { blockContracts: 90 },
     payNotif: { fr: 'EXPORTS DÉBLOQUÉS', en: 'EXPORTS CLEARED', es: 'EXPORTACIONES LIBERADAS', zh: '出口放行', ru: 'ЭКСПОРТ РАЗБЛОКИРОВАН', it: 'EXPORT SBLOCCATI', de: 'EXPORTE FREIGEGEBEN' }, refuseNotif: { fr: 'CONTRATS BLOQUÉS (90s)', en: 'CONTRACTS BLOCKED (90s)', es: 'CONTRATOS BLOQUEADOS (90s)', zh: '合同冻结（90s）', ru: 'КОНТРАКТЫ ЗАБЛОКИРОВАНЫ (90s)', it: 'CONTRATTI BLOCCATI (90s)', de: 'VERTRÄGE GESPERRT (90s)' } },
-  racket_syndicat: { id: 'racket_syndicat', category: 'tension_crisis', minPhase: 3, racket: true, chance: 0.0005, iconKey: 'alert',
+  racket_syndicat: { id: 'racket_syndicat', category: 'tension_crisis', minPhase: 3, racket: true, chance: 0.0005, iconKey: 'megaphone',
     name: { fr: 'DÉLÉGUÉ SYNDICAL', en: 'UNION REP', es: 'DELEGADO SINDICAL', zh: '工会代表', ru: 'ПРОФСОЮЗНЫЙ ДЕЛЕГАТ', it: 'DELEGATO SINDACALE', de: 'GEWERKSCHAFTSVERTRETER' },
     intro: { fr: "Un délégué menace d'un débrayage si tu ne « régularises » pas certaines primes. Payer évite la grève.", en: "A union rep threatens a walkout unless you 'regularize' certain bonuses. Paying avoids the strike.", es: "Un delegado amenaza con un paro si no «regularizas» ciertas primas. Pagar evita la huelga.", zh: "一名工会代表威胁要发动停工，除非你「补发」某些奖金。付钱就能避免罢工。", ru: "Профсоюзный делегат грозит забастовкой, если ты не «урегулируешь» некоторые премии. Заплатишь — забастовки не будет.", it: "Un delegato minaccia uno sciopero se non «regolarizzi» certi premi. Pagare evita lo sciopero.", de: "Ein Vertreter droht mit einem Ausstand, wenn du gewisse Prämien nicht „regularisierst\". Zahlen verhindert den Streik." },
     mitigateLabel: { fr: "RÉGULARISER · 8 000€", en: 'REGULARIZE · €8,000', es: 'REGULARIZAR · 8 000€', zh: '补发 · 8 000€', ru: 'УРЕГУЛИРОВАТЬ · 8 000€', it: 'REGOLARIZZARE · 8 000€', de: 'REGULARISIEREN · 8 000€' }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE', es: 'RECHAZAR', zh: '拒绝', ru: 'ОТКАЗАТЬ', it: 'RIFIUTARE', de: 'ABLEHNEN' },
     cost: 8000, refuse: { blockContracts: 90 },
     payNotif: { fr: 'PAIX SOCIALE', en: 'LABOR PEACE', es: 'PAZ SOCIAL', zh: '劳资和平', ru: 'МИР В КОЛЛЕКТИВЕ', it: 'PACE SOCIALE', de: 'BETRIEBSFRIEDEN' }, refuseNotif: { fr: 'DÉBRAYAGE · CONTRATS BLOQUÉS (90s)', en: 'WALKOUT · CONTRACTS BLOCKED (90s)', es: 'PARO · CONTRATOS BLOQUEADOS (90s)', zh: '停工 · 合同冻结（90s）', ru: 'ЗАБАСТОВКА · КОНТРАКТЫ ЗАБЛОКИРОВАНЫ (90s)', it: 'SCIOPERO · CONTRATTI BLOCCATI (90s)', de: 'AUSSTAND · VERTRÄGE GESPERRT (90s)' } },
-  racket_journaliste: { id: 'racket_journaliste', category: 'tension_crisis', minPhase: 3, racket: true, chance: 0.0005, iconKey: 'megaphone',
+  racket_journaliste: { id: 'racket_journaliste', category: 'tension_crisis', minPhase: 3, racket: true, chance: 0.0005, iconKey: 'tv',
     name: { fr: 'JOURNALISTE À CHARGE', en: 'HOSTILE JOURNALIST', es: 'PERIODISTA HOSTIL', zh: '不利的记者', ru: 'ЖУРНАЛИСТ ПРОТИВ ТЕБЯ', it: 'GIORNALISTA A CARICO', de: 'FEINDSELIGER JOURNALIST' },
     intro: { fr: "Une journaliste prépare un papier au vitriol sur tes « méthodes glaçantes ». Un « partenariat publicitaire » pourrait adoucir le ton.", en: "A journalist is preparing a scathing piece on your 'chilling methods.' An 'advertising partnership' might soften the tone.", es: "Una periodista prepara un artículo demoledor sobre tus «métodos gélidos». Una «colaboración publicitaria» podría suavizar el tono.", zh: "一位记者正在炮制一篇炮轰你「冷血手段」的报道。一份「广告合作」或许能让她口下留情。", ru: "Журналистка готовит разгромную статью о твоих «леденящих методах». «Рекламное партнёрство» могло бы смягчить тон.", it: "Una giornalista prepara un pezzo al vetriolo sui tuoi «metodi glaciali». Una «partnership pubblicitaria» potrebbe ammorbidire i toni.", de: "Eine Journalistin bereitet einen vernichtenden Artikel über deine „eiskalten Methoden\" vor. Eine „Werbepartnerschaft\" könnte den Ton mildern." },
     mitigateLabel: { fr: "PARTENARIAT · 9 000€", en: 'PARTNERSHIP · €9,000', es: 'COLABORACIÓN · 9 000€', zh: '合作 · 9 000€', ru: 'ПАРТНЁРСТВО · 9 000€', it: 'PARTNERSHIP · 9 000€', de: 'PARTNERSCHAFT · 9 000€' }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE', es: 'RECHAZAR', zh: '拒绝', ru: 'ОТКАЗАТЬ', it: 'RIFIUTARE', de: 'ABLEHNEN' },
     cost: 9000, refuse: { notoriety: -15 },
     payNotif: { fr: 'ARTICLE ADOUCI', en: 'ARTICLE SOFTENED', es: 'ARTÍCULO SUAVIZADO', zh: '报道软化', ru: 'СТАТЬЯ СМЯГЧЕНА', it: 'ARTICOLO AMMORBIDITO', de: 'ARTIKEL ENTSCHÄRFT' }, refuseNotif: { fr: 'ARTICLE ASSASSIN · NOTORIÉTÉ −15', en: 'HIT PIECE · NOTORIETY −15', es: 'ARTÍCULO DEMOLEDOR · NOTORIEDAD −15', zh: '抹黑报道 · 知名度 −15', ru: 'РАЗГРОМНАЯ СТАТЬЯ · ИЗВЕСТНОСТЬ −15', it: 'ARTICOLO DEMOLITORE · NOTORIETÀ −15', de: 'VERRISS · BEKANNTHEIT −15' } },
-  racket_maire: { id: 'racket_maire', category: 'tension_crisis', minPhase: 3, racket: true, chance: 0.0004, iconKey: 'shield',
+  racket_maire: { id: 'racket_maire', category: 'tension_crisis', minPhase: 3, racket: true, chance: 0.0004, iconKey: 'building',
     name: { fr: 'LE MAIRE', en: 'THE MAYOR', es: 'EL ALCALDE', zh: '市长', ru: 'МЭР', it: 'IL SINDACO', de: 'DER BÜRGERMEISTER' },
     intro: { fr: "Le maire « adorerait » que tu finances la fête municipale. Refuser, c'est s'attirer mille tracasseries administratives.", en: "The mayor 'would love' you to fund the town festival. Refusing means a thousand administrative headaches.", es: "Al alcalde «le encantaría» que financies la fiesta municipal. Negarse es buscarse mil quebraderos administrativos.", zh: "市长「非常希望」你能资助市镇庆典。拒绝就意味着惹上一千桩行政麻烦。", ru: "Мэр «был бы счастлив», если бы ты профинансировал городской праздник. Отказ — это тысяча бюрократических проволочек.", it: "Al sindaco «piacerebbe tanto» che finanziassi la festa cittadina. Rifiutare significa mille grane burocratiche.", de: "Der Bürgermeister „würde es lieben\", wenn du das Stadtfest finanzierst. Ablehnen bringt tausend bürokratische Scherereien." },
     mitigateLabel: { fr: "FINANCER · 14 000€", en: 'FUND IT · €14,000', es: 'FINANCIAR · 14 000€', zh: '资助 · 14 000€', ru: 'ПРОФИНАНСИРОВАТЬ · 14 000€', it: 'FINANZIARE · 14 000€', de: 'FINANZIEREN · 14 000€' }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE', es: 'RECHAZAR', zh: '拒绝', ru: 'ОТКАЗАТЬ', it: 'RIFIUTARE', de: 'ABLEHNEN' },
     cost: 14000, refuse: { reputation: -15 },
     payNotif: { fr: 'LE MAIRE TE SOURIT', en: 'THE MAYOR SMILES', es: 'EL ALCALDE TE SONRÍE', zh: '市长对你微笑', ru: 'МЭР ТЕБЕ УЛЫБАЕТСЯ', it: 'IL SINDACO TI SORRIDE', de: 'DER BÜRGERMEISTER LÄCHELT' }, refuseNotif: { fr: 'TRACASSERIES · RÉPUTATION −15', en: 'RED TAPE · REPUTATION −15', es: 'TRABAS · REPUTACIÓN −15', zh: '行政刁难 · 声誉 −15', ru: 'ПРОВОЛОЧКИ · РЕПУТАЦИЯ −15', it: 'GRANE BUROCRATICHE · REPUTAZIONE −15', de: 'BÜROKRATIE-ÄRGER · RUF −15' } },
-  racket_fisc: { id: 'racket_fisc', category: 'tension_crisis', minPhase: 3, racket: true, chance: 0.0005, iconKey: 'shield',
+  racket_fisc: { id: 'racket_fisc', category: 'tension_crisis', minPhase: 3, racket: true, chance: 0.0005, iconKey: 'dollar',
     name: { fr: 'REDRESSEMENT FISCAL', en: 'TAX REASSESSMENT', es: 'RECARGO FISCAL', zh: '税务补缴', ru: 'НАЛОГОВОЕ ДОНАЧИСЛЕНИЕ', it: 'ACCERTAMENTO FISCALE', de: 'STEUERNACHFORDERUNG' },
     intro: { fr: "Contrôle fiscal. L'inspecteur a « des doutes » sur tes marges. Solde tout de suite, ou conteste et subis des mois d'enfer.", en: "Tax audit. The inspector has 'doubts' about your margins. Settle now, or contest and endure months of hell.", es: "Inspección fiscal. El inspector tiene «dudas» sobre tus márgenes. Liquida ya, o impugna y sufre meses de infierno.", zh: "税务稽查。稽查员对你的利润率「有疑问」。现在就结清，或者抗辩，然后熬上几个月地狱。", ru: "Налоговая проверка. У инспектора «сомнения» насчёт твоей маржи. Заплати сейчас или оспаривай и терпи месяцы ада.", it: "Verifica fiscale. L'ispettore ha «dubbi» sui tuoi margini. Salda subito, o contesta e subisci mesi d'inferno.", de: "Steuerprüfung. Der Prüfer hat „Zweifel\" an deinen Margen. Zahl jetzt, oder klage und durchlebe Monate der Hölle." },
     mitigateLabel: { fr: "SOLDER · 18 000€", en: 'SETTLE · €18,000', es: 'LIQUIDAR · 18 000€', zh: '结清 · 18 000€', ru: 'ОПЛАТИТЬ · 18 000€', it: 'SALDARE · 18 000€', de: 'BEGLEICHEN · 18 000€' }, ignoreLabel: { fr: 'CONTESTER', en: 'CONTEST', es: 'IMPUGNAR', zh: '抗辩', ru: 'ОСПОРИТЬ', it: 'CONTESTARE', de: 'ANFECHTEN' },
     cost: 18000, refuse: { reputation: -12, sellMult: 0.7, duration: 90 },
     payNotif: { fr: 'FISC SOLDÉ', en: 'TAXES SETTLED', es: 'FISCO LIQUIDADO', zh: '税款已结', ru: 'НАЛОГИ ОПЛАЧЕНЫ', it: 'FISCO SALDATO', de: 'STEUERN BEGLICHEN' }, refuseNotif: { fr: 'CONTENTIEUX · RÉPUT −12 · VENTES −30% (90s)', en: 'LITIGATION · REP −12 · SALES −30% (90s)', es: 'LITIGIO · REP −12 · VENTAS −30% (90s)', zh: '诉讼 · 声誉 −12 · 销售 −30%（90s）', ru: 'ТЯЖБА · РЕП −12 · ПРОДАЖИ −30% (90s)', it: 'CONTENZIOSO · REP −12 · VENDITE −30% (90s)', de: 'RECHTSSTREIT · RUF −12 · VERKÄUFE −30% (90s)' } },
-  racket_mafia: { id: 'racket_mafia', category: 'tension_crisis', minPhase: 3, racket: true, chance: 0.0004, iconKey: 'alert',
+  racket_mafia: { id: 'racket_mafia', category: 'tension_crisis', minPhase: 3, racket: true, chance: 0.0004, iconKey: 'flame',
     name: { fr: 'LA MAFIA DU FROID', en: 'THE COLD MAFIA', es: 'LA MAFIA DEL FRÍO', zh: '冷冻黑帮', ru: 'ХОЛОДНАЯ МАФИЯ', it: 'LA MAFIA DEL FREDDO', de: 'DIE KÄLTE-MAFIA' },
     intro: { fr: "Un cartel du froid veut sa « part de marché ». L'émissaire est très poli, et très armé. La somme est ronde.", en: "A cold cartel wants its 'market share.' The envoy is very polite, and very armed. The sum is round.", es: "Un cartel del frío quiere su «cuota de mercado». El emisario es muy cortés, y va muy armado. La cifra es redonda.", zh: "一个冷冻卡特尔想要分一杯「市场份额」。来人非常客气，也非常全副武装。数目是个整数。", ru: "Холодный картель хочет свою «долю рынка». Посланник очень вежлив и очень вооружён. Сумма круглая.", it: "Un cartello del freddo vuole la sua «quota di mercato». L'emissario è molto educato, e molto armato. La cifra è tonda.", de: "Ein Kälte-Kartell will seinen „Marktanteil\". Der Bote ist sehr höflich und sehr bewaffnet. Die Summe ist rund." },
     mitigateLabel: { fr: "PAYER LE CARTEL · 20 000€", en: 'PAY THE CARTEL · €20,000', es: 'PAGAR AL CARTEL · 20 000€', zh: '向卡特尔付款 · 20 000€', ru: 'ЗАПЛАТИТЬ КАРТЕЛЮ · 20 000€', it: 'PAGARE IL CARTELLO · 20 000€', de: 'DAS KARTELL ZAHLEN · 20 000€' }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE', es: 'RECHAZAR', zh: '拒绝', ru: 'ОТКАЗАТЬ', it: 'RIFIUTARE', de: 'ABLEHNEN' },
     cost: 20000, refuse: { stockPct: -0.30, notoriety: -10 },
     payNotif: { fr: 'LE CARTEL TE LAISSE', en: 'THE CARTEL BACKS OFF', es: 'EL CARTEL TE DEJA EN PAZ', zh: '卡特尔放过你', ru: 'КАРТЕЛЬ ОТСТУПАЕТ', it: 'IL CARTELLO TI LASCIA STARE', de: 'DAS KARTELL ZIEHT AB' }, refuseNotif: { fr: 'REPRÉSAILLES · STOCK −30% · NOTORIÉTÉ −10', en: 'REPRISALS · STOCK −30% · NOTORIETY −10', es: 'REPRESALIAS · STOCK −30% · NOTORIEDAD −10', zh: '报复 · 库存 −30% · 知名度 −10', ru: 'РАСПРАВА · ЗАПАС −30% · ИЗВЕСТНОСТЬ −10', it: 'RAPPRESAGLIE · SCORTA −30% · NOTORIETÀ −10', de: 'VERGELTUNG · BESTAND −30% · BEKANNTHEIT −10' } },
-  racket_hacker: { id: 'racket_hacker', category: 'tension_crisis', minPhase: 3, racket: true, chance: 0.0005, iconKey: 'lock',
+  racket_hacker: { id: 'racket_hacker', category: 'tension_crisis', minPhase: 3, racket: true, chance: 0.0005, iconKey: 'cpu',
     name: { fr: 'RANÇONGICIEL', en: 'RANSOMWARE', es: 'RANSOMWARE', zh: '勒索软件', ru: 'ВИРУС-ВЫМОГАТЕЛЬ', it: 'RANSOMWARE', de: 'RANSOMWARE' },
     intro: { fr: "Un rançongiciel a chiffré ta gestion des commandes. Les pirates veulent être payés en cryptos pour rendre l'accès.", en: "Ransomware has encrypted your order system. The hackers want to be paid in crypto to restore access.", es: "Un ransomware ha cifrado tu gestión de pedidos. Los piratas quieren cobrar en cripto para devolverte el acceso.", zh: "一款勒索软件加密了你的订单管理系统。黑客要求用加密货币付款才肯恢复访问。", ru: "Вирус-вымогатель зашифровал твою систему заказов. Хакеры требуют оплату в крипте за восстановление доступа.", it: "Un ransomware ha cifrato la tua gestione ordini. I pirati vogliono essere pagati in cripto per restituirti l'accesso.", de: "Ransomware hat deine Auftragsverwaltung verschlüsselt. Die Hacker wollen in Krypto bezahlt werden, um den Zugang freizugeben." },
     mitigateLabel: { fr: "PAYER LA RANÇON · 16 000€", en: 'PAY RANSOM · €16,000', es: 'PAGAR EL RESCATE · 16 000€', zh: '支付赎金 · 16 000€', ru: 'ЗАПЛАТИТЬ ВЫКУП · 16 000€', it: 'PAGARE IL RISCATTO · 16 000€', de: 'LÖSEGELD ZAHLEN · 16 000€' }, ignoreLabel: { fr: 'REFUSER', en: 'REFUSE', es: 'RECHAZAR', zh: '拒绝', ru: 'ОТКАЗАТЬ', it: 'RIFIUTARE', de: 'ABLEHNEN' },
@@ -1011,35 +1012,35 @@ function formatRefuseEffect(eff, lang) {
 const FRICTION_EVENTS = {
   // ====== PHASE 1 ======
   fric_plumbing: {
-    id: 'fric_plumbing', minPhase: 1, maxPhase: 1, weight: 1.0, duration: 23,
+    id: 'fric_plumbing', iconKey: 'water', minPhase: 1, maxPhase: 1, weight: 1.0, duration: 23,
     name: { fr: 'PANNE DE PLOMBERIE', en: 'PLUMBING BREAKDOWN' },
     sub:  { fr: 'production stoppée', en: 'production halted' },
     effects: { prodBlock: true },
     requires: () => true,
   },
   fric_neighbor: {
-    id: 'fric_neighbor', minPhase: 1, maxPhase: 1, weight: 0.9, duration: 39,
+    id: 'fric_neighbor', iconKey: 'volume', minPhase: 1, maxPhase: 1, weight: 0.9, duration: 39,
     name: { fr: 'VOISIN SE PLAINT DU BRUIT', en: 'NEIGHBOR COMPLAINS' },
     sub:  { fr: 'production ×0.35', en: 'production ×0.35' },
     effects: { prodMult: 0.35 },
     requires: () => true,
   },
   fric_hygiene: {
-    id: 'fric_hygiene', minPhase: 1, maxPhase: 1, weight: 0.7, duration: 26,
+    id: 'fric_hygiene', iconKey: 'shield', minPhase: 1, maxPhase: 1, weight: 0.7, duration: 26,
     name: { fr: 'CONTRÔLE HYGIÈNE SURPRISE', en: 'SURPRISE HYGIENE AUDIT' },
     sub:  { fr: 'production bloquée · amende 120€', en: 'production halted · 120€ fine' },
     effects: { prodBlock: true, oneShotFineEur: 120 },
     requires: () => true,
   },
   fric_flood: {
-    id: 'fric_flood', minPhase: 1, maxPhase: 1, weight: 0.6, duration: 46,
+    id: 'fric_flood', iconKey: 'droplets', minPhase: 1, maxPhase: 1, weight: 0.6, duration: 46,
     name: { fr: 'INONDATION CAVE', en: 'BASEMENT FLOOD' },
     sub:  { fr: 'capacité ×0.55', en: 'capacity ×0.55' },
     effects: { capMult: 0.55 },
     requires: () => true,
   },
   fric_overheat: {
-    id: 'fric_overheat', minPhase: 1, maxPhase: 2, weight: 0.5, duration: 33,
+    id: 'fric_overheat', iconKey: 'flame', minPhase: 1, maxPhase: 2, weight: 0.5, duration: 33,
     name: { fr: 'SURCHAUFFE CONGÉLATEUR', en: 'FREEZER OVERHEATING' },
     sub:  { fr: 'fonte ×3', en: 'melt ×3' },
     effects: { meltMult: 3 },
@@ -1047,49 +1048,49 @@ const FRICTION_EVENTS = {
   },
   // ====== PHASE 2 ======
   fric_protest: {
-    id: 'fric_protest', minPhase: 2, maxPhase: 3, weight: 1.0, duration: 39,
+    id: 'fric_protest', iconKey: 'users', minPhase: 2, maxPhase: 3, weight: 1.0, duration: 39,
     name: { fr: 'MANIFESTATION SUR LA ROUTE', en: 'ROAD PROTEST' },
     sub:  { fr: 'tous les camions bloqués', en: 'all trucks blocked' },
     effects: { blockTrucks: true },
     requires: (ctx) => ctx.hasLenny && ctx.trucksActive > 0,
   },
   fric_phone: {
-    id: 'fric_phone', minPhase: 2, maxPhase: 3, weight: 0.9, duration: 52,
+    id: 'fric_phone', iconKey: 'phone', minPhase: 2, maxPhase: 3, weight: 0.9, duration: 52,
     name: { fr: 'COUPURE LIGNE TÉLÉPHONIQUE', en: 'PHONE LINE DOWN' },
     sub:  { fr: 'plus d\'appels ni de contrats', en: 'no calls or contracts' },
     effects: { blockCalls: true, blockMarket: true },
     requires: () => true,
   },
   fric_crm: {
-    id: 'fric_crm', minPhase: 2, maxPhase: 3, weight: 0.7, duration: 46,
+    id: 'fric_crm', iconKey: 'cpu', minPhase: 2, maxPhase: 3, weight: 0.7, duration: 46,
     name: { fr: 'BUG ERP / CRM', en: 'ERP/CRM BUG' },
     sub:  { fr: 'Brigitte en pause', en: 'Brigitte on hold' },
     effects: { pauseBrigitte: true },
     requires: (ctx) => ctx.hasBrigitte,
   },
   fric_labor: {
-    id: 'fric_labor', minPhase: 2, maxPhase: 3, weight: 0.6, duration: 52,
+    id: 'fric_labor', iconKey: 'scale', minPhase: 2, maxPhase: 3, weight: 0.6, duration: 52,
     name: { fr: 'INSPECTION DU TRAVAIL', en: 'LABOR INSPECTION' },
     sub:  { fr: 'embauches et upgrades verrouillés', en: 'hiring and upgrades locked' },
     effects: { blockUpgrades: true },
     requires: (ctx) => ctx.employeeCount >= 2,
   },
   fric_fuel: {
-    id: 'fric_fuel', minPhase: 2, maxPhase: 3, weight: 0.6, duration: 150,
+    id: 'fric_fuel', iconKey: 'truck', minPhase: 2, maxPhase: 3, weight: 0.6, duration: 150,
     name: { fr: 'PÉNURIE DE CARBURANT', en: 'FUEL SHORTAGE' },
     sub:  { fr: 'coût essence ×3', en: 'fuel cost ×3' },
     effects: { fuelMult: 3 },
     requires: (ctx) => ctx.hasLenny && ctx.trucksActive > 0,
   },
   fric_traffic: {
-    id: 'fric_traffic', minPhase: 2, maxPhase: 3, weight: 0.9, duration: 65,
+    id: 'fric_traffic', iconKey: 'gauge', minPhase: 2, maxPhase: 3, weight: 0.9, duration: 65,
     name: { fr: 'EMBOUTEILLAGE', en: 'TRAFFIC JAM' },
     sub:  { fr: 'temps de livraison ×1.8', en: 'delivery time ×1.8' },
     effects: { truckSpeedMult: 1.8 },
     requires: (ctx) => ctx.hasLenny && ctx.trucksActive > 0,
   },
   fric_tourist: {
-    id: 'fric_tourist', minPhase: 2, maxPhase: 3, weight: 0.4, duration: 150,
+    id: 'fric_tourist', iconKey: 'globe', minPhase: 2, maxPhase: 3, weight: 0.4, duration: 150,
     name: { fr: 'MAUVAISE SAISON TOURISTIQUE', en: 'BAD TOURIST SEASON' },
     sub:  { fr: 'demande B2B ×0.55', en: 'B2B demand ×0.55' },
     effects: { b2bDemMult: 0.55 },
@@ -1097,70 +1098,70 @@ const FRICTION_EVENTS = {
   },
   // ====== PHASE 3 ======
   fric_boycott: {
-    id: 'fric_boycott', minPhase: 3, maxPhase: 3, weight: 0.5, duration: 150,
+    id: 'fric_boycott', iconKey: 'megaphone', minPhase: 3, maxPhase: 3, weight: 0.5, duration: 150,
     name: { fr: 'BOYCOTT CITOYEN', en: 'CITIZEN BOYCOTT' },
     sub:  { fr: 'ventes directes ET B2B ×0.35', en: 'direct AND B2B sales ×0.35' },
     effects: { directDemMult: 0.35, b2bDemMult: 0.35 },
     requires: (ctx) => ctx.notoriety >= 30,
   },
   fric_pricewar: {
-    id: 'fric_pricewar', minPhase: 3, maxPhase: 3, weight: 0.8, duration: 78,
+    id: 'fric_pricewar', iconKey: 'chart_down', minPhase: 3, maxPhase: 3, weight: 0.8, duration: 78,
     name: { fr: 'GUERRE DES PRIX', en: 'PRICE WAR' },
     sub:  { fr: 'Glacier Frères casse les prix · ventes ×0.5', en: 'Glacier Bros undercuts · sales ×0.5' },
     effects: { directDemMult: 0.5, b2bDemMult: 0.7 },
     requires: (ctx) => ctx.notoriety >= 40,
   },
   fric_storm: {
-    id: 'fric_storm', minPhase: 3, maxPhase: 3, weight: 0.7, duration: 52,
+    id: 'fric_storm', iconKey: 'cloud', minPhase: 3, maxPhase: 3, weight: 0.7, duration: 52,
     name: { fr: 'TEMPÊTE MAJEURE', en: 'MAJOR STORM' },
     sub:  { fr: 'camions bloqués · fonte ×3', en: 'trucks blocked · melt ×3' },
     effects: { blockTrucks: true, meltMult: 3 },
     requires: (ctx) => ctx.hasLenny && ctx.trucksActive > 0,
   },
   fric_pandemic: {
-    id: 'fric_pandemic', minPhase: 3, maxPhase: 3, weight: 0.4, duration: 150,
+    id: 'fric_pandemic', iconKey: 'heart', minPhase: 3, maxPhase: 3, weight: 0.4, duration: 150,
     name: { fr: 'PANDÉMIE LOCALE', en: 'LOCAL PANDEMIC' },
     sub:  { fr: 'équipe malade · production ×0.5', en: 'team sick · production ×0.5' },
     effects: { prodMult: 0.5 },
     requires: (ctx) => ctx.employeeCount >= 3,
   },
   fric_supplier: {
-    id: 'fric_supplier', minPhase: 3, maxPhase: 3, weight: 0.5, duration: 80,
+    id: 'fric_supplier', iconKey: 'package', minPhase: 3, maxPhase: 3, weight: 0.5, duration: 80,
     name: { fr: 'SCANDALE FOURNISSEUR', en: 'SUPPLIER SCANDAL' },
     sub:  { fr: 'eau premium désactivée', en: 'premium water disabled' },
     effects: { disablePremium: true },
     requires: (ctx) => ctx.hasPremiumWater,
   },
   fric_classaction: {
-    id: 'fric_classaction', minPhase: 3, maxPhase: 3, weight: 0.3, duration: 1,
+    id: 'fric_classaction', iconKey: 'file_text', minPhase: 3, maxPhase: 3, weight: 0.3, duration: 1,
     name: { fr: 'PROCÈS COLLECTIF EMPLOYÉS', en: 'EMPLOYEE CLASS ACTION' },
     sub:  { fr: 'forfait selon Sabine', en: 'lump sum depending on Sabine' },
     effects: { oneShotClassAction: true },
     requires: (ctx) => ctx.employeeCount >= 3,
   },
   fric_riot: {
-    id: 'fric_riot', minPhase: 3, maxPhase: 3, weight: 0.4, duration: 80,
+    id: 'fric_riot', iconKey: 'siren', minPhase: 3, maxPhase: 3, weight: 0.4, duration: 80,
     name: { fr: 'ÉMEUTE URBAINE', en: 'URBAN RIOT' },
     sub:  { fr: 'marketing désactivé', en: 'marketing disabled' },
     effects: { blockMarketing: true },
     requires: (ctx) => ctx.hasJanice,
   },
   fric_taxaudit: {
-    id: 'fric_taxaudit', minPhase: 3, maxPhase: 3, weight: 0.25, duration: 1,
+    id: 'fric_taxaudit', iconKey: 'dollar', minPhase: 3, maxPhase: 3, weight: 0.25, duration: 1,
     name: { fr: 'AUDIT FISCAL SURPRISE', en: 'SURPRISE TAX AUDIT' },
     sub:  { fr: 'cash −25%', en: 'cash −25%' },
     effects: { oneShotMoneyPct: -0.25 },
     requires: (ctx) => ctx.money >= 10000,
   },
   fric_whistle: {
-    id: 'fric_whistle', minPhase: 3, maxPhase: 3, weight: 0.2, duration: 1,
+    id: 'fric_whistle', iconKey: 'message', minPhase: 3, maxPhase: 3, weight: 0.2, duration: 1,
     name: { fr: 'LANCEUR D\'ALERTE INTERNE', en: 'INTERNAL WHISTLEBLOWER' },
     sub:  { fr: 'notoriété −15', en: 'notoriety −15' },
     effects: { oneShotNotoriety: -15 },
     requires: (ctx) => ctx.employeeCount >= 3 && ctx.notoriety >= 30,
   },
   fric_material: {
-    id: 'fric_material', minPhase: 3, maxPhase: 3, weight: 0.5, duration: 52,
+    id: 'fric_material', iconKey: 'box', minPhase: 3, maxPhase: 3, weight: 0.5, duration: 52,
     name: { fr: 'PÉNURIE DE MATÉRIAUX', en: 'MATERIAL SHORTAGE' },
     sub:  { fr: 'plus d\'upgrade achetable', en: 'no upgrades buyable' },
     effects: { blockUpgrades: true },
@@ -6948,6 +6949,7 @@ export default function App() {
     switch (keyName) {
       case 'sun': return <Sun size={size} strokeWidth={sw} />;
       case 'droplets': return <Droplets size={size} strokeWidth={sw} />;
+      case 'water': return <Droplet size={size} strokeWidth={sw} />;
       case 'snowflake': return <Snowflake size={size} strokeWidth={sw} />;
       case 'briefcase': return <Briefcase size={size} strokeWidth={sw} />;
       case 'message': return <MessageCircle size={size} strokeWidth={sw} />;
@@ -6955,10 +6957,33 @@ export default function App() {
       case 'users': return <Users size={size} strokeWidth={sw} />;
       case 'megaphone': return <Megaphone size={size} strokeWidth={sw} />;
       case 'camera': return <Camera size={size} strokeWidth={sw} />;
-      case 'shield': return <ShieldCheck size={size} strokeWidth={sw} />;
+      case 'shield': return <ShieldAlert size={size} strokeWidth={sw} />;
       case 'zap_off': return <ZapOff size={size} strokeWidth={sw} />;
       case 'file_text': return <FileText size={size} strokeWidth={sw} />;
-      default: return null;
+      case 'alert': return <AlertTriangle size={size} strokeWidth={sw} />;
+      case 'cloud': return <Cloud size={size} strokeWidth={sw} />;
+      case 'lock': return <Lock size={size} strokeWidth={sw} />;
+      case 'star': return <Star size={size} strokeWidth={sw} />;
+      case 'trending': return <TrendingUp size={size} strokeWidth={sw} />;
+      case 'chart_down': return <TrendingDown size={size} strokeWidth={sw} />;
+      case 'trophy': return <Award size={size} strokeWidth={sw} />;
+      case 'truck': return <Truck size={size} strokeWidth={sw} />;
+      case 'tv': return <Tv size={size} strokeWidth={sw} />;
+      case 'flame': return <Flame size={size} strokeWidth={sw} />;
+      case 'volume': return <Volume2 size={size} strokeWidth={sw} />;
+      case 'phone': return <Phone size={size} strokeWidth={sw} />;
+      case 'cpu': return <Cpu size={size} strokeWidth={sw} />;
+      case 'scale': return <Scale size={size} strokeWidth={sw} />;
+      case 'gauge': return <Gauge size={size} strokeWidth={sw} />;
+      case 'globe': return <Globe size={size} strokeWidth={sw} />;
+      case 'heart': return <Heart size={size} strokeWidth={sw} />;
+      case 'package': return <Package size={size} strokeWidth={sw} />;
+      case 'box': return <Box size={size} strokeWidth={sw} />;
+      case 'siren': return <Siren size={size} strokeWidth={sw} />;
+      case 'dollar': return <DollarSign size={size} strokeWidth={sw} />;
+      case 'wrench': return <Wrench size={size} strokeWidth={sw} />;
+      case 'building': return <Building2 size={size} strokeWidth={sw} />;
+      default: return <AlertTriangle size={size} strokeWidth={sw} />;
     }
   };
 
@@ -21709,7 +21734,7 @@ export default function App() {
               return (
                 <div className={`banner ${isPositive ? 'cat-positive' : 'cat-negative'} banner-uniform`}>
                   <div className="banner-main">
-                    <div className="banner-left">{isPositive ? <Award size={11} strokeWidth={2} /> : <AlertTriangle size={11} strokeWidth={2} />} <span className="banner-title">{label}</span></div>
+                    <div className="banner-left"><EventIcon keyName={def.iconKey} size={11} /> <span className="banner-title">{label}</span></div>
                     <div className="banner-right">{remain}s</div>
                   </div>
                   {effectTxt && <div className="banner-sub">{effectTxt}</div>}
@@ -21726,7 +21751,7 @@ export default function App() {
               return (
                 <div key={f.id} className="banner cat-negative banner-uniform">
                   <div className="banner-main">
-                    <div className="banner-left"><AlertTriangle size={11} strokeWidth={2} /> <span className="banner-title">{label}</span></div>
+                    <div className="banner-left"><EventIcon keyName={def.iconKey} size={11} /> <span className="banner-title">{label}</span></div>
                     <div className="banner-right">{remain}s</div>
                   </div>
                   {sub && <div className="banner-sub">{sub}</div>}
@@ -21850,7 +21875,7 @@ export default function App() {
               return (
                 <div className={`banner ${cat} banner-uniform`}>
                   <div className="banner-main">
-                    <div className="banner-left">{isPos ? <Award size={11} strokeWidth={2} /> : <AlertTriangle size={11} strokeWidth={2} />} <span className="banner-title">{localizeField(def.name, language)}</span></div>
+                    <div className="banner-left"><EventIcon keyName={def.iconKey} size={11} /> <span className="banner-title">{localizeField(def.name, language)}</span></div>
                     <div className="banner-right">{Math.ceil(remaining)}s</div>
                   </div>
                   {impact && <div className="banner-sub">{impact}</div>}
@@ -24362,7 +24387,7 @@ export default function App() {
             <div className="modal-backdrop" onClick={() => setTensionMinimized(true)}>
               <div className={`modal tension-modal ${isCrisis ? 'is-crisis' : 'is-opportunity'}`} onClick={e => e.stopPropagation()}>
                 <div className="modal-header">
-                  <span className="modal-title">{isCrisis ? '⚠ ' : '✦ '}{name}</span>
+                  <span className="modal-title"><EventIcon keyName={def.iconKey} size={13} /> {name}</span>
                   <button className="modal-close" onClick={() => setTensionMinimized(true)}><X size={14} strokeWidth={2} /></button>
                 </div>
                 <div className="tension-body">
