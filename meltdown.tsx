@@ -117,8 +117,8 @@ const FREEZE_BASE_OUTPUT = 8;
 const BASE_TRUCK_MELT = 0.010;
 
 const HEATWAVE_CHANCE = 0.0004;
-const DROUGHT_CHANCE = 0.0003;
-const OUTAGE_CHANCE = 0.0002;
+const DROUGHT_CHANCE = 0.0007;
+const OUTAGE_CHANCE = 0.0006;
 const AUTUMN_RUSH_CHANCE = 0.0008;
 const AUTUMN_RUSH_MIN = 25;
 const AUTUMN_RUSH_MAX = 40;
@@ -593,7 +593,7 @@ const EVENT_TYPES = {
     description: { fr: 'Les voisins font la fête · demande ×1.5', en: 'Neighbors throw a party · demand ×1.5', es: 'Los vecinos hacen fiesta · demanda ×1.5', zh: "邻居开派对 · 需求 ×1.5", ru: "Соседи устроили вечеринку · спрос ×1.5", it: "I vicini fanno festa · domanda ×1.5", de: "Nachbarn feiern · Nachfrage ×1.5" },
     shortImpact: { fr: 'DEMANDE ×1.5', en: 'DEMAND ×1.5', es: 'DEMANDA ×1.5', zh: "需求 ×1.5", ru: "СПРОС ×1.5", it: "DOMANDA ×1.5", de: "NACHFRAGE ×1.5" },
     effects: { demandMult: 1.5 },
-    weight: 0.6,
+    weight: 0.25,
   },
   // === Segments (auto, phase 3+) ===
   // === Ponctuels (modale) ===
@@ -909,14 +909,14 @@ const EVENT_TYPES = {
 
   // === NOUVEAUX ÉVÉNEMENTS — Météo (+3) ===
   hail_storm: {
-    id: 'hail_storm', category: 'weather', minPhase: 2, duration: 25,
+    id: 'hail_storm', category: 'weather', minPhase: 2, duration: 34,
     allowedSeasons: ['spring', 'autumn'],
     name: { fr: 'GRÊLE', en: 'HAILSTORM', es: 'GRANIZADA', zh: "冰雹", ru: "ГРАД", it: "GRANDINATA", de: "HAGELSTURM" },
     iconKey: 'cloud',
     description: { fr: 'Camions immobilisés · livraisons +50% temps', en: 'Trucks grounded · deliveries +50% time', es: 'Camiones inmovilizados · entregas +50% tiempo', zh: "卡车停运 · 配送时间 +50%", ru: "Грузовики стоят · доставки +50% времени", it: "Camion fermi · consegne +50% tempo", de: "LKW stehen · Lieferungen +50% Zeit" },
     shortImpact: { fr: 'LIVRAISONS +50% TEMPS', en: 'DELIVERIES +50% TIME', es: 'ENTREGAS +50% TIEMPO', zh: "配送 +50% 时间", ru: "ДОСТАВКИ +50%", it: "CONSEGNE +50% TEMPO", de: "LIEFERUNGEN +50% ZEIT" },
     effects: { transitMult: 1.5, truckBreakMult: 1.5 },
-    weight: 0.5,
+    weight: 0.85,
   },
   urban_smog: {
     id: 'urban_smog', category: 'weather', minPhase: 2, duration: 40,
@@ -1011,35 +1011,35 @@ function formatRefuseEffect(eff, lang) {
 const FRICTION_EVENTS = {
   // ====== PHASE 1 ======
   fric_plumbing: {
-    id: 'fric_plumbing', minPhase: 1, maxPhase: 1, weight: 1.0, duration: 18,
+    id: 'fric_plumbing', minPhase: 1, maxPhase: 1, weight: 1.0, duration: 23,
     name: { fr: 'PANNE DE PLOMBERIE', en: 'PLUMBING BREAKDOWN' },
     sub:  { fr: 'production stoppée', en: 'production halted' },
     effects: { prodBlock: true },
     requires: () => true,
   },
   fric_neighbor: {
-    id: 'fric_neighbor', minPhase: 1, maxPhase: 1, weight: 0.9, duration: 30,
+    id: 'fric_neighbor', minPhase: 1, maxPhase: 1, weight: 0.9, duration: 39,
     name: { fr: 'VOISIN SE PLAINT DU BRUIT', en: 'NEIGHBOR COMPLAINS' },
     sub:  { fr: 'production ×0.35', en: 'production ×0.35' },
     effects: { prodMult: 0.35 },
     requires: () => true,
   },
   fric_hygiene: {
-    id: 'fric_hygiene', minPhase: 1, maxPhase: 1, weight: 0.7, duration: 20,
+    id: 'fric_hygiene', minPhase: 1, maxPhase: 1, weight: 0.7, duration: 26,
     name: { fr: 'CONTRÔLE HYGIÈNE SURPRISE', en: 'SURPRISE HYGIENE AUDIT' },
     sub:  { fr: 'production bloquée · amende 120€', en: 'production halted · 120€ fine' },
     effects: { prodBlock: true, oneShotFineEur: 120 },
     requires: () => true,
   },
   fric_flood: {
-    id: 'fric_flood', minPhase: 1, maxPhase: 1, weight: 0.6, duration: 35,
+    id: 'fric_flood', minPhase: 1, maxPhase: 1, weight: 0.6, duration: 46,
     name: { fr: 'INONDATION CAVE', en: 'BASEMENT FLOOD' },
     sub:  { fr: 'capacité ×0.55', en: 'capacity ×0.55' },
     effects: { capMult: 0.55 },
     requires: () => true,
   },
   fric_overheat: {
-    id: 'fric_overheat', minPhase: 1, maxPhase: 2, weight: 0.5, duration: 25,
+    id: 'fric_overheat', minPhase: 1, maxPhase: 2, weight: 0.5, duration: 33,
     name: { fr: 'SURCHAUFFE CONGÉLATEUR', en: 'FREEZER OVERHEATING' },
     sub:  { fr: 'fonte ×3', en: 'melt ×3' },
     effects: { meltMult: 3 },
@@ -1047,28 +1047,28 @@ const FRICTION_EVENTS = {
   },
   // ====== PHASE 2 ======
   fric_protest: {
-    id: 'fric_protest', minPhase: 2, maxPhase: 3, weight: 1.0, duration: 30,
+    id: 'fric_protest', minPhase: 2, maxPhase: 3, weight: 1.0, duration: 39,
     name: { fr: 'MANIFESTATION SUR LA ROUTE', en: 'ROAD PROTEST' },
     sub:  { fr: 'tous les camions bloqués', en: 'all trucks blocked' },
     effects: { blockTrucks: true },
     requires: (ctx) => ctx.hasLenny && ctx.trucksActive > 0,
   },
   fric_phone: {
-    id: 'fric_phone', minPhase: 2, maxPhase: 3, weight: 0.9, duration: 40,
+    id: 'fric_phone', minPhase: 2, maxPhase: 3, weight: 0.9, duration: 52,
     name: { fr: 'COUPURE LIGNE TÉLÉPHONIQUE', en: 'PHONE LINE DOWN' },
     sub:  { fr: 'plus d\'appels ni de contrats', en: 'no calls or contracts' },
     effects: { blockCalls: true, blockMarket: true },
     requires: () => true,
   },
   fric_crm: {
-    id: 'fric_crm', minPhase: 2, maxPhase: 3, weight: 0.7, duration: 35,
+    id: 'fric_crm', minPhase: 2, maxPhase: 3, weight: 0.7, duration: 46,
     name: { fr: 'BUG ERP / CRM', en: 'ERP/CRM BUG' },
     sub:  { fr: 'Brigitte en pause', en: 'Brigitte on hold' },
     effects: { pauseBrigitte: true },
     requires: (ctx) => ctx.hasBrigitte,
   },
   fric_labor: {
-    id: 'fric_labor', minPhase: 2, maxPhase: 3, weight: 0.6, duration: 40,
+    id: 'fric_labor', minPhase: 2, maxPhase: 3, weight: 0.6, duration: 52,
     name: { fr: 'INSPECTION DU TRAVAIL', en: 'LABOR INSPECTION' },
     sub:  { fr: 'embauches et upgrades verrouillés', en: 'hiring and upgrades locked' },
     effects: { blockUpgrades: true },
@@ -1082,7 +1082,7 @@ const FRICTION_EVENTS = {
     requires: (ctx) => ctx.hasLenny && ctx.trucksActive > 0,
   },
   fric_traffic: {
-    id: 'fric_traffic', minPhase: 2, maxPhase: 3, weight: 0.9, duration: 50,
+    id: 'fric_traffic', minPhase: 2, maxPhase: 3, weight: 0.9, duration: 65,
     name: { fr: 'EMBOUTEILLAGE', en: 'TRAFFIC JAM' },
     sub:  { fr: 'temps de livraison ×1.8', en: 'delivery time ×1.8' },
     effects: { truckSpeedMult: 1.8 },
@@ -1104,14 +1104,14 @@ const FRICTION_EVENTS = {
     requires: (ctx) => ctx.notoriety >= 30,
   },
   fric_pricewar: {
-    id: 'fric_pricewar', minPhase: 3, maxPhase: 3, weight: 0.8, duration: 60,
+    id: 'fric_pricewar', minPhase: 3, maxPhase: 3, weight: 0.8, duration: 78,
     name: { fr: 'GUERRE DES PRIX', en: 'PRICE WAR' },
     sub:  { fr: 'Glacier Frères casse les prix · ventes ×0.5', en: 'Glacier Bros undercuts · sales ×0.5' },
     effects: { directDemMult: 0.5, b2bDemMult: 0.7 },
     requires: (ctx) => ctx.notoriety >= 40,
   },
   fric_storm: {
-    id: 'fric_storm', minPhase: 3, maxPhase: 3, weight: 0.7, duration: 40,
+    id: 'fric_storm', minPhase: 3, maxPhase: 3, weight: 0.7, duration: 52,
     name: { fr: 'TEMPÊTE MAJEURE', en: 'MAJOR STORM' },
     sub:  { fr: 'camions bloqués · fonte ×3', en: 'trucks blocked · melt ×3' },
     effects: { blockTrucks: true, meltMult: 3 },
@@ -1160,7 +1160,7 @@ const FRICTION_EVENTS = {
     requires: (ctx) => ctx.employeeCount >= 3 && ctx.notoriety >= 30,
   },
   fric_material: {
-    id: 'fric_material', minPhase: 3, maxPhase: 3, weight: 0.5, duration: 40,
+    id: 'fric_material', minPhase: 3, maxPhase: 3, weight: 0.5, duration: 52,
     name: { fr: 'PÉNURIE DE MATÉRIAUX', en: 'MATERIAL SHORTAGE' },
     sub:  { fr: 'plus d\'upgrade achetable', en: 'no upgrades buyable' },
     effects: { blockUpgrades: true },
@@ -1772,10 +1772,7 @@ const UPGRADES = [
   { id: 'bao_viral',       Icon: Megaphone, count: 1, destructible: false, phase: 1, name: { fr: 'Bouche-à-oreille viral', en: 'Viral word-of-mouth', es: 'Boca a boca viral', zh: "口碑传播", ru: "Вирусное сарафанное радио", it: "Passaparola virale", de: "Virale Mundpropaganda" }, desc: { fr: 'prix ×1.13', en: 'price ×1.13', es: 'precio ×1.13', zh: "价格 ×1.13", ru: "цена ×1.13", it: "prezzo ×1.13", de: "Preis ×1.13" }, cost: 3500,
     longDesc: { fr: "Quelqu'un a parlé de toi sur un groupe local. Le post a fait le tour du quartier. Notoriété +10 d'un coup, mais c'est de la chance pure.", en: "Someone talked about you on a local group. The post went around the neighborhood. Awareness +10 in one shot, but it's pure luck.", es: "Alguien habló de ti en un grupo local. El post dio la vuelta al barrio. Notoriedad +10 de golpe, pero es suerte pura.", zh: "有人在本地群组里聊到你。帖子在街区里传开了。知名度一次性 +10，但纯属运气。", ru: "Кто-то рассказал о тебе в местной группе. Пост обошёл район. Известность +10 разово, но это чистая удача.", it: "Qualcuno ha parlato di te su un gruppo locale. Il post ha girato il quartiere. Notorietà +10 d'un colpo, ma è pura fortuna.", de: "Jemand hat in einer lokalen Gruppe über dich geredet. Der Post ging durchs Viertel. Bekanntheit +10 auf einen Schlag, aber reines Glück." },
     apply: s => ({ ...s, sellMult: s.sellMult * 1.13 }) },
-  { id: 'garage_xl',       Icon: Factory,   count: 1, destructible: false, phase: 1, name: { fr: 'Garage agrandi', en: 'Expanded garage', es: 'Garaje ampliado', zh: "扩建车库", ru: "Расширенный гараж", it: "Garage ampliato", de: "Erweiterte Garage" }, desc: { fr: '+1500 cap · pré-palier P2', en: '+1500 cap · pre-P2 tier', es: '+1500 cap · pre-fase 2', zh: "+1500 容量 · 第2阶段前置", ru: "+1500 ёмкость · пред-уровень F2", it: "+1500 cap · pre-livello F2", de: "+1500 Kap · Vor-Stufe P2" }, cost: 10000,
-    longDesc: { fr: "Tu casses le mur entre le garage et la cave. +1500 places de stockage. C'est le dernier palier avant de quitter le garage pour de bon.", en: "You knock down the wall between the garage and the cellar. +1500 storage slots. Last tier before leaving the garage for good.", es: "Derribas el muro entre el garaje y el sótano. +1500 plazas. Último escalón antes de dejar el garaje definitivamente.", zh: "你打通车库和地下室之间的墙。+1500个仓储位。彻底离开车库前的最后一档。", ru: "Сносишь стену между гаражом и подвалом. +1500 ячеек хранения. Последний уровень перед окончательным уходом из гаража.", it: "Abbatti il muro tra garage e cantina. +1500 posti di stoccaggio. Ultimo gradino prima di lasciare il garage definitivamente.", de: "Du reißt die Wand zwischen Garage und Keller ein. +1500 Lagerplätze. Letzte Stufe, bevor du die Garage endgültig verlässt." },
-    apply: s => ({ ...s, capBonus: s.capBonus + 1500 }) },
-  { id: 'rent_warehouse',  Icon: Factory,   count: 1, destructible: false, phase: 1, name: { fr: 'Louer un local', en: 'Rent a warehouse', es: 'Alquilar un local', zh: "租用仓库", ru: "Арендовать склад", it: "Affitta un magazzino", de: "Lager mieten" }, desc: { fr: '→ PHASE 02 · cap +2800 · B2B', en: '→ PHASE 02 · cap +2800 · B2B', es: '→ FASE 02 · cap +2800 · B2B', zh: "→ 第02阶段 · 容量 +2800 · B2B", ru: "→ ФАЗА 02 · ёмк +2800 · B2B", it: "→ FASE 02 · cap +2800 · B2B", de: "→ PHASE 02 · Kap +2800 · B2B" }, cost: 20000,
+  { id: 'rent_warehouse',  Icon: Factory,   count: 1, destructible: false, phase: 1, name: { fr: 'Louer un local', en: 'Rent a warehouse', es: 'Alquilar un local', zh: "租用仓库", ru: "Арендовать склад", it: "Affitta un magazzino", de: "Lager mieten" }, desc: { fr: '→ PHASE 02 · cap +2800 · B2B', en: '→ PHASE 02 · cap +2800 · B2B', es: '→ FASE 02 · cap +2800 · B2B', zh: "→ 第02阶段 · 容量 +2800 · B2B", ru: "→ ФАЗА 02 · ёмк +2800 · B2B", it: "→ FASE 02 · cap +2800 · B2B", de: "→ PHASE 02 · Kap +2800 · B2B" }, cost: 10000,
     longDesc: { fr: "Tu loues un vrai local industriel. Débloque la PHASE 02 : camions de livraison, contrats B2B récurrents, marketplace de clients. Et tu gagnes +2800 places de stockage. C'est LE moment charnière du jeu.", en: "You rent a real industrial warehouse. Unlocks PHASE 02: delivery trucks, recurring B2B contracts, customer marketplace. And you gain +2800 storage slots. This is THE pivotal moment in the game.", es: "Alquilas un verdadero local industrial. Desbloquea la FASE 02: camiones de reparto, contratos B2B recurrentes, mercado de clientes. Y ganas +2800 plazas de stock. Es EL momento bisagra del juego.", zh: "你租下一个真正的工业仓库。解锁第02阶段：配送卡车、经常性B2B合同、客户市场。并获得+2800个仓储位。这是游戏中的关键转折点。", ru: "Вы арендуете настоящий промышленный склад. Открывает ФАЗУ 02: грузовики доставки, регулярные B2B-контракты, клиентский рынок. И вы получаете +2800 ячеек хранения. Это ПЕРЕЛОМНЫЙ момент игры.", it: "Affitti un vero magazzino industriale. Sblocca la FASE 02: camion di consegna, contratti B2B ricorrenti, mercato clienti. E guadagni +2800 slot di stoccaggio. Questo è IL momento di svolta del gioco.", de: "Du mietest ein echtes Industrielager. Schaltet PHASE 02 frei: Liefer-LKW, wiederkehrende B2B-Verträge, Kundenmarktplatz. Und du gewinnst +2800 Lagerplätze. DER Wendepunkt des Spiels." },
     phaseUnlock: 2,
     apply: s => ({ ...s, capBonus: s.capBonus + 2800 }) },
@@ -2060,7 +2057,7 @@ const UPGRADE_FAMILIES = [
     tiers: ['mini_freezer', 'voisin_jacques', 'caisson_isotherme', 'cold_turbine', 'sacs_iso', 'cuve_xl', 'pro_freezer', 'stockage_cryo_avance'],
     minPhase: 1 },
   { id: 'stock_locaux', label: 'LOCAUX', icon: 'Warehouse',
-    tiers: ['garage_xl', 'rent_warehouse', 'agence_marketing', 'chambre_froide_indus', 'entrepot_xl'],
+    tiers: ['rent_warehouse', 'agence_marketing', 'chambre_froide_indus', 'entrepot_xl'],
     minPhase: 1 },
 
   // ============ SÉCURITÉ ============
@@ -11054,7 +11051,7 @@ export default function App() {
         outageLeftRef.current > 0 ||
         cyberLockoutRef.current > 0 ||
         activeEventRef.current != null;
-      const canTriggerEvent = !anyCrisisOrEvent && (evtNow - lastEventAtRef.current) >= EVENT_MIN_GAP;
+      const canTriggerEvent = !anyCrisisOrEvent && !anyEventActiveNow() && (evtNow - lastEventAtRef.current) >= EVENT_MIN_GAP;
 
       if (heatwaveLeftRef.current > 0) {
         const wasActive = heatwaveLeftRef.current;
@@ -11068,7 +11065,7 @@ export default function App() {
       } else if (phaseRef.current < 4 && !isFirstYear && canTriggerEvent && seasonIdxRef.current === 2 && Math.random() < HEATWAVE_CHANCE) {
         // P1-3 uniquement. Table rase en P4 : l'effet POP ICE sera
         // reconstruit via de futurs events spécifiques Phase 4.
-        const dur = 25 + Math.random() * 20;
+        const dur = 34 + Math.random() * 24;
         setHeatwaveLeft(dur);
         heatwaveLeftRef.current = dur;
         lastEventAtRef.current = evtNow;
@@ -11076,7 +11073,7 @@ export default function App() {
       if (droughtLeftRef.current > 0) {
         setDroughtLeft(l => Math.max(0, l - dt));
       } else if (phaseRef.current < 4 && !isFirstYear && canTriggerEvent && heatwaveLeftRef.current === 0 && seasonIdxRef.current === 2 && Math.random() < DROUGHT_CHANCE) {
-        const dur = 30 + Math.random() * 15;
+        const dur = 40 + Math.random() * 18;
         setDroughtLeft(dur);
         droughtLeftRef.current = dur;
         lastEventAtRef.current = evtNow;
@@ -11084,7 +11081,7 @@ export default function App() {
       if (outageLeftRef.current > 0) {
         setOutageLeft(l => Math.max(0, l - dt));
       } else if (phaseRef.current < 4 && !isFirstYear && canTriggerEvent && heatwaveLeftRef.current === 0 && droughtLeftRef.current === 0 && seasonIdxRef.current === 0 && Math.random() < OUTAGE_CHANCE) {
-        const dur = 20;
+        const dur = 32;
         setOutageLeft(dur);
         outageLeftRef.current = dur;
         lastEventAtRef.current = evtNow;
