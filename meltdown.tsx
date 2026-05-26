@@ -26692,11 +26692,6 @@ export default function App() {
             const Icon = displayUpgrade.Icon;
             const FamIcon = getFamilyIcon(family.icon);
             const isPhaseUnlock = displayUpgrade.phaseUnlock && state === 'buy';
-            // Friction visuelle ciblée selon la famille
-            let famFriction = null;
-            if (family.id === 'pers_lenny') famFriction = fricVis.truck;
-            else if (family.id === 'pers_brigitte') famFriction = fricVis.brigitte;
-            else if (family.id === 'pers_janice') famFriction = fricVis.janice;
 
             return (
               <button
@@ -26705,11 +26700,6 @@ export default function App() {
                 className={className + (disabled && state !== 'buy' ? ' is-disabled' : '')}
                 onClick={() => setInfoUpgrade(displayUpgrade)}
               >
-                {!!famFriction && (
-                  <div className="friction-badge fric-famcard" title={localizeField(FRICTION_EVENTS[famFriction.id].name, language)}>
-                    <AlertTriangle size={9} strokeWidth={2.5} />
-                  </div>
-                )}
                 <div className="upg-fam-picto" title={family.label}>
                   <FamIcon size={10} strokeWidth={2} />
                 </div>
