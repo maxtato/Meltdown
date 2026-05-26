@@ -6861,8 +6861,12 @@ export default function App() {
               expiresAt: now + picked.duration,
               sellMult,
             });
-            // Notification courte pour signaler l'arrivée
-            setEventNotif(localizeField(picked.name, language).toUpperCase() + ' · CONTRAT AU MARCHÉ');
+            // Un seul bandeau par événement : le toast « CONTRAT AU MARCHÉ » n'a de
+            // sens que si un contrat a réellement été ajouté. Pour un simple boost
+            // (ex. Fête de quartier, sans contrat), le bandeau à décompte suffit.
+            if (c) {
+              setEventNotif(localizeField(picked.name, language).toUpperCase() + ' · CONTRAT AU MARCHÉ');
+            }
           } else if ((picked.category === 'crisis' || picked.category === 'bonus') && picked.duration <= 1) {
             applyCrisisInstant(picked);
           } else if (Number.isFinite(picked.duration) && picked.duration > 0) {
