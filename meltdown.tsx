@@ -117,9 +117,13 @@ const FREEZE_DURATION = 3;
 const FREEZE_BASE_OUTPUT = 8;
 const BASE_TRUCK_MELT = 0.010;
 
-const HEATWAVE_CHANCE = 0.0004;
-const DROUGHT_CHANCE = 0.0003;
-const OUTAGE_CHANCE = 0.0006;
+// Météo saisonnière : fréquences relevées pour que canicule / sécheresse /
+// panne élec soient nettement plus présentes en P1 (apparaissent la plupart
+// des années dans leur saison). La règle "1×/an" (firedThisYearRef) empêche
+// tout doublon. Les DURÉES restent inchangées.
+const HEATWAVE_CHANCE = 0.0016;
+const DROUGHT_CHANCE = 0.0014;
+const OUTAGE_CHANCE = 0.0018;
 const AUTUMN_RUSH_CHANCE = 0.0008;
 const AUTUMN_RUSH_MIN = 25;
 const AUTUMN_RUSH_MAX = 40;
@@ -1040,7 +1044,7 @@ const FRICTION_EVENTS = {
     requires: () => true,
   },
   fric_overheat: {
-    id: 'fric_overheat', iconKey: 'flame', minPhase: 1, maxPhase: 2, weight: 0.5, duration: 33,
+    id: 'fric_overheat', iconKey: 'flame', minPhase: 1, maxPhase: 2, weight: 0.3, duration: 33,
     name: { fr: 'SURCHAUFFE CONGÉLATEUR', en: 'FREEZER OVERHEATING' },
     sub:  { fr: 'fonte ×3', en: 'melt ×3' },
     effects: { meltMult: 3 },
@@ -1693,9 +1697,9 @@ const UPGRADES = [
   { id: 'cold_tunnel',     Icon: Snowflake, count: 1, destructible: false, phase: 1, name: { fr: 'Tunnel de froid', en: 'Cold tunnel', es: 'Túnel de frío', zh: "冷却隧道", ru: "Холодовой туннель", it: "Tunnel del freddo", de: "Kältetunnel" }, desc: { fr: 'prod ×1.20', en: 'prod ×1.20', es: 'prod ×1.20', zh: "生产 ×1.20", ru: "произв ×1.20", it: "prod ×1.20", de: "Prod ×1.20" }, cost: 1200,
     longDesc: { fr: "Un tunnel de pré-refroidissement à étages. Production passive ×1.20. Cumul avec l'Eau pré-refroidie pour atteindre ×1.32 sur ton flux passif. À ce stade tu produis vite.", en: "A multi-stage pre-chilling tunnel. Passive production ×1.20. Stacks with Pre-chilled water for ×1.32 on your passive flow. At this point you produce fast.", es: "Un túnel de pre-enfriado por etapas. Producción pasiva ×1.20. Acumula con Agua pre-enfriada para alcanzar ×1.32 en tu flujo pasivo. A este nivel produces rápido.", zh: "多级预冷隧道。被动生产 ×1.20。与预冷水叠加，被动流量达 ×1.32。此时你生产速度很快。", ru: "Многоступенчатый туннель предохлаждения. Пассивное производство ×1.20. Складывается с Предохлаждённой водой = ×1.32 на пассивный поток. На этом этапе вы производите быстро.", it: "Un tunnel di pre-raffreddamento multistadio. Produzione passiva ×1.20. Si somma con Acqua pre-raffreddata per ×1.32 sul tuo flusso passivo. A questo punto produci in fretta.", de: "Ein mehrstufiger Vorkühltunnel. Passive Produktion ×1.20. Kumuliert mit Vorgekühltem Wasser auf ×1.32 deines passiven Flusses. Ab hier produzierst du schnell." },
     apply: s => ({ ...s, prodSpeedMult: s.prodSpeedMult * 1.20 }) },
-  { id: 'pro_freezer',     Icon: Mountain,  count: 1, destructible: true,  phase: 1, name: { fr: 'Congélateur Pro', en: 'Pro Freezer', es: 'Congelador Pro', zh: "专业冷冻柜", ru: "Про-морозильник", it: "Congelatore Pro", de: "Profi-Gefriertruhe" }, desc: { fr: 'fonte ×0.15 · cap +500', en: 'melt ×0.15 · cap +500', es: 'fundido ×0.15 · cap +500', zh: "融化 ×0.15 · 容量 +500", ru: "таяние ×0.15 · ёмк +500", it: "fusione ×0.15 · cap +500", de: "Schmelze ×0.15 · Kap +500" }, cost: 1200,
-    longDesc: { fr: "Le vrai congélateur professionnel. Il isole 4× mieux que tes bacs (fonte ×0.25) et ajoute 500 places de stockage. C'est l'upgrade clé pour résister à la canicule et débloquer les contrats Niveau 3.", en: "The real professional freezer. Insulates 4× better than your trays (melt ×0.25) and adds 500 storage slots. The key upgrade to resist heatwaves and unlock Level 3 contracts.", es: "El verdadero congelador profesional. Aísla 4× mejor que tus bandejas (fundido ×0.25) y añade 500 plazas de stock. La mejora clave para resistir olas de calor y desbloquear contratos Nivel 3.", zh: "真正的专业冷冻柜。隔热效果比冰格好4倍（融化 ×0.25），增加500个仓储位。抵御热浪、解锁第3级合同的关键升级。", ru: "Настоящий профессиональный морозильник. Изолирует в 4× лучше ваших форм (таяние ×0.25) и добавляет 500 ячеек хранения. Ключевое улучшение для сопротивления жаре и открытия контрактов Уровня 3.", it: "Il vero congelatore professionale. Isola 4× meglio delle tue vaschette (fusione ×0.25) e aggiunge 500 slot di stoccaggio. L'upgrade chiave per resistere alle ondate di caldo e sbloccare i contratti di Livello 3.", de: "Die echte Profi-Gefriertruhe. Isoliert 4× besser als deine Formen (Schmelze ×0.25) und bringt 500 Lagerplätze. Das Schlüssel-Upgrade gegen Hitzewellen und zum Freischalten von Stufe-3-Verträgen." },
-    apply: s => ({ ...s, meltMult: s.meltMult * 0.15, capBonus: s.capBonus + 500 }) },
+  { id: 'pro_freezer',     Icon: Mountain,  count: 1, destructible: true,  phase: 1, name: { fr: 'Congélateur Pro', en: 'Pro Freezer', es: 'Congelador Pro', zh: "专业冷冻柜", ru: "Про-морозильник", it: "Congelatore Pro", de: "Profi-Gefriertruhe" }, desc: { fr: 'fonte ×0.15 · cap +200', en: 'melt ×0.15 · cap +200', es: 'fundido ×0.15 · cap +200', zh: "融化 ×0.15 · 容量 +200", ru: "таяние ×0.15 · ёмк +200", it: "fusione ×0.15 · cap +200", de: "Schmelze ×0.15 · Kap +200" }, cost: 1200,
+    longDesc: { fr: "Le vrai congélateur professionnel. Il isole 4× mieux que tes bacs (fonte ×0.25) et ajoute 200 places de stockage. C'est l'upgrade clé pour résister à la canicule et débloquer les contrats Niveau 3.", en: "The real professional freezer. Insulates 4× better than your trays (melt ×0.25) and adds 200 storage slots. The key upgrade to resist heatwaves and unlock Level 3 contracts.", es: "El verdadero congelador profesional. Aísla 4× mejor que tus bandejas (fundido ×0.25) y añade 200 plazas de stock. La mejora clave para resistir olas de calor y desbloquear contratos Nivel 3.", zh: "真正的专业冷冻柜。隔热效果比冰格好4倍（融化 ×0.25），增加200个仓储位。抵御热浪、解锁第3级合同的关键升级。", ru: "Настоящий профессиональный морозильник. Изолирует в 4× лучше ваших форм (таяние ×0.25) и добавляет 200 ячеек хранения. Ключевое улучшение для сопротивления жаре и открытия контрактов Уровня 3.", it: "Il vero congelatore professionale. Isola 4× meglio delle tue vaschette (fusione ×0.25) e aggiunge 200 slot di stoccaggio. L'upgrade chiave per resistere alle ondate di caldo e sbloccare i contratti di Livello 3.", de: "Die echte Profi-Gefriertruhe. Isoliert 4× besser als deine Formen (Schmelze ×0.25) und bringt 200 Lagerplätze. Das Schlüssel-Upgrade gegen Hitzewellen und zum Freischalten von Stufe-3-Verträgen." },
+    apply: s => ({ ...s, meltMult: s.meltMult * 0.15, capBonus: s.capBonus + 200 }) },
   { id: 'autosell',        Icon: Briefcase, count: 1, destructible: false, phase: 1, name: { fr: 'Brigitte Administrative', en: 'Brigitte Admin', es: 'Brigitte Administrativa', zh: "布丽吉特, 行政", ru: "Брижит, Администратор", it: "Brigitte Amministrativa", de: "Brigitte Verwaltung" }, desc: { fr: 'Auto-vente · gère surproduction', en: 'Auto-sale · handles surplus', es: 'Auto-venta · gestiona excedente', zh: "自动销售 · 处理过剩", ru: "Автопродажа · работа с излишками", it: "Vendita auto · gestisce il surplus", de: "Auto-Verkauf · regelt Überschuss" }, cost: 500,
     salary: { bas: 32, std: 65, haut: 97 }, salaryRole: 'brigitte', gradeName: { fr: "Administrative", en: "Admin", es: "Administrativa", zh: "行政", ru: "Администратор", it: "Amministrativa", de: "Verwaltung" },
     longDesc: { fr: "Brigitte a déjà tenu la compta de plusieurs PME, elle sait piloter une vente sans qu'on lui explique deux fois. En Phase 1, elle veille sur le stock : dès que tu dépasses 90% de la capacité, elle écoule l'excédent au prix marché pour éviter la fonte massive. En Phase 2, elle débloque aussi les premiers contrats B2B (Niveau 1-4 selon son salaire).", en: "Brigitte has run the books in several small businesses, she knows how to pilot a sale without needing it explained twice. In Phase 1, she watches the stock: once you exceed 90% capacity, she offloads the surplus at market price to prevent melt loss. In Phase 2, she also unlocks the first B2B contracts (Level 1-4 based on her salary).", es: "Brigitte ya llevó la contabilidad de varias pymes, sabe pilotar una venta sin que se lo expliquen dos veces. En Fase 1, vigila el stock: en cuanto superas el 90% de capacidad, vende el excedente al precio de mercado para evitar el fundido. En Fase 2, también desbloquea los primeros contratos B2B (Nivel 1-4 según su salario).", zh: "布丽吉特做过好几家小公司的账，不用解释两遍就能搞定销售。第1阶段，她盯着库存：一旦超过容量90%，她按市价卖出多余部分以防融化损失。第2阶段，她还解锁首批B2B合同（按工资1-4级）。", ru: "Брижит уже вела бухгалтерию в нескольких малых предприятиях, она умеет рулить продажей без двойных объяснений. В Фазе 1 она следит за запасом: как только превышаешь 90% ёмкости, она сбрасывает излишек по рыночной цене, чтобы избежать массовых потерь от таяния. В Фазе 2 она также открывает первые B2B-контракты (Уровни 1-4 в зависимости от её зарплаты).", it: "Brigitte ha già tenuto la contabilità di diverse piccole imprese, sa pilotare una vendita senza farselo spiegare due volte. In Fase 1, sorveglia lo stock: appena superi il 90% della capacità, smaltisce l'eccesso al prezzo di mercato per evitare la fusione massiva. In Fase 2, sblocca anche i primi contratti B2B (Livello 1-4 in base al suo stipendio).", de: "Brigitte hat schon in mehreren Kleinbetrieben die Bücher geführt, sie kann einen Verkauf steuern, ohne dass man's zweimal erklären muss. In Phase 1 hält sie den Bestand im Auge: sobald du 90% der Kapazität überschreitest, verkauft sie den Überschuss zum Marktpreis gegen Schmelzverlust. In Phase 2 schaltet sie zudem die ersten B2B-Verträge frei (Stufe 1-4 je nach Gehalt)." },
@@ -1773,10 +1777,10 @@ const UPGRADES = [
   { id: 'bao_viral',       Icon: Megaphone, count: 1, destructible: false, phase: 1, name: { fr: 'Bouche-à-oreille viral', en: 'Viral word-of-mouth', es: 'Boca a boca viral', zh: "口碑传播", ru: "Вирусное сарафанное радио", it: "Passaparola virale", de: "Virale Mundpropaganda" }, desc: { fr: 'prix ×1.13', en: 'price ×1.13', es: 'precio ×1.13', zh: "价格 ×1.13", ru: "цена ×1.13", it: "prezzo ×1.13", de: "Preis ×1.13" }, cost: 3500,
     longDesc: { fr: "Quelqu'un a parlé de toi sur un groupe local. Le post a fait le tour du quartier. Notoriété +10 d'un coup, mais c'est de la chance pure.", en: "Someone talked about you on a local group. The post went around the neighborhood. Awareness +10 in one shot, but it's pure luck.", es: "Alguien habló de ti en un grupo local. El post dio la vuelta al barrio. Notoriedad +10 de golpe, pero es suerte pura.", zh: "有人在本地群组里聊到你。帖子在街区里传开了。知名度一次性 +10，但纯属运气。", ru: "Кто-то рассказал о тебе в местной группе. Пост обошёл район. Известность +10 разово, но это чистая удача.", it: "Qualcuno ha parlato di te su un gruppo locale. Il post ha girato il quartiere. Notorietà +10 d'un colpo, ma è pura fortuna.", de: "Jemand hat in einer lokalen Gruppe über dich geredet. Der Post ging durchs Viertel. Bekanntheit +10 auf einen Schlag, aber reines Glück." },
     apply: s => ({ ...s, sellMult: s.sellMult * 1.13 }) },
-  { id: 'rent_warehouse',  Icon: Factory,   count: 1, destructible: false, phase: 1, name: { fr: 'Louer un local', en: 'Rent a warehouse', es: 'Alquilar un local', zh: "租用仓库", ru: "Арендовать склад", it: "Affitta un magazzino", de: "Lager mieten" }, desc: { fr: '→ PHASE 02 · cap +2800 · B2B', en: '→ PHASE 02 · cap +2800 · B2B', es: '→ FASE 02 · cap +2800 · B2B', zh: "→ 第02阶段 · 容量 +2800 · B2B", ru: "→ ФАЗА 02 · ёмк +2800 · B2B", it: "→ FASE 02 · cap +2800 · B2B", de: "→ PHASE 02 · Kap +2800 · B2B" }, cost: 10000,
-    longDesc: { fr: "Tu loues un vrai local industriel. Débloque la PHASE 02 : camions de livraison, contrats B2B récurrents, marketplace de clients. Et tu gagnes +2800 places de stockage. C'est LE moment charnière du jeu.", en: "You rent a real industrial warehouse. Unlocks PHASE 02: delivery trucks, recurring B2B contracts, customer marketplace. And you gain +2800 storage slots. This is THE pivotal moment in the game.", es: "Alquilas un verdadero local industrial. Desbloquea la FASE 02: camiones de reparto, contratos B2B recurrentes, mercado de clientes. Y ganas +2800 plazas de stock. Es EL momento bisagra del juego.", zh: "你租下一个真正的工业仓库。解锁第02阶段：配送卡车、经常性B2B合同、客户市场。并获得+2800个仓储位。这是游戏中的关键转折点。", ru: "Вы арендуете настоящий промышленный склад. Открывает ФАЗУ 02: грузовики доставки, регулярные B2B-контракты, клиентский рынок. И вы получаете +2800 ячеек хранения. Это ПЕРЕЛОМНЫЙ момент игры.", it: "Affitti un vero magazzino industriale. Sblocca la FASE 02: camion di consegna, contratti B2B ricorrenti, mercato clienti. E guadagni +2800 slot di stoccaggio. Questo è IL momento di svolta del gioco.", de: "Du mietest ein echtes Industrielager. Schaltet PHASE 02 frei: Liefer-LKW, wiederkehrende B2B-Verträge, Kundenmarktplatz. Und du gewinnst +2800 Lagerplätze. DER Wendepunkt des Spiels." },
+  { id: 'rent_warehouse',  Icon: Factory,   count: 1, destructible: false, phase: 1, name: { fr: 'Louer un local', en: 'Rent a warehouse', es: 'Alquilar un local', zh: "租用仓库", ru: "Арендовать склад", it: "Affitta un magazzino", de: "Lager mieten" }, desc: { fr: '→ PHASE 02 · cap +350 · B2B', en: '→ PHASE 02 · cap +350 · B2B', es: '→ FASE 02 · cap +350 · B2B', zh: "→ 第02阶段 · 容量 +350 · B2B", ru: "→ ФАЗА 02 · ёмк +350 · B2B", it: "→ FASE 02 · cap +350 · B2B", de: "→ PHASE 02 · Kap +350 · B2B" }, cost: 10000,
+    longDesc: { fr: "Tu loues un vrai local industriel. Débloque la PHASE 02 : camions de livraison, contrats B2B récurrents, marketplace de clients. Et tu gagnes +350 places de stockage : de quoi démarrer la Phase 2, le gros stockage viendra avec les paliers suivants. C'est LE moment charnière du jeu.", en: "You rent a real industrial warehouse. Unlocks PHASE 02: delivery trucks, recurring B2B contracts, customer marketplace. And you gain +350 storage slots: enough to kick off Phase 2, the big storage comes with the next tiers. This is THE pivotal moment in the game.", es: "Alquilas un verdadero local industrial. Desbloquea la FASE 02: camiones de reparto, contratos B2B recurrentes, mercado de clientes. Y ganas +350 plazas de stock: suficiente para arrancar la Fase 2, el gran almacenamiento llega con los siguientes niveles. Es EL momento bisagra del juego.", zh: "你租下一个真正的工业仓库。解锁第02阶段：配送卡车、经常性B2B合同、客户市场。并获得+350个仓储位：足够开启第2阶段，更大的仓储随后续档位而来。这是游戏中的关键转折点。", ru: "Вы арендуете настоящий промышленный склад. Открывает ФАЗУ 02: грузовики доставки, регулярные B2B-контракты, клиентский рынок. И вы получаете +350 ячеек хранения: достаточно для старта Фазы 2, большое хранилище придёт со следующими уровнями. Это ПЕРЕЛОМНЫЙ момент игры.", it: "Affitti un vero magazzino industriale. Sblocca la FASE 02: camion di consegna, contratti B2B ricorrenti, mercato clienti. E guadagni +350 slot di stoccaggio: abbastanza per avviare la Fase 2, il grande stoccaggio arriva con i livelli successivi. Questo è IL momento di svolta del gioco.", de: "Du mietest ein echtes Industrielager. Schaltet PHASE 02 frei: Liefer-LKW, wiederkehrende B2B-Verträge, Kundenmarktplatz. Und du gewinnst +350 Lagerplätze: genug für den Start von Phase 2, das große Lager kommt mit den nächsten Stufen. DER Wendepunkt des Spiels." },
     phaseUnlock: 2,
-    apply: s => ({ ...s, capBonus: s.capBonus + 2800 }) },
+    apply: s => ({ ...s, capBonus: s.capBonus + 350 }) },
   { id: 'camion_1',        Icon: User,      count: 1, destructible: false, phase: 2, name: { fr: 'Lenny, Transporteur', en: 'Lenny, Transporter', es: 'Lenny, Transportista', zh: "莱尼，运输员", ru: "Ленни, Транспортник", it: "Lenny, Trasportatore", de: "Lenny, Transporteur" }, desc: { fr: 'Embauche Lenny (utilitaire inclus) · cap 100 GL', en: 'Hire Lenny (van included) · cap 100 IC', es: 'Contratar a Lenny (furgoneta incluida) · cap 100 CB', zh: "雇用莱尼（含面包车）· 容量100冰块", ru: "Нанять Ленни (фургон в комплекте) · ёмк 100 К", it: "Assumi Lenny (furgone incluso) · cap 100 CB", de: "Lenny einstellen (Transporter inkl.) · Kap 100 EW" }, cost: 2400,
     longDesc: { fr: "Lenny débarque avec son utilitaire personnel sous le bras, prêt à rouler. Tu n'achètes pas un camion, tu embauches un transporteur qui apporte le sien. Plafond 50 GL par trajet, contrats locaux uniquement (bars, brasseries). Le début de l'activité B2B.", en: "Lenny shows up with his personal van under his arm, ready to roll. You're not buying a truck, you're hiring a transporter who brings his own. Cap 50 IC per trip, local contracts only (bars, breweries). The start of B2B activity.", es: "Lenny se presenta con su furgoneta personal bajo el brazo, listo para rodar. No compras un camión, contratas a un transportista que trae el suyo. Tope 50 CB por trayecto, solo contratos locales (bares, cervecerías). El inicio de la actividad B2B.", zh: "莱尼带着自己的私家面包车上门，随时可以出发。你不是在买车，是在雇一个自带工具的运输员。每趟容量50冰块，仅限本地合同（酒吧、啤酒厂）。B2B业务的开端。", ru: "Ленни появляется со своим личным фургоном подмышкой, готов ехать. Ты не покупаешь грузовик, ты нанимаешь транспортника, который приезжает со своим. Ёмкость 50 К за рейс, только локальные контракты (бары, пивоварни). Начало B2B-деятельности.", it: "Lenny si presenta con il suo furgone personale sotto il braccio, pronto a partire. Non compri un camion, assumi un trasportatore che porta il suo. Tetto 50 CB a viaggio, solo contratti locali (bar, birrerie). L'inizio dell'attività B2B.", de: "Lenny taucht mit seinem privaten Transporter unterm Arm auf, fahrbereit. Du kaufst keinen LKW, du stellst einen Transporteur ein, der seinen mitbringt. Kap 50 EW pro Fahrt, nur lokale Verträge (Bars, Brauereien). Der Beginn der B2B-Aktivität." },
     apply: s => ({ ...s, linesBonus: s.linesBonus + 1, truckMaxCap: Math.max(s.truckMaxCap, 100) }) },
@@ -1824,6 +1828,12 @@ const UPGRADES = [
   { id: 'ligne_semi_auto', Icon: Factory, count: 1, destructible: false, phase: 2, name: { fr: 'Ligne semi-automatique', en: 'Semi-automatic line', es: 'Línea semi-automática', zh: "半自动生产线", ru: "Полуавтоматическая линия", it: "Linea semi-automatica", de: "Halbautomatische Linie" }, desc: { fr: 'prod ×1.83', en: 'prod ×1.83', es: 'prod ×1.83', zh: "生产 ×1.83", ru: "произв ×1.83", it: "prod ×1.83", de: "Prod ×1.83" }, cost: 130000,
     longDesc: { fr: "Tu remplaces une partie du travail manuel par une ligne semi-automatique. Les bacs se remplissent, gèlent et sont démoulés sans intervention. Production ×1.83 sur l'ensemble de la chaîne.", en: "You replace some of the manual work with a semi-automatic line. Trays fill, freeze, and unmold without intervention. Production ×1.83 across the whole chain.", es: "Reemplazas parte del trabajo manual por una línea semi-automática. Las bandejas se llenan, congelan y desmoldan sin intervención. Producción ×1.83 en toda la cadena.", zh: "你用半自动生产线替代部分手工劳作。冰格自动填充、冷冻、脱模。整条线生产 ×1.83。", ru: "Часть ручного труда заменяется полуавтоматической линией. Формы наполняются, замораживаются и извлекаются без вмешательства. Производство ×1.83 по всей цепи.", it: "Sostituisci parte del lavoro manuale con una linea semi-automatica. Le vaschette si riempiono, congelano e sformano senza intervento. Produzione ×1.83 sull'intera catena.", de: "Du ersetzt einen Teil der Handarbeit durch eine halbautomatische Linie. Formen füllen, frieren und entformen sich ohne Eingriff. Produktion ×1.83 in der ganzen Kette." },
     apply: s => ({ ...s, prodSpeedMult: s.prodSpeedMult * 1.83 }) },
+  { id: 'conteneur_frigo', Icon: Container, count: 1, destructible: false, phase: 2, name: { fr: 'Conteneur frigorifique', en: 'Refrigerated container', es: 'Contenedor frigorífico', zh: "冷藏集装箱", ru: "Рефрижераторный контейнер", it: "Container frigorifero", de: "Kühlcontainer" }, desc: { fr: '+1000 cap', en: '+1000 cap', es: '+1000 cap', zh: "+1000 容量", ru: "+1000 ёмкость", it: "+1000 cap", de: "+1000 Kap" }, cost: 24000,
+    longDesc: { fr: "Un conteneur maritime frigorifique reconverti en réserve de froid, posé à l'arrière du local. +1000 places de stockage : le premier vrai bond de capacité une fois en Phase 2, juste ce qu'il faut pour accepter des contrats B2B un peu plus gros.", en: "A refrigerated shipping container repurposed as cold storage, parked behind the warehouse. +1000 storage slots: the first real capacity jump once in Phase 2, just enough to take on slightly bigger B2B contracts.", es: "Un contenedor marítimo frigorífico reconvertido en cámara de frío, aparcado detrás del local. +1000 plazas de stock: el primer salto real de capacidad ya en Fase 2, justo lo necesario para aceptar contratos B2B algo mayores.", zh: "一只改装成冷藏仓的海运冷柜，停在仓库后面。+1000个仓储位：进入第2阶段后第一次真正的容量跃升，刚好够接稍大一些的B2B合同。", ru: "Морской рефрижераторный контейнер, переоборудованный под холодильное хранилище, у задней стены склада. +1000 ячеек хранения: первый настоящий скачок ёмкости в Фазе 2, как раз чтобы брать чуть более крупные B2B-контракты.", it: "Un container marittimo frigorifero riconvertito in cella frigo, parcheggiato dietro il magazzino. +1000 slot di stoccaggio: il primo vero balzo di capacità in Fase 2, quanto basta per accettare contratti B2B un po' più grossi.", de: "Ein zu Kühllager umgebauter Seecontainer hinter dem Lager. +1000 Lagerplätze: der erste echte Kapazitätssprung in Phase 2, gerade genug für etwas größere B2B-Verträge." },
+    apply: s => ({ ...s, capBonus: s.capBonus + 1000 }) },
+  { id: 'reserve_refrigeree', Icon: Warehouse, count: 1, destructible: false, phase: 2, name: { fr: 'Réserve réfrigérée', en: 'Refrigerated storeroom', es: 'Almacén refrigerado', zh: "冷藏储藏室", ru: "Холодильная кладовая", it: "Magazzino refrigerato", de: "Kühlraum" }, desc: { fr: '+3000 cap', en: '+3000 cap', es: '+3000 cap', zh: "+3000 容量", ru: "+3000 ёмкость", it: "+3000 cap", de: "+3000 Kap" }, cost: 75000,
+    longDesc: { fr: "Une réserve réfrigérée sur mesure : rayonnages, groupe froid dédié, sas d'entrée. +3000 places de stockage pour viser les gros contrats B2B sans saturer en permanence. Le palier de stockage central de la Phase 2.", en: "A custom refrigerated storeroom: shelving, dedicated cooling unit, entry airlock. +3000 storage slots to aim for the big B2B contracts without constantly maxing out. The core Phase 2 storage tier.", es: "Un almacén refrigerado a medida: estanterías, equipo de frío dedicado, esclusa de entrada. +3000 plazas de stock para apuntar a los grandes contratos B2B sin saturar siempre. El nivel central de almacenamiento de la Fase 2.", zh: "一间定制冷藏储藏室：货架、专用制冷机组、入口缓冲间。+3000个仓储位，让你瞄准大型B2B合同而不会一直爆仓。第2阶段的核心仓储档位。", ru: "Холодильная кладовая под заказ: стеллажи, отдельный холодильный агрегат, входной тамбур. +3000 ячеек хранения, чтобы целиться в крупные B2B-контракты, не упираясь постоянно в потолок. Центральный уровень хранения Фазы 2.", it: "Un magazzino refrigerato su misura: scaffalature, gruppo frigo dedicato, bussola d'ingresso. +3000 slot di stoccaggio per puntare ai grossi contratti B2B senza saturare di continuo. Il livello di stoccaggio centrale della Fase 2.", de: "Ein maßgefertigter Kühlraum: Regale, eigenes Kühlaggregat, Eingangsschleuse. +3000 Lagerplätze, um die großen B2B-Verträge anzupeilen, ohne ständig am Limit zu sein. Die zentrale Lagerstufe der Phase 2." },
+    apply: s => ({ ...s, capBonus: s.capBonus + 3000 }) },
   { id: 'chambre_froide_indus', Icon: Snowflake, count: 1, destructible: false, phase: 2, name: { fr: 'Chambre froide industrielle', en: 'Industrial cold room', es: 'Cámara fría industrial', zh: "工业冷库", ru: "Промышленная холодильная камера", it: "Camera fredda industriale", de: "Industrielle Kühlkammer" }, desc: { fr: 'cap +3000 · fonte ×0.15', en: 'cap +3000 · melt ×0.15', es: 'cap +3000 · fundido ×0.15', zh: "容量 +3000 · 融化 ×0.15", ru: "ёмк +3000 · таяние ×0.15", it: "cap +3000 · fusione ×0.15", de: "Kap +3000 · Schmelze ×0.15" }, cost: 190000,
     longDesc: { fr: "Tu installes une vraie chambre froide industrielle. 3000 places de stockage en plus et la fonte tombe à 30% de la normale. Tu peux constituer des stocks tampons solides pour les grosses commandes.", en: "You install a real industrial cold room. 3000 extra storage slots and melt drops to 30% of normal. You can build solid buffer stocks for large orders.", es: "Instalas una verdadera cámara fría industrial. 3000 plazas extra y el fundido cae al 30% del normal. Puedes constituir stocks tampón sólidos para grandes pedidos.", zh: "你安装一座真正的工业冷库。多3000个仓储位，融化降到正常的30%。可以为大订单构建坚实的缓冲库存。", ru: "Устанавливаете настоящую промышленную холодильную камеру. +3000 ячеек, таяние падает до 30% от нормы. Можно создавать надёжные буферные запасы для крупных заказов.", it: "Installi una vera camera fredda industriale. 3000 posti in più e la fusione scende al 30% del normale. Puoi costituire scorte cuscinetto solide per grandi ordini.", de: "Du installierst eine echte industrielle Kühlkammer. 3000 Lagerplätze mehr und Schmelze sinkt auf 30% des Normalen. Du kannst solide Pufferbestände für Großaufträge aufbauen." },
     apply: s => ({ ...s, capBonus: s.capBonus + 3000, meltMult: s.meltMult * 0.15 }) },
@@ -2055,7 +2065,7 @@ const UPGRADE_FAMILIES = [
 
   // ============ STOCKAGE ============
   { id: 'stock_bacs', label: 'BACS & CONGÉLATEURS', icon: 'Warehouse',
-    tiers: ['mini_freezer', 'voisin_jacques', 'caisson_isotherme', 'cold_turbine', 'sacs_iso', 'cuve_xl', 'pro_freezer', 'stockage_cryo_avance'],
+    tiers: ['mini_freezer', 'voisin_jacques', 'caisson_isotherme', 'cold_turbine', 'sacs_iso', 'cuve_xl', 'pro_freezer', 'conteneur_frigo', 'reserve_refrigeree', 'stockage_cryo_avance'],
     minPhase: 1 },
   { id: 'stock_locaux', label: 'LOCAUX', icon: 'Warehouse',
     tiers: ['rent_warehouse', 'agence_marketing', 'chambre_froide_indus', 'entrepot_xl'],
@@ -6439,6 +6449,21 @@ export default function App() {
   const boostCountInRowRef = useRef({ fred: 0, brigitte: 0, janice: 0, lenny: 0 });
   const activeEventRef = useRef(null);
   const nextEventAtRef = useRef(0);
+  // === Règle "1 même évènement d'ambiance par an" ===
+  // Empêche qu'un même event d'ambiance (fête de quartier, frictions, météo)
+  // se redéclenche dans la même année de jeu. Réinitialisé à chaque nouvelle année.
+  // year = floor(gameTime / (SEASON_DURATION*4)). Ne s'applique PAS aux crises /
+  // opportunités / rackets P3 (qui ont leur propre planificateur modal).
+  const firedThisYearRef = useRef({ year: -1, ids: new Set() });
+  const _yearOf = (t) => Math.floor(t / (SEASON_DURATION * 4));
+  const _syncYearBucket = () => {
+    const y = _yearOf(gameTimeRef.current);
+    if (firedThisYearRef.current.year !== y) {
+      firedThisYearRef.current = { year: y, ids: new Set() };
+    }
+  };
+  const canFireThisYear = (id) => { _syncYearBucket(); return !firedThisYearRef.current.ids.has(id); };
+  const markFiredThisYear = (id) => { _syncYearBucket(); firedThisYearRef.current.ids.add(id); };
   const moneyRef = useRef(0);
   const lastGoodMoneyRef = useRef(0); // Anti-NaN : dernière valeur d'argent finie connue (auto-réparation).
   const prevGrumpyRef = useRef({ fred: false, brigitte: false, janice: false, lenny: false });
@@ -6697,6 +6722,8 @@ export default function App() {
         queuedPopupTimerRef.current = null;
         return;
       }
+      // Pause : on garde le popup en file, rien ne s'affiche tant que c'est en pause.
+      if (isPausedRef.current) return;
       const payloadNow = queuedPopupRef.current;
       // re-tester le créneau
       if (popupMessageRef.current || activeTutorialRef.current || pendingTutorialRef.current) return;
@@ -6830,7 +6857,10 @@ export default function App() {
           // Des events spécifiques P4 seront reconstruits séparément.
           .filter(e => curPhase < 4)
           .filter(e => !e.allowedSeasons || e.allowedSeasons.includes(curSeason))
-          .filter(e => !e.allowedMonths || e.allowedMonths.includes(curMonth));
+          .filter(e => !e.allowedMonths || e.allowedMonths.includes(curMonth))
+          // Règle "1×/an" pour les events d'ambiance ponctuels (ex. fête de quartier) :
+          // un même ponctuel ne se redéclenche pas dans la même année de jeu.
+          .filter(e => e.category !== 'ponctuel' || canFireThisYear(e.id));
         if (eligible.length > 0) {
           const totalWeight = eligible.reduce((a, e) => a + (e.weight || 1), 0);
           let r = Math.random() * totalWeight;
@@ -6840,6 +6870,8 @@ export default function App() {
             if (r <= 0) { picked = e; break; }
           }
           if (picked.category === 'ponctuel') {
+            // Règle 1×/an : ce ponctuel ne se redéclenchera plus cette année.
+            markFiredThisYear(picked.id);
             // Pas de modale bloquante : on injecte directement le contrat associé
             // dans la marketplace et on annonce l'événement via un bandeau de notif.
             const cid = picked.effects && picked.effects.contractId;
@@ -10131,6 +10163,8 @@ export default function App() {
           .filter(f => curPhase >= f.minPhase && curPhase <= (f.maxPhase || 3))
           // Ne pas re-tirer une friction déjà active
           .filter(f => !activeFrictionsRef.current[f.id])
+          // Règle 1×/an : une même friction ne se redéclenche pas dans l'année
+          .filter(f => canFireThisYear(f.id))
           // Prérequis cohérents (Lenny pour la route, Janice pour le marketing, etc.)
           .filter(f => !f.requires || f.requires(ctx));
         if (eligible.length > 0) {
@@ -10190,6 +10224,7 @@ export default function App() {
             }));
           }
           lastFrictionAtRef.current = gameTimeRef.current;
+          markFiredThisYear(picked.id);
           // Un seul bandeau par événement : pas de toast nom-seul si le bandeau
           // persistant à décompte existe déjà. Le toast ne sert qu'aux frictions
           // instantanées (one-shot sans bandeau).
@@ -11087,29 +11122,32 @@ export default function App() {
           totalsRef.current = { ...totalsRef.current, heatwavesSurvived: (totalsRef.current.heatwavesSurvived || 0) + 1 };
           setTotals(t => ({ ...t, heatwavesSurvived: (t.heatwavesSurvived || 0) + 1 }));
         }
-      } else if (phaseRef.current < 4 && !isFirstYear && canTriggerEvent && seasonIdxRef.current === 2 && Math.random() < HEATWAVE_CHANCE) {
+      } else if (phaseRef.current < 4 && !isFirstYear && canTriggerEvent && seasonIdxRef.current === 2 && canFireThisYear('heatwave') && Math.random() < HEATWAVE_CHANCE) {
         // P1-3 uniquement. Table rase en P4 : l'effet POP ICE sera
         // reconstruit via de futurs events spécifiques Phase 4.
         const dur = 25 + Math.random() * 20;
         setHeatwaveLeft(dur);
         heatwaveLeftRef.current = dur;
         lastEventAtRef.current = evtNow;
+        markFiredThisYear('heatwave');
       }
       if (droughtLeftRef.current > 0) {
         setDroughtLeft(l => Math.max(0, l - dt));
-      } else if (phaseRef.current < 4 && !isFirstYear && canTriggerEvent && heatwaveLeftRef.current === 0 && seasonIdxRef.current === 2 && Math.random() < DROUGHT_CHANCE) {
+      } else if (phaseRef.current < 4 && !isFirstYear && canTriggerEvent && heatwaveLeftRef.current === 0 && seasonIdxRef.current === 2 && canFireThisYear('drought') && Math.random() < DROUGHT_CHANCE) {
         const dur = 30 + Math.random() * 15;
         setDroughtLeft(dur);
         droughtLeftRef.current = dur;
         lastEventAtRef.current = evtNow;
+        markFiredThisYear('drought');
       }
       if (outageLeftRef.current > 0) {
         setOutageLeft(l => Math.max(0, l - dt));
-      } else if (phaseRef.current < 4 && !isFirstYear && canTriggerEvent && heatwaveLeftRef.current === 0 && droughtLeftRef.current === 0 && seasonIdxRef.current === 0 && Math.random() < OUTAGE_CHANCE) {
+      } else if (phaseRef.current < 4 && !isFirstYear && canTriggerEvent && heatwaveLeftRef.current === 0 && droughtLeftRef.current === 0 && seasonIdxRef.current === 0 && canFireThisYear('outage') && Math.random() < OUTAGE_CHANCE) {
         const dur = 32;
         setOutageLeft(dur);
         outageLeftRef.current = dur;
         lastEventAtRef.current = evtNow;
+        markFiredThisYear('outage');
       }
       if (autumnRushLeftRef.current > 0) {
         setAutumnRushLeft(l => Math.max(0, l - dt));
@@ -12523,7 +12561,7 @@ export default function App() {
   }, [popupMessage]);
 
   useEffect(() => {
-    const id = setInterval(() => setTempJitter((Math.random() - 0.5) * 0.8), 1800);
+    const id = setInterval(() => { if (isPausedRef.current) return; setTempJitter((Math.random() - 0.5) * 0.8); }, 1800);
     return () => clearInterval(id);
   }, []);
 
@@ -12544,6 +12582,7 @@ export default function App() {
   useEffect(() => {
     if (!owned['autosell'] || !loaded) return;
     const id = setInterval(() => {
+      if (isPausedRef.current) return;
       if (Math.random() < 0.45) {
         const msg = BRIGITTE_MESSAGES[Math.floor(Math.random() * BRIGITTE_MESSAGES.length)];
         tryRandomPopup('Brigitte', localizeField(msg, language));
@@ -15639,6 +15678,11 @@ export default function App() {
           })()}
         </div>
         <div className="hero-center">
+          <svg className="stock-logo-bg" viewBox="8 33 84 80" aria-hidden="true" preserveAspectRatio="xMidYMid meet">
+            <path d="M 50 38 L 87 56 L 50 74 L 13 56 Z" />
+            <path d="M 87 56 L 87 90 L 50 108 L 50 74 Z" />
+            <path d="M 13 56 L 13 90 L 50 108 L 50 74 Z" />
+          </svg>
           <div className={`stock ${atCap ? 'full' : ''} ${inHeatwave ? 'canicule' : ''}`}>{displayStock}</div>
           <div className="stock-lbl">{t('status.stock')}</div>
           <div className={`status ${atCap && status ? 'warn' : ''}`}>
@@ -17089,7 +17133,10 @@ export default function App() {
           100% { opacity: 0; transform: scale(1.3); }
         }
         .hero-grid { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; }
-        .hero-center { text-align: center; min-width: 0; }
+        .hero-center { text-align: center; min-width: 0; position: relative; padding: 6px 0; }
+        .stock-logo-bg { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 100%; height: 100%; color: var(--fg); opacity: 0.07; pointer-events: none; z-index: 0; }
+        .stock-logo-bg path { fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+        .hero-center .stock, .hero-center .stock-lbl, .hero-center .status, .hero-center .cap-line, .hero-center .prod-melt-mini { position: relative; z-index: 1; text-shadow: -1px -1px 0 var(--bg), 0 -1px 0 var(--bg), 1px -1px 0 var(--bg), -1px 0 0 var(--bg), 1px 0 0 var(--bg), -1px 1px 0 var(--bg), 0 1px 0 var(--bg), 1px 1px 0 var(--bg), 0 0 2px var(--bg); }
         .stock { font-family: 'Major Mono Display', monospace; font-size: 84px; letter-spacing: -3px; line-height: 0.9; font-variant-numeric: tabular-nums; display: inline-block; }
         .stock.canicule { animation: shakeDigit 0.18s linear infinite; }
         .stock.full { animation: capShakeBig 0.2s ease-in-out infinite, capPulseBig 1.1s ease-in-out infinite; }
@@ -17495,7 +17542,7 @@ export default function App() {
         .upg-desc { font-size: 8px; line-height: 1.3; min-height: 21px; font-weight: 400; color: inherit; opacity: 0.78; margin-bottom: 8px; letter-spacing: 0; }
         .upg-cost { margin-top: auto; padding-top: 6px; border-top: 1px dashed currentColor; font-size: 10px; font-weight: 700; letter-spacing: 0.3px; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 4px; color: inherit; opacity: 0.9; }
         .upg.afford .upg-cost { opacity: 1; }
-        .upg.owned:not(.broken) .upg-cost { font-weight: 400; opacity: 0.55; text-decoration: line-through; }
+        .upg.owned:not(.broken) .upg-cost { font-weight: 700; opacity: 0.6; text-decoration: none; }
         .upg.broken .upg-cost { color: var(--fg); border-top-color: var(--fg); text-decoration: none; font-weight: 700; opacity: 1; }
         .upg.owned:not(.broken) svg { opacity: 0.3; }
         .upg-fam-label { font-size: 7px; letter-spacing: 2px; font-weight: 700; margin-bottom: 4px; color: inherit; opacity: 0.65; }
@@ -18093,8 +18140,8 @@ export default function App() {
           color: var(--fg);
           padding: 0;
           border-radius: 0;
-          font-size: 9px;
-          font-weight: 700;
+          font-size: 10px;
+          font-weight: 800;
           letter-spacing: 3px;
           text-transform: uppercase;
           margin-bottom: 12px;
@@ -26617,7 +26664,7 @@ export default function App() {
               onClick = null;
             } else {
               state = 'max';
-              actionLabel = ', MAX,';
+              actionLabel = '✓ MAX';
               displayUpgrade = lastOwned || familyUpgrades[familyUpgrades.length - 1];
               disabled = true;
               onClick = null;
