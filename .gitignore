@@ -19,3 +19,6 @@ npm-debug.log*
 
 # Claude Code local tooling state
 .claude/
+
+# Export mono-fichier généré (pour artifact Claude / iPhone)
+meltdown.artifact.tsx
