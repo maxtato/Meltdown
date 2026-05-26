@@ -11039,7 +11039,11 @@ export default function App() {
         // Probabilité = somme des riskMonthly des curseurs dangereux.
         // Sabine traite automatiquement tant qu'elle a du quota annuel.
         // Sinon, le procès est mis en file (résolution manuelle par le joueur).
-        if (!isFirstYear && phaseRef.current >= 2) {
+        // Garde-fou : en Phase 2, aucun procès tant que Sabine n'est pas
+        // embauchée (sinon le joueur subit un procès sans aucun moyen de se
+        // défendre). En Phase 3+, le volet juridique est pleinement actif.
+        const _hasSabineForLaw = !!(ownedRef.current['sabine_jr'] || ownedRef.current['sabine_sr'] || ownedRef.current['sabine_dg']);
+        if (!isFirstYear && (phaseRef.current >= 3 || (phaseRef.current >= 2 && _hasSabineForLaw))) {
           // Reset annuel du compteur Sabine
           const curYear = Math.floor(gameTimeRef.current / (SEASON_DURATION * 4));
           if (curYear !== lastLawsuitYearRef.current) {
