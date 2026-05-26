@@ -2174,7 +2174,7 @@ const TUTORIAL_STEPS = [
       fr: "Voici la jauge de MORAL de chaque employé. Elle monte quand ils sont bien payés, promus, et que la boîte va bien. Elle descend en cas de salaire bas, refus d'augmentation, contrats louches ou rép pourrie. Moral haut → productivité boostée. Moral à zéro → grève. Tu peux aussi rehausser le moral instantanément avec le bouton PRIME EXCEPT. sous chaque employé (+20 moral, récupération 120s).",
       en: "This is each employee's MORALE gauge. It rises with good pay, promotions, and a healthy company. It falls with low salary, refused raises, shady deals, or poor reputation. High morale → productivity boost. Zero → strike. You can also raise morale instantly with the BONUS button under each employee (+20 moral, 120s recovery).",
       es: "Esta es la barra de MORAL de cada empleado. Sube cuando están bien pagados, ascendidos y la empresa va bien. Baja con salario bajo, aumento rechazado, tratos turbios o reputación pésima. Moral alta → productividad. A cero → huelga. También puedes subir la moral al instante con el botón PRIMA EXCEP. bajo cada empleado (+20 moral, enfriamiento 120s).", zh: "这是每位员工的士气计。它随良好薪资、晋升和健康的公司而上升。随低工资、被拒加薪、可疑交易或差声誉而下降。高士气→生产力提升。零→罢工。你也可以用每位员工下方的奖金按钮立即提升士气（+20士气，120秒冷却）。", ru: "Это индикатор МОРАЛИ каждого сотрудника. Растёт с хорошей оплатой, повышениями и здоровой компанией. Падает с низкой зарплатой, отказанными повышениями, мутными сделками или плохой репутацией. Высокая мораль → буст продуктивности. Ноль → забастовка. Можно также мгновенно поднять мораль кнопкой БОНУС под каждым сотрудником (+20 морали, перезарядка 120с).", it: "Questo è l'indicatore MORALE di ogni dipendente. Sale con buona paga, promozioni e un'azienda sana. Cala con stipendio basso, aumenti rifiutati, deal loschi o cattiva reputazione. Morale alto → boost produttività. Zero → sciopero. Puoi anche alzare il morale all'istante col pulsante BONUS sotto ogni dipendente (+20 morale, ricarica 120s).", de: "Das ist die MORAL-Anzeige jedes Mitarbeiters. Sie steigt mit guter Bezahlung, Beförderungen und einer gesunden Firma. Sie fällt bei niedrigem Gehalt, abgelehnten Erhöhungen, zwielichtigen Deals oder schlechtem Ruf. Hohe Moral → Produktivitätsschub. Null → Streik. Du kannst die Moral auch sofort mit dem BONUS-Knopf unter jedem Mitarbeiter heben (+20 Moral, 120s Abklingzeit)."
-    }, targetSel: '.personnel-modal .moral-bar', side: 'bottom', delay: 1100,
+    }, targetSel: '.personnel-modal .moral-bar-vertical', side: 'bottom', delay: 1100,
     canShow: s => s.personnelOpen && (s.hasFred || s.hasBrigitte), autoClose: s => !s.personnelOpen },
   { id: 't_stock_insuffisant', text: {
       fr: "Stock insuffisant pour ce contrat. Ferme cette fenêtre, produis plus de glaçons, puis reviens plus tard valider l'appel.",
@@ -19235,6 +19235,7 @@ export default function App() {
         .ts-unit { font-size: 9px; font-weight: 400; color: var(--m2); margin-left: 2px; letter-spacing: 0; }
         .personnel-name { font-size: 11px; letter-spacing: 1px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
         .personnel-name-left { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+        .personnel-firstname { display: inline-block; background: var(--fg); color: var(--bg); padding: 2px 7px; border-radius: 3px; font-weight: 800; letter-spacing: 1px; }
         .personnel-status { font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; padding: 2px 6px; border: 1px solid var(--fg); color: var(--fg); line-height: 1; margin-left: auto; }
         .personnel-status.is-crit { background: var(--fg); color: var(--bg); animation: moralPulse 1.6s ease-in-out infinite; }
         .personnel-moral { position: absolute; top: 36px; right: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; font-family: 'JetBrains Mono', monospace; }
@@ -25564,7 +25565,7 @@ export default function App() {
                     <div className={`personnel-section ${fredStress >= 60 ? 'is-stressed' : ''}`}>
                       <div className="personnel-name">
                         <span className="personnel-name-left">
-                          Fred · {localizeField(currentFredUpgrade.gradeName, language)}
+                          <span className="personnel-firstname">Fred</span> · {localizeField(currentFredUpgrade.gradeName, language)}
                           {fredGrumpy && <span className="personnel-grumpy"> · {t('staff.grumpy')}</span>}
                           {fredStress >= 60 && !fredGrumpy && <span className="personnel-stress-tag"> · {t('boost.stress_high')}</span>}
                         </span>
@@ -25616,7 +25617,7 @@ export default function App() {
                     <div className={`personnel-section ${brigitteStress >= 60 ? 'is-stressed' : ''}`}>
                       <div className="personnel-name">
                         <span className="personnel-name-left">
-                          Brigitte · {localizeField(currentBrigitteUpgrade.gradeName, language)}
+                          <span className="personnel-firstname">Brigitte</span> · {localizeField(currentBrigitteUpgrade.gradeName, language)}
                           {brigitteGrumpy && <span className="personnel-grumpy"> · {t('staff.grumpy')}</span>}
                           {brigitteStress >= 60 && !brigitteGrumpy && <span className="personnel-stress-tag"> · {t('boost.stress_high')}</span>}
                         </span>
@@ -25674,7 +25675,7 @@ export default function App() {
                       <div className={`personnel-section ${janiceStress >= 60 ? 'is-stressed' : ''}`}>
                         <div className="personnel-name">
                           <span className="personnel-name-left">
-                            Janice · {localizeField(currentJaniceUpgrade.gradeName, language)}
+                            <span className="personnel-firstname">Janice</span> · {localizeField(currentJaniceUpgrade.gradeName, language)}
                             {janiceGrumpy && <span className="personnel-grumpy"> · {t('staff.grumpy')}</span>}
                             {janiceStress >= 60 && !janiceGrumpy && <span className="personnel-stress-tag"> · {t('boost.stress_high')}</span>}
                           </span>
@@ -25730,7 +25731,7 @@ export default function App() {
                       <div className={`personnel-section ${lennyStress >= 60 ? 'is-stressed' : ''}`}>
                         <div className="personnel-name">
                           <span className="personnel-name-left">
-                            Lenny · {localizeField(lennyGrade.name, language)}
+                            <span className="personnel-firstname">Lenny</span> · {localizeField(lennyGrade.name, language)}
                             {lennyGrumpy && <span className="personnel-grumpy"> · {t('staff.on_strike')}</span>}
                             {lennyStress >= 60 && !lennyGrumpy && <span className="personnel-stress-tag"> · {t('boost.stress_high')}</span>}
                           </span>
@@ -25783,7 +25784,7 @@ export default function App() {
                       <div className={`personnel-section ${karenStress >= 60 ? 'is-stressed' : ''}`}>
                         <div className="personnel-name">
                           <span className="personnel-name-left">
-                            Karen · {localizeField(karenUpg.gradeName, language)}
+                            <span className="personnel-firstname">Karen</span> · {localizeField(karenUpg.gradeName, language)}
                             {karenGrumpy && <span className="personnel-grumpy"> · {t('staff.on_strike')}</span>}
                             {karenStress >= 60 && !karenGrumpy && <span className="personnel-stress-tag"> · {t('boost.stress_high')}</span>}
                           </span>
@@ -25838,7 +25839,7 @@ export default function App() {
                       <div className="personnel-section">
                         <div className="personnel-name">
                           <span className="personnel-name-left">
-                            Mark · {localizeField(markUpg.gradeName, language)}
+                            <span className="personnel-firstname">Mark</span> · {localizeField(markUpg.gradeName, language)}
                             {markGrumpy && <span className="personnel-grumpy"> · {t('staff.on_strike')}</span>}
                           </span>
                           {(() => { const p = getMoralPenaltyLabel('mark', markMoral); return p ? <span className={`personnel-status ${p.mood === 'crit' ? 'is-crit' : ''}`}>{p.label}</span> : null; })()}
@@ -25866,7 +25867,7 @@ export default function App() {
                       <div className="personnel-section">
                         <div className="personnel-name">
                           <span className="personnel-name-left">
-                            Sabine · {localizeField(sabineUpg.gradeName, language)}
+                            <span className="personnel-firstname">Sabine</span> · {localizeField(sabineUpg.gradeName, language)}
                             {sabineGrumpy && <span className="personnel-grumpy"> · {t('staff.on_strike')}</span>}
                           </span>
                           {(() => { const p = getMoralPenaltyLabel('sabine', sabineMoral); return p ? <span className={`personnel-status ${p.mood === 'crit' ? 'is-crit' : ''}`}>{p.label}</span> : null; })()}
