@@ -90,7 +90,7 @@ const STOCK_MELT_FACTOR = 0.012;
 const BASE_SELL_PRICE = 0.15;
 const BASE_CAP = 24;
 // Lot 2 — petit capital de départ (lisse l'ouverture austère à 0 €). Tunable.
-const START_CASH = 50;
+const START_CASH = 0;
 // Lot 2 — charges sociales/taxes indexées sur le CA mensuel (P2+, rampées par l'exo,
 // bornées car proportionnelles). Maintient un vrai coût même quand l'entreprise grossit.
 // Conservateur, à affiner au playtest.
@@ -5606,10 +5606,6 @@ export default function App() {
   const [phase, setPhase] = useState(1);
   const [stock, setStock] = useState(0);
   const [money, setMoney] = useState(0);
-  // Lot 1 — Fonte rendue tangible : GL fondus dans la saison en cours (coût d'opportunité affiché).
-  const meltedThisSeasonRef = useRef(0);
-  const [meltedSeason, setMeltedSeason] = useState(0);
-  const [meltRateNow, setMeltRateNow] = useState(0);
   const [owned, setOwned] = useState({});
   const [reputation, setReputation] = useState(50);
   const [lines, setLines] = useState([]);
@@ -10068,8 +10064,6 @@ export default function App() {
       newStock = Math.max(0, Math.min(newStock, maxCapNow));
       totalsRef.current.produced += prodGain;
       totalsRef.current.melted += meltLoss;
-      // Lot 1 — fonte tangible : cumul de la saison en cours.
-      meltedThisSeasonRef.current += meltLoss;
 
       // === PHASE 4 : production répartie sur 3 produits ===
       // Si on est en Phase 4, le `cycleBatch` n'alimente PAS `stock` (glaçon),
@@ -10816,9 +10810,6 @@ export default function App() {
         }
         seasonStartTotalsRef.current = { produced: totalsRef.current.produced, deliveries: totalsRef.current.contractsCompleted };
         seasonFuelRef.current = 0;
-        // Lot 1 — nouvelle saison : on remet le compteur de fonte à zéro.
-        meltedThisSeasonRef.current = 0;
-        setMeltedSeason(0);
       }
       if (lastBilledSeasonRef.current < 0) {
         // Première saison de la partie — initialise sans facturer
@@ -11945,10 +11936,7 @@ export default function App() {
 
       // Anti-NaN : un stock NaN bloquerait toute vente — on le verrouille à une valeur finie.
       if (!Number.isFinite(newStock)) newStock = 0;
-      if (!Number.isFinite(meltedThisSeasonRef.current)) meltedThisSeasonRef.current = 0;
       setStock(newStock);
-      setMeltedSeason(meltedThisSeasonRef.current);
-      setMeltRateNow(Number.isFinite(curMelt) ? curMelt : 0);
       } catch (err) {
         console.error('[Meltdown tick error]', err);
       }
@@ -16876,12 +16864,6 @@ export default function App() {
         .tail-right { right: -7px; margin-top: -7px; border-top: 7px solid transparent; border-bottom: 7px solid transparent; border-left: 7px solid var(--bg); }
         .tail-right-outer { right: -9px; margin-top: -8px; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-left: 8px solid var(--fg); }
         .sell-mult { margin-left: 8px; opacity: 0.75; }
-        .melt-rate { font-size: 8px; color: var(--m2); text-align: right; padding: 0 4px 4px; font-variant-numeric: tabular-nums; letter-spacing: 0.5px; opacity: 0.8; }
-        .melt-rate b { color: var(--m1); font-weight: 700; }
-        .melt-rate .melt-season { opacity: 0.7; }
-        .melt-rate.is-high { color: var(--fg); opacity: 1; animation: meltPulse 1.1s ease-in-out infinite; }
-        .melt-rate.is-high b { color: var(--fg); }
-        @keyframes meltPulse { 0%,100% { opacity: 0.7; } 50% { opacity: 1; } }
         .stock-side, .demand-side { display: flex; flex-direction: column; align-items: center; gap: 7px; }
         .side-lbl { font-size: 8px; letter-spacing: 2px; color: var(--m2); font-weight: 400; }
         .stock-grid { display: grid; grid-template-columns: repeat(${STOCK_COLS}, ${CUBE_SIZE}px); grid-template-rows: repeat(${STOCK_ROWS}, ${CUBE_SIZE}px); gap: ${CUBE_GAP}px; }
@@ -17175,8 +17157,6 @@ export default function App() {
         .upg-name { font-size: 9px; font-weight: 700; margin-bottom: 2px; letter-spacing: 0; line-height: 1.2; color: inherit; }
         .upg-broken-tag { display: block; font-size: 8px; margin-top: 2px; letter-spacing: 1px; color: var(--fg); }
         .upg-desc { font-size: 8px; line-height: 1.3; min-height: 21px; font-weight: 400; color: inherit; opacity: 0.78; margin-bottom: 8px; letter-spacing: 0; }
-        .upg-est { font-size: 8px; font-weight: 700; letter-spacing: 0.3px; color: inherit; opacity: 0.95; margin-bottom: 6px; font-variant-numeric: tabular-nums; }
-        .upg.afford .upg-est { opacity: 1; }
         .upg-cost { margin-top: auto; padding-top: 6px; border-top: 1px dashed currentColor; font-size: 10px; font-weight: 700; letter-spacing: 0.3px; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 4px; color: inherit; opacity: 0.9; }
         .upg.afford .upg-cost { opacity: 1; }
         .upg.owned:not(.broken) .upg-cost { font-weight: 400; opacity: 0.55; text-decoration: line-through; }
@@ -26071,14 +26051,6 @@ export default function App() {
               <span className="sell-mult">({fmt2(BASE_SELL_PRICE * stats.sellMult)} × {fmt2(dynamicDemand * heatDemandMult * droughtDemandMult * autumnRushMult)})</span>
             </span>
           </div>
-          {stock > 0.5 && meltRateNow > 0 && (
-            <div className={`melt-rate ${heatwaveLeft > 0 ? 'is-high' : ''}`}>
-              <span className="melt-rate-text">
-                ❄ {t('status.melt_label')} <b>−{meltRateNow.toFixed(1)}/s</b>
-                <span className="melt-season"> · {t('status.melt_season')} −{fmtInt(meltedSeason)} GL (≈{fmtCash(meltedSeason * effectiveSell)})</span>
-              </span>
-            </div>
-          )}
         </div>
         )}
 
@@ -26283,22 +26255,6 @@ export default function App() {
             else if (family.id === 'pers_brigitte') famFriction = fricVis.brigitte;
             else if (family.id === 'pers_janice') famFriction = fricVis.janice;
 
-            // Lot 5 — estimation de l'impact monétaire de la prochaine amélioration (+X€/s).
-            // Rend tangible le gain réel (surtout les % devenus discrets après amortissement).
-            let estPerSec = 0;
-            if (state === 'buy' && displayUpgrade && phase < 4) {
-              try {
-                const sa = computeStats({ ...owned, [displayUpgrade.id]: true });
-                const pfB = stats.passiveProd * stats.prodSpeedMult;
-                const pfA = sa.passiveProd * sa.prodSpeedMult;
-                const extraProdGLs = pfB > 0
-                  ? effectivePassive * (pfA / pfB - 1)
-                  : Math.max(0, pfA - pfB) * getDynamicProdMult(gameTime);
-                const sellRatio = stats.sellMult > 0 ? sa.sellMult / stats.sellMult : 1;
-                estPerSec = Math.max(0, extraProdGLs * effectiveSell + effectivePassive * effectiveSell * (sellRatio - 1));
-              } catch (e) { estPerSec = 0; }
-            }
-
             return (
               <button
                 key={family.id}
@@ -26327,7 +26283,6 @@ export default function App() {
                 <div className="upg-fam-label">{t('family.' + family.id) !== 'family.' + family.id ? t('family.' + family.id) : family.label}</div>
                 <div className="upg-name">{localizeField(displayUpgrade.name, language)}</div>
                 <div className="upg-desc">{localizeField(displayUpgrade.desc, language)}</div>
-                {estPerSec > 0.01 && <div className="upg-est">≈ +{fmt2(estPerSec)}€/s</div>}
                 <div className="upg-cost">{actionLabel}</div>
               </button>
             );

@@ -319,8 +319,6 @@ export const TRANSLATIONS = {
   'status.stock': { fr: 'glaçons en stock', en: 'ice cubes in stock', es: 'cubitos en stock', de: "Eiswürfel auf Lager" , it: "cubetti in scorta", ru: "кубиков на складе", zh: "库存冰块"},
   'status.cap': { fr: 'CAP', en: 'CAP', es: 'CAP', de: "KAP" , it: "CAP", ru: "МАКС", zh: "上限"},
   'status.market_price': { fr: 'prix du marché', en: 'market price', es: 'precio de mercado', de: "Marktpreis" , it: "prezzo di mercato", ru: "рыночная цена", zh: "市场价"},
-  'status.melt_label': { fr: 'fonte', en: 'melt', es: 'fundido', de: "Schmelze", it: "fusione", ru: "таяние", zh: "融化"},
-  'status.melt_season': { fr: 'perdu cette saison', en: 'lost this season', es: 'perdido esta temporada', de: "diese Saison verloren", it: "perso questa stagione", ru: "потеряно за сезон", zh: "本季流失"},
   'status.per_ice': { fr: '/ glaçon', en: '/ ice cube', es: '/ cubito', de: "/ Eiswürfel" , it: "/ cubetto", ru: "/ кубик", zh: "/ 冰块"},
 
   // Rates block
