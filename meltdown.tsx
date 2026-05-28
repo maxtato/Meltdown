@@ -1762,9 +1762,6 @@ const UPGRADES = [
   { id: 'reservoir_eau',   Icon: Droplets,  count: 1, destructible: false, phase: 1, name: { fr: "Cuve d'eau", en: 'Water tank', es: 'Cuba de agua', zh: "储水罐", ru: "Бак с водой", it: "Cisterna d'acqua", de: "Wassertank" }, desc: { fr: '+1 GL/s', en: '+1 IC/s', es: '+1 CB/s', zh: "+1 冰块/秒", ru: "+1 К/с", it: "+1 CB/s", de: "+1 EW/s" }, cost: 60,
     longDesc: { fr: "Une cuve d'eau dans le garage évite les allers-retours au robinet. Production passive +1 GL/s.", en: "A water tank in the garage avoids trips to the tap. Passive production +1 IC/s.", es: "Una cuba de agua en el garaje evita ir y venir al grifo. Producción pasiva +1 CB/s.", zh: "车库里的储水罐省去了来回水龙头的麻烦。被动生产 +1 冰块/秒。", ru: "Бак с водой в гараже избавляет от походов к крану. Пассивное производство +1 К/с.", it: "Una cisterna d'acqua in garage evita di andare e tornare al rubinetto. Produzione passiva +1 CB/s.", de: "Ein Wassertank in der Garage erspart Wege zum Hahn. Passive Produktion +1 EW/s." },
     apply: s => ({ ...s, passiveProd: s.passiveProd + 1 }) },
-  { id: 'sacs_iso',        Icon: Snowflake, count: 1, destructible: false,  phase: 1, name: { fr: 'Sacs isothermes', en: 'Insulated bags', es: 'Bolsas isotérmicas', zh: "保温袋", ru: "Изотермические сумки", it: "Sacche isotermiche", de: "Isolierte Beutel" }, desc: { fr: '+40 cap', en: '+40 cap', es: '+40 cap', zh: "+40 容量", ru: "+40 ёмкость", it: "+40 cap", de: "+40 Kap" }, cost: 90,
-    longDesc: { fr: "Trois sacs isothermes pour transporter et stocker partout. Pas glamour mais +40 places.", en: "Three insulated bags to carry and store anywhere. Not glamorous but +40 slots.", es: "Tres bolsas isotérmicas para llevar y guardar en cualquier sitio. No es glamuroso pero +40 plazas.", zh: "三个保温袋，便于到处携带和存储。不华丽，但+40个位。", ru: "Три изотермические сумки для переноски и хранения где угодно. Не гламурно, но +40 мест.", it: "Tre sacche isotermiche per trasportare e stoccare ovunque. Non glamour ma +40 posti.", de: "Drei isolierte Beutel zum Tragen und Lagern überall. Nicht glamourös, aber +40 Plätze." },
-    apply: s => ({ ...s, capBonus: s.capBonus + 40 }) },
   { id: 'etiqueteuse',     Icon: FileText,  count: 1, destructible: false, phase: 1, name: { fr: 'Étiqueteuse manuelle', en: 'Manual labeler', es: 'Etiquetadora manual', zh: "手动贴标机", ru: "Ручной этикетировщик", it: "Etichettatrice manuale", de: "Manueller Etikettierer" }, desc: { fr: 'prix ×1.13', en: 'price ×1.13', es: 'precio ×1.13', zh: "价格 ×1.13", ru: "цена ×1.13", it: "prezzo ×1.13", de: "Preis ×1.13" }, cost: 600,
     longDesc: { fr: "Tu colles des étiquettes faites maison sur chaque pack. Ça a l'air pro, et les gens paient 10% de plus sans broncher.", en: "You stick homemade labels on every pack. It looks pro, and people pay 10% more without flinching.", es: "Pegas etiquetas hechas en casa en cada pack. Parece pro, y la gente paga 10% más sin pestañear.", zh: "你给每一包冰贴上自制标签。看起来很专业，人们多付10%也不眨眼。", ru: "Клеишь самодельные этикетки на каждый пак. Выглядит профессионально, люди платят на 10% больше без вопросов.", it: "Attacchi etichette fatte in casa su ogni pack. Sembra pro, e la gente paga il 10% in più senza battere ciglio.", de: "Du klebst selbstgemachte Etiketten auf jeden Pack. Sieht professionell aus, und die Leute zahlen 10% mehr ohne zu zucken." },
     apply: s => ({ ...s, sellMult: s.sellMult * 1.13 }) },
@@ -1856,7 +1853,7 @@ const UPGRADES = [
     longDesc: { fr: "Sabine passe le barreau et devient ta vraie avocate. Elle gère 3 procès par an, divise les dommages par 2.5, et anticipe les emmerdes : si tu pousses tes curseurs achats au rouge, elle t'alerte avant que ça parte en cour.", en: "Sabine passes the bar and becomes your real lawyer. She handles 3 lawsuits a year, divides damages by 2.5, and anticipates trouble: if you push your purchase sliders into the red, she warns you before it ends up in court.", es: "Sabine pasa el examen y se convierte en tu verdadera abogada. Gestiona 3 juicios al año, divide los daños por 2.5 y anticipa problemas: si pones tus cursores de compras en rojo, te avisa antes de que llegue a juicio.", zh: "萨宾通过律师资格考试，成为你真正的律师。每年处理3起诉讼，损失除以2.5，并预判麻烦：如果你把采购滑块推到红区，她会在事情上法庭之前警告你。", ru: "Сабина сдаёт адвокатский экзамен и становится вашим настоящим адвокатом. Ведёт 3 иска в год, делит ущерб на 2.5, предвидит проблемы: если толкаете ползунки закупок в красную зону, она предупреждает до суда.", it: "Sabine passa l'esame da avvocato e diventa la tua vera avvocata. Gestisce 3 cause l'anno, divide i danni per 2.5 e anticipa i guai: se spingi i tuoi slider acquisti nel rosso, ti avverte prima che finisca in tribunale.", de: "Sabine besteht die Anwaltsprüfung und wird deine echte Anwältin. Sie behandelt 3 Klagen pro Jahr, teilt die Schäden durch 2.5 und antizipiert Ärger: Schiebst du deine Einkaufs-Schieber in den roten Bereich, warnt sie dich, bevor es vor Gericht endet." },
     apply: s => ({ ...s, sabineLawsuitsPerYear: 2, sabineDamageMult: 0.4 }) },
   // === PHASE 3 — LA MARQUE ===
-  { id: 'agence_marketing', Icon: Building2, count: 1, destructible: false, phase: 2, phaseUnlock: 3, name: { fr: 'Nouveau siège social', en: 'New headquarters', es: 'Nueva sede social', zh: "新总部", ru: "Новая штаб-квартира", it: "Nuova sede", de: "Neue Firmenzentrale" }, desc: { fr: '→ PHASE 03 · Bureaux · cap +2500', en: '→ PHASE 03 · Offices · cap +2500', es: '→ FASE 03 · Oficinas · cap +2500', zh: "→ 第03阶段 · 办公室 · 容量 +2500", ru: "→ ФАЗА 03 · Офисы · ёмк +2500", it: "→ FASE 03 · Uffici · cap +2500", de: "→ PHASE 03 · Büros · Kap +2500" }, cost: 80000,
+  { id: 'agence_marketing', Icon: Building2, count: 1, destructible: false, phase: 2, phaseUnlock: 3, requireUnlock: 'robertCall2', name: { fr: 'Nouveau siège social', en: 'New headquarters', es: 'Nueva sede social', zh: "新总部", ru: "Новая штаб-квартира", it: "Nuova sede", de: "Neue Firmenzentrale" }, desc: { fr: '→ PHASE 03 · Bureaux · cap +2500', en: '→ PHASE 03 · Offices · cap +2500', es: '→ FASE 03 · Oficinas · cap +2500', zh: "→ 第03阶段 · 办公室 · 容量 +2500", ru: "→ ФАЗА 03 · Офисы · ёмк +2500", it: "→ FASE 03 · Uffici · cap +2500", de: "→ PHASE 03 · Büros · Kap +2500" }, cost: 80000,
     longDesc: { fr: "Tu signes le bail d'un véritable siège social : trois niveaux, production au rez-de-chaussée, bureaux marketing-ventes au premier, administration et juridique au second. Capacité de stockage augmentée de 2500 GL grâce aux espaces auxiliaires. Cette installation débloque la Phase 03 et ouvre l'horizon : tu peux désormais embaucher Janice, Mark, Karen et Sabine dans leurs bureaux respectifs.", en: "You sign the lease on a real headquarters: three floors, production on the ground floor, marketing-sales offices on the first, administration and legal on the second. Storage capacity increased by 2500 IC thanks to auxiliary spaces. This move unlocks Phase 03 and opens the horizon: you can now hire Janice, Mark, Karen and Sabine in their respective offices.", es: "Firmas el contrato de una verdadera sede: tres niveles, producción en planta baja, oficinas marketing-ventas en el primero, administración y jurídico en el segundo. Capacidad de almacenamiento aumentada en 2500 CB gracias a los espacios auxiliares. Esta instalación desbloquea la Fase 03 y abre el horizonte: ahora puedes contratar a Janice, Mark, Karen y Sabine en sus oficinas respectivas.", zh: "你签下真正总部的租约：三层楼，一楼生产，一楼营销与销售办公室，二楼行政与法务。辅助空间让仓储容量增加2500冰块。这次搬迁解锁第03阶段并打开了视野：你现在可以在各自的办公室里聘用贾妮丝、马克、凯伦和萨宾。", ru: "Вы подписываете аренду настоящей штаб-квартиры: три уровня — производство на первом, маркетинг-продажи на втором, администрация и юрист на третьем. Ёмкость хранения увеличена на 2500 К благодаря вспомогательным помещениям. Это переселение открывает Фазу 03 и расширяет горизонт: теперь можно нанять Дженис, Марка, Карен и Сабину в их соответствующие кабинеты.", it: "Firmi il contratto di una vera sede: tre piani, produzione al piano terra, uffici marketing-vendite al primo, amministrazione e legale al secondo. Capacità di stoccaggio aumentata di 2500 CB grazie agli spazi ausiliari. Questo trasloco sblocca la Fase 03 e apre l'orizzonte: ora puoi assumere Janice, Mark, Karen e Sabine nei loro rispettivi uffici.", de: "Du unterschreibst den Mietvertrag für eine echte Firmenzentrale: drei Ebenen, Produktion im Erdgeschoss, Marketing-Vertriebsbüros im ersten Stock, Verwaltung und Recht im zweiten. Lagerkapazität um 2500 EW erhöht dank Nebenräume. Dieser Umzug schaltet Phase 03 frei und öffnet den Horizont: Du kannst jetzt Janice, Mark, Karen und Sabine in ihren jeweiligen Büros einstellen." },
     apply: s => ({ ...s, capBonus: s.capBonus + 2500 }) },
   { id: 'janice_jr',       Icon: Megaphone, count: 1, destructible: false, phase: 3, name: { fr: 'Embaucher Janice · Brand Manager', en: 'Hire Janice · Brand Manager', es: 'Contratar a Janice · Brand Manager', zh: "雇用贾妮丝 · 品牌经理", ru: "Нанять Дженис · Бренд-менеджер", it: "Assumi Janice · Brand Manager", de: "Janice einstellen · Brand Manager" }, desc: { fr: 'Débloque marketing · campagnes ×1.0', en: 'Unlocks marketing · campaigns ×1.0', es: 'Desbloquea marketing · campañas ×1.0', zh: "解锁营销 · 活动 ×1.0", ru: "Открывает маркетинг · кампании ×1.0", it: "Sblocca marketing · campagne ×1.0", de: "Schaltet Marketing frei · Kampagnen ×1.0" }, cost: 14000,
@@ -2065,11 +2062,11 @@ const UPGRADE_FAMILIES = [
 
   // ============ STOCKAGE ============
   { id: 'stock_bacs', label: 'BACS & CONGÉLATEURS', icon: 'Warehouse',
-    tiers: ['mini_freezer', 'voisin_jacques', 'caisson_isotherme', 'cold_turbine', 'sacs_iso', 'cuve_xl', 'pro_freezer', 'conteneur_frigo', 'reserve_refrigeree', 'stockage_cryo_avance'],
+    tiers: ['mini_freezer', 'voisin_jacques', 'caisson_isotherme', 'cold_turbine', 'cuve_xl', 'pro_freezer', 'conteneur_frigo', 'reserve_refrigeree', 'stockage_cryo_avance'],
     minPhase: 1 },
   { id: 'stock_locaux', label: 'LOCAUX', icon: 'Warehouse',
     tiers: ['rent_warehouse', 'agence_marketing', 'chambre_froide_indus', 'entrepot_xl'],
-    minPhase: 1 },
+    minPhase: 1, requireUnlock: 'robertCall' },
 
   // ============ SÉCURITÉ ============
   { id: 'sec_maintenance', label: 'MAINTENANCE', icon: 'Shield',
@@ -26662,8 +26659,15 @@ export default function App() {
                   if (!lockedTier) lockedTier = u;
                   continue;
                 }
-                // Respect requireUnlock au niveau upgrade : ne pas proposer tant que le prérequis n'est pas owned
-                if (u.requireUnlock && !owned[u.requireUnlock]) continue;
+                // Respect requireUnlock au niveau upgrade : ne pas proposer tant que le prérequis n'est pas owned.
+                // Supporte aussi les flags scénario ('robertCall' = call 1 déclenché, 'robertCall2' = call 2 écouté).
+                if (u.requireUnlock) {
+                  const req = u.requireUnlock;
+                  const ok = req === 'robertCall' ? robertCall1Triggered
+                           : req === 'robertCall2' ? robertCall2Heard
+                           : !!owned[req];
+                  if (!ok) continue;
+                }
                 nextUpg = u;
                 break;
               }
@@ -26689,10 +26693,17 @@ export default function App() {
                 if (!lockedTier) lockedTier = u;
                 continue;
               }
-              // Respect requireUnlock au niveau upgrade
-              if (u.requireUnlock && !owned[u.requireUnlock]) {
-                if (!lockedTier) lockedTier = u;
-                continue;
+              // Respect requireUnlock au niveau upgrade. Supporte aussi les
+              // flags scénario ('robertCall'/'robertCall2') comme au niveau famille.
+              if (u.requireUnlock) {
+                const req = u.requireUnlock;
+                const ok = req === 'robertCall' ? robertCall1Triggered
+                         : req === 'robertCall2' ? robertCall2Heard
+                         : !!owned[req];
+                if (!ok) {
+                  if (!lockedTier) lockedTier = u;
+                  continue;
+                }
               }
               nextUpgrade = u;
               break;
