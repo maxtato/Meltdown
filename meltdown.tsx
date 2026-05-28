@@ -23797,8 +23797,13 @@ export default function App() {
         {lineStatusIdx !== null && (() => {
           const line = lines[lineStatusIdx];
           if (!line || !line.contractId) return null;
-          const c = B2B_BY_ID[line.contractId];
-          if (!c) return null;
+          const cBase = B2B_BY_ID[line.contractId];
+          if (!cBase) return null;
+          // Mêmes dynamiques que le modal marketplace pour cohérence d'affichage.
+          const c0 = applyContractDynamics(cBase, owned, notoriety, 1.0, purchaseSliders);
+          const loyCount = clientLoyalty[line.contractId] || 0;
+          const loyMult = loyaltyPriceMult(loyCount);
+          const c = loyCount > 0 ? { ...c0, pricePerCube: c0.pricePerCube * loyMult } : c0;
           const done = line.deliveriesDone || 0;
           const target = line.deliveriesTarget || 0;
           const remaining = Math.max(0, target - done);
@@ -23806,61 +23811,112 @@ export default function App() {
           const timeLeftMin = Math.floor(timeLeft / 60);
           const timeLeftSec = Math.floor(timeLeft % 60);
           const profile = getContractProfile(c);
-          const cycleSec = c.deliveryTime * 2 + 2;
-          const avgRev = (c.qty * c.pricePerCube) * (profile.marginMult || 1);
-          const totalRevExpected = avgRev * target;
+          const baseRevenue = c.qty * c.pricePerCube;
+          const displayedRevenue = getDisplayedRevenue ? getDisplayedRevenue(c) : baseRevenue;
+          const totalRevExpected = displayedRevenue * target;
           const revAccum = line.revenueAccum || 0;
           return (
             <div className="modal-backdrop" onClick={() => setLineStatusIdx(null)}>
-              <div className="modal status-modal" onClick={e => e.stopPropagation()}>
+              <div className="modal contract-detail-modal" onClick={e => e.stopPropagation()}>
                 <div className="modal-header">
                   <Truck size={14} strokeWidth={2} />
                   <span className="modal-title">{localizeField(c.name, language).toUpperCase()}</span>
                   <button className="modal-close" onClick={() => setLineStatusIdx(null)}><X size={14} strokeWidth={2} /></button>
                 </div>
-                <div className="status-body">
-                  <div className="status-section">
-                    <div className="status-row"><span>{t('status.deliveries_done')}</span><b>{done} / {target}</b></div>
-                    <div className="status-row"><span>{t('status.deliveries_remaining')}</span><b>{remaining}</b></div>
-                    <div className="status-bar">
-                      <div className="status-bar-fill" style={{ width: `${target > 0 ? (done / target) * 100 : 0}%` }} />
+                <div className="contract-detail-arch">{c.archetype}{c.archetype === 'RETAIL' ? '' : ` · ${t('contract.tier')} ${c.brigitteTier || 1}`}{c.notorietyMin ? ` · ${t('contract.noto')} ${c.notorietyMin}` : ''} · {profile.maxDeliveries} {t('contract.deliveries_short')} / {profile.globalDeadlineSec}s</div>
+                {c.narrative && <div className="modal-narrative">« {localizeField(c.narrative, language)} »</div>}
+                {/* === État du contrat en cours === */}
+                <div className="status-section">
+                  <div className="status-row"><span>{t('status.deliveries_done')}</span><b>{done} / {target}</b></div>
+                  <div className="status-row"><span>{t('status.deliveries_remaining')}</span><b>{remaining}</b></div>
+                  <div className="status-bar">
+                    <div className="status-bar-fill" style={{ width: `${target > 0 ? (done / target) * 100 : 0}%` }} />
+                  </div>
+                  <div className="status-row" style={{ marginTop: 6 }}><span>{t('status.time_left')}</span><b>{timeLeftMin}:{timeLeftSec.toString().padStart(2, '0')}</b></div>
+                  <div className="status-row">
+                    <span>{t('status.truck_phase')}</span>
+                    <b>{line.broken ? t('status.phase_broken') :
+                        line.truckPhase === 'going' ? t('status.phase_going') :
+                        line.truckPhase === 'returning' ? t('status.phase_returning') :
+                        line.truckPhase === 'paused' ? t('status.phase_paused') :
+                        line.truckPhase === 'waiting_stock' ? t('status.phase_waiting') :
+                        line.truckPhase}</b>
+                  </div>
+                  <div className="status-row"><span>{t('status.revenue_accum')}</span><b>{fmtInt(revAccum)}€</b></div>
+                  <div className="status-row"><span>{t('status.revenue_expected')}</span><b>{fmtInt(totalRevExpected)}€</b></div>
+                </div>
+                {/* === Mêmes infos détaillées que le modal de signature === */}
+                <div className="modal-grid">
+                  <div className="modal-row">
+                    <span className="modal-lbl">{t('contract.qty')}</span>
+                    <span className="modal-val">{c.qty} {t('contract.per_cycle')}</span>
+                  </div>
+                  <div className="modal-row">
+                    <span className="modal-lbl">{t('contract.price')}</span>
+                    <span className="modal-val">{fmt2(c.pricePerCube)}{t('contract.per_ice')}</span>
+                  </div>
+                  <div className="modal-row">
+                    <span className="modal-lbl">{t('contract.vs_spot')}</span>
+                    <span className={`modal-val ${c.pricePerCube >= effectiveSell ? 'cmp-good' : 'cmp-bad'}`}>
+                      {fmt2(effectiveSell)}€/GL · {c.pricePerCube >= effectiveSell ? '▲' : '▼'} {Math.round(Math.abs(c.pricePerCube / Math.max(0.01, effectiveSell) - 1) * 100)}%
+                    </span>
+                  </div>
+                  {loyCount > 0 && (
+                    <div className="modal-row">
+                      <span className="modal-lbl">★ {t('loyalty.detail')}</span>
+                      <span className="modal-val">{t('loyalty.badge')} ×{loyCount} · +{Math.round((loyMult - 1) * 100)}%</span>
                     </div>
+                  )}
+                  <div className="modal-row">
+                    <span className="modal-lbl">{t('contract.trip')}</span>
+                    <span className="modal-val">{c.deliveryTime}{t('contract.trip_one_way')}</span>
                   </div>
-                  <div className="status-section">
-                    <div className="status-row"><span>{t('status.time_left')}</span><b>{timeLeftMin}:{timeLeftSec.toString().padStart(2, '0')}</b></div>
-                    <div className="status-row"><span>{t('status.cycle_time')}</span><b>{cycleSec}s</b></div>
+                  <div className="modal-row">
+                    <span className="modal-lbl">{t('contract.full_cycle')}</span>
+                    <span className="modal-val">{getContractProfitability(c).cycleSec}{t('contract.round_trip')}</span>
                   </div>
-                  <div className="status-section">
-                    <div className="status-row"><span>{t('status.revenue_accum')}</span><b>{fmtInt(revAccum)}€</b></div>
-                    <div className="status-row"><span>{t('status.revenue_expected')}</span><b>{fmtInt(totalRevExpected)}€</b></div>
-                    {profile.completionBonusPct > 0 && (
-                      <div className="status-row"><span>{t('status.completion_bonus')}</span><b>+{Math.round(profile.completionBonusPct * 100)}%</b></div>
-                    )}
-                    <div className="status-row">
-                      <span>{t('status.season_price')}</span>
-                      <b>×{getDynamicContractMult(gameTime).toFixed(2)}</b>
+                  <div className="modal-row">
+                    <span className="modal-lbl">{t('contract.revenue_per_cycle')}</span>
+                    <span className="modal-val">{fmt2(displayedRevenue)}€</span>
+                  </div>
+                  {profile.completionBonusPct > 0 && (
+                    <div className="modal-row">
+                      <span className="modal-lbl">{t('status.completion_bonus')}</span>
+                      <span className="modal-val">+{Math.round(profile.completionBonusPct * 100)}%</span>
                     </div>
+                  )}
+                  <div className="modal-row">
+                    <span className="modal-lbl">{t('status.season_price')}</span>
+                    <span className="modal-val">×{getDynamicContractMult(gameTime).toFixed(2)}</span>
                   </div>
-                  <div className="status-section">
-                    <div className="status-row">
-                      <span>{t('status.truck_phase')}</span>
-                      <b>{line.broken ? t('status.phase_broken') :
-                          line.truckPhase === 'going' ? t('status.phase_going') :
-                          line.truckPhase === 'returning' ? t('status.phase_returning') :
-                          line.truckPhase === 'paused' ? t('status.phase_paused') :
-                          line.truckPhase === 'waiting_stock' ? t('status.phase_waiting') :
-                          line.truckPhase}</b>
+                </div>
+                {(() => {
+                  const prof = getContractProfitability(c);
+                  return (
+                    <div className="contract-profit-block">
+                      <div className="contract-profit-head">
+                        <span className="contract-profit-lbl">{t('contract.profitability')}</span>
+                        <span className="contract-profit-stars">{'★'.repeat(prof.stars)}{'☆'.repeat(5 - prof.stars)}</span>
+                      </div>
+                      <div className="contract-profit-val">{fmtInt(prof.revenuePerSec * MONTH_DURATION)}{t('contract.per_month')}</div>
+                      <div className="contract-profit-persec">
+                        <span className="contract-profit-persec-lbl">{t('contract.rentab_sec')}</span>
+                        <span className="contract-profit-persec-val">{fmt2(prof.revenuePerSec)}{t('contract.per_sec')}</span>
+                      </div>
+                      <div className="contract-profit-note">
+                        {t('contract.note_' + prof.stars)}
+                      </div>
                     </div>
-                  </div>
-                  <div className="modal-actions">
-                    <button className="modal-btn modal-btn-cancel" onClick={() => setLineStatusIdx(null)}>{t('btn.close')}</button>
-                    <button
-                      className="modal-btn modal-btn-danger"
-                      onClick={() => { handleResign(lineStatusIdx); setLineStatusIdx(null); }}
-                    >
-                      {t('prod.resign')}
-                    </button>
-                  </div>
+                  );
+                })()}
+                <div className="modal-actions">
+                  <button className="modal-btn modal-btn-cancel" onClick={() => setLineStatusIdx(null)}>{t('btn.close')}</button>
+                  <button
+                    className="modal-btn modal-btn-danger"
+                    onClick={() => { handleResign(lineStatusIdx); setLineStatusIdx(null); }}
+                  >
+                    {t('prod.resign')}
+                  </button>
                 </div>
               </div>
             </div>
