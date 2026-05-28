@@ -884,7 +884,6 @@ export const TRANSLATIONS = {
   'notif.strike': { fr: 'GRÈVE', en: 'STRIKE', es: 'HUELGA', de: "STREIK" , it: "SCIOPERO", ru: "ЗАБАСТОВКА", zh: "罢工"},
   'notif.unpaid': { fr: 'IMPAYÉS', en: 'UNPAID', es: 'IMPAGOS', de: "UNBEZAHLT" , it: "NON PAGATO", ru: "НЕ ОПЛАЧЕНО", zh: "未付"},
   'notif.fresh_hire_free': { fr: '1ère année offerte', en: 'first year free', es: 'primer año gratis', de: "erstes Jahr gratis" , it: "primo anno gratis", ru: "первый год бесплатно", zh: "首年免费"},
-  'notif.trial_period': { fr: "PÉRIODE D'ESSAI · 6 MOIS · SALAIRE NON PRÉLEVÉ", en: 'TRIAL PERIOD · 6 MONTHS · NO WAGE CHARGED', es: 'PERÍODO DE PRUEBA · 6 MESES · SIN SALARIO', de: "PROBEZEIT · 6 MONATE · KEIN LOHN BERECHNET" , it: "PERIODO DI PROVA · 6 MESI · NESSUNO STIPENDIO ADDEBITATO", ru: "ИСПЫТАТЕЛЬНЫЙ СРОК · 6 МЕСЯЦЕВ · ЗАРПЛАТА НЕ НАЧИСЛЯЕТСЯ", zh: "试用期 · 6个月 · 不计工资"},
   'notif.loan_paid_off': { fr: 'PRÊT SOLDÉ', en: 'LOAN PAID OFF', es: 'PRÉSTAMO LIQUIDADO', de: "KREDIT GETILGT" , it: "PRESTITO ESTINTO", ru: "КРЕДИТ ПОГАШЕН", zh: "贷款已还清"},
   'notif.loan_payment': { fr: 'VERSEMENT BANQUE', en: 'BANK PAYMENT', es: 'PAGO BANCARIO', de: "BANKZAHLUNG" , it: "PAGAMENTO BANCA", ru: "ПЛАТЁЖ БАНКУ", zh: "银行还款"},
   'notif.loan_remaining': { fr: 'reste', en: 'left', es: 'queda', de: "übrig" , it: "rimasto", ru: "осталось", zh: "剩余"},

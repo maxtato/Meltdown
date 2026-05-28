@@ -11667,34 +11667,9 @@ export default function App() {
           const curKarenTier = [...karenTierIds].reverse().find(id => ownedRef.current[id]);
           const karenUpg = curKarenTier ? UPGRADES.find(u => u.id === curKarenTier) : null;
           let karenSalary = karenUpg ? Math.round(karenUpg.salary[karenSalaryLevelRef.current] / MONTHS_PER_SEMESTER) : 0;
-          // 6 PREMIERS MOIS OFFERTS par embauche : si l'employé a été
-          // embauché il y a moins de 6 mois, son salaire est offert
-          // (équivalent de l'ancien "1er semestre offert" = 6 mois).
-          const hd = hireDatesRef.current;
-          const freshNames = [];      // en essai ce mois (salaire annulé)
-          const newTrialNames = [];   // essai à ANNONCER (1 seule fois)
-          const _graceMonths = MONTHS_PER_SEMESTER; // 6 mois (1 semestre)
-          const _hiredMonth = (ts) => Math.floor(ts / semDurLocal);
-          const _ta = trialAnnouncedRef.current;
-          const _trial = (key, name, hireTs, sal) => {
-            if (hireTs && (prevSemester - _hiredMonth(hireTs)) < _graceMonths && sal > 0) {
-              freshNames.push(name);
-              if (!_ta[key]) { _ta[key] = true; newTrialNames.push(name); }
-              return 0; // salaire annulé pendant l'essai
-            }
-            return sal;
-          };
-          fredSalary = _trial('fred', 'Fred', hd.fred, fredSalary);
-          brigitteSalary = _trial('brigitte', 'Brigitte', hd.brigitte, brigitteSalary);
-          janiceSalary = _trial('janice', 'Janice', hd.janice, janiceSalary);
-          lennySalary = _trial('lenny', 'Lenny', hd.lenny, lennySalary);
-          karenSalary = _trial('karen', 'Karen', hd.karen, karenSalary);
-          // Message UNIQUE d'entrée en période d'essai (pas un rappel
-          // mensuel). N'apparaît pas pendant la 1ère année (tout exonéré,
-          // l'info serait redondante avec le message d'exonération).
-          if (newTrialNames.length > 0 && !_firstYearExo) {
-            setEventNotif(`${newTrialNames.join(', ').toUpperCase()} · ${t('notif.trial_period')}`);
-          }
+          // Période d'essai des 6 mois post-embauche supprimée : chaque
+          // employé est payé à plein tarif dès le 1er mois (cohérent avec
+          // la suppression globale de l'exonération).
           const totalSalary = fredSalary + brigitteSalary + janiceSalary + lennySalary + karenSalary;
           // === CHARGES P4 du mois (intégrées au paiement GLOBAL) ===
           // Calculées ici pour être payées EN UN SEUL bloc avec les
