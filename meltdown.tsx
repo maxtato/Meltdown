@@ -104,13 +104,12 @@ const SEASON_DURATION = 120;
 // la durée, simplement lissée en prélèvements mensuels.
 const MONTH_DURATION = SEASON_DURATION / 3; // 40 s
 const MONTHS_PER_SEMESTER = 6; // 1 ancien "semestre" = 6 mois (240s)
-// === RAMPE DE CHARGES POST-EXONÉRATION ===
-// 6 premiers mois (mois 0-5) : 0% (exonération). Puis montée 35%→100% sur 3 mois
-// (mois 6-8) pour casser la "falaise" de charges sans rendre la P2 trop facile.
-function chargeExoMult(monthIndex) {
-  if (monthIndex < 6) return 0;
-  if (monthIndex >= 9) return 1;
-  return 0.35 + 0.65 * ((monthIndex - 6) / 3);
+// === CHARGES SANS EXONÉRATION ===
+// Plus d'exonération de démarrage : charges et salaires sont prélevés à
+// plein tarif dès le premier mois. La fonction est conservée (compat code
+// + saves) mais retourne 1 systématiquement.
+function chargeExoMult(_monthIndex) {
+  return 1;
 }
 const PHASE2_MELT_MULT = 0.7;
 const FREEZE_DURATION = 3;
@@ -1663,7 +1662,7 @@ const UPGRADES = [
     longDesc: { fr: "Un congélateur d'appoint qui rajoute 50 places de stockage. N'isole pas mieux que tes bacs basiques, il faudra le modèle Pro pour réduire la fonte. Utile pour accumuler tranquillement en hiver et vendre fort en été.", en: "A backup freezer that adds 50 storage slots. Doesn't insulate better than your basic trays, you'll need the Pro model to reduce melt. Useful for stocking up quietly in winter and selling big in summer.", es: "Un congelador de apoyo que añade 50 plazas de stock. No aísla mejor que tus bandejas básicas, necesitarás el modelo Pro para reducir el fundido. Útil para acumular tranquilo en invierno y vender fuerte en verano.", zh: "备用冷冻柜，增加50个仓储位。隔热效果不比基础冰格好,,要减少融化需要专业型号。适合冬天悄悄囤货，夏天大卖。", ru: "Резервный морозильник, добавляющий 50 ячеек хранения. Изолирует не лучше базовых форм, для снижения таяния нужна Про-модель. Полезно тихо запасаться зимой и продавать много летом.", it: "Un congelatore di riserva che aggiunge 50 slot di stoccaggio. Non isola meglio delle vaschette di base, ti servirà il modello Pro per ridurre la fusione. Utile per fare scorta in silenzio d'inverno e vendere alla grande d'estate.", de: "Eine Ersatz-Gefriertruhe mit 50 zusätzlichen Lagerplätzen. Isoliert nicht besser als deine Basisformen, für weniger Schmelze brauchst du das Profi-Modell. Nützlich, um im Winter ruhig zu bevorraten und im Sommer groß zu verkaufen." },
     apply: s => ({ ...s, capBonus: s.capBonus + 50 }) },
   { id: 'fred_stage',     Icon: User,      count: 1, destructible: false, phase: 1, name: { fr: 'Stagiaire Fred', en: 'Intern Fred', es: 'Becario Fred', zh: "实习生弗雷德", ru: "Стажёр Фред", it: "Stagista Fred", de: "Praktikant Fred" }, desc: { fr: '+5 GL/s · cycle 4s', en: '+5 IC/s · cycle 4s', es: '+5 CB/s · ciclo 4s', zh: "+5 冰块/秒 · 周期 4秒", ru: "+5 К/с · цикл 4с", it: "+5 CB/s · ciclo 4s", de: "+5 EW/s · Zyklus 4s" }, cost: 50,
-    salary: { bas: 3, std: 6, haut: 9 }, salaryRole: 'fred', gradeName: { fr: "Stagiaire", en: "Intern", es: "Becario", zh: "实习生", ru: "Стажёр", it: "Stagista", de: "Praktikant" },
+    salary: { bas: 0, std: 0, haut: 0 }, salaryRole: 'fred', gradeName: { fr: "Stagiaire", en: "Intern", es: "Becario", zh: "实习生", ru: "Стажёр", it: "Stagista", de: "Praktikant" },
     longDesc: { fr: "Fred débarque en stage non rémunéré, motivé à prouver qu'il peut tenir une machine. Il enchaîne les cycles de 4s et produit 18 glaçons d'un coup. C'est ton premier pas vers une production automatique, indispensable pour ne plus tout faire à la main.", en: "Fred shows up as an unpaid intern, eager to prove he can keep a machine running. He runs 4-second cycles and produces 18 ice cubes at a time. Your first step toward automated production, essential to stop doing everything by hand.", es: "Fred aparece como becario sin sueldo, con ganas de demostrar que puede mantener una máquina en marcha. Encadena ciclos de 4s y produce 18 cubitos a la vez. Tu primer paso hacia la producción automática, esencial para dejar de hacer todo a mano.", zh: "弗雷德以无薪实习生的身份出现，急着证明他能让机器一直转下去。他连续执行4秒周期，每次产18块冰。你迈向自动生产的第一步，摆脱事事亲手的必备一环。", ru: "Фред появляется как неоплачиваемый стажёр, готовый доказать, что он умеет держать машину в работе. Он гонит 4-секундные циклы и производит по 18 кубиков за раз. Твой первый шаг к автоматизированному производству, необходимо, чтобы перестать делать всё вручную.", it: "Fred si presenta come stagista non pagato, motivato a dimostrare che sa tenere in marcia una macchina. Incatena cicli da 4 secondi e produce 18 cubetti alla volta. Il tuo primo passo verso una produzione automatica, essenziale per smettere di fare tutto a mano.", de: "Fred taucht als unbezahlter Praktikant auf, motiviert zu beweisen, dass er eine Maschine am Laufen halten kann. Er fährt 4-Sekunden-Zyklen und produziert 18 Eiswürfel auf einmal. Dein erster Schritt zur automatisierten Produktion, essenziell, um nicht mehr alles von Hand zu machen." },
     apply: s => ({ ...s, passiveProd: s.passiveProd + 5 }) },
   { id: 'flyers',          Icon: Megaphone, count: 1, destructible: false, phase: 1, name: { fr: 'Flyers de quartier', en: 'Neighborhood flyers', es: 'Folletos de barrio', zh: "街区传单", ru: "Листовки по району", it: "Volantini di quartiere", de: "Nachbarschafts-Flyer" }, desc: { fr: 'prix ×1.10', en: 'price ×1.10', es: 'precio ×1.10', zh: "价格 ×1.10", ru: "цена ×1.10", it: "prezzo ×1.10", de: "Preis ×1.10" }, cost: 150,
@@ -2173,9 +2172,9 @@ const TUTORIAL_STEPS = [
     }, targetSel: '[data-family-id="prod_industrielle"]', side: 'top', delay: 600,
     canShow: s => s.money >= 5 && s.ownedCount === 0, autoClose: s => s.ownedCount > 0 },
   { id: 't_salary', text: {
-      fr: "Tu viens d'embaucher. Ouvre le panneau Personnel ici pour régler le salaire (BAS / STD / HAUT). La paie tombe chaque mois, les 6 premiers mois sont exonérés.",
-      en: "You just hired someone. Open the Staff panel here to set the salary (LOW / STD / HIGH). Pay falls every month, the first 6 months are exempt.",
-      es: "Acabas de contratar. Abre el panel Personal aquí para ajustar el salario (BAJO / STD / ALTO). El pago cae cada mes, los primeros 6 meses están exonerados.", zh: "你刚雇了人。在这里打开员工面板设置工资（低/标准/高）。工资每月扣，前6个月免除。", ru: "Вы только что наняли кого-то. Откройте здесь панель Персонала, чтобы задать зарплату (НИЗКАЯ / СТД / ВЫСОКАЯ). Оплата начисляется каждый месяц, первые 6 месяцев освобождены.", it: "Hai appena assunto qualcuno. Apri qui il pannello Personale per impostare lo stipendio (BASSO / STD / ALTO). La paga scade ogni mese, i primi 6 mesi sono esenti.", de: "Du hast jemanden eingestellt. Öffne hier das Personal-Panel, um das Gehalt festzulegen (NIEDRIG / STD / HOCH). Die Zahlung fällt jeden Monat an, die ersten 6 Monate sind befreit."
+      fr: "Tu viens d'embaucher. Ouvre le panneau Personnel ici pour régler le salaire (BAS / STD / HAUT). La paie tombe chaque mois dès maintenant — surveille ton cash.",
+      en: "You just hired someone. Open the Staff panel here to set the salary (LOW / STD / HIGH). Pay falls every month starting now — watch your cash.",
+      es: "Acabas de contratar. Abre el panel Personal aquí para ajustar el salario (BAJO / STD / ALTO). El pago cae cada mes desde ya — vigila tu dinero.", zh: "你刚雇了人。在这里打开员工面板设置工资（低/标准/高）。工资从现在起每月扣 —— 留意现金。", ru: "Вы только что наняли кого-то. Откройте здесь панель Персонала, чтобы задать зарплату (НИЗКАЯ / СТД / ВЫСОКАЯ). Оплата начисляется каждый месяц с этого момента — следите за наличными.", it: "Hai appena assunto qualcuno. Apri qui il pannello Personale per impostare lo stipendio (BASSO / STD / ALTO). La paga scade ogni mese da ora — tieni d'occhio la liquidità.", de: "Du hast jemanden eingestellt. Öffne hier das Personal-Panel, um das Gehalt festzulegen (NIEDRIG / STD / HOCH). Die Zahlung fällt jeden Monat ab sofort an — behalte dein Geld im Auge."
     }, targetSel: '.menu-btn-personnel', side: 'bottom', delay: 800,
     canShow: s => (s.hasFred || s.hasBrigitte) && !s.personnelOpen, autoClose: s => s.personnelOpen },
   { id: 't_moral', text: {
@@ -2232,16 +2231,10 @@ const TUTORIAL_STEPS = [
       es: '¡Tienes un camión! Abre el mercado y firma tu primer contrato para iniciar una entrega.', zh: "你有卡车了！打开市场，签下你的第一个合同开始配送。", ru: "У вас есть грузовик! Откройте рынок и подпишите первый контракт, чтобы начать доставку.", it: "Hai un camion! Apri il mercato e firma il tuo primo contratto per avviare una consegna.", de: "Du hast einen LKW! Öffne den Marktplatz und unterschreibe deinen ersten Vertrag, um eine Lieferung zu starten."
     }, targetSel: '.menu-btn-contracts', side: 'bottom', delay: 600,
     canShow: s => s.linesBonus >= 1 && s.signedCount === 0, autoClose: s => s.signedCount > 0 },
-  { id: 't_yearend', text: {
-      fr: "6 premiers mois terminés : l'exonération est levée. Désormais tes charges mensuelles (salaires + charges courantes) sont prélevées chaque mois. Surveille ton cash en permanence.",
-      en: "First 6 months over: the exemption is lifted. From now on your monthly expenses (salaries + running costs) are charged every month. Watch your cash at all times.",
-      es: "Primeros 6 meses terminados: se levanta la exoneración. Desde ahora tus cargas mensuales (salarios + cargas corrientes) se cobran cada mes. Vigila tu dinero en todo momento.", zh: "前6个月结束：豁免取消。从现在起你的月度支出（工资 + 运营成本）每月扣款。随时盯紧现金。", ru: "Первые 6 месяцев закончились: освобождение снято. Отныне ваши месячные расходы (зарплаты + текущие расходы) списываются каждый месяц. Следите за наличными постоянно.", it: "Primi 6 mesi finiti: l'esenzione decade. D'ora in poi le tue spese mensili (stipendi + costi correnti) sono addebitate ogni mese. Tieni d'occhio la liquidità in ogni momento.", de: "Erste 6 Monate vorbei: Die Befreiung endet. Ab jetzt werden deine monatlichen Kosten (Gehälter + laufende Kosten) jeden Monat berechnet. Behalte dein Geld stets im Auge."
-    }, targetSel: null, side: 'center', delay: 500,
-    canShow: s => s.gameTime >= SEASON_DURATION * 2, autoClose: null },
   { id: 't_utilities', text: {
-      fr: "Chaque mois, toutes tes charges sont prélevées d'un coup : salaires + charges courantes (loyer, énergie, carburant…). Les 6 premiers mois sont exonérés. Garde toujours du cash d'avance, sinon faillite.",
-      en: "Every month, all your charges are taken at once: salaries + running costs (rent, energy, fuel…). The first 6 months are exempt. Always keep cash ahead, or you go bankrupt.",
-      es: "Cada mes, todas tus cargas se cobran de golpe: salarios + cargas corrientes (alquiler, energía, combustible…). Los primeros 6 meses están exonerados. Mantén siempre dinero por delante, o quiebras.", zh: "每个月，你所有的费用一次性扣除：工资 + 运营成本（租金、能源、燃料……）。前6个月免除。始终保持现金有余，否则破产。", ru: "Каждый месяц все ваши расходы берутся за раз: зарплаты + текущие расходы (аренда, энергия, топливо…). Первые 6 месяцев освобождены. Всегда держите наличные с запасом, иначе банкротство.", it: "Ogni mese, tutte le tue spese vengono prelevate in una volta: stipendi + costi correnti (affitto, energia, carburante…). I primi 6 mesi sono esenti. Tieni sempre liquidità in anticipo, o vai in bancarotta.", de: "Jeden Monat werden alle Kosten auf einmal abgebucht: Gehälter + laufende Kosten (Miete, Energie, Sprit…). Die ersten 6 Monate sind befreit. Halte stets Geld vor, sonst gehst du pleite."
+      fr: "Chaque mois, toutes tes charges sont prélevées d'un coup : salaires + charges courantes (loyer, énergie, carburant…). Garde toujours du cash d'avance, sinon faillite.",
+      en: "Every month, all your charges are taken at once: salaries + running costs (rent, energy, fuel…). Always keep cash ahead, or you go bankrupt.",
+      es: "Cada mes, todas tus cargas se cobran de golpe: salarios + cargas corrientes (alquiler, energía, combustible…). Mantén siempre dinero por delante, o quiebras.", zh: "每个月，你所有的费用一次性扣除：工资 + 运营成本（租金、能源、燃料……）。始终保持现金有余，否则破产。", ru: "Каждый месяц все ваши расходы берутся за раз: зарплаты + текущие расходы (аренда, энергия, топливо…). Всегда держите наличные с запасом, иначе банкротство.", it: "Ogni mese, tutte le tue spese vengono prelevate in una volta: stipendi + costi correnti (affitto, energia, carburante…). Tieni sempre liquidità in anticipo, o vai in bancarotta.", de: "Jeden Monat werden alle Kosten auf einmal abgebucht: Gehälter + laufende Kosten (Miete, Energie, Sprit…). Halte stets Geld vor, sonst gehst du pleite."
     }, targetSel: '.charges-amt-bold', side: 'bottom', delay: 800,
     canShow: s => s.gameTime >= SEASON_DURATION * 1.5 && s.upcomingAmount > 0, autoClose: null },
   { id: 't_events', text: {
@@ -9130,7 +9123,7 @@ export default function App() {
   // mois, salaires/charges/prêt = 0 (rien n'est prélevé). Le profit
   // affiché correspond alors aux revenus bruts.
   // (6 mois = 2 saisons, 1 saison = 3 mois)
-  const _exoFirstYearProfit = gameTime < SEASON_DURATION * 2;
+  const _exoFirstYearProfit = false; // exonération supprimée
   const _chargeRampMult = chargeExoMult(Math.floor(gameTime / MONTH_DURATION));
   const salaryPerMonthEff = Math.round(salaryPerMonth * _chargeRampMult);
   const chargesPerMonthEff = Math.round(chargesPerMonth * _chargeRampMult);
@@ -11521,7 +11514,7 @@ export default function App() {
         // (salaires, loyer, carburant, manutention, énergie, prêt). Le
         // joueur a le temps de générer ses premiers revenus. Un seul
         // message d'info est affiché au tout début (géré ailleurs).
-        const _firstYearExo = prevSemester < MONTHS_PER_SEMESTER; // 6 mois
+        const _firstYearExo = false; // exonération supprimée
         // On vide les accumulateurs P4 chaque mois même en exonération
         // pour que la 2ᵉ année reparte sur des bases propres (pas de
         // volume/conso cumulés des 12 premiers mois).
@@ -26094,7 +26087,7 @@ export default function App() {
                 </div>
                 <div className="personnel-footer">
                   <div>{t('provision.next_pay_in')} <b>{timeStr}</b></div>
-                  <div>{t('provision.semester_total')} : <b>{fmtInt(totalSalary)}€</b>{semNum === 0 ? ' · ' + t('provision.first_semester_free') : ''}</div>
+                  <div>{t('provision.semester_total')} : <b>{fmtInt(totalSalary)}€</b></div>
 
                   {/* Prochaines dépenses détaillées */}
                   <div className="provision-section">
@@ -26229,7 +26222,7 @@ export default function App() {
         </div>
         {/* === CHARGES À PROVISIONNER PHASE 4 (en tête) === */}
         {phase >= 4 && (() => {
-          const _exoFirstYear = gameTime < SEASON_DURATION * 2; // 6 premiers mois
+          const _exoFirstYear = false; // exonération supprimée
           if (_exoFirstYear) {
             return (
               <div
@@ -26517,7 +26510,7 @@ export default function App() {
           );
         })()}
         {phase < 4 && (() => {
-          const _exoFirstYear = gameTime < SEASON_DURATION * 2; // 6 premiers mois
+          const _exoFirstYear = false; // exonération supprimée
           if (_exoFirstYear) {
             return (
               <div
