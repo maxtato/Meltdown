@@ -2236,7 +2236,9 @@ const TUTORIAL_STEPS = [
       en: "Every month, all your charges are taken at once: salaries + running costs (rent, energy, fuel…). Always keep cash ahead, or you go bankrupt.",
       es: "Cada mes, todas tus cargas se cobran de golpe: salarios + cargas corrientes (alquiler, energía, combustible…). Mantén siempre dinero por delante, o quiebras.", zh: "每个月，你所有的费用一次性扣除：工资 + 运营成本（租金、能源、燃料……）。始终保持现金有余，否则破产。", ru: "Каждый месяц все ваши расходы берутся за раз: зарплаты + текущие расходы (аренда, энергия, топливо…). Всегда держите наличные с запасом, иначе банкротство.", it: "Ogni mese, tutte le tue spese vengono prelevate in una volta: stipendi + costi correnti (affitto, energia, carburante…). Tieni sempre liquidità in anticipo, o vai in bancarotta.", de: "Jeden Monat werden alle Kosten auf einmal abgebucht: Gehälter + laufende Kosten (Miete, Energie, Sprit…). Halte stets Geld vor, sonst gehst du pleite."
     }, targetSel: '.charges-amt-bold', side: 'bottom', delay: 800,
-    canShow: s => s.gameTime >= SEASON_DURATION * 1.5 && s.upcomingAmount > 0, autoClose: null },
+    // N'apparaît qu'APRÈS que t_level ait été lu et fermé (le joueur a déjà
+    // découvert le niveau, on lui présente ensuite les charges récurrentes).
+    canShow: s => s.dismissedAt && s.dismissedAt.t_level && s.upcomingAmount > 0, autoClose: null },
   { id: 't_events', text: {
       fr: "Ton activité n'est pas à l'abri des imprévus : canicule, sécheresse, coupure de courant, pannes… Ces événements peuvent frapper à tout moment et impacter ta production ou la demande. Anticipe et garde une marge.",
       en: "Your business isn't safe from the unexpected: heatwaves, droughts, power cuts, breakdowns… These events can strike anytime and hit your production or demand. Anticipate and keep a buffer.",
@@ -11528,7 +11530,9 @@ export default function App() {
         // 1ère année : rien n'est dû. On purge la facture utilities en
         // attente pour que la 2ᵉ année reparte propre (pas de cumul).
         if (_firstYearExo) pendingUtilityBillRef.current = 0;
-        if (prevSemester >= 1 && !_firstYearExo) {
+        // Le premier prélèvement de charges/salaires a lieu en fin de mois 2
+        // (mois 1 = buffer silencieux pour amortir le démarrage).
+        if (prevSemester >= 2 && !_firstYearExo) {
           let salaryUnpaidThisSemester = false; // Bloque raiseRequest si grève en cours
           // Pay salaries for the month that just ended
           const semDurLocal = MONTH_DURATION;
@@ -11740,7 +11744,7 @@ export default function App() {
 
         // === Remboursement automatique du prêt bancaire (mensuel)
         // Exonéré aussi pendant la 1ère année (comme toutes les charges).
-        if (activeLoanRef.current && prevSemester >= 1 && !_firstYearExo) {
+        if (activeLoanRef.current && prevSemester >= 2 && !_firstYearExo) {
           const loan = activeLoanRef.current;
           // Versement = remaining / semestersLeft (s'adapte si remboursement partiel manuel)
           const payment = Math.min(loan.remaining, Math.ceil(loan.totalDue / LOAN_DURATION_SEMESTERS));
