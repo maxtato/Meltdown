@@ -6465,6 +6465,35 @@ export default function App() {
   // lignes (lines[i]) qui doivent partir à la prochaine occasion. Vidé au
   // fur et à mesure que les départs se déclenchent.
   const pendingLennyDispatchRef = useRef(new Set());
+  // Cooldown du bouton POSTER (Janice malade) : gameTime du prochain click autorisé.
+  const [posterCooldownUntil, setPosterCooldownUntil] = useState(0);
+  // Cooldowns par employé du bouton ÉCOUTER (Karen malade) : gameTime du prochain click autorisé.
+  const ecouterCooldownsRef = useRef({});
+  const [ecouterTick, setEcouterTick] = useState(0); // force re-render quand on clique
+  // Rendu du bouton ÉCOUTER pour un employé donné. S'affiche quand Karen est
+  // en arrêt et que le moral est faible (< 60). +6 moral par clic, cooldown 90 s.
+  const renderEcouterBtn = (role, currentMoral, moralSetter) => {
+    if (!isSickNow('karen')) return null;
+    if (role === 'karen') return null; // Karen ne peut pas s'écouter elle-même
+    if (currentMoral >= 60) return null;
+    const cd = ecouterCooldownsRef.current[role] || 0;
+    const remain = Math.max(0, Math.ceil(cd - gameTime));
+    const ready = remain === 0;
+    return (
+      <button
+        className={`ecouter-btn ${ready ? 'ready' : 'cooldown'}`}
+        disabled={!ready}
+        onClick={() => {
+          if (!ready) return;
+          moralSetter(m => Math.max(0, Math.min(100, m + 6)));
+          ecouterCooldownsRef.current[role] = gameTime + 90;
+          setEcouterTick(t => t + 1);
+        }}
+      >
+        {ready ? 'ÉCOUTER · +6' : `${remain}s`}
+      </button>
+    );
+  };
   // Cooldown pour ne pas spammer
   const lastFrictionAtRef = useRef(0);
   // Helper : agrège tous les effets actifs en un seul objet
@@ -10327,7 +10356,17 @@ export default function App() {
           // Règle 1×/an : une même friction ne se redéclenche pas dans l'année
           .filter(f => canFireThisYear(f.id))
           // Prérequis cohérents (Lenny pour la route, Janice pour le marketing, etc.)
-          .filter(f => !f.requires || f.requires(ctx));
+          .filter(f => !f.requires || f.requires(ctx))
+          // Modulation dynamique du poids de fric_sick :
+          //  - Karen Senior : −40 % (politique sociale amorce les arrêts)
+          //  - Karen DRH    : −60 % (médiation préventive systématique)
+          //  - Hiver (saison 0) : +50 % (saison grippe)
+          .map(f => {
+            if (f.id !== 'fric_sick') return f;
+            const _karenMult = curOwn['karen_drh'] ? 0.4 : curOwn['karen_senior'] ? 0.6 : 1;
+            const _winterMult = seasonIdxRef.current === 0 ? 1.5 : 1;
+            return { ...f, weight: (f.weight || 1) * _karenMult * _winterMult };
+          });
         if (eligible.length > 0) {
           // Tirage pondéré
           const totalW = eligible.reduce((s, f) => s + (f.weight || 1), 0);
@@ -16391,6 +16430,41 @@ export default function App() {
         .banner-uniform .banner-main { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
         .banner-uniform .banner-title { font-size: 11px; letter-spacing: 2px; }
         .banner-uniform .banner-sub { font-size: 8.5px; letter-spacing: 1.2px; font-weight: 500; opacity: 0.78; text-transform: uppercase; }
+        /* Bannière action (arrêt maladie nécessitant une prise en main joueur) */
+        .banner-action { border: 1px dashed var(--fg); background: var(--bg); color: var(--fg); }
+        .banner-cta {
+          padding: 5px 10px;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 9px;
+          letter-spacing: 1.4px;
+          font-weight: 700;
+          background: var(--fg);
+          color: var(--bg);
+          border: 1px solid var(--fg);
+          cursor: pointer;
+        }
+        .banner-cta.ready { animation: bannerCtaPulse 1.1s ease-in-out infinite; }
+        .banner-cta.cooldown { opacity: 0.45; cursor: default; background: var(--bg); color: var(--fg); }
+        @keyframes bannerCtaPulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.06); }
+        }
+        /* Bouton ÉCOUTER (modal personnel, Karen malade) */
+        .ecouter-btn {
+          padding: 3px 8px;
+          margin-top: 4px;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 8px;
+          letter-spacing: 1.3px;
+          font-weight: 700;
+          background: var(--fg);
+          color: var(--bg);
+          border: 1px solid var(--fg);
+          cursor: pointer;
+          align-self: flex-start;
+        }
+        .ecouter-btn.ready { animation: bannerCtaPulse 1.1s ease-in-out infinite; }
+        .ecouter-btn.cooldown { opacity: 0.4; cursor: default; background: var(--bg); color: var(--fg); }
         .chain-repair-btn { margin-top: 4px; width: 100%; padding: 6px 10px; font-size: 9.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; cursor: pointer; border: 1.5px solid currentColor; border-radius: 4px; background: transparent; color: inherit; font-family: inherit; transition: opacity 0.12s; }
         .chain-repair-btn:hover:not(:disabled) { opacity: 0.7; }
         .chain-repair-btn:disabled { opacity: 0.45; cursor: not-allowed; }
@@ -21897,6 +21971,29 @@ export default function App() {
         <div className="notifications-anchor">
           <div className="notifications-stack">
             {isPaused && <div className="banner paused-banner"><Pause size={11} strokeWidth={2.2} /> <span>{t('pause.banner')}</span></div>}
+            {/* POSTER : remplace Janice malade. +0.5 noto par clic, cooldown 25s. */}
+            {sickUntil['janice'] && sickUntil['janice'] > gameTime && (() => {
+              const cd = Math.max(0, Math.ceil(posterCooldownUntil - gameTime));
+              const ready = cd === 0;
+              return (
+                <div className="banner banner-action banner-uniform">
+                  <div className="banner-main">
+                    <div className="banner-left"><Megaphone size={11} strokeWidth={2.2} /> <span className="banner-title">JANICE EN ARRÊT — POSTE À SA PLACE</span></div>
+                    <button
+                      className={`banner-cta ${ready ? 'ready' : 'cooldown'}`}
+                      disabled={!ready}
+                      onClick={() => {
+                        if (!ready) return;
+                        setNotoriety(n => Math.min(100, n + 0.5));
+                        setPosterCooldownUntil(gameTime + 25);
+                      }}
+                    >
+                      {ready ? 'POSTER · +0.5 NOTO' : `POSTER · ${cd}s`}
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
             {inHeatwave && (
               <div className="banner cat-negative banner-uniform">
                 <div className="banner-main">
@@ -25891,7 +25988,7 @@ export default function App() {
                         </span>
                         {(() => { const p = getMoralPenaltyLabel('fred', fredMoral); return p ? <span className={`personnel-status ${p.mood === 'crit' ? 'is-crit' : ''}`}>{p.label}</span> : null; })()}
                       </div>
-                      <span className="personnel-moral"><span className="moral-bar-label">{t('staff.moral')}</span><span className="moral-bar-value">{Math.round(fredMoral)}</span><div className="moral-bar-vertical"><div className={`moral-bar-fill moral-${fredMoral >= 80 ? 'high' : fredMoral >= 50 ? 'mid' : fredMoral >= 30 ? 'low' : 'crit'}`} style={{ height: `${Math.max(2, Math.min(100, fredMoral))}%` }} /></div></span>
+                      <span className="personnel-moral"><span className="moral-bar-label">{t('staff.moral')}</span><span className="moral-bar-value">{Math.round(fredMoral)}</span><div className="moral-bar-vertical"><div className={`moral-bar-fill moral-${fredMoral >= 80 ? 'high' : fredMoral >= 50 ? 'mid' : fredMoral >= 30 ? 'low' : 'crit'}`} style={{ height: `${Math.max(2, Math.min(100, fredMoral))}%` }} /></div></span>{renderEcouterBtn('fred', fredMoral, setFredMoral)}
                       {fredStress > 5 && (<div className="stress-bar-wrap"><span className="stress-bar-label">{t('staff.stress')}</span><div className="stress-bar"><div className={`stress-bar-fill ${fredStress >= 60 ? 'high' : ''}`} style={{ width: `${fredStress}%` }} /></div></div>)}
                       <div className="salary-slider-wrap">
                         <div className="salary-slider-labels">
@@ -25943,7 +26040,7 @@ export default function App() {
                         </span>
                         {(() => { const p = getMoralPenaltyLabel('brigitte', brigitteMoral); return p ? <span className={`personnel-status ${p.mood === 'crit' ? 'is-crit' : ''}`}>{p.label}</span> : null; })()}
                       </div>
-                      <span className="personnel-moral"><span className="moral-bar-label">{t('staff.moral')}</span><span className="moral-bar-value">{Math.round(brigitteMoral)}</span><div className="moral-bar-vertical"><div className={`moral-bar-fill moral-${brigitteMoral >= 80 ? 'high' : brigitteMoral >= 50 ? 'mid' : brigitteMoral >= 30 ? 'low' : 'crit'}`} style={{ height: `${Math.max(2, Math.min(100, brigitteMoral))}%` }} /></div></span>
+                      <span className="personnel-moral"><span className="moral-bar-label">{t('staff.moral')}</span><span className="moral-bar-value">{Math.round(brigitteMoral)}</span><div className="moral-bar-vertical"><div className={`moral-bar-fill moral-${brigitteMoral >= 80 ? 'high' : brigitteMoral >= 50 ? 'mid' : brigitteMoral >= 30 ? 'low' : 'crit'}`} style={{ height: `${Math.max(2, Math.min(100, brigitteMoral))}%` }} /></div></span>{renderEcouterBtn('brigitte', brigitteMoral, setBrigitteMoral)}
                       {brigitteStress > 5 && (<div className="stress-bar-wrap"><span className="stress-bar-label">{t('staff.stress')}</span><div className="stress-bar"><div className={`stress-bar-fill ${brigitteStress >= 60 ? 'high' : ''}`} style={{ width: `${brigitteStress}%` }} /></div></div>)}
                       <div className="salary-slider-wrap">
                         <div className="salary-slider-labels">
@@ -26001,7 +26098,7 @@ export default function App() {
                           </span>
                           {(() => { const p = getMoralPenaltyLabel('janice', janiceMoral); return p ? <span className={`personnel-status ${p.mood === 'crit' ? 'is-crit' : ''}`}>{p.label}</span> : null; })()}
                         </div>
-                        <span className="personnel-moral"><span className="moral-bar-label">{t('staff.moral')}</span><span className="moral-bar-value">{Math.round(janiceMoral)}</span><div className="moral-bar-vertical"><div className={`moral-bar-fill moral-${janiceMoral >= 80 ? 'high' : janiceMoral >= 50 ? 'mid' : janiceMoral >= 30 ? 'low' : 'crit'}`} style={{ height: `${Math.max(2, Math.min(100, janiceMoral))}%` }} /></div></span>
+                        <span className="personnel-moral"><span className="moral-bar-label">{t('staff.moral')}</span><span className="moral-bar-value">{Math.round(janiceMoral)}</span><div className="moral-bar-vertical"><div className={`moral-bar-fill moral-${janiceMoral >= 80 ? 'high' : janiceMoral >= 50 ? 'mid' : janiceMoral >= 30 ? 'low' : 'crit'}`} style={{ height: `${Math.max(2, Math.min(100, janiceMoral))}%` }} /></div></span>{renderEcouterBtn('janice', janiceMoral, setJaniceMoral)}
                         {janiceStress > 5 && (<div className="stress-bar-wrap"><span className="stress-bar-label">{t('staff.stress')}</span><div className="stress-bar"><div className={`stress-bar-fill ${janiceStress >= 60 ? 'high' : ''}`} style={{ width: `${janiceStress}%` }} /></div></div>)}
                         <div className="salary-slider-wrap">
                           <div className="salary-slider-labels">
@@ -26057,7 +26154,7 @@ export default function App() {
                           </span>
                           {(() => { const p = getMoralPenaltyLabel('lenny', lennyMoral); return p ? <span className={`personnel-status ${p.mood === 'crit' ? 'is-crit' : ''}`}>{p.label}</span> : null; })()}
                         </div>
-                        <span className="personnel-moral"><span className="moral-bar-label">{t('staff.moral')}</span><span className="moral-bar-value">{Math.round(lennyMoral)}</span><div className="moral-bar-vertical"><div className={`moral-bar-fill moral-${lennyMoral >= 80 ? 'high' : lennyMoral >= 50 ? 'mid' : lennyMoral >= 30 ? 'low' : 'crit'}`} style={{ height: `${Math.max(2, Math.min(100, lennyMoral))}%` }} /></div></span>
+                        <span className="personnel-moral"><span className="moral-bar-label">{t('staff.moral')}</span><span className="moral-bar-value">{Math.round(lennyMoral)}</span><div className="moral-bar-vertical"><div className={`moral-bar-fill moral-${lennyMoral >= 80 ? 'high' : lennyMoral >= 50 ? 'mid' : lennyMoral >= 30 ? 'low' : 'crit'}`} style={{ height: `${Math.max(2, Math.min(100, lennyMoral))}%` }} /></div></span>{renderEcouterBtn('lenny', lennyMoral, setLennyMoral)}
                         {lennyStress > 5 && (<div className="stress-bar-wrap"><span className="stress-bar-label">{t('staff.stress')}</span><div className="stress-bar"><div className={`stress-bar-fill ${lennyStress >= 60 ? 'high' : ''}`} style={{ width: `${lennyStress}%` }} /></div></div>)}
                         <div className="salary-slider-wrap">
                           <div className="salary-slider-labels">
@@ -26164,7 +26261,7 @@ export default function App() {
                           </span>
                           {(() => { const p = getMoralPenaltyLabel('mark', markMoral); return p ? <span className={`personnel-status ${p.mood === 'crit' ? 'is-crit' : ''}`}>{p.label}</span> : null; })()}
                         </div>
-                        <span className="personnel-moral"><span className="moral-bar-label">{t('staff.moral')}</span><span className="moral-bar-value">{Math.round(markMoral)}</span><div className="moral-bar-vertical"><div className={`moral-bar-fill moral-${markMoral >= 80 ? 'high' : markMoral >= 50 ? 'mid' : markMoral >= 30 ? 'low' : 'crit'}`} style={{ height: `${Math.max(2, Math.min(100, markMoral))}%` }} /></div></span>
+                        <span className="personnel-moral"><span className="moral-bar-label">{t('staff.moral')}</span><span className="moral-bar-value">{Math.round(markMoral)}</span><div className="moral-bar-vertical"><div className={`moral-bar-fill moral-${markMoral >= 80 ? 'high' : markMoral >= 50 ? 'mid' : markMoral >= 30 ? 'low' : 'crit'}`} style={{ height: `${Math.max(2, Math.min(100, markMoral))}%` }} /></div></span>{renderEcouterBtn('mark', markMoral, setMarkMoral)}
                         <div className="salary-slider-wrap">
                           <div className="salary-slider-labels">
                             <span className={markSalaryLevel === 'bas' ? 'active' : ''} onClick={() => setMarkSalaryLevel('bas')}>{t('staff.salary_low')}</span>
@@ -26192,7 +26289,7 @@ export default function App() {
                           </span>
                           {(() => { const p = getMoralPenaltyLabel('sabine', sabineMoral); return p ? <span className={`personnel-status ${p.mood === 'crit' ? 'is-crit' : ''}`}>{p.label}</span> : null; })()}
                         </div>
-                        <span className="personnel-moral"><span className="moral-bar-label">{t('staff.moral')}</span><span className="moral-bar-value">{Math.round(sabineMoral)}</span><div className="moral-bar-vertical"><div className={`moral-bar-fill moral-${sabineMoral >= 80 ? 'high' : sabineMoral >= 50 ? 'mid' : sabineMoral >= 30 ? 'low' : 'crit'}`} style={{ height: `${Math.max(2, Math.min(100, sabineMoral))}%` }} /></div></span>
+                        <span className="personnel-moral"><span className="moral-bar-label">{t('staff.moral')}</span><span className="moral-bar-value">{Math.round(sabineMoral)}</span><div className="moral-bar-vertical"><div className={`moral-bar-fill moral-${sabineMoral >= 80 ? 'high' : sabineMoral >= 50 ? 'mid' : sabineMoral >= 30 ? 'low' : 'crit'}`} style={{ height: `${Math.max(2, Math.min(100, sabineMoral))}%` }} /></div></span>{renderEcouterBtn('sabine', sabineMoral, setSabineMoral)}
                         <div className="salary-slider-wrap">
                           <div className="salary-slider-labels">
                             <span className={sabineSalaryLevel === 'bas' ? 'active' : ''} onClick={() => setSabineSalaryLevel('bas')}>{t('staff.salary_low')}</span>
