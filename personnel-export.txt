@@ -1,0 +1,196 @@
+
+========================================
+FRED · production
+========================================
+
+--- fred_stage ---
+NAME : Stagiaire Fred
+DESC : +5 GL/s · cycle 4s
+LONG : Fred débarque en stage non rémunéré, motivé à prouver qu'il peut tenir une machine. Il enchaîne les cycles de 4s et produit 18 glaçons d'un coup. C'est ton premier pas vers une production automatique, indispensable pour ne plus tout faire à la main.
+THANKS : Patron, merci pour la confiance. Je précise que je suis stagiaire non rémunéré devant une machine qui fait plus de bruit que mon avenir. 18 glaçons toutes les 4 secondes. Je vais appeler ça une carrière.
+
+--- fred ---
+NAME : Fred Embauché
+DESC : +6 GL/s · cycle 4s
+LONG : Fred passe en poste : fini le stage, place à un vrai contrat. Cycles rapides de 4s : 20 glaçons sortent à chaque cycle. C'est ton premier salarié officiel.
+THANKS : Embauché. Officiel. J'ai signé un vrai contrat et la machine m'a reconnu comme l'un des siens. 20 glaçons toutes les 4 secondes. Je ne sais pas si je progresse ou si je deviens un accessoire.
+
+--- fred_perma ---
+NAME : Fred Senior
+DESC : +7 GL/s · cycle 3s
+LONG : Fred monte en grade : il devient Senior. Il maîtrise la machine, anticipe les pannes, cadence à 3s pour sortir 36 glaçons d'un coup. Tu peux quasi te reposer sur lui pour la prod de base.
+THANKS : Senior, déjà. J'ai survécu aux cycles, aux bacs, aux bruits suspects et à la pause de 11h que personne ne prend. 36 glaçons toutes les 3 secondes. Je commence à penser en cubes.
+
+--- fred_chef ---
+NAME : Fred Chef d'Atelier
+DESC : +7 GL/s · cycle 2.5s
+LONG : Fred est promu chef d'atelier. Il manage la production et délègue. Cycles de 2.5s qui livrent 49 glaçons d'un coup.
+THANKS : Chef d'atelier. Très bien. Je vais manager la production avec calme, méthode et un regard fixe vers les machines. 49 glaçons toutes les 2,5 secondes. Les nouveaux auront droit à une formation complète, silence compris.
+
+--- fred_dir ---
+NAME : Fred Directeur des Opérations
+DESC : +12 GL/s · cycle 2s
+LONG : Fred atteint son palier ultime : Directeur des Opérations. Cycles de 2s qui sortent 66 glaçons d'un coup, le top de la hiérarchie opérationnelle.
+THANKS : Directeur des Opérations. Ça fait sérieux, surtout pour quelqu'un qui passe encore ses journées à écouter du froid travailler. 66 glaçons toutes les 2 secondes. Toute l'équipe suit la cadence, même ceux qui regrettent.
+
+--- fred_legende ---
+NAME : Fred Légende
+DESC : +30 GL/s · cycle 1.5s
+LONG : Fred a tout vu, tout fait. Six ans dans la boîte, du stagiaire au directeur ops, et maintenant Légende vivante du métier. Il gère 7 lignes en simultané, forme la relève, et son nom seul attire les meilleurs candidats. La consécration ultime de sa carrière.
+THANKS : Légende. Je ne sais pas qui a validé ce titre, mais il est gravé sur une plaque et personne ne discute avec une plaque. 7 lignes tournent sous mes yeux. Les glaçons sortent, les candidats arrivent, mon café gèle avant la pause.
+
+========================================
+BRIGITTE · admin
+========================================
+
+--- autosell ---
+NAME : Brigitte Administrative
+DESC : Auto-vente · gère surproduction
+LONG : Brigitte a déjà tenu la compta de plusieurs PME, elle sait piloter une vente sans qu'on lui explique deux fois. En Phase 1, elle veille sur le stock : dès que tu dépasses 90% de la capacité, elle écoule l'excédent au prix marché pour éviter la fonte massive. En Phase 2, elle débloque aussi les premiers contrats B2B (Niveau 1-4 selon son salaire).
+THANKS : Très bien, je prends l'administratif. À partir de maintenant, quand le stock déborde, je vends avant que tout fonde et que tu appelles ça une stratégie. Je surveille les 90 %. Tu peux continuer à appuyer sur des boutons, je ferai le reste.
+
+--- brigitte_compta ---
+NAME : Brigitte Comptable
+DESC : Débloque contrats T4-6
+LONG : Brigitte monte en grade. Elle prend la responsabilité de la compta, négocie les conditions avec les fournisseurs, anticipe les échéances. Elle commence à devenir indispensable. Débloque les contrats Niveau 4 à 6 selon son salaire.
+THANKS : Comptable. Parfait. Contrats Niveau 4 à 6 ouverts, comptes propres, colonnes alignées. Si une erreur existe, je la trouverai. Si elle n'existe pas, je créerai une ligne pour la surveiller.
+
+--- brigitte_ad ---
+NAME : Brigitte Assistante de Direction
+DESC : Débloque contrats premium
+LONG : Brigitte devient ton assistante de direction. Elle gère ton agenda, négocie les contrats les plus stratégiques, et te représente dans les réunions où tu ne peux pas être. C'est elle qui ouvre les portes des plus gros clients internationaux (Niveau 5-7 selon son salaire, Skyline uniquement en HAUT).
+THANKS : Assistante de Direction. On quitte la petite paperasse, on entre dans la salle où les gens parlent fort avec des dossiers fins. Contrats premium ouverts, marge +5 %. Je veux être consultée avant les idées brillantes.
+
+--- brigitte_legende ---
+NAME : Brigitte Légende
+DESC : prix ×1.10 · contrats T7 +30%
+LONG : Brigitte est devenue ton numéro 2 incontournable. Elle négocie les contrats T7 avec une autorité que personne ne questionne, ferme les portes en pleine réunion quand un client dépasse, et signe les chèques sans regarder. Le respect total du milieu. Augmentation salaire ×1.5.
+THANKS : Numéro 2. Enfin un titre qui correspond à mon niveau de contrôle réel. Les contrats T7 passent par moi, les clients trop confiants aussi. Prix ×1,10, contrats T7 +30 %. Je signe, je ferme la porte, je dors très bien.
+
+========================================
+LENNY · transport
+========================================
+
+--- camion_1 ---
+NAME : Lenny, Transporteur
+DESC : Embauche Lenny (utilitaire inclus) · cap 100 GL
+LONG : Lenny débarque avec son utilitaire personnel sous le bras, prêt à rouler. Tu n'achètes pas un camion, tu embauches un transporteur qui apporte le sien. Plafond 50 GL par trajet, contrats locaux uniquement (bars, brasseries). Le début de l'activité B2B.
+THANKS : Je suis là, patron. J'ai l'utilitaire, les clés, et une carte routière qui ment moins que certains clients. 50 glaçons par trajet. Bars, brasseries, local. On commence petit, mais on commence roulant.
+
+--- camion_2 ---
+NAME : Promouvoir Lenny · Chef de Tournée
+DESC : +1 camion 5T · cap 500 GL
+LONG : Tu achètes un camion 5T et tu promeus Lenny Chef de Tournée. Plafond 250 GL par trajet, débloque les épiceries, hypers, palaces. Le bond logistique pour atteindre les contrats moyens-volumes.
+THANKS : Chef de Tournée. Très bien. Un vrai 5 tonnes, ça change du véhicule qui tousse dans les ronds points. 250 glaçons par trajet. Deux tournées propres, zéro poésie, beaucoup de frein moteur.
+
+--- camion_3 ---
+NAME : Promouvoir Lenny · Resp. Logistique
+DESC : +1 semi-remorque · cap 3000 GL
+LONG : Tu achètes un semi-remorque articulé et tu promeus Lenny Responsable Logistique. Plafond 3000 GL par trajet, débloque les festivals, casinos, exports. Flotte complète pour le très gros volume.
+THANKS : Responsable Logistique. Là, on parle sérieux. Semi remorque, 3000 glaçons par trajet, festivals, casinos, export. Je vais organiser ça comme un puzzle, sauf que le puzzle pèse plusieurs tonnes.
+
+--- camion_4 ---
+NAME : Promouvoir Lenny · Directeur Logistique
+DESC : +1 semi · cap livr. 6000
+LONG : Tu achètes un 4e camion et Lenny atteint son palier ultime : Directeur Logistique. Tu peux paralléliser 4 livraisons retail simultanées.
+THANKS : Directeur Logistique. J'ai un titre de bureau et une âme de cabine. Quatre livraisons en parallèle, ça se pilote avec des tableaux, des cafés froids et un mépris sain pour les embouteillages.
+
+--- camion_5 ---
+NAME : Étendre la flotte · 5e camion
+DESC : +1 semi · cap livr. 10000
+LONG : 5e camion. Permet 5 livraisons en parallèle. Lenny gère désormais une flotte conséquente. Pour les gros volumes retail.
+THANKS : Cinquième camion ajouté. On commence à ressembler à une flotte et moins à un voisin qui rend service. 5 livraisons en parallèle. Je vais devoir nommer les camions, sinon je vais m'attacher aux mauvais.
+
+--- camion_6 ---
+NAME : Étendre la flotte · 6e camion
+DESC : +1 semi · cap livr. 16000
+LONG : Flotte complète à 6 camions sous la direction de Lenny. Tu peux saturer ton agenda de livraisons et générer du chiffre massif.
+THANKS : Sixième camion. Là, ce n'est plus une tournée, c'est une migration organisée de glaçons. 6 livraisons en parallèle, 16000 de capacité. Si tout part en même temps, même le planning transpire.
+
+========================================
+JANICE · marketing
+========================================
+
+--- janice_jr ---
+NAME : Embaucher Janice · Brand Manager
+DESC : Débloque marketing · campagnes ×1.0
+LONG : Janice s'installe dans son bureau du premier étage, ravie d'enfin quitter ses anciens projets de shampoing « luxe-utile ». Elle devient ta première Brand Manager : campagnes marketing, notoriété, et contrats avec les chaînes retail. C'est elle qui va donner un visage à ta marque.
+THANKS : Brand Manager. Enfin une marque à vendre qui n'a pas besoin de promettre le bonheur, seulement du froid. Je vais donner un visage aux glaçons. Sobre, rentable, légèrement inquiétant. Le public ne sait pas encore qu'il nous attend.
+
+--- janice_senior ---
+NAME : Janice Senior
+DESC : Campagnes ×1.3 · meilleurs deals retail
+LONG : Janice monte en grade. Ses campagnes marketing sont 30% plus efficaces et elle négocie de meilleurs deals avec les chaînes retail (grandes enseignes régionales et nationales).
+THANKS : Senior. Excellent. Mes campagnes prennent ×1,3 et les deals retail deviennent sérieux. On commence à exister dans des réunions où des gens hochent la tête devant des graphiques parfaitement vides.
+
+--- janice_dir ---
+NAME : Janice Directrice Marketing
+DESC : Campagnes ×1.6 · accès géants nationaux
+LONG : Janice est Directrice Marketing. Campagnes ×1.6, accès aux contrats les plus prestigieux (hypermarchés géants nationaux).
+THANKS : Directrice Marketing. Très bien. Campagnes ×1,6, accès aux géants nationaux. À partir de maintenant, on ne vend plus seulement du froid. On vend une évidence avec un logo.
+
+========================================
+KAREN · RH
+========================================
+
+--- karen_junior ---
+NAME : Embaucher Karen · RH Junior
+DESC : Moral niveau de base +3
+LONG : Tu structures enfin la fonction RH avec une vraie professionnelle, formée à dénouer les conflits dans une boîte de logistique. Sa simple présence apaise l'équipe : niveau de base moral à 73 au lieu de 70 pour tout le monde. Elle gère anniversaires et premiers événements saisonniers. Tu commences à parler d'entreprise structurée.
+THANKS : RH Junior. Je vais commencer par dire bonjour aux gens avant qu'ils ne démissionnent intérieurement. Moral de base à 73. C'est discret, mais dans cette entreprise, discret peut sauver des vies sociales.
+
+--- karen_senior ---
+NAME : Karen Senior · Responsable RH
+DESC : Niveau de base +5 · Team-building débloqué
+LONG : Karen passe Responsable RH. Niveau de base moral +5 pour toute l'équipe. Surtout : elle débloque le bouton TEAM-BUILDING, pour 300€ tu lances une session qui booste la production de tous de +25% pendant 60 secondes et donne +12 de moral à tous. Récupération 240s.
+THANKS : Responsable RH. Niveau de base +5, team building débloqué. Pour 300 €, tout le monde sourit pendant 60 secondes et produit +25 %. C'est presque humain, donc je valide.
+
+--- karen_drh ---
+NAME : Karen DRH
+DESC : Niveau de base +8 · Médiation préventive · Récupération actions ÷2
+LONG : Karen devient DRH. Niveau de base moral +8 pour toute l'équipe. Le récupération du team-building tombe à 120s (au lieu de 240s). C'est le top de la pyramide : ton équipe est devenue une vraie communauté.
+THANKS : DRH. Là, on met une vraie politique sociale sur une entreprise qui fabrique des glaçons sous pression. Moral de base +8, médiation préventive, actions deux fois plus rapides. On va grandir sans transformer Fred en meuble.
+
+========================================
+MARK · achats
+========================================
+
+--- mark_jr ---
+NAME : Mark Acheteur Junior
+DESC : matières −10% · prix ×1.06
+LONG : Mark débarque avec une calculette et une logique implacable. Il négocie tes premiers contrats fournisseurs et débloque deux curseurs : eau et énergie. Tu peux désormais choisir entre la qualité (cher mais image) et l'économie (cash rapide mais risque réputation).
+THANKS : Acheteur Junior. Eau et énergie, je commence par les évidences. J'ai déjà trouvé deux fournisseurs qui se détestent, c'est une base saine de négociation. Prix d'achat −8 %, marge +3 %. Le froid coûte moins cher quand on insiste.
+
+--- mark_resp ---
+NAME : Mark Responsable Achats
+DESC : matières −20% · prix ×1.07
+LONG : Mark prend les rênes du service achats. Il négocie en gros, joue les fournisseurs les uns contre les autres, et débloque deux nouveaux curseurs : emballages et logistique. Les économies grimpent mais les risques aussi.
+THANKS : Responsable Achats. Emballages et logistique entrent dans mon périmètre. −20 % sur les matières, marge +5 %. Les fournisseurs vont appeler ça de la pression. Moi, j'appelle ça mardi.
+
+--- mark_dir ---
+NAME : Mark Directeur des Achats
+DESC : matières −35% · prix ×1.07
+LONG : Mark devient Directeur des Achats. Il débloque le curseur fournisseurs (locaux, UE, offshore) et la négociation grands volumes : −35% sur tout. Il connait par cœur le prix de chaque ingrédient sur les cinq continents.
+THANKS : Directeur des Achats. International, enfin. −35 % sur tout, marge +18 %. Je connais le prix de l'eau sur trois continents et le moment exact où un fournisseur commence à mentir.
+
+========================================
+SABINE · juridique
+========================================
+
+--- sabine_jr ---
+NAME : Sabine Juriste Junior
+DESC : Gère 1 procès/an · dommages −35%
+LONG : Sabine arrive direct de la fac de droit, pas encore tout vu mais déjà mordante. Elle gère 1 procès par an : glissade sur glaçon, étouffement, allergie, tout ce qui peut t'arriver. Dommages divisés par 1.4 quand elle s'en occupe.
+THANKS : Juriste Junior. Je ne suis pas encore avocate, mais je sais déjà lire une plainte sans cligner des yeux. 1 procès par an, dommages réduits de 30 %. Glissade, étouffement, glaçon suspect, je classe tout par niveau d'ennui.
+
+--- sabine_sr ---
+NAME : Sabine Avocate Senior
+DESC : Gère 2 procès/an · dommages −60%
+LONG : Sabine passe le barreau et devient ta vraie avocate. Elle gère 3 procès par an, divise les dommages par 2.5, et anticipe les emmerdes : si tu pousses tes curseurs achats au rouge, elle t'alerte avant que ça parte en cour.
+THANKS : Avocate, désormais. Trois procès par an, dommages divisés par 2,5. Je préfère prévenir avant le tribunal, parce que le tribunal coûte cher et sent la moquette fatiguée.
+
+--- sabine_dg ---
+NAME : Sabine DG Juridique
+DESC : Gère 3 procès/an · dommages −80%
+LONG : Sabine devient Directrice Générale du Juridique. Plus rien ne te touche : tous les procès sont gérés, dommages divisés par 10. Elle débloque les contrats sensibles : hôpitaux, gouvernement, événements de prestige où aucune erreur n'est tolérée mais où l'argent coule à flots.
+THANKS : Directrice Générale du Juridique. Tous les procès gérés, dommages réduits de 90 %. À ce niveau, le risque existe encore, mais il porte une cravate et demande mon autorisation avant d'entrer.
