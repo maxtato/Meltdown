@@ -6737,13 +6737,19 @@ export default function App() {
   useEffect(() => { lennyGrumpyRef.current = lennyGrumpy; }, [lennyGrumpy]);
 
   // === Phase 3 — Open positioning modal when entering (if not chosen yet)
+  // GATE : on n'ouvre la modale de positionnement qu'une fois Janice embauchée.
+  // Tant qu'elle n'est pas là, aucune progression brand : pas de positionnement,
+  // pas de campagnes, pas de notoriété. Le joueur doit l'embaucher pour
+  // débloquer la couche marketing (cohérence scénario : la directrice marketing
+  // arrive d'abord, ensuite seulement elle te demande le positionnement).
+  const _hasJaniceForPositioning = !!(owned && (owned['janice_jr'] || owned['janice_senior'] || owned['janice_dir']));
   useEffect(() => {
-    if (phase === 3 && brandPositioning === null && !positioningModalOpen) {
+    if (phase === 3 && _hasJaniceForPositioning && brandPositioning === null && !positioningModalOpen) {
       // Léger délai pour que ça vienne après l'animation de transition + appel Janice
       const t = setTimeout(() => setPositioningModalOpen(true), 3500);
       return () => clearTimeout(t);
     }
-  }, [phase, brandPositioning, positioningModalOpen]);
+  }, [phase, brandPositioning, positioningModalOpen, _hasJaniceForPositioning]);
 
   // === Phase 3 — Segment drift continu : positionnement de marque
   // + repositionnement induit par l'EAU PREMIUM. L'eau haut de gamme
@@ -15473,7 +15479,7 @@ export default function App() {
           <span className="menu-btn-label">{t('menu.contracts')}</span>
           {marketBadge > 0 && <span className="menu-btn-badge">{marketBadge}</span>}
         </button>
-        {phase >= 3 && (
+        {phase >= 3 && hasJanice && (
           <button
             className={`menu-btn menu-btn-marketing ${canMarketing && cyberLockout <= 0 ? '' : 'locked'} ${cyberLockout > 0 ? 'cyber-disabled' : ''}`}
             onClick={(canMarketing && cyberLockout <= 0) ? () => setCampaignsOpen(true) : undefined}
@@ -15819,7 +15825,7 @@ export default function App() {
         </div>
       </div>
       )}
-      {phase === 3 && (
+      {phase === 3 && hasJanice && (
         <div className="cockpit-row">
           <button className="cockpit-cadran" onClick={() => setBrandModalOpen(true)} aria-label={t('cockpit.marque_aria')}>
             <div className="cadran-header">
@@ -22600,7 +22606,7 @@ export default function App() {
               <div className="stats-body">
                 <div className="stats-row"><span>{t('stats.current_level')}</span><span>{currentLevel} · {fmtInt(currentXp)} XP</span></div>
                 <div className="stats-row"><span>{t('stats.reputation')}</span><span>{Math.round(reputation)} / 100</span></div>
-                {(phase >= 3 || notoriety > 0) && (
+                {((phase >= 3 && hasJanice) || notoriety > 0) && (
                   <div className="stats-row"><span>{t('stats.brand_awareness')}</span><span>{notoriety.toFixed(1)} / 100</span></div>
                 )}
                 {activeCampaign && (() => {
