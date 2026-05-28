@@ -9656,6 +9656,51 @@ export default function App() {
           // Mark as having a save if the game has any meaningful progress
           const hasProgress = (s.gameTime || 0) > 0 || (s.money || 0) > 0 || (s.stock || 0) > 0 || Object.keys(s.owned || {}).length > 0;
           if (hasProgress) setHasSave(true);
+
+          // === ACCUMULATION HORS-LIGNE (cap 2 h · rendement 40 %) ===
+          // Si la save porte `savedAt` (saves nouvelles), on calcule un bonus
+          // de cash basé sur la production passive × temps réel écoulé (cappé
+          // à 2 h) × rendement 40 %, vendu à 70 % du prix nominal (le throttle
+          // naturel cap×fonte limite ce qu'on peut réellement écouler).
+          // Conditions : avoir une prod passive ET un moyen de vendre offline
+          // (Brigitte auto-vente OU contrats actifs avec camions).
+          // Saves anciennes (pas de savedAt) : skip silencieux.
+          try {
+            const savedAtMs = typeof s.savedAt === 'number' ? s.savedAt : null;
+            if (savedAtMs && s.owned && hasProgress) {
+              const realElapsedSec = Math.max(0, (Date.now() - savedAtMs) / 1000);
+              if (realElapsedSec >= 60) {
+                const OFFLINE_CAP_SEC = 7200;     // 2 h
+                const OFFLINE_EFFICIENCY = 0.4;   // rendement 40 %
+                const OFFLINE_SELL_THROTTLE = 0.7; // ce qui passe réellement en vente
+                const cappedSec = Math.min(realElapsedSec, OFFLINE_CAP_SEC);
+                const effSec = cappedSec * OFFLINE_EFFICIENCY;
+                const stats = computeStats(s.owned);
+                const prodRate = (stats.passiveProd || 0) * (stats.prodSpeedMult || 1);
+                const hasAutoSell = !!(s.owned['autosell'] || s.owned['brigitte_compta'] || s.owned['brigitte_ad'] || s.owned['brigitte_legende']);
+                const hasActiveTrucks = Array.isArray(s.lines) && s.lines.some(l => l && l.contractId);
+                const canSellOffline = hasAutoSell || hasActiveTrucks;
+                if (prodRate > 0 && canSellOffline) {
+                  const sellPrice = BASE_SELL_PRICE * (stats.sellMult || 1);
+                  const offlineRevenue = Math.round(prodRate * effSec * sellPrice * OFFLINE_SELL_THROTTLE);
+                  if (offlineRevenue > 0) {
+                    setMoney(m => m + offlineRevenue);
+                    setTotals(t => ({ ...t, moneyEarned: (t.moneyEarned || 0) + offlineRevenue }));
+                    // Popup recap différé pour laisser l'écran se monter.
+                    const minutesAway = Math.max(1, Math.round(cappedSec / 60));
+                    const capped = realElapsedSec > OFFLINE_CAP_SEC;
+                    setTimeout(() => {
+                      setPopupMessage({
+                        type: 'narrator',
+                        text: `Bon retour. Pendant tes ${minutesAway} min d'absence : +${fmtInt(offlineRevenue)} €${capped ? ' (cap 2 h atteint)' : ''}.`,
+                      });
+                    }, 1500);
+                  }
+                }
+              }
+            }
+          } catch (e) {}
+
           // Initialise le timestamp de "dernière sauvegarde" (puisqu'on vient de charger la save)
           setLastSaveAt(Date.now());
         }
@@ -9759,7 +9804,9 @@ export default function App() {
   const saveNow = () => {
     if (gameOverRef.current) return false; // pas de save sur faillite : préserve checkpoint
     try {
-      const payload = JSON.stringify(saveStateRef.current);
+      // Injecte `savedAt` au moment de l'écriture : sert au calcul de l'accumulation
+      // hors-ligne au prochain chargement (rendement 40%, cappé à 2 h).
+      const payload = JSON.stringify({ ...saveStateRef.current, savedAt: Date.now() });
       try { window.storage.set(SAVE_KEY, payload).catch(() => {}); } catch (e) {}
       try { localStorage.setItem(SAVE_KEY, payload); } catch (e) {}
       setLastSaveAt(Date.now());
