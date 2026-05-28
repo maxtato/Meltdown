@@ -5750,6 +5750,9 @@ function getContractProfile(c) {
     else multiplier = 3;                  // T3 catégorie (gros, prestige) → 3× plus long (déjà court à la base)
     maxDeliveries = maxDeliveries * multiplier;
   }
+  // Plafond raisonnable : tout contrat dépassant 40 livraisons est divisé par
+  // 2 (les marathons de 96 trajets T1-T2 deviennent ~48, plus jouable).
+  if (maxDeliveries > 40) maxDeliveries = Math.ceil(maxDeliveries / 2);
   // Cycle aller-retour réel + overhead pause moyen (8s tous les ~4 trajets ≈ +2s/trajet)
   const cycleSec = dt * 2 + 2;
   const baseTotalSec = cycleSec * maxDeliveries;
@@ -11927,11 +11930,12 @@ export default function App() {
               && (line.deliveriesDone || 0) < (line.deliveriesTarget || 999)
               && !contractEndedRef.current) {
             const totalRev = line.revenueAccum || 0;
-            setReputation(r => Math.max(0, r - 9));
-            const secondChance = Math.random() < 0.5;
+            setReputation(r => Math.max(0, r - 12));
+            // Plus de seconde chance : un contrat raté est définitivement
+            // perdu, le joueur se fait engueuler et perd de la réputation.
             setContractEnded({
               lineIdx: idx, contractId: line.contractId, success: false,
-              secondChance, bonus: 0, totalRevenue: totalRev,
+              secondChance: false, bonus: 0, totalRevenue: totalRev,
               deliveriesDone: line.deliveriesDone || 0, deliveriesTarget: line.deliveriesTarget || 0
             });
             // Le camion termine son trajet en cours mais ne reprend pas
@@ -12214,11 +12218,12 @@ export default function App() {
                     setClientLoyalty(prev => ({ ...prev, [_cid]: (prev[_cid] || 0) + 1 }));
                   }
                 } else {
-                  // Échec : pénalité réputation
-                  setReputation(r => Math.max(0, r - 5));
+                  // Échec : pénalité réputation (plus de seconde chance)
+                  setReputation(r => Math.max(0, r - 10));
                 }
                 // Trigger modale (sera affichée par React, ne bloque pas le tick)
-                const secondChance = !success && Math.random() < 0.5;
+                // Plus de seconde chance : un contrat raté est terminé.
+                const secondChance = false;
                 setContractEnded({
                   lineIdx: idx,
                   contractId: line.contractId,

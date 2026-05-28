@@ -256,9 +256,13 @@ export const TRANSLATIONS = {
   },
   'contract_end.fail_title': { fr: 'CONTRAT EXPIRÉ', en: 'CONTRACT EXPIRED', es: 'CONTRATO EXPIRADO', zh: "合同已过期", ru: "КОНТРАКТ ИСТЁК", it: "CONTRATTO SCADUTO", de: "VERTRAG ABGELAUFEN" },
   'contract_end.fail_body': {
-    fr: "Vous n'avez pas tenu nos délais. Pour {client}, c'est rédhibitoire. On préfère cesser toute collaboration. Bonne continuation.",
-    en: "You didn't meet our deadlines. For {client}, that's a dealbreaker. We prefer to end our collaboration. Goodbye.",
-    es: "No has cumplido nuestros plazos. Para {client}, es inaceptable. Preferimos terminar la colaboración. Adiós.", de: "Du hast unsere Fristen nicht eingehalten. Für {client} ist das ein Ausschlusskriterium. Wir beenden die Zusammenarbeit. Auf Wiedersehen."
+    fr: "Vous nous avez plantés en plein milieu. Délais bafoués, livraisons à moitié faites — pour {client}, c'est inadmissible. On se prend les retours des clients à cause de vous, notre image en prend un coup. C'est terminé entre nous. Ne nous rappelez pas.",
+    en: "You bailed on us mid-contract. Deadlines blown, half-delivered orders — for {client}, that's a disgrace. We're catching customer complaints because of you, our image takes a hit. We're done. Don't call us back.",
+    es: "Nos has dejado plantados a mitad de camino. Plazos pisoteados, pedidos a medias — para {client}, es inadmisible. Recibimos quejas por tu culpa, nuestra imagen sufre. Esto se acaba. No nos llames más.",
+    de: "Du hast uns mitten im Vertrag hängen lassen. Fristen vermasselt, Lieferungen halb erledigt — für {client} ist das ein Skandal. Wir kassieren Beschwerden wegen dir, unser Ruf leidet. Schluss damit. Ruf uns nicht wieder an.",
+    it: "Ci hai mollati a metà strada. Scadenze saltate, consegne fatte a metà — per {client} è inammissibile. Ci becchiamo i reclami dei clienti per colpa tua, la nostra immagine ne risente. Finita. Non chiamarci più.",
+    ru: "Вы кинули нас на полпути. Сроки сорваны, поставки на полку — для {client} это недопустимо. Мы получаем жалобы клиентов из-за вас, репутация падает. Всё кончено. Больше не звоните.",
+    zh: "你在中途撂挑子。截止日期破窗，订单半截子——对{client}来说，这是不可接受的。我们因你被客户投诉，形象受损。到此为止。别再联系我们。"
   },
   'contract_end.second_chance_title': { fr: 'DERNIÈRE CHANCE', en: 'LAST CHANCE', es: 'ÚLTIMA OPORTUNIDAD', de: "LETZTE CHANCE" , it: "ULTIMA CHANCE", ru: "ПОСЛЕДНИЙ ШАНС", zh: "最后机会"},
   'contract_end.second_chance_body': {
