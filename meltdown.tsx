@@ -1299,7 +1299,10 @@ const PURCHASE_SLIDER_KEYS = ['eau', 'energie', 'emballages', 'logistique', 'fou
 
 // Renvoie le multiplicateur global appliqué à la facture utilities mensuelle
 // en fonction de l'état des curseurs et du palier Mark.
-function computePurchaseCostMult(purchaseSliders, owned) {
+function computePurchaseCostMult(purchaseSliders, owned, markSick) {
+  // Arrêt maladie Mark : ses négociations ne s'appliquent plus, on revient
+  // au prix de base (mult = 1).
+  if (markSick) return 1;
   if (!purchaseSliders) return 1;
   let mult = 1;
   for (const key of PURCHASE_SLIDER_KEYS) {
@@ -6458,6 +6461,10 @@ export default function App() {
     const exp = sickUntilRef.current[role];
     return typeof exp === 'number' && exp > gameTimeRef.current;
   };
+  // Dispatch manuel d'un camion quand Lenny est en arrêt. Set d'indices de
+  // lignes (lines[i]) qui doivent partir à la prochaine occasion. Vidé au
+  // fur et à mesure que les départs se déclenchent.
+  const pendingLennyDispatchRef = useRef(new Set());
   // Cooldown pour ne pas spammer
   const lastFrictionAtRef = useRef(0);
   // Helper : agrège tous les effets actifs en un seul objet
@@ -9054,11 +9061,11 @@ export default function App() {
   const upUtilityNextRaw = computeUtilitiesBill(_freezerCount, _projectedFullProd, _projectedFullFuel, season.utilMult);
   // Multiplicateur upgrade (ex: comptable_senior -20%) appliqué globalement.
   const _upgUtilMult = stats.utilityCostMult || 1;
-  const upUtilityNext = Math.max(0, upUtilityNextRaw * computePurchaseCostMult(purchaseSliders, owned) * _upgUtilMult);
+  const upUtilityNext = Math.max(0, upUtilityNextRaw * computePurchaseCostMult(purchaseSliders, owned, isSickNow('mark')) * _upgUtilMult);
   // Ventilation détaillée pour la modale RENTABILITÉ en P3 (loyer/énergie/carburant séparés).
   // Le multiplicateur des sliders d'achat s'applique aussi à chaque composante.
   const _utilityBreakdownRaw = computeUtilitiesBreakdown(_freezerCount, _projectedFullProd, _projectedFullFuel, season.utilMult);
-  const _utilMult = computePurchaseCostMult(purchaseSliders, owned) * _upgUtilMult;
+  const _utilMult = computePurchaseCostMult(purchaseSliders, owned, isSickNow('mark')) * _upgUtilMult;
   const upUtilityBreakdown = {
     base: _utilityBreakdownRaw.base * _utilMult,
     energy: _utilityBreakdownRaw.energy * _utilMult,
@@ -9423,7 +9430,9 @@ export default function App() {
   // Multiplicateur Janice : perma (sponsoring sport) + temp (boosts de pubs)
   const janiceTempActive = gameTime < janiceTempSellBoost.until;
   const janiceTempMult = janiceTempActive ? janiceTempSellBoost.factor : 1.0;
-  const janiceMultTotal = janicePermaSellBonus * janiceTempMult;
+  // Arrêt maladie Janice : ses bonus de vente (perma + temp boosts) sont
+  // suspendus pendant la durée de l'arrêt.
+  const janiceMultTotal = isSickNow('janice') ? 1.0 : (janicePermaSellBonus * janiceTempMult);
   // Bonus de demande Janice Directrice : +15% (s'éteint si Janice grumpy)
   const janiceDemandMult = (stats.janiceDemandBonus && !janiceGrumpy) ? (1 + stats.janiceDemandBonus) : 1;
   // Effet durable d'événement de tension (crise médiatique, rappel sanitaire, ou bonus interview TV)
@@ -11200,7 +11209,7 @@ export default function App() {
         const freezerCount = 1 + (ownedRef.current['mini_freezer'] ? 1 : 0) + (ownedRef.current['pro_freezer'] ? 2 : 0);
         const bill0 = computeUtilitiesBill(freezerCount, seasonProd, seasonFuelRef.current, prevSeason.utilMult);
         // Multiplicateur lié aux curseurs Achats Mark (charges allégées si curseurs vers la droite, alourdies si Premium)
-        const bill = Math.max(0, bill0 * computePurchaseCostMult(purchaseSlidersRef.current, ownedRef.current));
+        const bill = Math.max(0, bill0 * computePurchaseCostMult(purchaseSlidersRef.current, ownedRef.current, isSickNow('mark')));
         if (bill > 0 && !isFirstYear) {
           // Cumule (au cas où plusieurs mois passent d'un coup).
           pendingUtilityBillRef.current += bill;
@@ -11238,7 +11247,11 @@ export default function App() {
             if (lsTemplate) {
               const ownedNow = ownedRef.current;
               const quota = getSabineYearlyQuota(ownedNow);
-              const handled = sabineYearCountRef.current < quota;
+              // Arrêt maladie : Sabine ne peut pas prendre le procès, il
+              // tombe en file pour décision manuelle du joueur (= comme si
+              // elle n'était pas embauchée).
+              const sabineHere = !isSickNow('sabine');
+              const handled = sabineHere && (sabineYearCountRef.current < quota);
               const damageMult = handled ? getSabineDamageMult(ownedNow) : 1.0;
               const moneyLoss = Math.round(lsTemplate.baseDamage.money * damageMult);
               const notoLoss = Math.round(lsTemplate.baseDamage.noto * damageMult);
@@ -12012,15 +12025,18 @@ export default function App() {
           }
 
           if (truckPhase === 'waiting_stock') {
-            // ARRÊT MALADIE Lenny : pas de départ automatique. Les camions
-            // attendent au dépôt tant qu'il n'est pas de retour.
-            const _lennyAvailable = !isSickNow('lenny');
+            // ARRÊT MALADIE Lenny : pas de départ automatique. Le joueur peut
+            // cliquer « ENVOYER » sur la ligne pour déclencher UN départ.
+            const _sickLenny = isSickNow('lenny');
+            const _manualSlot = pendingLennyDispatchRef.current.has(idx);
+            const _canDispatch = !_sickLenny || _manualSlot;
             // Try to load
-            if (_lennyAvailable && newStock - stockUsed >= c.qty) {
+            if (_canDispatch && newStock - stockUsed >= c.qty) {
               stockUsed += c.qty;
               truckPhase = 'going';
               truckPos = 0;
               meltAccum = 0;
+              if (_manualSlot) pendingLennyDispatchRef.current.delete(idx);
             }
           } else if (truckPhase === 'going') {
             // Accumulate transit melt
@@ -15478,6 +15494,22 @@ export default function App() {
                       <Wrench size={11} strokeWidth={2.4} />
                     </div>
                   )}
+                  {/* Arrêt maladie Lenny : bouton ENVOYER pour déclencher
+                      manuellement un départ depuis le dépôt. */}
+                  {isWaitingStock && !line.broken && isSickNow('lenny') && (
+                    <button
+                      className="truck-dispatch-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        pendingLennyDispatchRef.current.add(idx);
+                        // Petit re-render forcé via state pour rafraîchir le bouton.
+                        setLines(prev => prev.slice());
+                      }}
+                      title="Envoyer le camion (Lenny est en arrêt)"
+                    >
+                      ENVOYER
+                    </button>
+                  )}
                 </div>
                 {popup && <div className="line-popup">{popup.text}</div>}
               </>
@@ -16931,6 +16963,25 @@ export default function App() {
           0%, 100% { transform: scale(1); }
           50% { transform: scale(1.16); }
         }
+        /* Bouton ENVOYER affiché sur un camion en attente quand Lenny est
+           en arrêt maladie. Petit, contrasté, pulse pour attirer l'œil. */
+        .truck-dispatch-btn {
+          position: absolute;
+          top: -10px;
+          right: -10px;
+          padding: 2px 6px;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 7.5px;
+          letter-spacing: 1px;
+          font-weight: 700;
+          background: var(--fg);
+          color: var(--bg);
+          border: 1px solid var(--fg);
+          cursor: pointer;
+          z-index: 7;
+          animation: truckKeyPulse 1.3s ease-in-out infinite;
+        }
+        .truck-dispatch-btn:hover { background: var(--bg); color: var(--fg); }
         .prod-line-repair.repairing {
           background: var(--fg);
           color: var(--bg);
@@ -25532,7 +25583,7 @@ export default function App() {
           const hasMarkDir = !!owned['mark_dir'];
           const sliderKeys = ['eau', 'energie', 'emballages', 'logistique', 'fournisseurs'];
           // Calculs bilan
-          const globalCostMult = computePurchaseCostMult(purchaseSliders, owned);
+          const globalCostMult = computePurchaseCostMult(purchaseSliders, owned, isSickNow('mark'));
           const globalNotoDelta = computePurchaseNotoDelta(purchaseSliders, owned);
           const globalRisk = computePurchaseRiskMonthly(purchaseSliders, owned);
           const costPct = Math.round((globalCostMult - 1) * 100);
