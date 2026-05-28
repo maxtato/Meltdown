@@ -10538,8 +10538,10 @@ export default function App() {
       // Boost Fred actif : cycle accéléré ×1.5 (donc dt apparent ×1.5)
       const fredBoostActive = gameTimeRef.current < fredBoostUntilRef.current;
       const fredCycleDt = fredBoostActive ? dt * FRED_BOOST_MULT : dt;
-      // Cycle bloqué : panne élec, grève Fred, sabotage chaîne, ou friction prodBlock.
-      const fredCycleBlocked = curOutage || fredGrumpyRef.current || curChainBroken || curFric.prodBlock;
+      // Cycle bloqué : panne élec, grève Fred, sabotage chaîne, friction
+      // prodBlock, OU arrêt maladie Fred (le joueur doit reprendre au clic
+      // CONGELER pendant l'absence).
+      const fredCycleBlocked = curOutage || fredGrumpyRef.current || curChainBroken || curFric.prodBlock || isSickNow('fred');
       let cycleBatch = 0;
       if (curFredCycleDur > 0) {
         if (!fredCycleBlocked) {
