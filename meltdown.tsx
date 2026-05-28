@@ -10316,13 +10316,13 @@ export default function App() {
       }
 
       // === FRICTIONS — trigger aléatoire ===
-      // Hors période de grâce (1ère année), hors crises actives, cooldown 40s minimum
+      // Hors période de grâce (1ère année), hors crises actives, cooldown 60s minimum
       // entre deux frictions.
-      const FRICTION_COOLDOWN = 40;
+      const FRICTION_COOLDOWN = 60;
       const fricCooldownActive = (gameTimeRef.current - lastFrictionAtRef.current) < FRICTION_COOLDOWN;
       const isFirstYearForFriction = gameTimeRef.current < SEASON_DURATION * 4;
-      // Probabilité de tirer une friction : ~1 par minute en moyenne
-      const FRICTION_BASE_CHANCE = 0.018; // par seconde
+      // Probabilité de tirer une friction : ~1 toutes les ~90s en moyenne
+      const FRICTION_BASE_CHANCE = 0.011; // par seconde
       if (!isFirstYearForFriction && !fricCooldownActive && !anyEventActiveNow()
           && Math.random() < FRICTION_BASE_CHANCE * dt) {
         const curPhase = phaseRef.current;
@@ -17084,6 +17084,15 @@ export default function App() {
           border: 1px solid var(--fg);
         }
         .modal-btn-danger:hover { background: var(--fg); color: var(--bg); }
+        .modal-btn-cancel {
+          background: var(--bg);
+          color: var(--fg);
+          border: 1px solid var(--fg);
+          -webkit-appearance: none;
+          appearance: none;
+          -webkit-tap-highlight-color: transparent;
+        }
+        .modal-btn-cancel:hover { background: var(--fg); color: var(--bg); }
         .truck-icon { color: var(--fg); display: block; }
         .truck-icon.waiting { animation: truckWait 0.8s ease-in-out infinite; }
         @keyframes truckWait { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
@@ -21725,7 +21734,7 @@ export default function App() {
         .pause-menu-lang-btn:first-child { margin-left: 0; }
         .pause-menu-lang-btn.active { background: var(--fg); color: var(--bg); border-color: var(--fg); }
         .pause-menu-lang-btn:hover:not(.active) { border-color: var(--fg); color: var(--fg); }
-        .modal-btn { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 2px; padding: 16px 8px; border: none; cursor: pointer; transition: all 0.12s ease; }
+        .modal-btn { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 2px; padding: 16px 8px; border: none; cursor: pointer; transition: all 0.12s ease; color: var(--fg); background: var(--bg); -webkit-appearance: none; appearance: none; -webkit-tap-highlight-color: transparent; }
         .modal-btn-accept { background: var(--fg); color: var(--bg); border-right: 1px solid var(--bg); }
         .modal-btn-accept:hover:not(:disabled) { background: var(--bg); color: var(--fg); }
         .modal-btn-accept:disabled { opacity: 0.3; cursor: not-allowed; }
