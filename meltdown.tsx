@@ -15277,7 +15277,10 @@ export default function App() {
           .home-btn-primary { background: var(--fg); color: var(--bg); }
           .home-btn-primary:hover:not(:disabled) { background: var(--bg); color: var(--fg); }
           .home-btn:disabled { border-color: var(--line); color: var(--m3); cursor: not-allowed; }
-          .home-save-card { border: 1px solid var(--line); padding: 14px 16px; margin-top: -4px; margin-bottom: -4px; font-size: 11px; display: flex; flex-direction: column; gap: 8px; background: var(--bg); }
+          .home-save-card { border: 1px solid var(--line); padding: 14px 16px; margin-top: -4px; margin-bottom: -4px; font-size: 11px; display: flex; flex-direction: column; gap: 8px; background: var(--bg); color: var(--fg); cursor: pointer; text-align: left; width: 100%; font-family: inherit; }
+          .home-save-card:hover { background: var(--bg-owned, var(--bg)); border-color: var(--fg); }
+          .home-save-card:active { transform: translateY(1px); }
+          .home-save-continue { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); text-align: center; font-size: 10px; letter-spacing: 3px; font-weight: 700; color: var(--fg); }
           .home-save-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
           .home-save-phase { font-size: 10px; letter-spacing: 3px; font-weight: 700; color: var(--fg); }
           .home-save-meta { font-size: 10px; letter-spacing: 1px; color: var(--m1); font-weight: 500; font-variant-numeric: tabular-nums; }
@@ -15331,7 +15334,7 @@ export default function App() {
             </button>
 
             {hasSave && (
-              <div className="home-save-card">
+              <button className="home-save-card" onClick={handleContinue} aria-label={t('home.continue')}>
                 <div className="home-save-top">
                   <span className="home-save-phase">{t('home.save_phase')} 0{phase} · {savePhaseLabel}</span>
                   <span className="home-save-meta">{localizeField(seasonHome.name, language)} · {t('home.save_year')} {yearHome}</span>
@@ -15341,12 +15344,9 @@ export default function App() {
                   <span><span className="home-save-stat-lbl">{t('home.save_noto')}</span>{Math.round(notoriety)}</span>
                   <span><span className="home-save-stat-lbl">{t('home.save_rep')}</span>{Math.round(reputation)}</span>
                 </div>
-              </div>
+                <div className="home-save-continue">{t('home.continue')}</div>
+              </button>
             )}
-
-            <button className="home-btn" onClick={handleContinue} disabled={!hasSave}>
-              {hasSave ? t('home.continue') : t('home.no_save')}
-            </button>
 
             <button className="home-btn" onClick={() => setOptionsOpen(true)}>
               {t('home.options')}
