@@ -17431,7 +17431,7 @@ export default function App() {
         }
         .hero-grid { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; }
         .hero-center { text-align: center; min-width: 0; position: relative; padding: 6px 0; }
-        .stock-logo-bg { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 100%; height: 100%; color: var(--fg); opacity: 0.02; pointer-events: none; z-index: 0; }
+        .stock-logo-bg { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 100%; height: 100%; color: var(--fg); opacity: 0.03; pointer-events: none; z-index: 0; }
         .stock-logo-bg path { fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
         .hero-center .stock, .hero-center .stock-lbl, .hero-center .status, .hero-center .cap-line, .hero-center .prod-melt-mini { position: relative; z-index: 1; text-shadow: -1px -1px 0 var(--bg), 0 -1px 0 var(--bg), 1px -1px 0 var(--bg), -1px 0 0 var(--bg), 1px 0 0 var(--bg), -1px 1px 0 var(--bg), 0 1px 0 var(--bg), 1px 1px 0 var(--bg), 0 0 2px var(--bg); }
         .stock { font-family: 'Major Mono Display', monospace; font-size: 84px; letter-spacing: -3px; line-height: 0.9; font-variant-numeric: tabular-nums; display: inline-block; }
