@@ -104,11 +104,13 @@ const SEASON_DURATION = 120;
 // la durée, simplement lissée en prélèvements mensuels.
 const MONTH_DURATION = SEASON_DURATION / 3; // 40 s
 const MONTHS_PER_SEMESTER = 6; // 1 ancien "semestre" = 6 mois (240s)
-// === CHARGES SANS EXONÉRATION ===
-// Plus d'exonération de démarrage : charges et salaires sont prélevés à
-// plein tarif dès le premier mois. La fonction est conservée (compat code
-// + saves) mais retourne 1 systématiquement.
-function chargeExoMult(_monthIndex) {
+// === CHARGES ===
+// Plus d'exonération scénarisée : charges/salaires/prêt sont prélevés à
+// plein tarif. Le 1er mois sert juste de buffer silencieux (rien n'est
+// prélevé ET la rentabilité affichée est à 0 pour rester cohérente avec
+// la réalité). À partir du mois 1 inclus, tout est à plein tarif.
+function chargeExoMult(monthIndex) {
+  if (monthIndex < 1) return 0;
   return 1;
 }
 const PHASE2_MELT_MULT = 0.7;
@@ -9129,7 +9131,9 @@ export default function App() {
   const _chargeRampMult = chargeExoMult(Math.floor(gameTime / MONTH_DURATION));
   const salaryPerMonthEff = Math.round(salaryPerMonth * _chargeRampMult);
   const chargesPerMonthEff = Math.round(chargesPerMonth * _chargeRampMult);
-  const loanPerMonth = _exoFirstYearProfit ? 0 : loanPerMonthRaw;
+  // Le prêt suit la même règle que les charges : 0 pendant le mois 0 (buffer),
+  // pleine échéance dès le mois 1. Garde la cohérence affichage ↔ prélèvement.
+  const loanPerMonth = Math.round(loanPerMonthRaw * _chargeRampMult);
   // Total charges du mois (hors charges indexées CA, ajoutées après le calcul du CA).
   const _expensesBaseMonth = salaryPerMonthEff + chargesPerMonthEff + loanPerMonth;
   // Revenus = moyenne glissante 60s ramenée au mois (MONTH_DURATION s).
@@ -11530,9 +11534,9 @@ export default function App() {
         // 1ère année : rien n'est dû. On purge la facture utilities en
         // attente pour que la 2ᵉ année reparte propre (pas de cumul).
         if (_firstYearExo) pendingUtilityBillRef.current = 0;
-        // Le premier prélèvement de charges/salaires a lieu en fin de mois 2
-        // (mois 1 = buffer silencieux pour amortir le démarrage).
-        if (prevSemester >= 2 && !_firstYearExo) {
+        // Le 1er mois sert de buffer (rien prélevé). À partir du 2e mois,
+        // un prélèvement mensuel complet a lieu à chaque fin de mois.
+        if (prevSemester >= 1 && !_firstYearExo) {
           let salaryUnpaidThisSemester = false; // Bloque raiseRequest si grève en cours
           // Pay salaries for the month that just ended
           const semDurLocal = MONTH_DURATION;
@@ -11744,7 +11748,7 @@ export default function App() {
 
         // === Remboursement automatique du prêt bancaire (mensuel)
         // Exonéré aussi pendant la 1ère année (comme toutes les charges).
-        if (activeLoanRef.current && prevSemester >= 2 && !_firstYearExo) {
+        if (activeLoanRef.current && prevSemester >= 1 && !_firstYearExo) {
           const loan = activeLoanRef.current;
           // Versement = remaining / semestersLeft (s'adapte si remboursement partiel manuel)
           const payment = Math.min(loan.remaining, Math.ceil(loan.totalDue / LOAN_DURATION_SEMESTERS));
