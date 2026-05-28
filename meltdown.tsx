@@ -8406,7 +8406,7 @@ export default function App() {
             "Patron, j'ai croisé un ancien collègue à la station-service. Il bosse pour Glacier Frères. Tu veux que je tâte le terrain ?",
             "Les routes étaient claires aujourd'hui. Pas de bouchons, livraisons à l'heure. Ça fait du bien.",
             "J'ai changé deux pneus à mes frais ce mois-ci. Je note, hein, je note.",
-            "Faut qu'on parle de la clim du camion. Elle est en train de me lâcher, et l'été arrive.",
+            "Faut qu'on parle de la clim du camion. Elle est en train de me lâcher, faut s'en occuper avant que ça pue.",
             "Mon meilleur client m'a sorti une bière à la livraison. C'est ça, fidéliser.",
             "J'ai gagné 25 minutes sur ma tournée en passant par la départementale. À ajouter à la routine.",
             "Le gars du péage me reconnaît maintenant. Il me fait des micro-clins-d'œil. C'est tendre.",
@@ -8416,7 +8416,7 @@ export default function App() {
             "Boss, ran into an old coworker at the gas station. He works for Glacier Frères. Want me to test the waters?",
             "Roads were clear today. No jams, deliveries on time. Feels good.",
             "Changed two tires out of my own pocket this month. Just noting, you know, noting.",
-            "We need to talk about the truck AC. It's giving up on me, and summer's coming.",
+            "We need to talk about the truck AC. It's giving up on me, gotta deal with it before it really tanks.",
             "Best client pulled out a beer for me at delivery. That's customer loyalty.",
             "Shaved 25 minutes off my route by taking the back road. Adding to the routine.",
             "Toll booth guy recognizes me now. Gives me little winks. It's sweet.",
@@ -8426,7 +8426,7 @@ export default function App() {
             "Jefe, me crucé con un antiguo compañero en la gasolinera. Trabaja para Glacier Frères. ¿Quieres que tantee el terreno?",
             "Las carreteras estaban libres hoy. Sin atascos, entregas a tiempo. Sienta bien.",
             "Cambié dos neumáticos a mi costa este mes. Lo apunto, eh, lo apunto.",
-            "Hay que hablar del aire del camión. Me está fallando, y el verano viene.",
+            "Hay que hablar del aire del camión. Me está fallando, hay que ocuparse antes que reviente.",
             "Mi mejor cliente me sacó una cerveza en la entrega. Eso es fidelizar.",
             "Gané 25 minutos en mi ruta tirando por la comarcal. A añadir a la rutina.",
             "El del peaje ya me reconoce. Me hace mini guiños. Es tierno.",
@@ -8436,7 +8436,7 @@ export default function App() {
             "老板，加油站碰到一个老同事。他在Glacier Frères干。你想我探探口风吗？",
             "今天路上没堵车。没拥堵，准时送达。感觉真好。",
             "这个月我自己掏钱换了两条胎。我记着呢，记着。",
-            "我们得谈谈卡车空调。它快不行了，夏天就要来了。",
+            "我们得谈谈卡车空调。它快不行了，得在彻底报废前处理。",
             "我最好的客户送货时给我开了瓶啤酒。这就是客户忠诚度。",
             "走县道我省了25分钟。加入日常路线。",
             "收费站那哥们现在认得我了。给我使小眼色。挺暖的。",
@@ -8446,7 +8446,7 @@ export default function App() {
             "Босс, встретил старого коллегу на заправке. Он работает на Glacier Frères. Хочешь, прозондирую?",
             "Дороги сегодня были свободные. Без пробок, поставки вовремя. Хорошо.",
             "Поменял две покрышки за свой счёт в этом месяце. Я отмечаю, отмечаю.",
-            "Надо поговорить о кондиционере в грузовике. Он сдыхает, а лето идёт.",
+            "Надо поговорить о кондиционере в грузовике. Он сдыхает, надо разобраться, пока совсем не накрылся.",
             "Лучший клиент достал мне пиво при доставке. Вот это лояльность.",
             "Сэкономил 25 минут на маршруте, поехав по областной. Включаю в обычный маршрут.",
             "Парень на пункте оплаты меня уже узнаёт. Подмигивает украдкой. Мило.",
@@ -8456,7 +8456,7 @@ export default function App() {
             "Capo, incontrato un vecchio collega alla pompa di benzina. Lavora per Glacier Frères. Vuoi che tasti il terreno?",
             "Le strade erano libere oggi. Niente code, consegne puntuali. Fa bene.",
             "Cambiato due gomme a spese mie questo mese. Lo annoto, eh, lo annoto.",
-            "Dobbiamo parlare dell'aria del camion. Mi sta mollando, e l'estate arriva.",
+            "Dobbiamo parlare dell'aria del camion. Mi sta mollando, va sistemata prima che crepi del tutto.",
             "Il mio miglior cliente mi ha tirato fuori una birra alla consegna. Questa è fidelizzazione.",
             "Guadagnato 25 minuti sul giro passando per la provinciale. Da aggiungere alla routine.",
             "Quello del casello mi riconosce ormai. Mi fa mini occhiolini. È tenero.",
@@ -8466,7 +8466,7 @@ export default function App() {
             "Chef, einen alten Kollegen an der Tankstelle getroffen. Er arbeitet für Glacier Frères. Soll ich das Wasser testen?",
             "Die Straßen waren heute frei. Keine Staus, Lieferungen pünktlich. Tut gut.",
             "Hab diesen Monat zwei Reifen aus eigener Tasche gewechselt. Ich notiere, hörst du, ich notiere.",
-            "Wir müssen über die LKW-Klima reden. Sie verabschiedet sich, und der Sommer kommt.",
+            "Wir müssen über die LKW-Klima reden. Sie verabschiedet sich, das müssen wir angehen, bevor sie ganz hopsgeht.",
             "Mein bester Kunde hat mir bei der Lieferung ein Bier rausgeholt. Das ist Kundenbindung.",
             "25 Minuten auf der Tour gespart, über die Landstraße. Geht in die Routine.",
             "Der Typ am Mautposten erkennt mich jetzt. Macht kleine Augenzwinkern. Süß.",
@@ -17013,6 +17013,7 @@ export default function App() {
           border: none;
           z-index: 6;
           cursor: pointer;
+          pointer-events: auto;
           animation: truckKeyPulse 1.3s ease-in-out infinite;
         }
         @keyframes truckKeyPulse {
@@ -17034,7 +17035,11 @@ export default function App() {
           color: var(--bg);
           border: 1px solid var(--fg);
           cursor: pointer;
+          pointer-events: auto;
           z-index: 7;
+          -webkit-appearance: none;
+          appearance: none;
+          -webkit-tap-highlight-color: transparent;
           animation: truckKeyPulse 1.3s ease-in-out infinite;
         }
         .truck-dispatch-btn:hover { background: var(--bg); color: var(--fg); }
