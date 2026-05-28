@@ -1051,6 +1051,17 @@ const FRICTION_EVENTS = {
     effects: { meltMult: 3 },
     requires: () => true,
   },
+  // === ARRÊT MALADIE ===
+  // Toutes phases : un employé tiré au sort tombe malade pour ~80 s. Son effet
+  // auto est coupé, le joueur doit reprendre son boulot (cf. flag sickEmployeeRoll
+  // traité inline dans le trigger pour choisir qui).
+  fric_sick: {
+    id: 'fric_sick', iconKey: 'heart', minPhase: 1, maxPhase: 3, weight: 0.5, duration: 80,
+    name: { fr: 'ARRÊT MALADIE', en: 'SICK LEAVE' },
+    sub:  { fr: 'employé absent', en: 'employee out' },
+    effects: { sickEmployeeRoll: true },
+    requires: (ctx) => ctx.hasFred || ctx.hasBrigitte || ctx.hasJanice || ctx.hasLenny,
+  },
   // ====== PHASE 2 ======
   fric_protest: {
     id: 'fric_protest', iconKey: 'users', minPhase: 2, maxPhase: 3, weight: 1.0, duration: 39,
@@ -6434,6 +6445,19 @@ export default function App() {
   const [activeFrictions, setActiveFrictions] = useState({});
   const activeFrictionsRef = useRef({});
   useEffect(() => { activeFrictionsRef.current = activeFrictions; }, [activeFrictions]);
+  // === ARRÊTS MALADIE ===
+  // sickUntil: { fred?: gameTimeExpires, brigitte?: ..., janice?: ..., lenny?: ..., karen?: ..., mark?: ..., sabine?: ... }
+  // Quand un perso est malade, son effet auto est désactivé pendant la durée.
+  // Le joueur doit reprendre son boulot (CONGELER pour Fred, VENDRE pour Brigitte,
+  // ENVOYER pour Lenny). Les autres voient simplement leur bonus disparaître.
+  const [sickUntil, setSickUntil] = useState({});
+  const sickUntilRef = useRef({});
+  useEffect(() => { sickUntilRef.current = sickUntil; }, [sickUntil]);
+  // Helper : un perso est-il en arrêt en ce moment ?
+  const isSickNow = (role) => {
+    const exp = sickUntilRef.current[role];
+    return typeof exp === 'number' && exp > gameTimeRef.current;
+  };
   // Cooldown pour ne pas spammer
   const lastFrictionAtRef = useRef(0);
   // Helper : agrège tous les effets actifs en un seul objet
@@ -7303,7 +7327,8 @@ export default function App() {
         // Machine à café : +0.2 passif pour tous
         if (ownedSnap['machine_cafe']) d += 0.2;
         // Karen baseline boost : +3 Junior, +5 Senior, +8 DRH
-        const karenBaselineBoost = ownedSnap['karen_drh'] ? 8 : ownedSnap['karen_senior'] ? 5 : ownedSnap['karen_junior'] ? 3 : 0;
+        // ARRÊT MALADIE Karen : son bonus de moral de base disparaît pendant l'absence.
+        const karenBaselineBoost = isSickNow('karen') ? 0 : (ownedSnap['karen_drh'] ? 8 : ownedSnap['karen_senior'] ? 5 : ownedSnap['karen_junior'] ? 3 : 0);
         // === ÉROSION DE BASE + DÉPERSONNALISATION ===
         // Le moral s'érode naturellement : il FAUT l'entretenir. Et plus
         // la boîte grandit (embauches, camions, améliorations, phases),
@@ -8977,7 +9002,10 @@ export default function App() {
 
   // Panne de chaîne de production : production figée pendant la réparation
   const chainBreakMult = (chainBroken && chainBroken.repairUntil > gameTime) ? 0 : 1;
-  const effectivePassive = stats.passiveProd * stats.prodSpeedMult * getDynamicProdMult(gameTime) * fredMult * teamBuildMult * moralMult * chainBreakMult;
+  // ARRÊT MALADIE Fred : prod passive coupée. Le joueur reprend la production
+  // au clic (bouton CONGELER) pendant la durée de l'arrêt.
+  const _fredSickMult = isSickNow('fred') ? 0 : 1;
+  const effectivePassive = stats.passiveProd * stats.prodSpeedMult * getDynamicProdMult(gameTime) * fredMult * teamBuildMult * moralMult * chainBreakMult * _fredSickMult;
 
   // Effets de l'event bandeau P4 actif (1.0 = neutre si aucun event).
   const p4Fx = (() => {
@@ -9593,6 +9621,7 @@ export default function App() {
           }
           if (typeof s.phase4ReadyCallDone === 'boolean') setPhase4ReadyCallDone(s.phase4ReadyCallDone);
           if (typeof s.exoIntroShown === 'boolean') setExoIntroShown(s.exoIntroShown);
+          if (s.sickUntil && typeof s.sickUntil === 'object') setSickUntil(s.sickUntil);
           if (typeof s.securityIntroShown === 'boolean') setSecurityIntroShown(s.securityIntroShown);
           if (typeof s.phase4TriggerStage === 'number') setPhase4TriggerStage(s.phase4TriggerStage);
           if (typeof s.phase4LastStageAt === 'number') setPhase4LastStageAt(s.phase4LastStageAt);
@@ -9832,6 +9861,7 @@ export default function App() {
       fredMoral, brigitteMoral, janiceMoral, lennyMoral, karenMoral, markMoral, sabineMoral,
       fredStress, brigitteStress, janiceStress, lennyStress, karenStress,
       notoriety, glacierBeats, phase3TriggerStage, phase3Semesters, phase4ReadyCallDone, exoIntroShown, securityIntroShown, phase4TriggerStage, phase4LastStageAt, phase4Revenue,
+      sickUntil,
       popIceStock, frozioStock, medipackStock, p4MaxCap,
       p4TargetPop, p4TargetFro, p4TargetMed,
       popIcePrice, frozioPrice, medipackPrice,
@@ -10300,6 +10330,29 @@ export default function App() {
           }
           // Effets one-shot appliqués immédiatement
           const e = picked.effects || {};
+          // === ARRÊT MALADIE : tirage de l'employé concerné ===
+          // On choisit un perso embauché au hasard parmi ceux présents et on
+          // pose un sickUntil pour la durée de la friction. Le rôle est
+          // exposé via _sickPickedRole pour enrichir le bandeau friction
+          // ci-dessous (« ARRÊT MALADIE · Fred »).
+          let _sickPickedRole = null;
+          if (e.sickEmployeeRoll) {
+            const pool = [];
+            if (ctx.hasFred) pool.push('fred');
+            if (ctx.hasBrigitte) pool.push('brigitte');
+            if (ctx.hasJanice) pool.push('janice');
+            if (ctx.hasLenny) pool.push('lenny');
+            const ownedSnap = ownedRef.current;
+            if (ownedSnap['karen_junior'] || ownedSnap['karen_senior'] || ownedSnap['karen_drh']) pool.push('karen');
+            if (ownedSnap['mark_jr'] || ownedSnap['mark_resp'] || ownedSnap['mark_dir']) pool.push('mark');
+            if (ownedSnap['sabine_jr'] || ownedSnap['sabine_sr'] || ownedSnap['sabine_dg']) pool.push('sabine');
+            if (pool.length > 0) {
+              _sickPickedRole = pool[Math.floor(Math.random() * pool.length)];
+              const expiresAt = gameTimeRef.current + picked.duration;
+              setSickUntil(prev => ({ ...prev, [_sickPickedRole]: expiresAt }));
+              sickUntilRef.current = { ...sickUntilRef.current, [_sickPickedRole]: expiresAt };
+            }
+          }
           if (typeof e.oneShotStockPct === 'number') {
             const cur = stockRef.current;
             const newSt = Math.max(0, cur * (1 + e.oneShotStockPct));
@@ -10336,12 +10389,16 @@ export default function App() {
           // Friction durable → bandeau persistant (nom + timer + effet).
           const durableFriction = picked.duration > 1;
           if (durableFriction) {
+            // Si c'est un arrêt maladie, on garde le rôle de l'employé pour
+            // que le bandeau puisse afficher le prénom (Fred / Brigitte / ...).
+            const _subRole = (picked.id === 'fric_sick') ? _sickPickedRole : null;
             setActiveFrictions(prev => ({
               ...prev,
               [picked.id]: {
                 id: picked.id,
                 expiresAt: gameTimeRef.current + picked.duration,
                 effects: picked.effects,
+                subRole: _subRole,
               },
             }));
           }
@@ -11955,8 +12012,11 @@ export default function App() {
           }
 
           if (truckPhase === 'waiting_stock') {
+            // ARRÊT MALADIE Lenny : pas de départ automatique. Les camions
+            // attendent au dépôt tant qu'il n'est pas de retour.
+            const _lennyAvailable = !isSickNow('lenny');
             // Try to load
-            if (newStock - stockUsed >= c.qty) {
+            if (_lennyAvailable && newStock - stockUsed >= c.qty) {
               stockUsed += c.qty;
               truckPhase = 'going';
               truckPos = 0;
@@ -12729,6 +12789,8 @@ export default function App() {
       // PHASE 4 : l'activité glaçon a été liquidée. Aucune vente glaçon, aucun
       // revenu glaçon. La vente des produits P4 est gérée dans le tick principal.
       if (phaseRef.current >= 4) return;
+      // ARRÊT MALADIE Brigitte : auto-vente coupée, le joueur doit vendre manuellement.
+      if (isSickNow('brigitte')) return;
       // L'auto-vente continue pendant la cyberattaque (seuls contrats/téléphone coupés),
       // MAIS elle est paralysée pendant le sabotage du groupe froid (30s).
       const stockSabActive = stockBurnFlashRef.current > 0
@@ -21921,7 +21983,12 @@ export default function App() {
               const def = FRICTION_EVENTS[f.id];
               if (!def) return null;
               const remain = Math.max(0, Math.ceil(f.expiresAt - gameTime));
-              const label = (def.name && def.name[language]) || def.name.fr;
+              let label = (def.name && def.name[language]) || def.name.fr;
+              // Arrêt maladie : on enrichit le label avec le prénom de l'employé.
+              if (f.id === 'fric_sick' && f.subRole) {
+                const cap = f.subRole.charAt(0).toUpperCase() + f.subRole.slice(1);
+                label = label + ' · ' + cap;
+              }
               const sub = (def.sub && def.sub[language]) || def.sub.fr;
               return (
                 <div key={f.id} className="banner cat-negative banner-uniform">
