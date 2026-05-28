@@ -1039,7 +1039,7 @@ const FRICTION_EVENTS = {
   },
   fric_flood: {
     id: 'fric_flood', iconKey: 'droplets', minPhase: 1, maxPhase: 1, weight: 0.6, duration: 46,
-    name: { fr: 'INONDATION CAVE', en: 'BASEMENT FLOOD' },
+    name: { fr: 'DÉGÂT DES EAUX', en: 'WATER DAMAGE' },
     sub:  { fr: 'capacité ×0.55', en: 'capacity ×0.55' },
     effects: { capMult: 0.55 },
     requires: () => true,
