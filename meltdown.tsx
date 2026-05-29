@@ -164,10 +164,12 @@ const RESIGN_REP_LOSS = 6;
 // === SABOTAGE PHASE 3 ===
 // Phase 3 = la guerre commence. Agressif pour pousser à investir en sécu.
 // Fréquences augmentées : le joueur DOIT voir les sabotages pour comprendre l'enjeu.
-const SABOTAGE_PNEUS_CHANCE = 0.0040;   // ~tous les 250s = 4 min (Lot 3 : espacé, moins répétitif)
-const SABOTAGE_AVIS_CHANCE = 0.0015;    // ~tous les 670s = 11 min (rare : impact réput fort)
-const SABOTAGE_CYBER_CHANCE = 0.0040;   // ~tous les 250s = 4 min
-const SABOTAGE_FRIGO_CHANCE = 0.0022;   // ~tous les 450s = 7-8 min (reste le plus rare car destructif)
+// Sabotages : rivalité Glacier Frères plus présente en P3, mais sans saturer.
+// Hausse ~30 % par rapport aux valeurs précédentes (le pouls de la rivalité monte).
+const SABOTAGE_PNEUS_CHANCE = 0.0052;   // ~tous les 190s = 3 min
+const SABOTAGE_AVIS_CHANCE = 0.0020;    // ~tous les 500s = 8 min
+const SABOTAGE_CYBER_CHANCE = 0.0052;   // ~tous les 190s = 3 min
+const SABOTAGE_FRIGO_CHANCE = 0.0028;   // ~tous les 360s = 6 min
 const POACHING_CHANCE = 0.00010;
 const SABOTAGE_COOLDOWN_SEC = 45; // pas 2 sabotages dans 45s
 const SABOTAGE_GRACE_SEASONS = 1; // délai de grâce 1 saison = 2 min de Phase 3
@@ -555,6 +557,16 @@ function countSignedRetailers(lines) {
 // Voix : héritier bourgeois, arrogant et nerveux, qui s'effondre à mesure qu'on le dépasse.
 // FR+EN ; les autres langues retombent sur le FR via localizeField (à compléter ensuite).
 const GLACIER_BEATS = [
+  // === P1 — Allusions subtiles, rumeurs ===
+  // Premier signal : tu existes sur le radar du grand glacier régional.
+  { id: 'g_p1_rumor1', when: s => s.gameTime > 90 && s.moneyEarned > 200,
+    text: { fr: "On m'a parlé d'un type qui fait des glaçons dans le coin. Petit. Pas grand-chose. J'avais juste envie de mettre un visage sur le bruit. Bonne soirée.", en: "Someone told me there's a guy making ice cubes in the area. Small. Nothing much. I just wanted to put a face to the noise. Have a good evening.", es: "Me hablaron de un tipo que hace cubitos por la zona. Pequeño. Poca cosa. Solo quería ponerle cara al rumor. Buenas noches.", zh: "有人跟我提起这边有个家伙做冰块。规模小，没什么大不了。我只是想给这些动静配上一张脸。晚安。", ru: "Мне сказали, в районе появился парень с кубиками льда. Мелкий. Ничего особенного. Просто хотел увидеть лицо за шумом. Доброго вечера.", it: "Mi hanno parlato di un tizio che fa cubetti in zona. Piccolo. Niente di che. Volevo solo dare un volto al rumore. Buona serata.", de: "Man hat mir von einem Typen erzählt, der hier Eiswürfel macht. Klein. Nichts Großes. Ich wollte dem Geräusch nur ein Gesicht geben. Schönen Abend." } },
+  // Deuxième signal : remarque sèche au passage, mi-amicale mi-menaçante.
+  { id: 'g_p1_rumor2', when: s => s.gameTime > 360 && s.upgradeCount >= 5,
+    text: { fr: "Un fournisseur m'a dit que tu lui posais des questions sur les prix de gros. Curieux. Reste à ta taille, ça vaudra mieux pour toi.", en: "A supplier told me you've been asking about wholesale prices. Curious. Stay your size, it'll be better for you.", es: "Un proveedor me dijo que andas preguntando precios al por mayor. Curioso. Quédate en tu sitio, será mejor para ti.", zh: "一个供应商跟我说你在打听批发价。挺好奇的。守住你的规模，对你比较好。", ru: "Поставщик сказал, ты спрашивал об оптовых ценах. Любопытно. Оставайся в своём размере, так лучше для тебя.", it: "Un fornitore mi ha detto che chiedi i prezzi all'ingrosso. Curioso. Resta della tua taglia, sarà meglio per te.", de: "Ein Lieferant sagte mir, du fragst nach Großhandelspreisen. Interessant. Bleib bei deiner Größe, das ist besser für dich." } },
+  // Entrée en P2 : il monte d'un cran, demi-menace.
+  { id: 'g_p2_jab', when: s => s.phase >= 2 && s.contractsCompleted >= 2,
+    text: { fr: "Vous quittez le quartier. Camion, contrats. C'est mignon. Mais vous entrez dans MA cour, maintenant. Je n'aime pas qu'on entre dans ma cour sans frapper.", en: "You're leaving the neighborhood. Truck, contracts. Cute. But you're stepping into MY yard now. I don't like uninvited guests in my yard.", es: "Dejas el barrio. Camión, contratos. Mono. Pero ahora entras en MI patio. No me gusta que entren en mi patio sin llamar.", zh: "你走出街区了。卡车、合同。挺可爱的。但你现在踏进了我的院子。我不喜欢有人不敲门就进我的院子。", ru: "Ты выходишь из квартала. Грузовик, контракты. Мило. Но теперь ты заходишь в МОЙ двор. Я не люблю, когда заходят в мой двор без стука.", it: "State uscendo dal quartiere. Camion, contratti. Carino. Ma ora entrate nel MIO cortile. Non amo chi entra in casa mia senza bussare.", de: "Du verlässt dein Viertel. LKW, Verträge. Niedlich. Aber jetzt betrittst du MEINEN Hof. Ich mag es nicht, wenn man meinen Hof ohne anzuklopfen betritt." } },
   { id: 'g_contract', when: s => s.contractsCompleted >= 1,
     text: { fr: "Joli petit contrat. Profitez-en. Le glaçon, c'est un métier d'endurance, pas un coup de chance. On se reparle.", en: "Cute little contract. Enjoy it. Ice is a game of endurance, not luck. We'll talk again.", es: "Bonito contratito. Disfrútelo. El hielo es un oficio de resistencia, no un golpe de suerte. Ya hablaremos.", zh: "小合同挺可爱。好好享受吧。做冰是耐力活，不是靠运气。我们回头再聊。", ru: "Милый контрактик. Наслаждайтесь. Лёд — ремесло на выносливость, а не везение. Ещё поговорим.", it: "Carino il contrattino. Se lo goda. Il ghiaccio è un mestiere di resistenza, non un colpo di fortuna. Ci risentiamo.", de: "Niedlicher kleiner Vertrag. Genießen Sie ihn. Eis ist ein Geschäft der Ausdauer, kein Glücksfall. Wir sprechen uns wieder." } },
   { id: 'g_million', when: s => s.moneyEarned >= 1000000,
@@ -7094,6 +7106,8 @@ export default function App() {
       lawsuits: (totals && totals.lawsuitsTotal) || 0,
       phase, playerPart, glacierPart: glacier ? glacier.part : 99,
       victory: victoryAchieved,
+      gameTime, // pour les beats P1 basés sur le temps de jeu
+      upgradeCount: Object.values(owned || {}).filter(Boolean).length,
     };
     for (const b of GLACIER_BEATS) {
       if (fired[b.id]) continue;
@@ -7109,7 +7123,7 @@ export default function App() {
         break; // un beat à la fois
       }
     }
-  }, [loaded, screen, totals, phase, competitors, reputation, notoriety, victoryAchieved, lines, language]);
+  }, [loaded, screen, totals, phase, competitors, reputation, notoriety, victoryAchieved, lines, language, gameTime, owned]);
 
   // Composant : icône Lucide selon iconKey d'un event (style noir/blanc)
   const EventIcon = ({ keyName, size = 12 }) => {
@@ -10018,6 +10032,29 @@ export default function App() {
       }))]);
     }
   }, [maxLines, phase, lines.length]);
+
+  // Force-sync sur changement de `owned` : si une amélioration vient d'être
+  // achetée et qu'elle augmente linesBonus (hub logistique, camion, etc.),
+  // on garantit qu'une nouvelle ligne libre est créée immédiatement, sans
+  // attendre le tick suivant ni le useEffect précédent (qui peut louper si
+  // maxLines et lines.length sont calculés dans le même rendu).
+  useEffect(() => {
+    if (phase < 2) return;
+    const liveStats = computeStats(owned);
+    const _stolenEff = Math.min(stolenTrucks, liveStats.linesBonus);
+    const _targetLines = Math.max(0, BASE_LINES + liveStats.linesBonus - _stolenEff);
+    setLines(prev => {
+      if (prev.length >= _targetLines) return prev;
+      const next = prev.slice();
+      while (next.length < _targetLines) {
+        next.push({
+          contractId: null, truckPos: 0, truckPhase: 'idle',
+          broken: false, brokenMsg: null, meltAccum: 0,
+        });
+      }
+      return next;
+    });
+  }, [owned, phase, stolenTrucks]);
 
   useEffect(() => {
     document.body.style.background = theme === 'retro' ? '#b8c3ac' : theme === 'light' ? '#ffffff' : '#000000';
@@ -25759,9 +25796,15 @@ export default function App() {
           const sliderKeys = ['eau', 'energie', 'emballages', 'logistique', 'fournisseurs'];
           // Calculs bilan
           const globalCostMult = computePurchaseCostMult(purchaseSliders, owned, isSickNow('mark'));
-          const globalNotoDelta = computePurchaseNotoDelta(purchaseSliders, owned);
-          const globalRisk = computePurchaseRiskMonthly(purchaseSliders, owned);
           const costPct = Math.round((globalCostMult - 1) * 100);
+          // Score qualité (anciennement affiché dans Personnel) :
+          // moyenne 100 - (idx × 25) sur les 5 curseurs configurés.
+          let _qSum = 0, _qCnt = 0;
+          for (const k of sliderKeys) {
+            if (typeof purchaseSliders[k] === 'number') { _qSum += (100 - purchaseSliders[k] * 25); _qCnt++; }
+          }
+          const qualityScore = _qCnt > 0 ? Math.round(_qSum / _qCnt) : null;
+          const qCls = qualityScore == null ? 'mid' : qualityScore >= 70 ? 'is-pos' : qualityScore >= 40 ? '' : 'is-neg';
           return (
             <div className="modal-backdrop" onClick={() => setAchatsOpen(false)}>
               <div className="modal achats-modal" onClick={e => e.stopPropagation()}>
@@ -25774,7 +25817,9 @@ export default function App() {
                 </div>
                 <div className="achats-body">
                   <div className="achats-intro">{t('achats.intro')}</div>
-                  {/* Bilan global en haut */}
+                  {/* Bilan global en haut : uniquement € et qualité.
+                      Le risque noto / réputation reste appliqué en arrière-plan
+                      mais n'est plus affiché ici, à la demande de Mark. */}
                   <div className="achats-summary">
                     <div className="achats-summary-cell">
                       <span className="achats-summary-lbl">{t('achats.summary_cost')}</span>
@@ -25782,18 +25827,14 @@ export default function App() {
                         {costPct >= 0 ? '+' : ''}{costPct}%
                       </span>
                     </div>
-                    <div className="achats-summary-cell">
-                      <span className="achats-summary-lbl">{t('achats.summary_noto')}</span>
-                      <span className={`achats-summary-val ${globalNotoDelta > 0 ? 'is-pos' : globalNotoDelta < 0 ? 'is-neg' : ''}`}>
-                        {globalNotoDelta >= 0 ? '+' : ''}{globalNotoDelta}/mo
-                      </span>
-                    </div>
-                    <div className="achats-summary-cell">
-                      <span className="achats-summary-lbl">{t('achats.summary_risk')}</span>
-                      <span className={`achats-summary-val ${globalRisk > 0.1 ? 'is-neg' : ''}`}>
-                        {Math.round(globalRisk * 100)}%
-                      </span>
-                    </div>
+                    {qualityScore != null && (
+                      <div className="achats-summary-cell">
+                        <span className="achats-summary-lbl">{t('achats.summary_quality')}</span>
+                        <span className={`achats-summary-val ${qCls}`}>
+                          {qualityScore}<span style={{ fontSize: '0.7em', opacity: 0.6 }}>/100</span>
+                        </span>
+                      </div>
+                    )}
                   </div>
                   {/* Liste des curseurs */}
                   <div className="achats-sliders-list">
@@ -25827,12 +25868,12 @@ export default function App() {
                               />
                             ))}
                           </div>
-                          {/* Effets de la position actuelle */}
+                          {/* Effets de la position actuelle : € uniquement
+                              (noto/risque masqués à la demande, restent
+                              appliqués en arrière-plan). */}
                           {unlocked && (
                             <div className="achats-slider-effects">
                               <span>{t('achats.eff_cost')} <b className={cm < 0 ? 'is-neg' : cm > 0 ? 'is-pos' : ''}>{cm >= 0 ? '+' : ''}{cm}%</b></span>
-                              <span>{t('achats.eff_noto')} <b className={curPos.notoMonthly < 0 ? 'is-neg' : curPos.notoMonthly > 0 ? 'is-pos' : ''}>{curPos.notoMonthly >= 0 ? '+' : ''}{curPos.notoMonthly}/mo</b></span>
-                              <span>{t('achats.eff_risk')} <b className={curPos.riskMonthly > 0.05 ? 'is-neg' : ''}>{Math.round(curPos.riskMonthly * 100)}%</b></span>
                             </div>
                           )}
                           {!unlocked && (
@@ -26030,29 +26071,15 @@ export default function App() {
                     if (!!(owned['mark_jr'] || owned['mark_resp'] || owned['mark_dir'])) morals.push(markMoral);
                     if (!!(owned['sabine_jr'] || owned['sabine_sr'] || owned['sabine_dg'])) morals.push(sabineMoral);
                     const avgMoral = morals.length > 0 ? Math.round(morals.reduce((a, b) => a + b, 0) / morals.length) : 0;
-                    // Score Qualité : moyenne pondérée curseurs Mark (0=premium=100pts, 4=limite=0pts)
-                    const sl = purchaseSliders || {};
-                    const slKeys = ['eau', 'energie', 'emballages', 'logistique', 'fournisseurs'];
-                    let qSum = 0;
-                    let qCnt = 0;
-                    for (const k of slKeys) {
-                      if (typeof sl[k] === 'number') { qSum += (100 - sl[k] * 25); qCnt++; }
-                    }
-                    const qScore = qCnt > 0 ? Math.round(qSum / qCnt) : null;
                     const moralCls = avgMoral >= 70 ? 'high' : avgMoral >= 40 ? 'mid' : 'low';
-                    const qCls = qScore == null ? 'mid' : qScore >= 70 ? 'high' : qScore >= 40 ? 'mid' : 'low';
+                    // SCORE QUALITÉ déplacé dans la fenêtre ACHATS (Mark)
+                    // pour ne pas mélanger métriques équipe et métriques achats.
                     return (
                       <div className="team-summary">
                         <div className="team-summary-item">
                           <span className="team-summary-lbl">MORAL ÉQUIPE</span>
                           <span className={`team-summary-val ts-${moralCls}`}>{avgMoral}<span className="ts-unit">/100</span></span>
                         </div>
-                        {qScore != null && (
-                          <div className="team-summary-item">
-                            <span className="team-summary-lbl">SCORE QUALITÉ</span>
-                            <span className={`team-summary-val ts-${qCls}`}>{qScore}<span className="ts-unit">/100</span></span>
-                          </div>
-                        )}
                       </div>
                     );
                   })()}
