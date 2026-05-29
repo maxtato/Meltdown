@@ -12755,6 +12755,19 @@ export default function App() {
           if (newExpires > 0) refreshed.push({ ...item, expiresIn: newExpires });
         }
         const newlyAddedIds = [];
+        // === POSITIONNEMENT MARKETING : segment courant du joueur ===
+        // Sert à (1) préférer fortement les contrats réalisables et (2) garantir
+        // qu'au moins un contrat faisable est proposé. Couvre TOUS les segments,
+        // pas seulement "famille" (chaque archétype/retail vise un segment cible).
+        const segNowR = {
+          famille: segFamilleRef.current, jeunesse: segJeunesseRef.current,
+          pro: segProRef.current, luxe: segLuxeRef.current, eco: segEcoRef.current,
+        };
+        const segMet = (c) => !(c.targetSegment && c.minSegment) ||
+          (typeof segNowR[c.targetSegment] === 'number' && segNowR[c.targetSegment] >= c.minSegment);
+        // "Faisable maintenant" = segment cible atteint ET qualité suffisante.
+        // (slot camion / réputation sont des blocages runtime, pas intrinsèques.)
+        const isFeasibleNow = (c) => segMet(c) && isContractQualityFeasible(c, ownedRef.current, 0, purchaseSlidersRef.current);
         while (refreshed.length < marketTargetRef.current) {
           const usedIds = new Set([...signedIds, ...refreshed.map(m => m.contractId)]);
           const curMaxTier = getBrigitteMaxContractTier(ownedRef.current, brigitteSalaryLevelRef.current, brigitteGrumpyRef.current);
@@ -12770,16 +12783,8 @@ export default function App() {
           // Phase 3+ : retail-only + chance rare d'un B2B premium tier 5+
           if (phaseRef.current >= 3) {
             const premiumB2B = eligible.filter(c => c.archetype !== 'RETAIL' && (c.brigitteTier || 0) >= 5);
-            // Segment courant du joueur (positionnement de marque P3).
-            const segNow = {
-              famille: segFamilleRef.current, jeunesse: segJeunesseRef.current,
-              pro: segProRef.current, luxe: segLuxeRef.current, eco: segEcoRef.current,
-            };
-            // Un contrat retail est "atteignable" si son exigence de segment est
-            // satisfaite (ou s'il n'en a pas). On évite que les retail "segment
-            // famille" verrouillés saturent le marché et masquent les autres.
-            const segMet = (c) => !(c.targetSegment && c.minSegment) ||
-              (typeof segNow[c.targetSegment] === 'number' && segNow[c.targetSegment] >= c.minSegment);
+            // On évite que les retail dont le segment cible est encore trop bas
+            // saturent le marché et masquent les contrats réalisables.
             const retailAll = eligible.filter(c => c.archetype === 'RETAIL');
             const retailOk = retailAll.filter(segMet);
             // 12% de chance de laisser apparaître un contrat "aspirationnel"
@@ -12794,16 +12799,17 @@ export default function App() {
             }
           }
           if (eligible.length === 0) break;
-          // === Pondération par rareté : plus le contrat est cher (qty × prix), plus il est rare
-          // Calcule le total revenue de chaque contrat éligible.
-          // Poids = 1 / (revenue / minRevenue) — petits contrats fréquents, gros contrats rares.
-          // En plus on garde un floor minimal pour éviter qu'un contrat soit "impossible".
+          // === Pondération : rareté (prix) × forte préférence pour les contrats
+          // réalisables d'après notre positionnement (segment + qualité). Cela
+          // varie les propositions tout en évitant un marché 100% verrouillé.
           const revenues = eligible.map(c => (c.qty || 0) * (c.pricePerCube || 0));
           const minRev = Math.max(1, Math.min(...revenues));
-          const weights = revenues.map(r => {
+          const weights = eligible.map((c, i) => {
             // Plus c'est cher, plus la rareté grandit : 1 (le moins cher) → 0.1 (le plus cher)
-            const ratio = r / minRev;
-            return Math.max(0.05, 1 / ratio);
+            const ratio = revenues[i] / minRev;
+            let w = Math.max(0.05, 1 / ratio);
+            if (isFeasibleNow(c)) w *= 6; // contrats faisables nettement plus probables
+            return w;
           });
           const totalW = weights.reduce((a, b) => a + b, 0);
           let rng = Math.random() * totalW;
@@ -12815,6 +12821,41 @@ export default function App() {
           const pick = eligible[pickIdx];
           refreshed.push({ contractId: pick.id, expiresIn: randomLife() });
           newlyAddedIds.push(pick.id);
+        }
+        // === GARANTIE : au moins un contrat faisable proposé ===
+        // Si après remplissage aucun contrat affiché n'est réalisable avec le
+        // positionnement / la qualité actuels, on remplace un slot fraîchement
+        // ajouté par un contrat faisable (s'il en existe un éligible).
+        if (refreshed.length > 0 && marketTargetRef.current > 0) {
+          const hasFeasible = refreshed.some(m => {
+            const c = B2B_BY_ID[m.contractId];
+            return c && isFeasibleNow(c);
+          });
+          if (!hasFeasible) {
+            const usedIds = new Set([...signedIds, ...refreshed.map(m => m.contractId)]);
+            const curMaxTier = getBrigitteMaxContractTier(ownedRef.current, brigitteSalaryLevelRef.current, brigitteGrumpyRef.current);
+            const curMaxCap = BASE_CAP + curStats.capBonus;
+            const feasiblePool = B2B_CONTRACTS.filter(c =>
+              c.brigitteTier <= curMaxTier &&
+              c.qty <= curMaxCap &&
+              c.qty <= curStats.truckMaxCap &&
+              (!c.notorietyMin || notorietyRef.current >= c.notorietyMin) &&
+              !usedIds.has(c.id) &&
+              isFeasibleNow(c)
+            );
+            if (feasiblePool.length > 0) {
+              const repl = feasiblePool[Math.floor(Math.random() * feasiblePool.length)];
+              // Remplace de préférence un slot fraîchement ajouté (pas un contrat
+              // déjà affiché de longue date que le joueur pourrait viser).
+              let replaceAt = -1;
+              for (let i = refreshed.length - 1; i >= 0; i--) {
+                if (newlyAddedIds.includes(refreshed[i].contractId)) { replaceAt = i; break; }
+              }
+              if (replaceAt < 0) replaceAt = refreshed.length - 1;
+              refreshed[replaceAt] = { contractId: repl.id, expiresIn: randomLife() };
+              if (!newlyAddedIds.includes(repl.id)) newlyAddedIds.push(repl.id);
+            }
+          }
         }
         setMarketplace(refreshed);
 
