@@ -5746,6 +5746,53 @@ function applyContractDynamics(c, owned, notoriety, priceAdjust = 1.0, purchaseS
   };
 }
 
+// === DISPONIBILITÉ D'UN CONTRAT (UI marketplace) ===
+// Renvoie tous les blocages d'un contrat enrichi par applyContractDynamics().
+// Utilisé pour griser la carte ET afficher la raison directement, sans
+// que le joueur ait à cliquer pour découvrir le blocage.
+//   ctx = { noSlot, reputation, segments: {famille, jeunesse, pro, luxe, eco} }
+function getContractAvailability(c, ctx) {
+  const reasons = [];
+  // 1) Slot camion
+  if (ctx.noSlot) {
+    reasons.push({
+      key: 'no_slot',
+      label: { fr: 'Aucun camion libre', en: 'No truck available', es: 'Sin camión libre', zh: '无可用卡车', ru: 'Нет свободного грузовика', it: 'Nessun camion libero', de: 'Kein freier LKW' },
+      hint:  { fr: 'Libère un slot ou achète un palier Lenny', en: 'Free a slot or buy a Lenny tier', es: 'Libera un espacio o compra un nivel Lenny', zh: '释放一个位或购买莱尼等级', ru: 'Освободите слот или купите уровень Ленни', it: 'Libera uno slot o compra un livello Lenny', de: 'Slot freigeben oder Lenny-Stufe kaufen' },
+    });
+  }
+  // 2) Réputation
+  if (ctx.reputation < 20) {
+    reasons.push({
+      key: 'low_rep',
+      label: { fr: 'Réputation trop basse', en: 'Reputation too low', es: 'Reputación demasiado baja', zh: '声誉太低', ru: 'Слишком низкая репутация', it: 'Reputazione troppo bassa', de: 'Ruf zu niedrig' },
+      hint:  { fr: `Réputation ${Math.round(ctx.reputation)} / 20 mini`, en: `Reputation ${Math.round(ctx.reputation)} / 20 min`, es: `Reputación ${Math.round(ctx.reputation)} / 20 mín`, zh: `声誉 ${Math.round(ctx.reputation)} / 最低 20`, ru: `Репутация ${Math.round(ctx.reputation)} / мин 20`, it: `Reputazione ${Math.round(ctx.reputation)} / min 20`, de: `Ruf ${Math.round(ctx.reputation)} / min 20` },
+    });
+  }
+  // 3) Qualité
+  if (c._qualityTooLow) {
+    const cur = Math.round((c._qualityScore || 0) * 100);
+    const req = Math.round(((c._qExpect || 0) - 0.15) * 100); // seuil réel
+    reasons.push({
+      key: 'low_quality',
+      label: { fr: 'Qualité insuffisante', en: 'Quality too low', es: 'Calidad insuficiente', zh: '质量不足', ru: 'Низкое качество', it: 'Qualità insufficiente', de: 'Qualität zu niedrig' },
+      hint:  { fr: `Qualité ${cur}/100 · client veut ${req}+`, en: `Quality ${cur}/100 · client wants ${req}+`, es: `Calidad ${cur}/100 · cliente quiere ${req}+`, zh: `品质 ${cur}/100 · 客户要 ${req}+`, ru: `Качество ${cur}/100 · клиент хочет ${req}+`, it: `Qualità ${cur}/100 · cliente vuole ${req}+`, de: `Qualität ${cur}/100 · Kunde will ${req}+` },
+    });
+  }
+  // 4) Segment (P3+)
+  if (c.targetSegment && c.minSegment && ctx.segments) {
+    const segVal = ctx.segments[c.targetSegment];
+    if (typeof segVal === 'number' && segVal < c.minSegment) {
+      reasons.push({
+        key: 'low_segment',
+        label: { fr: 'Segment trop faible', en: 'Segment too low', es: 'Segmento demasiado bajo', zh: '细分市场太低', ru: 'Сегмент слишком слабый', it: 'Segmento troppo basso', de: 'Segment zu niedrig' },
+        hint:  { fr: `${c.targetSegment} ${Math.round(segVal)} / ${c.minSegment}`, en: `${c.targetSegment} ${Math.round(segVal)} / ${c.minSegment}`, es: `${c.targetSegment} ${Math.round(segVal)} / ${c.minSegment}`, zh: `${c.targetSegment} ${Math.round(segVal)} / ${c.minSegment}`, ru: `${c.targetSegment} ${Math.round(segVal)} / ${c.minSegment}`, it: `${c.targetSegment} ${Math.round(segVal)} / ${c.minSegment}`, de: `${c.targetSegment} ${Math.round(segVal)} / ${c.minSegment}` },
+      });
+    }
+  }
+  return { available: reasons.length === 0, reasons };
+}
+
 // === MÉMORISATION DES REFUS QUALITÉ/PRIX ===
 // Quand un contrat est refusé (par le client) pour mauvais ratio Q/P,
 // il est mis en quarantaine : il ne réapparaîtra pas dans la marketplace
@@ -17388,9 +17435,21 @@ export default function App() {
         .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
         .market-card { padding: 12px 11px; border: 1px solid var(--line); margin-left: -1px; margin-top: -1px; cursor: pointer; transition: all 0.12s; background: var(--bg); color: var(--fg); display: flex; flex-direction: column; gap: 4px; text-align: left; font-family: 'JetBrains Mono', monospace; border-radius: 0; position: relative; user-select: none; }
         .market-card:hover:not(.is-disabled) { border-color: var(--fg); z-index: 2; }
-        .market-card.is-disabled { opacity: 0.4; cursor: not-allowed; }
+        .market-card.is-disabled { opacity: 0.55; cursor: pointer; border-style: dashed; border-color: var(--m1); }
+        .market-card.is-disabled .market-card-name,
+        .market-card.is-disabled .market-card-stats { opacity: 0.7; }
         .market-card.is-quality-warning { border-color: var(--m1); border-style: dashed; }
         .market-card-warning { font-size: 9px; font-weight: 700; letter-spacing: 1px; color: var(--m1); padding: 4px 0; border-top: 1px dashed var(--line); margin-top: 4px; }
+        /* Bandeau qualité requis (toujours affiché). */
+        .market-card-quality { display: flex; justify-content: space-between; align-items: center; gap: 4px; font-size: 8.5px; padding: 3px 0; margin-top: 4px; border-top: 1px dashed var(--line); font-variant-numeric: tabular-nums; }
+        .market-card-quality .mcq-lbl { color: var(--m1); letter-spacing: 1px; font-weight: 400; }
+        .market-card-quality .mcq-val { color: var(--fg); letter-spacing: 0.5px; font-weight: 700; }
+        .market-card-quality.is-low .mcq-val { color: var(--fg); text-decoration: line-through; }
+        /* Liste des raisons de blocage. */
+        .market-card-blockers { display: flex; flex-direction: column; gap: 2px; margin-top: 4px; padding: 4px; border: 1px solid var(--m1); background: var(--bg); }
+        .market-card-blocker { display: flex; flex-direction: column; gap: 1px; }
+        .market-card-blocker .mcb-lbl { font-size: 9px; font-weight: 700; letter-spacing: 1px; color: var(--fg); }
+        .market-card-blocker .mcb-hint { font-size: 8.5px; letter-spacing: 0.5px; color: var(--m1); }
         .qty-delta { display: inline-block; margin-left: 3px; font-size: 9px; font-weight: 900; color: var(--m1); }
         .market-card-info-btn { position: absolute; top: 6px; right: 6px; width: 18px; height: 18px; border: 1px solid var(--line); background: var(--bg); color: var(--m1); display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 0; padding: 0; font-family: inherit; transition: all 0.12s; }
         .market-card-info-btn:hover { border-color: var(--fg); color: var(--fg); }
@@ -23140,13 +23199,24 @@ export default function App() {
                       // Calcul robuste : utilise maxLines comme source de vérité
                       const usedSlots = lines.filter(l => l.contractId).length;
                       const noSlot = usedSlots >= maxLines;
-                      const qualityWarning = c._qualityTooLow;
+                      // === Disponibilité globale (slot + rep + qualité + segment) ===
+                      const _availability = getContractAvailability(c, {
+                        noSlot,
+                        reputation,
+                        segments: { famille: segFamille, jeunesse: segJeunesse, pro: segPro, luxe: segLuxe, eco: segEco },
+                      });
+                      const _avail = _availability.available;
+                      // Qualité attendue affichée TOUJOURS (pas seulement quand bloqué)
+                      // pour que le joueur sache anticiper.
+                      const _qCur = Math.round((c._qualityScore || 0) * 100);
+                      const _qReq = Math.round(((c._qExpect || 0) - 0.15) * 100);
                       return (
                         <div
                           key={item.contractId}
-                          className={`market-card ${noSlot ? 'is-disabled' : ''} ${qualityWarning ? 'is-quality-warning' : ''}`}
+                          className={`market-card ${_avail ? '' : 'is-disabled'}`}
                           role="button"
                           tabIndex={0}
+                          aria-disabled={!_avail}
                           onClick={() => setContractDetailId(item.contractId)}
                         >
                           <div className="market-card-name">{localizeField(c.name, language).toUpperCase()}</div>
@@ -23157,9 +23227,21 @@ export default function App() {
                             <div className="market-card-stat"><span className="sl">{t('market.trip')}</span><span className="sv">{c.deliveryTime}s</span></div>
                             <div className="market-card-stat"><span className="sl">{t('market.per_cycle')}</span><span className="sv">{fmt2(cycleRevenue)}</span></div>
                           </div>
-                          {qualityWarning && (
-                            <div className="market-card-warning">
-                              {language === 'fr' ? '⚠ Qualité insuffisante' : language === 'en' ? '⚠ Quality too low' : language === 'es' ? '⚠ Calidad insuficiente' : language === 'de' ? '⚠ Qualität zu niedrig' : language === 'it' ? '⚠ Qualità insufficiente' : language === 'ru' ? '⚠ Качество ниже' : '⚠ 质量不足'}
+                          {/* Bandeau qualité TOUJOURS visible — le joueur sait à
+                              quoi s'attendre AVANT de cliquer. */}
+                          <div className={`market-card-quality ${c._qualityTooLow ? 'is-low' : ''}`}>
+                            <span className="mcq-lbl">{t('market.quality_req') || 'Qualité'}</span>
+                            <span className="mcq-val">{_qCur}/100 · ≥ {_qReq}</span>
+                          </div>
+                          {/* Liste des blocages s'il y en a (max 2 affichés). */}
+                          {!_avail && (
+                            <div className="market-card-blockers">
+                              {_availability.reasons.slice(0, 2).map(r => (
+                                <div key={r.key} className="market-card-blocker">
+                                  <span className="mcb-lbl">{localizeField(r.label, language)}</span>
+                                  <span className="mcb-hint">{localizeField(r.hint, language)}</span>
+                                </div>
+                              ))}
                             </div>
                           )}
                           <div className="market-card-life">
@@ -23167,7 +23249,7 @@ export default function App() {
                               <div className="market-card-life-fill" style={{ width: `${(item.expiresIn / MARKET_MAX_LIFE) * 100}%` }} />
                             </div>
                             <div className="market-card-foot">
-                              <span>{t('market.details')}</span>
+                              <span>{_avail ? t('market.details') : (t('market.locked') || 'INDISPONIBLE')}</span>
                               <span className="expires">{Math.ceil(item.expiresIn)}s</span>
                             </div>
                           </div>
@@ -24109,6 +24191,13 @@ export default function App() {
                   <div className="modal-row">
                     <span className="modal-lbl">{t('status.season_price')}</span>
                     <span className="modal-val">×{getDynamicContractMult(gameTime).toFixed(2)}</span>
+                  </div>
+                  {/* Qualité requise — toujours visible dans le détail. */}
+                  <div className="modal-row">
+                    <span className="modal-lbl">{t('market.quality_req') || 'Qualité'}</span>
+                    <span className={`modal-val ${c._qualityTooLow ? 'cmp-bad' : 'cmp-good'}`}>
+                      {Math.round((c._qualityScore || 0) * 100)}/100 · ≥ {Math.round(((c._qExpect || 0) - 0.15) * 100)}
+                    </span>
                   </div>
                 </div>
                 {(() => {

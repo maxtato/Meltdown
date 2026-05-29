@@ -489,6 +489,8 @@ export const TRANSLATIONS = {
   'market.per_cycle': { fr: '€/CYCLE', en: '€/CYCLE', es: '€/CICLO', de: "€/ZYKLUS" , it: "€/CICLO", ru: "€/ЦИКЛ", zh: "€/周期"},
   'market.sign': { fr: 'SIGNER', en: 'SIGN', es: 'FIRMAR', de: "SIGNIEREN" , it: "FIRMA", ru: "ПОДПИСАТЬ", zh: "签约"},
   'market.details': { fr: 'VOIR DÉTAILS', en: 'VIEW DETAILS', es: 'VER DETALLES', de: "DETAILS ANSEHEN" , it: "VEDI DETTAGLI", ru: "ПОДРОБНЕЕ", zh: "查看详情"},
+  'market.locked':  { fr: 'INDISPONIBLE', en: 'UNAVAILABLE', es: 'NO DISPONIBLE', de: "NICHT VERFÜGBAR", it: "NON DISPONIBILE", ru: "НЕДОСТУПНО", zh: "不可用"},
+  'market.quality_req': { fr: 'QUALITÉ', en: 'QUALITY', es: 'CALIDAD', de: "QUALITÄT", it: "QUALITÀ", ru: "КАЧЕСТВО", zh: "品质"},
   'status.deliveries_done':     { fr: 'Livraisons effectuées', en: 'Deliveries done',     es: 'Entregas hechas', de: "Lieferungen erledigt" , it: "Consegne effettuate", ru: "Доставок выполнено", zh: "已完成配送"},
   'status.deliveries_remaining':{ fr: 'Restantes',             en: 'Remaining',           es: 'Restantes', de: "Übrig" , it: "Rimanenti", ru: "Осталось", zh: "剩余"},
   'status.time_left':           { fr: 'Temps restant',         en: 'Time left',           es: 'Tiempo restante', de: "Restzeit" , it: "Tempo rimasto", ru: "Осталось времени", zh: "剩余时间"},
