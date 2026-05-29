@@ -143,11 +143,14 @@ const P4_BROKEN_REP_EROSION = 0.04;
 
 const BASE_LINES = 0;
 const TRUCK_REBUY_COST = 9000; // racheter un camion volé (plus cher que la rançon : payer tout de suite vaut mieux)
-const MARKETPLACE_SIZE = 4; // cap absolu
+const MARKETPLACE_SIZE = 6; // cap absolu
 const MARKET_TARGET_REROLL_MIN = 150; // 2.5min
 const MARKET_TARGET_REROLL_MAX = 300; // 5min
-// Distribution pondérée du nombre de contrats simultanés [poids par valeur 1, 2, 3, 4]
-const MARKET_TARGET_WEIGHTS = [30, 35, 25, 10];
+// Distribution pondérée du nombre de contrats simultanés [poids par valeur 1..6]
+// Recalibré pour afficher davantage de contrats à la fois (moyenne ≈ 3.8) : le
+// marché paraissait étouffé, notamment en P3 où les contrats retail "segment
+// famille" verrouillés monopolisaient les rares slots.
+const MARKET_TARGET_WEIGHTS = [10, 14, 18, 20, 20, 18];
 function rollMarketTarget() {
   const total = MARKET_TARGET_WEIGHTS.reduce((a, b) => a + b, 0);
   let r = Math.random() * total;
@@ -155,7 +158,7 @@ function rollMarketTarget() {
     r -= MARKET_TARGET_WEIGHTS[i];
     if (r <= 0) return i + 1;
   }
-  return 4;
+  return MARKET_TARGET_WEIGHTS.length;
 }
 const MARKET_MIN_LIFE = 45;
 const MARKET_MAX_LIFE = 90;
@@ -12766,8 +12769,22 @@ export default function App() {
           );
           // Phase 3+ : retail-only + chance rare d'un B2B premium tier 5+
           if (phaseRef.current >= 3) {
-            const retail = eligible.filter(c => c.archetype === 'RETAIL');
             const premiumB2B = eligible.filter(c => c.archetype !== 'RETAIL' && (c.brigitteTier || 0) >= 5);
+            // Segment courant du joueur (positionnement de marque P3).
+            const segNow = {
+              famille: segFamilleRef.current, jeunesse: segJeunesseRef.current,
+              pro: segProRef.current, luxe: segLuxeRef.current, eco: segEcoRef.current,
+            };
+            // Un contrat retail est "atteignable" si son exigence de segment est
+            // satisfaite (ou s'il n'en a pas). On évite que les retail "segment
+            // famille" verrouillés saturent le marché et masquent les autres.
+            const segMet = (c) => !(c.targetSegment && c.minSegment) ||
+              (typeof segNow[c.targetSegment] === 'number' && segNow[c.targetSegment] >= c.minSegment);
+            const retailAll = eligible.filter(c => c.archetype === 'RETAIL');
+            const retailOk = retailAll.filter(segMet);
+            // 12% de chance de laisser apparaître un contrat "aspirationnel"
+            // (segment encore trop bas) pour montrer la cible à viser.
+            const retail = (retailOk.length > 0 && Math.random() >= 0.12) ? retailOk : retailAll;
             if (Math.random() < 0.15 && premiumB2B.length > 0) {
               eligible = premiumB2B;
             } else if (retail.length > 0) {
