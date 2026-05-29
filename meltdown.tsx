@@ -518,12 +518,11 @@ const ROBERT1_REQUIRED = ['fred_perma', 'autosell', 'pro_freezer', 'cold_tunnel'
 const ROBERT1_MONEY = 3500;
 const ROBERT1_MAXCAP = 100;
 
-const ROBERT2_REQUIRED = ['fred_dir', 'brigitte_ad', 'camion_3', 'fast_truck', 'truck_cryo', 'force_cadence', 'karen_senior'];
+const ROBERT2_REQUIRED = ['fred_dir', 'brigitte_ad', 'camion_3', 'fast_truck', 'truck_cryo', 'force_cadence'];
 const ROBERT2_MONEY = 10500;
 
 const VANDENBERG_REQUIRED = [
-  'janice_dir',
-  'karen_drh',
+  'janice_jr',
   'security_camera',
   'community_mgmt',
   'cyber_security',
@@ -1989,20 +1988,11 @@ const UPGRADES = [
     apply: s => ({ ...s, sabineLawsuitsPerYear: 2, sabineDamageMult: 0.4 }) },
   // === PHASE 3 — LA MARQUE ===
   { id: 'agence_marketing', Icon: Building2, count: 1, destructible: false, phase: 2, phaseUnlock: 3, requireUnlock: 'robertCall2', name: { fr: 'Nouveau siège social', en: 'New headquarters', es: 'Nueva sede social', zh: "新总部", ru: "Новая штаб-квартира", it: "Nuova sede", de: "Neue Firmenzentrale" }, desc: { fr: '→ PHASE 03 · Bureaux · cap +2500', en: '→ PHASE 03 · Offices · cap +2500', es: '→ FASE 03 · Oficinas · cap +2500', zh: "→ 第03阶段 · 办公室 · 容量 +2500", ru: "→ ФАЗА 03 · Офисы · ёмк +2500", it: "→ FASE 03 · Uffici · cap +2500", de: "→ PHASE 03 · Büros · Kap +2500" }, cost: 80000,
-    longDesc: { fr: "Tu signes le bail d'un véritable siège social : trois niveaux, production au rez-de-chaussée, bureaux marketing-ventes au premier, administration et juridique au second. Capacité de stockage augmentée de 2500 GL grâce aux espaces auxiliaires. Cette installation débloque la Phase 03 et ouvre l'horizon : tu peux désormais embaucher Janice, Mark, Karen et Sabine dans leurs bureaux respectifs.", en: "You sign the lease on a real headquarters: three floors, production on the ground floor, marketing-sales offices on the first, administration and legal on the second. Storage capacity increased by 2500 IC thanks to auxiliary spaces. This move unlocks Phase 03 and opens the horizon: you can now hire Janice, Mark, Karen and Sabine in their respective offices.", es: "Firmas el contrato de una verdadera sede: tres niveles, producción en planta baja, oficinas marketing-ventas en el primero, administración y jurídico en el segundo. Capacidad de almacenamiento aumentada en 2500 CB gracias a los espacios auxiliares. Esta instalación desbloquea la Fase 03 y abre el horizonte: ahora puedes contratar a Janice, Mark, Karen y Sabine en sus oficinas respectivas.", zh: "你签下真正总部的租约：三层楼，一楼生产，一楼营销与销售办公室，二楼行政与法务。辅助空间让仓储容量增加2500冰块。这次搬迁解锁第03阶段并打开了视野：你现在可以在各自的办公室里聘用贾妮丝、马克、凯伦和萨宾。", ru: "Вы подписываете аренду настоящей штаб-квартиры: три уровня — производство на первом, маркетинг-продажи на втором, администрация и юрист на третьем. Ёмкость хранения увеличена на 2500 К благодаря вспомогательным помещениям. Это переселение открывает Фазу 03 и расширяет горизонт: теперь можно нанять Дженис, Марка, Карен и Сабину в их соответствующие кабинеты.", it: "Firmi il contratto di una vera sede: tre piani, produzione al piano terra, uffici marketing-vendite al primo, amministrazione e legale al secondo. Capacità di stoccaggio aumentata di 2500 CB grazie agli spazi ausiliari. Questo trasloco sblocca la Fase 03 e apre l'orizzonte: ora puoi assumere Janice, Mark, Karen e Sabine nei loro rispettivi uffici.", de: "Du unterschreibst den Mietvertrag für eine echte Firmenzentrale: drei Ebenen, Produktion im Erdgeschoss, Marketing-Vertriebsbüros im ersten Stock, Verwaltung und Recht im zweiten. Lagerkapazität um 2500 EW erhöht dank Nebenräume. Dieser Umzug schaltet Phase 03 frei und öffnet den Horizont: Du kannst jetzt Janice, Mark, Karen und Sabine in ihren jeweiligen Büros einstellen." },
+    longDesc: { fr: "Tu signes le bail d'un véritable siège social : trois niveaux, production au rez-de-chaussée, bureaux marketing-ventes au premier, administration et juridique au second. Capacité de stockage augmentée de 2500 GL grâce aux espaces auxiliaires. Cette installation débloque la Phase 03 et ouvre l'horizon : tu peux désormais structurer ta marque, ton marketing et tes fonctions support depuis de vrais bureaux.", en: "You sign the lease on a real headquarters: three floors, production on the ground floor, marketing-sales offices on the first, administration and legal on the second. Storage capacity increased by 2500 IC thanks to auxiliary spaces. This move unlocks Phase 03 and opens the horizon: you can now structure your brand, your marketing and your support functions from real offices.", es: "Firmas el contrato de una verdadera sede: tres niveles, producción en planta baja, oficinas marketing-ventas en el primero, administración y jurídico en el segundo. Capacidad de almacenamiento aumentada en 2500 CB gracias a los espacios auxiliares. Esta instalación desbloquea la Fase 03 y abre el horizonte: ahora puedes estructurar tu marca, tu marketing y tus funciones de apoyo desde oficinas de verdad.", zh: "你签下真正总部的租约：三层楼，一楼生产，一楼营销与销售办公室，二楼行政与法务。辅助空间让仓储容量增加2500冰块。这次搬迁解锁第03阶段并打开了视野：你现在可以在真正的办公室里构建你的品牌、营销和支持职能。", ru: "Вы подписываете аренду настоящей штаб-квартиры: три уровня — производство на первом, маркетинг-продажи на втором, администрация и юрист на третьем. Ёмкость хранения увеличена на 2500 К благодаря вспомогательным помещениям. Это переселение открывает Фазу 03 и расширяет горизонт: теперь можно выстроить бренд, маркетинг и вспомогательные функции в настоящих офисах.", it: "Firmi il contratto di una vera sede: tre piani, produzione al piano terra, uffici marketing-vendite al primo, amministrazione e legale al secondo. Capacità di stoccaggio aumentata di 2500 CB grazie agli spazi ausiliari. Questo trasloco sblocca la Fase 03 e apre l'orizzonte: ora puoi strutturare il tuo marchio, il tuo marketing e le tue funzioni di supporto da veri uffici.", de: "Du unterschreibst den Mietvertrag für eine echte Firmenzentrale: drei Ebenen, Produktion im Erdgeschoss, Marketing-Vertriebsbüros im ersten Stock, Verwaltung und Recht im zweiten. Lagerkapazität um 2500 EW erhöht dank Nebenräume. Dieser Umzug schaltet Phase 03 frei und öffnet den Horizont: Du kannst jetzt deine Marke, dein Marketing und deine Support-Funktionen aus echten Büros heraus aufbauen." },
     apply: s => ({ ...s, capBonus: s.capBonus + 2500 }) },
-  { id: 'janice_jr',       Icon: Megaphone, count: 1, destructible: false, phase: 3, name: { fr: 'Embaucher Janice · Brand Manager', en: 'Hire Janice · Brand Manager', es: 'Contratar a Janice · Brand Manager', zh: "雇用贾妮丝 · 品牌经理", ru: "Нанять Дженис · Бренд-менеджер", it: "Assumi Janice · Brand Manager", de: "Janice einstellen · Brand Manager" }, desc: { fr: 'Débloque marketing · campagnes ×1.0', en: 'Unlocks marketing · campaigns ×1.0', es: 'Desbloquea marketing · campañas ×1.0', zh: "解锁营销 · 活动 ×1.0", ru: "Открывает маркетинг · кампании ×1.0", it: "Sblocca marketing · campagne ×1.0", de: "Schaltet Marketing frei · Kampagnen ×1.0" }, cost: 14000,
-    salary: { bas: 87, std: 175, haut: 262 }, salaryRole: 'janice', gradeName: { fr: "Junior", en: "Junior", es: "Junior", zh: "初级", ru: "Джуниор", it: "Junior", de: "Junior" },
-    longDesc: { fr: "Janice s'installe dans son bureau du premier étage, ravie d'enfin quitter ses anciens projets de shampoing « luxe-utile ». Elle devient ta première Brand Manager : campagnes marketing, notoriété, et contrats avec les chaînes retail. C'est elle qui va donner un visage à ta marque.", en: "Janice settles into her first-floor office, thrilled to finally leave behind her old 'useful-luxury' shampoo projects. She becomes your first Brand Manager: marketing campaigns, notoriety, and contracts with retail chains. She's the one who'll give your brand a face.", es: "Janice se instala en su oficina de la primera planta, encantada de dejar atrás sus antiguos proyectos de champú 'lujo-útil'. Se convierte en tu primera Brand Manager: campañas de marketing, notoriedad y contratos con cadenas retail. Es ella quien va a darle cara a tu marca.", zh: "贾妮丝住进了一楼的办公室，终于摆脱了以前那些「奢华实用」洗发水项目。她成为你的第一位品牌经理：营销活动、知名度、与零售连锁的合同。她将为你的品牌赋予面貌。", ru: "Дженис обустраивается в своём кабинете на втором этаже, в восторге, что наконец оставила позади старые проекты «полезного люкса» с шампунями. Она становится вашим первым бренд-менеджером: маркетинговые кампании, известность и контракты с розничными сетями. Это она придаст вашему бренду лицо.", it: "Janice si sistema nel suo ufficio al primo piano, contenta di lasciarsi finalmente alle spalle i vecchi progetti di shampoo 'lusso utile'. Diventa la tua prima Brand Manager: campagne marketing, notorietà e contratti con le catene retail. È lei che darà un volto al tuo brand.", de: "Janice richtet sich in ihrem Büro im ersten Stock ein, hocherfreut, ihre alten 'nützlicher-Luxus'-Shampoo-Projekte endlich hinter sich zu lassen. Sie wird deine erste Brand Managerin: Marketingkampagnen, Bekanntheit und Verträge mit Handelsketten. Sie wird deiner Marke ein Gesicht geben." },
-    apply: s => ({ ...s, hasJanice: true, marketingMult: Math.max(s.marketingMult, 1) }) },
-  { id: 'janice_senior',   Icon: Megaphone, count: 2, destructible: false, phase: 3, name: { fr: 'Janice Senior', en: 'Janice Senior', es: 'Janice Senior', zh: "贾妮丝, 高级", ru: "Дженис, Сеньор", it: "Janice Senior", de: "Janice Senior" }, desc: { fr: 'Campagnes ×1.3 · meilleurs deals retail', en: 'Campaigns ×1.3 · better retail deals', es: 'Campañas ×1.3 · mejores acuerdos retail', zh: "活动 ×1.3 · 更好的零售交易", ru: "Кампании ×1.3 · лучше сделки ритейла", it: "Campagne ×1.3 · deal retail migliori", de: "Kampagnen ×1.3 · bessere Handelsdeals" }, cost: 56000,
-    salary: { bas: 250, std: 500, haut: 750 }, salaryRole: 'janice', gradeName: { fr: "Senior", en: "Senior", es: "Senior", zh: "高级", ru: "Сеньор", it: "Senior", de: "Senior" },
-    longDesc: { fr: "Janice monte en grade. Ses campagnes marketing sont 30% plus efficaces et elle négocie de meilleurs deals avec les chaînes retail (grandes enseignes régionales et nationales).", en: "Janice moves up. Her marketing campaigns are 30% more effective and she negotiates better deals with retail chains (major regional and national brands).", es: "Janice sube de grado. Sus campañas de marketing son 30% más eficaces y negocia mejores acuerdos con las cadenas retail (grandes marcas regionales y nacionales).", zh: "贾妮丝晋升。她的营销活动效果提升30%，与零售连锁（大型区域和全国品牌）谈判到更好的交易。", ru: "Дженис идёт на повышение. Её маркетинговые кампании на 30% эффективнее, и она договаривается о лучших сделках с розничными сетями (крупные региональные и национальные бренды).", it: "Janice fa carriera. Le sue campagne marketing sono il 30% più efficaci e negozia deal migliori con le catene retail (grandi marchi regionali e nazionali).", de: "Janice steigt auf. Ihre Marketingkampagnen sind 30% wirksamer und sie verhandelt bessere Deals mit Handelsketten (große regionale und nationale Marken)." },
-    apply: s => ({ ...s, marketingMult: Math.max(s.marketingMult, 1.3) }) },
-  { id: 'janice_dir',      Icon: Megaphone, count: 3, destructible: false, phase: 3, name: { fr: 'Janice Directrice Marketing', en: 'Janice Marketing Director', es: 'Janice Directora Marketing', zh: "贾妮丝, 营销总监", ru: "Дженис, Директор по маркетингу", it: "Janice Direttrice Marketing", de: "Janice Marketingdirektorin" }, desc: { fr: 'Campagnes ×1.6 · accès géants nationaux', en: 'Campaigns ×1.6 · access national giants', es: 'Campañas ×1.6 · acceso gigantes nacionales', zh: "活动 ×1.6 · 接触全国巨头", ru: "Кампании ×1.6 · доступ к нац. гигантам", it: "Campagne ×1.6 · accesso ai colossi nazionali", de: "Kampagnen ×1.6 · Zugang zu nationalen Giganten" }, cost: 160000,
-    salary: { bas: 1385, std: 2100, haut: 3275 }, salaryRole: 'janice', gradeName: { fr: "Directrice Marketing", en: "Marketing Director", es: "Directora Marketing", zh: "营销总监", ru: "Директор по маркетингу", it: "Direttrice Marketing", de: "Marketingdirektorin" },
-    longDesc: { fr: "Janice est Directrice Marketing. Campagnes ×1.6, accès aux contrats les plus prestigieux (hypermarchés géants nationaux).", en: "Janice is Marketing Director. Campaigns ×1.6, access to the most prestigious contracts (national giant hypermarkets).", es: "Janice es Directora de Marketing. Campañas ×1.6, acceso a los contratos más prestigiosos (hipermercados gigantes nacionales).", zh: "贾妮丝任营销总监。活动 ×1.6，接触最具声望的合同（全国巨型大卖场）。", ru: "Дженис, Директор по маркетингу. Кампании ×1.6, доступ к самым престижным контрактам (национальные гипермаркеты-гиганты).", it: "Janice è Direttrice Marketing. Campagne ×1.6, accesso ai contratti più prestigiosi (ipermercati colossi nazionali).", de: "Janice ist Marketingdirektorin. Kampagnen ×1.6, Zugang zu den prestigeträchtigsten Verträgen (nationale Hypermarkt-Giganten)." },
-    apply: s => ({ ...s, marketingMult: Math.max(s.marketingMult, 1.6), janiceDemandBonus: 0.15 }) },
+  { id: 'janice_jr',       Icon: Megaphone, count: 1, destructible: false, phase: 3, name: { fr: 'Engager une agence marketing', en: 'Hire a marketing agency', es: 'Contratar una agencia de marketing', zh: "聘请营销代理公司", ru: "Нанять маркетинговое агентство", it: "Ingaggia un'agenzia marketing", de: "Marketingagentur engagieren" }, desc: { fr: 'Débloque les campagnes · risque de bourde', en: 'Unlocks campaigns · misfire risk', es: 'Desbloquea campañas · riesgo de error', zh: "解锁营销活动 · 有翻车风险", ru: "Открывает кампании · риск провала", it: "Sblocca le campagne · rischio errore", de: "Schaltet Kampagnen frei · Patzer-Risiko" }, cost: 60000,
+    longDesc: { fr: "Tu signes avec une agence de communication coûteuse. Elle pilote tes campagnes marketing et fait monter ta notoriété — mais elle facture cher et, de temps en temps, sort une pub à côté de la plaque qui fait CHUTER ta notoriété. Aucun visage, aucun bureau : juste une facture et des résultats en dents de scie.", en: "You sign with a pricey communications agency. It runs your marketing campaigns and grows your awareness — but it bills steeply and, every now and then, ships an off-target ad that DROPS your awareness. No face, no office: just an invoice and uneven results.", es: "Firmas con una agencia de comunicación cara. Dirige tus campañas de marketing y aumenta tu notoriedad, pero factura caro y, de vez en cuando, saca un anuncio fuera de lugar que HACE CAER tu notoriedad. Sin cara, sin oficina: solo una factura y resultados irregulares.", zh: "你签下一家昂贵的传播代理公司。它操盘你的营销活动、提升知名度——但收费高昂，而且时不时推出一则离谱的广告，让你的知名度不升反降。没有面孔，没有办公室：只有账单和起伏不定的成绩。", ru: "Вы заключаете контракт с дорогим коммуникационным агентством. Оно ведёт ваши маркетинговые кампании и повышает известность — но выставляет крупные счета и время от времени выпускает неудачную рекламу, которая СНИЖАЕТ известность. Ни лица, ни кабинета: только счёт и нестабильные результаты.", it: "Firmi con una costosa agenzia di comunicazione. Gestisce le tue campagne marketing e fa salire la notorietà — ma fattura caro e, ogni tanto, sforna una pubblicità fuori bersaglio che FA CROLLARE la notorietà. Nessun volto, nessun ufficio: solo una fattura e risultati altalenanti.", de: "Du unterschreibst bei einer teuren Kommunikationsagentur. Sie steuert deine Marketingkampagnen und steigert deine Bekanntheit — rechnet aber happig ab und bringt hin und wieder eine danebenliegende Werbung heraus, die deine Bekanntheit ABSTÜRZEN lässt. Kein Gesicht, kein Büro: nur eine Rechnung und schwankende Ergebnisse." },
+    apply: s => ({ ...s, hasJanice: true, marketingMult: Math.max(s.marketingMult, 1.4) }) },
   // === PHASE 3 → 4 — Diversification industrielle ===
   { id: 'diversification', Icon: Briefcase, count: 1, destructible: false, phase: 3, phaseUnlock: 4, name: { fr: 'Diversification industrielle', en: 'Industrial diversification', es: 'Diversificación industrial', zh: "工业多元化", ru: "Промышленная диверсификация", it: "Diversificazione industriale", de: "Industrielle Diversifikation" }, desc: { fr: '→ PHASE 04 · POP ICE + FROZIO + MEDIPACK', en: '→ PHASE 04 · POP ICE + FROZIO + MEDIPACK', es: '→ FASE 04 · POP ICE + FROZIO + MEDIPACK', zh: "→ 第04阶段 · POP ICE + FROZIO + MEDIPACK", ru: "→ ФАЗА 04 · POP ICE + FROZIO + MEDIPACK", it: "→ FASE 04 · POP ICE + FROZIO + MEDIPACK", de: "→ PHASE 04 · POP ICE + FROZIO + MEDIPACK" }, cost: 200000,
     longDesc: { fr: "Tu réorganises l'usine en trois lignes parallèles. Glace à lécher POP ICE pour l'été, neige artificielle FROZIO pour l'hiver, gels packs médicaux MEDIPACK toute l'année. Tes contrats glaçon existants sont automatiquement reconvertis. Phase 04 : la dernière ligne droite vers la revente.", en: "You reorganize the factory into three parallel lines. POP ICE ice lollies for summer, FROZIO artificial snow for winter, MEDIPACK medical cold packs year-round. Your existing ice cube contracts auto-convert. Phase 04: the final stretch toward acquisition.", es: "Reorganizas la fábrica en tres líneas paralelas. POP ICE chupachups helados para verano, FROZIO nieve artificial para invierno, MEDIPACK packs fríos médicos todo el año. Tus contratos de cubitos existentes se reconvierten automáticamente. Fase 04: la recta final hacia la venta.", zh: "你将工厂重组为三条平行生产线。POP ICE夏季冰棒、FROZIO冬季人造雪、MEDIPACK全年医用冷敷包。你现有的冰块合同自动转换。第04阶段：迈向收购的最后冲刺。", ru: "Вы реорганизуете фабрику в три параллельные линии. Мороженое POP ICE на лето, искусственный снег FROZIO на зиму, медицинские холодовые пакеты MEDIPACK круглый год. Ваши существующие контракты на лёд автоматически конвертируются. Фаза 04: финишная прямая к поглощению.", it: "Riorganizzi la fabbrica in tre linee parallele. Ghiaccioli POP ICE per l'estate, neve artificiale FROZIO per l'inverno, pack freddi medicali MEDIPACK tutto l'anno. I tuoi contratti di cubetti esistenti si convertono in automatico. Fase 04: l'ultimo tratto verso l'acquisizione.", de: "Du gliederst die Fabrik in drei parallele Linien um. POP-ICE-Eislutscher für den Sommer, FROZIO-Kunstschnee für den Winter, MEDIPACK-Medizin-Kühlpacks ganzjährig. Deine bestehenden Eiswürfelverträge konvertieren automatisch. Phase 04: die Zielgerade zur Übernahme." },
@@ -2246,7 +2236,7 @@ const UPGRADE_FAMILIES = [
   { id: 'pers_brigitte', label: 'BRIGITTE', icon: 'Users', tiers: ['autosell', 'brigitte_compta', 'brigitte_ad', 'comptable_senior', 'brigitte_legende'], minPhase: 1 },
   { id: 'pers_lenny',    label: 'LENNY',    icon: 'Users', tiers: ['camion_1'],                                                                  minPhase: 2, hideWhenMax: true },
   { id: 'pers_karen',    label: 'KAREN',    icon: 'Users', tiers: ['karen_junior', 'karen_senior', 'karen_drh'],                                 minPhase: 2 },
-  { id: 'pers_janice',   label: 'JANICE',   icon: 'Users', tiers: ['janice_jr', 'janice_senior', 'janice_dir'],                                  minPhase: 3, requireUnlock: 'headquarters' },
+  { id: 'pers_janice',   label: 'AGENCE MARKETING',   icon: 'Megaphone', tiers: ['janice_jr'],                                  minPhase: 3, requireUnlock: 'headquarters' },
   { id: 'pers_mark',     label: 'MARK',     icon: 'Users', tiers: ['mark_jr', 'mark_resp', 'mark_dir'],                                          minPhase: 3, requireUnlock: 'headquarters' },
   { id: 'pers_sabine',   label: 'SABINE',   icon: 'Users', tiers: ['sabine_jr', 'sabine_sr', 'sabine_dg'],                                       minPhase: 3, requireUnlock: 'headquarters' },
   { id: 'pers_bienetre', label: 'BIEN-ÊTRE & FORMATION', icon: 'Users',
@@ -2414,15 +2404,15 @@ const TUTORIAL_STEPS = [
     }, targetSel: '.menu-btn-juridique', side: 'bottom', delay: 1500,
     canShow: s => (!!(s.owned && (s.owned['sabine_jr'] || s.owned['sabine_sr'] || s.owned['sabine_dg']))), autoClose: null },
   { id: 't_janice_intro', text: {
-      fr: "Janice débloque l'écran MARKETING. Lance des campagnes : chaque campagne gagne de la notoriété sur la durée. Tu peux aussi flasher des campagnes ciblées sur ton segment faible. Plus elle monte en grade, plus ses campagnes claquent.",
-      en: "Janice unlocks the MARKETING screen. Launch campaigns: each one earns notoriety over time. You can also flash targeted campaigns on your weakest segment. The higher her rank, the harder her campaigns hit.",
-      es: "Janice desbloquea la pantalla MARKETING. Lanza campañas: cada una gana notoriedad con el tiempo. También puedes hacer campañas flash dirigidas a tu segmento más débil. Cuanto más sube de grado, más pegan sus campañas.",
-      zh: "贾妮丝解锁营销界面。发起活动：每场活动会随时间提升知名度。你也可以针对最弱细分市场做闪电活动。她级别越高，活动威力越大。",
-      ru: "Дженис открывает экран МАРКЕТИНГА. Запускайте кампании: каждая приносит известность со временем. Можно делать флэш-кампании по слабому сегменту. Чем выше её ранг, тем сильнее бьют её кампании.",
-      it: "Janice sblocca la schermata MARKETING. Lancia campagne: ognuna guadagna notorietà nel tempo. Puoi anche fare campagne flash mirate sul segmento più debole. Più sale di grado, più colpiscono le campagne.",
-      de: "Janice schaltet den MARKETING-Bildschirm frei. Starte Kampagnen: jede bringt Bekanntheit über Zeit. Du kannst auch Flash-Kampagnen auf dein schwächstes Segment fahren. Je höher ihr Rang, desto härter treffen ihre Kampagnen."
+      fr: "L'agence marketing débloque l'écran MARKETING. Lance des campagnes : chacune gagne de la notoriété sur la durée. Attention : l'agence se plante parfois et sort une pub à côté de la plaque qui fait CHUTER ta notoriété.",
+      en: "The marketing agency unlocks the MARKETING screen. Launch campaigns: each earns notoriety over time. Careful: the agency sometimes blunders and ships an off-target ad that DROPS your notoriety.",
+      es: "La agencia de marketing desbloquea la pantalla MARKETING. Lanza campañas: cada una gana notoriedad con el tiempo. Cuidado: la agencia a veces se equivoca y saca un anuncio fuera de lugar que HACE CAER tu notoriedad.",
+      zh: "营销代理公司解锁营销界面。发起活动：每场活动会随时间提升知名度。注意：代理公司有时会出错，推出离谱广告，让你的知名度不升反降。",
+      ru: "Маркетинговое агентство открывает экран МАРКЕТИНГА. Запускайте кампании: каждая приносит известность со временем. Осторожно: агентство иногда ошибается и выпускает неудачную рекламу, которая СНИЖАЕТ известность.",
+      it: "L'agenzia marketing sblocca la schermata MARKETING. Lancia campagne: ognuna guadagna notorietà nel tempo. Attento: l'agenzia a volte sbaglia e sforna una pubblicità fuori bersaglio che FA CROLLARE la notorietà.",
+      de: "Die Marketingagentur schaltet den MARKETING-Bildschirm frei. Starte Kampagnen: jede bringt Bekanntheit über Zeit. Achtung: Die Agentur patzt manchmal und bringt eine danebenliegende Werbung, die deine Bekanntheit ABSTÜRZEN lässt."
     }, targetSel: '.menu-btn-campaigns', side: 'bottom', delay: 1500,
-    canShow: s => (!!(s.owned && (s.owned['janice_jr'] || s.owned['janice_senior'] || s.owned['janice_dir']))), autoClose: null },
+    canShow: s => (!!(s.owned && s.owned['janice_jr'])), autoClose: null },
   { id: 't_karen_intro', text: {
       fr: "Karen débloque l'écran RH. 5 actions disponibles (petit-déj, individuel, afterwork, médiation, team-building) pour remonter le moral. Chaque action a un cooldown, et il y a un quota par an. Karen est ton airbag : un moral en chute libre coûte cher en prod.",
       en: "Karen unlocks the HR screen. 5 actions available (breakfast, 1:1, afterwork, mediation, team-building) to lift morale. Each has a cooldown and a yearly quota. Karen is your airbag: a free-falling morale crushes production.",
@@ -4815,14 +4805,7 @@ const UPGRADE_THANKS = {
     ru: "Шестой грузовик. Это уже не маршрут — это организованная миграция кубиков. 6 доставок параллельно, ёмкость 16 000. Если всё уходит одновременно, даже расписание потеет.",
     it: "Sesto camion. Non è più una tratta, è una migrazione organizzata di cubetti. 6 consegne in parallelo, 16000 di capacità. Se parte tutto insieme, suda anche il planning.",
     de: "Sechster LKW. Das ist keine Tour mehr, das ist eine organisierte Migration von Eiswürfeln. 6 parallele Lieferungen, 16.000 Kapazität. Wenn alles gleichzeitig losfährt, schwitzt selbst der Plan." },
-  janice_jr: { speaker: 'Janice',
-    fr: "Brand Manager. Enfin une marque à vendre qui n'a pas besoin de promettre le bonheur, seulement du froid. Je vais donner un visage aux glaçons. Sobre, rentable, légèrement inquiétant. Le public ne sait pas encore qu'il nous attend.",
-    en: "Brand Manager. Finally a brand to sell that doesn't have to promise happiness — just cold. I'll give the ice cubes a face. Sober, profitable, slightly unsettling. The public doesn't know it's waiting for us yet.",
-    es: "Brand Manager. Por fin una marca que vender que no necesita prometer la felicidad, solo el frío. Voy a darles cara a los cubitos. Sobria, rentable, ligeramente inquietante. El público todavía no sabe que nos está esperando.",
-    zh: "品牌经理。终于有个不必承诺幸福、只需承诺冷的牌子要卖。我要给冰块一张脸。沉稳、赚钱、略带不安。公众还不知道他们已经在等我们。",
-    ru: "Brand Manager. Наконец-то бренд, который не обязан обещать счастье — только холод. Я дам кубикам лицо. Сдержанное, прибыльное, слегка тревожное. Публика ещё не знает, что ждёт именно нас.",
-    it: "Brand Manager. Finalmente un marchio da vendere che non deve promettere la felicità, solo il freddo. Darò un volto ai cubetti. Sobrio, redditizio, leggermente inquietante. Il pubblico non sa ancora che ci sta aspettando.",
-    de: "Brand Manager. Endlich eine Marke zum Verkaufen, die kein Glück versprechen muss — nur Kälte. Ich gebe den Eiswürfeln ein Gesicht. Nüchtern, rentabel, leicht beunruhigend. Das Publikum weiß noch nicht, dass es auf uns wartet." },
+  // (janice_jr = engagement de l'agence marketing : déjà couvert par hire_intro.janice, pas de remerciement Janice)
   karen_junior: { speaker: 'Karen',
     fr: "RH Junior. Je vais commencer par dire bonjour aux gens avant qu'ils ne démissionnent intérieurement. Moral de base à 73. C'est discret, mais dans cette entreprise, discret peut sauver des vies sociales.",
     en: "HR Junior. I'll start by saying hello to people before they resign on the inside. Base morale at 73. It's discreet, but in this company, discreet can save social lives.",
@@ -5234,11 +5217,10 @@ function getCampaignMultipliers(activeCampaign, gameTime, marketingMult, janiceG
   if (gameTime > activeCampaign.endsAt) return out;
   const c = CAMPAIGNS_BY_ID[activeCampaign.id];
   if (!c) return out;
-  // Janice grève neutralise le boost (effet ×1). Sinon, le moral module l'efficacité.
-  // Moral ≥80 → ×1.00 · 50-79 → ×0.90 · 30-49 → ×0.75 · <30 → ×0.60
-  const jm = typeof janiceMoral === 'number' ? janiceMoral : 100;
-  const moralFactor = jm >= 80 ? 1.00 : jm >= 50 ? 0.90 : jm >= 30 ? 0.75 : 0.60;
-  const eff = janiceGrumpy ? 1 : marketingMult * moralFactor;
+  // L'agence marketing est un prestataire payé : son efficacité ne dépend
+  // plus d'un « moral » d'employée (mécanique Janice retirée). Seul le
+  // multiplicateur marketing débloqué module l'effet des campagnes.
+  const eff = marketingMult;
   // Table des effets PRIX par campagne (spot=vente directe, retail=contrats, all=les deux).
   // Avant, seules radio/influencers/tv appliquaient un effet ; les autres promettaient
   // un "Prix ×1.1x" sans jamais l'appliquer. Désormais cohérent.
@@ -7754,10 +7736,7 @@ export default function App() {
         const d = computeDelta('brigitte', brigitteSalaryLevelRef.current, brigitteMoralRef.current);
         if (d !== 0) setBrigitteMoral(m => Math.max(0, Math.min(100, m + d)));
       }
-      if (hasJ) {
-        const d = computeDelta('janice', janiceSalaryLevelRef.current, janiceMoralRef.current);
-        if (d !== 0) setJaniceMoral(m => Math.max(0, Math.min(100, m + d)));
-      }
+      // L'agence marketing (ex-Janice) n'a plus de moral d'employée à faire évoluer.
       if (hasL) {
         const d = computeDelta('lenny', lennySalaryLevelRef.current, lennyMoralRef.current);
         if (d !== 0) setLennyMoral(m => Math.max(0, Math.min(100, m + d)));
@@ -7814,7 +7793,8 @@ export default function App() {
       // Score Qualité = moyenne pondérée des positions curseurs Mark (0 = ECO, 4 = LIMITE)
       // → score = 100 quand tout en PREMIUM (idx 0 = eco mais notoBonus haut)
       // Ici on inverse : positions hautes = qualité basse car curseurs eco/limit
-      const hasJ = !!(ownedRef.current['janice_jr'] || ownedRef.current['janice_senior'] || ownedRef.current['janice_dir']);
+      // L'agence marketing ne fait plus « grève » sur la qualité (mécanique Janice retirée).
+      const hasJ = false;
       if (hasJ && notorietyRef.current > 60) {
         const sl = purchaseSlidersRef.current || {};
         // Position 2 = standard (neutre). 0-1 = premium (qualité haute). 3-4 = eco/limite (qualité basse).
@@ -7836,7 +7816,7 @@ export default function App() {
             setJaniceMoral(m => Math.max(0, m - 10));
             qualityRiskSinceRef.current = null;
             if (!popupMessageRef.current) {
-              queuePopup({ type: 'character', speaker: 'Janice', text: "Patron, je peux pas faire la promo d'un produit qui sort comme ça. Notre image se construit, là on la détruit. Soit on remonte la qualité, soit je freine les campagnes." });
+              queuePopup({ type: 'character', speaker: t('agency.speaker'), text: t('agency.warn_quality') });
             }
           }
         } else {
@@ -8112,7 +8092,8 @@ export default function App() {
       // cadeaux anonymes, célébrations Janice...) est coupé en P4.
       if (phaseRef.current >= 4) return;
 
-      if (hasJ && !janiceGrumpyRef.current && phaseRef.current >= 3
+      // Agence marketing : plus de célébrations narratives façon Janice (personnage retiré).
+      if (false && hasJ && !janiceGrumpyRef.current && phaseRef.current >= 3
           && (curT - lastJaniceCelebrationRef.current) > 240 && Math.random() < 0.50) {
         const pos = brandPositioningRef.current;
         const posDef = pos ? BRAND_POSITIONS[pos] : null;
@@ -9345,7 +9326,7 @@ export default function App() {
   const moralValues = [];
   if (hasFred && !fredGrumpy) moralValues.push(fredMoral);
   if (hasBrigitte && !brigitteGrumpy) moralValues.push(brigitteMoral);
-  if (hasJanice && !janiceGrumpy) moralValues.push(janiceMoral);
+  // L'agence marketing (ex-Janice) n'est pas une salariée : pas d'impact moral d'équipe.
   if (hasLenny && !lennyGrumpy) moralValues.push(lennyMoral);
   const lowestMoral = moralValues.length > 0 ? Math.min(...moralValues) : 100;
   const moralMult = moralFor(lowestMoral);
@@ -9386,7 +9367,8 @@ export default function App() {
   // Salaires (offerts au 1er semestre)
   const upFredSalary = currentFredUpgrade ? currentFredUpgrade.salary[fredSalaryLevel] : 0;
   const upBrigitteSalary = hasBrigitte ? currentBrigitteUpgrade.salary[brigitteSalaryLevel] : 0;
-  const upJaniceSalary = hasJanice ? currentJaniceUpgrade.salary[janiceSalaryLevel] : 0;
+  // L'agence marketing est un déblocage payant unique, pas un·e salarié·e : aucun salaire mensuel.
+  const upJaniceSalary = (hasJanice && currentJaniceUpgrade && currentJaniceUpgrade.salary) ? currentJaniceUpgrade.salary[janiceSalaryLevel] : 0;
   const upLennySalary = hasLenny ? lennyGrade.salary[lennySalaryLevel] : 0;
   const upSalaryRaw = upFredSalary + upBrigitteSalary + upJaniceSalary + upLennySalary;
   // 6 PREMIERS MOIS offerts (équivalent ancien 1er semestre).
@@ -11080,20 +11062,20 @@ export default function App() {
             }
             let speaker = null, key = null;
             // Priorités situationnelles (du plus urgent au plus léger)
-            if (rep < 35) { speaker = 'Janice'; key = 'rep_low'; }
+            if (rep < 35) { speaker = 'Brigitte'; key = 'rep_low'; }
             else if (marginNeg) { speaker = 'Brigitte'; key = 'margin_neg'; }
             else if (luxeEco) { speaker = 'Brigitte'; key = 'luxe_eco'; }
             else if (paysCount > p4PrevPaysCountRef.current) { speaker = 'Lenny'; key = 'pays_open'; }
             else if (premiumOn && Math.random() < 0.5) { speaker = 'Fred'; key = 'premium_on'; }
             else if (lines.some(l => (l.deliveriesDone || 0) >= 15) && Math.random() < 0.35) {
-              speaker = Math.random() < 0.5 ? 'Lenny' : 'Janice'; key = 'big_done';
+              speaker = 'Lenny'; key = 'big_done';
             } else if (Math.random() < 0.5) {
               // observation d'ambiance : speaker au hasard parmi ceux employés
               const _o = ownedRef.current;
               const pool = [];
               if (_o['fred_stage'] || _o['fred'] || _o['fred_perma'] || _o['fred_chef'] || _o['fred_dir']) pool.push('Fred');
               if (_o['autosell'] || _o['brigitte_compta'] || _o['brigitte_ad']) pool.push('Brigitte');
-              if (_o['janice_jr']) pool.push('Janice');
+              // Agence marketing retirée du pool d'ambiance (plus de personnage Janice).
               if (_o['lenny'] || _o['lenny_senior'] || _o['lenny_dir']) pool.push('Lenny');
               if (pool.length) { speaker = pickUnseen(pool); key = 'ambient'; }
             }
@@ -11828,17 +11810,8 @@ export default function App() {
         }
       }
 
-      // === Janice welcome (post-emménagement) ===
-      // Déclenché en Phase 3 quand Janice vient juste d'être embauchée, mais avec délai pour laisser respirer
-      if (!currentCallRef.current && phaseRef.current === 3) {
-        const hasJanice = !!(ownedRef.current['janice_jr'] || ownedRef.current['janice_senior'] || ownedRef.current['janice_dir']);
-        const alreadyPresented = completedCallsRef.current.includes('janice_welcome');
-        const hireT = hireDatesRef.current.janice;
-        // Délai de 8 secondes après l'embauche pour laisser respirer après l'animation
-        if (hasJanice && !alreadyPresented && typeof hireT === 'number' && curGameTime - hireT >= 8) {
-          setCurrentCall({ id: 'janice_welcome', startedAt: curGameTime });
-        }
-      }
+      // === Agence marketing : pas d'appel de bienvenue narratif (ex-Janice retirée).
+      // L'engagement de l'agence est déjà annoncé par hire_intro.janice à l'achat.
 
       if (!currentCallRef.current && curGameTime >= nextCallAtRef.current) {
         // Pendant la cyberattaque : ligne coupée, aucun appel ne peut entrer.
@@ -12028,10 +12001,9 @@ export default function App() {
           const curBrigitteTier = [...brigitteTierIds].reverse().find(id => ownedRef.current[id]);
           const brigitteUpg = curBrigitteTier ? UPGRADES.find(u => u.id === curBrigitteTier) : null;
           let brigitteSalary = brigitteUpg ? Math.round(brigitteUpg.salary[brigitteSalaryLevelRef.current] / MONTHS_PER_SEMESTER) : 0;
-          const janiceTierIds = ['janice_jr', 'janice_senior', 'janice_dir'];
-          const curJaniceTier = [...janiceTierIds].reverse().find(id => ownedRef.current[id]);
-          const janiceUpg = curJaniceTier ? UPGRADES.find(u => u.id === curJaniceTier) : null;
-          let janiceSalary = janiceUpg ? Math.round(janiceUpg.salary[janiceSalaryLevelRef.current] / MONTHS_PER_SEMESTER) : 0;
+          // L'agence marketing est un déblocage payant + campagnes payées à l'unité,
+          // pas un·e salarié·e : aucun salaire mensuel récurrent.
+          let janiceSalary = 0;
           const lennyGr = getLennyGrade(ownedRef.current);
           let lennySalary = lennyGr ? Math.round(lennyGr.salary[lennySalaryLevelRef.current] / MONTHS_PER_SEMESTER) : 0;
           const karenTierIds = ['karen_junior', 'karen_senior', 'karen_drh'];
@@ -12226,7 +12198,7 @@ export default function App() {
             setReputation(r => Math.max(0, r - LOAN_OVERDUE_REP_LOSS));
             setFredGrumpy(true);
             setBrigitteGrumpy(true);
-            setJaniceGrumpy(true);
+            // L'agence marketing n'est pas une salariée : pas de « grève ».
             setLennyGrumpy(true);
             setActiveLoan(null);
             setEventNotif(`${t('notif.loan_default')} · −${LOAN_OVERDUE_REP_LOSS} ${t('notif.reputation')} · ${t('notif.team_strike')}`);
@@ -12260,12 +12232,11 @@ export default function App() {
           // Check each hired employee
           const hasK = ownedRef.current['fred_stage'] || ownedRef.current['fred'] || ownedRef.current['fred_perma'] || ownedRef.current['fred_chef'] || ownedRef.current['fred_dir'];
           const hasP = ownedRef.current['autosell'] || ownedRef.current['brigitte_compta'] || ownedRef.current['brigitte_ad'];
-          const hasKa = ownedRef.current['janice_jr'] || ownedRef.current['janice_senior'] || ownedRef.current['janice_dir'];
           const hasL = TRUCK_IDS.some(id => ownedRef.current[id]);
 
           checkEmp('fred', hasK, fredSalaryLevelRef.current, fredGrumpyRef.current);
           checkEmp('brigitte', hasP, brigitteSalaryLevelRef.current, brigitteGrumpyRef.current);
-          checkEmp('janice', hasKa, janiceSalaryLevelRef.current, janiceGrumpyRef.current);
+          // L'agence marketing n'est pas salariée → pas de demande d'augmentation.
           checkEmp('lenny', hasL, lennySalaryLevelRef.current, lennyGrumpyRef.current);
 
           if (eligible.length > 0) {
@@ -12930,7 +12901,7 @@ export default function App() {
         const hasLenAny  = TRUCK_IDS.some(id => ownedRef.current[id]);
         empAvailable.fred     = hasFredAny && hd.fred     && (nowG - hd.fred)     >= INCIDENT_TENURE_MIN && !fredGrumpyRef.current;
         empAvailable.brigitte = hasBrigAny && hd.brigitte && (nowG - hd.brigitte) >= INCIDENT_TENURE_MIN && !brigitteGrumpyRef.current;
-        empAvailable.janice   = hasJanAny  && hd.janice   && (nowG - hd.janice)   >= INCIDENT_TENURE_MIN && !janiceGrumpyRef.current;
+        empAvailable.janice   = false; // agence marketing : jamais victime d'incidents RH (personnage retiré)
         empAvailable.lenny    = hasLenAny  && hd.lenny    && (nowG - hd.lenny)    >= INCIDENT_TENURE_MIN && !lennyGrumpyRef.current;
         const availableEmps = Object.keys(empAvailable).filter(k => empAvailable[k]);
         if (availableEmps.length === 0) return;
@@ -13433,16 +13404,26 @@ export default function App() {
     if (money < c.cost) return;
     setMoney(m => m - c.cost);
     setActiveCampaign({ id, startedAt: gameTime, endsAt: gameTime + c.duration });
-    // Apply notoriety boost (multiplied by Janice's mult, unless she's on strike).
+    // L'agence marketing fait parfois une bourde : pub à côté de la plaque
+    // → au lieu de monter, la notoriété CHUTE. ~15% de chance par campagne.
+    const misfire = Math.random() < 0.15;
     // Damper 0.28 : la noto se construit TRÈS lentement — il faut de
     // nombreuses campagnes répétées pour grimper, l'image est un travail de fond.
-    const mult = (janiceGrumpy ? 1 : stats.marketingMult) * 0.28;
+    const mult = stats.marketingMult * 0.28;
+    if (misfire) {
+      // Recul de notoriété proportionnel au "potentiel" de la campagne ratée.
+      const drop = Math.max(1.5, c.notoBoost * mult * 0.6);
+      setNotoriety(n => Math.max(0, n - drop));
+      setCampaignsLaunched(n => n + 1);
+      setEventNotif(`${t('notif.campaign_misfire')} · ${localizeField(c.name, language).toUpperCase()} · −${drop.toFixed(1)} ${t('notif.notoriety_short')}`);
+      setCampaignsOpen(false);
+      return;
+    }
     setNotoriety(n => Math.min(100, n + c.notoBoost * mult));
     // Bonus réputation des campagnes "image" (esg/documentaire) — promesse de leur libellé.
     const REP_FX = { esg: 0.5, documentaire: 0.8 };
     if (REP_FX[id]) setReputation(r => Math.min(100, r + REP_FX[id]));
     setCampaignsLaunched(n => n + 1);
-    adjustMoralFor('janice', 5);
     // Phase 3+ : impact par segment
     if (c.segmentImpact) applySegmentImpact(c.segmentImpact);
     setEventNotif(`${t('notif.campaign_launched')} · ${localizeField(c.name, language).toUpperCase()} · +${(c.notoBoost * mult).toFixed(1)} ${t('notif.notoriety_short')}`);
@@ -13557,7 +13538,7 @@ export default function App() {
     const genBirthday = () => gameTime + BIRTHDAY_OFFSET_MIN + Math.random() * BIRTHDAY_OFFSET_RANGE;
     if (u.id === 'fred_stage' && !hireDates.fred) { setHireDates(prev => ({ ...prev, fred: gameTime })); setBirthdays(prev => ({ ...prev, fred: genBirthday() })); queuePopup({ type: 'character', speaker: 'Fred', text: t('hire_intro.fred') }); }
     if (u.id === 'autosell' && !hireDates.brigitte) { setHireDates(prev => ({ ...prev, brigitte: gameTime })); setBirthdays(prev => ({ ...prev, brigitte: genBirthday() })); queuePopup({ type: 'character', speaker: 'Brigitte', text: t('hire_intro.brigitte') }); }
-    if (u.id === 'janice_jr' && !hireDates.janice) { setHireDates(prev => ({ ...prev, janice: gameTime })); setBirthdays(prev => ({ ...prev, janice: genBirthday() })); queuePopup({ type: 'character', speaker: 'Janice', text: t('hire_intro.janice') }); }
+    if (u.id === 'janice_jr' && !hireDates.janice) { setHireDates(prev => ({ ...prev, janice: gameTime })); queuePopup({ type: 'character', speaker: t('agency.speaker'), text: t('hire_intro.janice') }); }
     if (u.id === 'camion_1' && !hireDates.lenny) { setHireDates(prev => ({ ...prev, lenny: gameTime })); setBirthdays(prev => ({ ...prev, lenny: genBirthday() })); queuePopup({ type: 'character', speaker: 'Lenny', text: t('hire_intro.lenny') }); }
     if (u.id === 'karen_junior' && !hireDates.karen) { setHireDates(prev => ({ ...prev, karen: gameTime })); setBirthdays(prev => ({ ...prev, karen: genBirthday() })); queuePopup({ type: 'character', speaker: 'Karen', text: t('hire_intro.karen') }); }
     // Présentation Mark à l'embauche (Mark Jr) + avertissement Brigitte sur le risque juridique des curseurs Achats
@@ -15268,7 +15249,7 @@ export default function App() {
   const getEmpSalary = (emp) => {
     if (emp === 'fred')     return currentFredUpgrade     ? currentFredUpgrade.salary[fredSalaryLevel]         : 0;
     if (emp === 'brigitte') return currentBrigitteUpgrade ? currentBrigitteUpgrade.salary[brigitteSalaryLevel] : 0;
-    if (emp === 'janice')   return currentJaniceUpgrade   ? currentJaniceUpgrade.salary[janiceSalaryLevel]     : 0;
+    if (emp === 'janice')   return 0; // agence marketing : pas de salaire (déblocage + campagnes payées)
     if (emp === 'lenny')    return lennyGrade             ? lennyGrade.salary[lennySalaryLevel]                : 0;
     if (emp === 'karen')  { const id = ['karen_drh','karen_senior','karen_junior'].find(i => owned[i]); const u = id ? UPGRADES.find(x => x.id === id) : null; return u ? u.salary[karenSalaryLevel] : 0; }
     if (emp === 'mark')   { const id = ['mark_dir','mark_resp','mark_jr'].find(i => owned[i]);          const u = id ? UPGRADES.find(x => x.id === id) : null; return u ? u.salary[markSalaryLevel] : 0; }
@@ -23926,18 +23907,13 @@ export default function App() {
                   )}
                   <div className="campaigns-grid">
                     {CAMPAIGNS.map(c => {
-                      // Niveau marketing débloqué : base 1, Janice Junior 2,
-                      // Janice Senior 3, Janice Directrice 4.
-                      const mktLevel = owned['janice_dir'] ? 4
-                        : owned['janice_senior'] ? 3
-                        : owned['janice_jr'] ? 2
-                        : 1;
+                      // Marketing : seules les campagnes de base (tier 1) sont
+                      // accessibles sans agence. Engager l'agence marketing
+                      // (janice_jr) débloque toutes les campagnes.
+                      const mktLevel = owned['janice_jr'] ? 99 : 1;
                       const tierReq = c.tier || 1;
                       const tierLocked = tierReq > mktLevel;
-                      const tierLabel = tierReq === 2 ? t('campaign.req_agence')
-                        : tierReq === 3 ? t('campaign.req_senior')
-                        : tierReq === 4 ? t('campaign.req_dir')
-                        : '';
+                      const tierLabel = tierLocked ? t('campaign.req_agence') : '';
                       const isActive = camp && camp.id === c.id;
                       const canAfford = money >= c.cost;
                       const blocked = !!camp || !canAfford || tierLocked;
@@ -24826,21 +24802,7 @@ export default function App() {
               : "Lenny shared your practices on a trucker forum. The post got 2000 shares.";
             epilogueChars.push({ name: 'Lenny', text: { fr: l_fr, en: l_en, es: l_fr, zh: l_fr, ru: l_fr, it: l_fr, de: l_fr }});
           }
-          // JANICE — présent dès P3
-          if (owned['janice_jr'] || owned['janice_senior'] || owned['janice_dir']) {
-            const m = janiceMoral;
-            const j_fr = m >= 60
-              ? "Janice a lancé sa propre agence de branding. Sa première cliente : ta nouvelle filiale. « Plot twist iconique. » Elle te tague sur les réseaux pro tous les mois."
-              : m >= 30
-              ? "Janice a pris six mois sabbatiques. Elle voyage. Elle ne scrolle pas les réseaux pour la première fois depuis 10 ans. Elle a coupé les notifs."
-              : "Janice n'a pas dit au revoir. Elle a posé ses badges sur le bureau et est partie. Tu as appris qu'elle bossait chez ton concurrent direct.";
-            const j_en = m >= 60
-              ? "Janice launched her own branding agency. Her first client: your new subsidiary. \"Iconic plot twist.\" She tags you on professional networks every month."
-              : m >= 30
-              ? "Janice took a six-month sabbatical. She's traveling. She's not scrolling social media for the first time in 10 years. She muted her work chat."
-              : "Janice didn't say goodbye. She put her badges on the desk and left. You found out she's working at your direct competitor.";
-            epilogueChars.push({ name: 'Janice', text: { fr: j_fr, en: j_en, es: j_fr, zh: j_fr, ru: j_fr, it: j_fr, de: j_fr }});
-          }
+          // (Agence marketing ex-Janice : prestataire externe, pas d'épilogue personnage.)
           // KAREN
           if (owned['karen_junior'] || owned['karen_senior'] || owned['karen_drh']) {
             const m = karenMoral;
@@ -25993,7 +25955,7 @@ export default function App() {
           const totalMonthsRem = Math.floor((totalDays % 360) / 30);
           const finalEmployees = [
             owned['fred_stage'], owned['autosell'], owned['camion_1'],
-            owned['janice_senior'], owned['karen_junior'],
+            owned['janice_jr'], owned['karen_junior'],
             owned['mark_jr'], owned['sabine_jr'],
           ].filter(Boolean).length;
           const ngPct = getPrestigeBonusPct();
@@ -26008,7 +25970,7 @@ export default function App() {
                 </div>
                 <div className="victory-body">
                   <div className="victory-quote">
-                    <div className="victory-speaker">Janice</div>
+                    <div className="victory-speaker">{t('agency.speaker')}</div>
                     <div className="victory-quote-text">{t('victory.quote_janice')}</div>
                   </div>
                   <div className="victory-stats">
@@ -26550,7 +26512,7 @@ export default function App() {
           const semNum = Math.floor(gameTime / semDur);
           const fredSalary = currentFredUpgrade ? currentFredUpgrade.salary[fredSalaryLevel] : 0;
           const brigitteSalary = hasBrigitte ? currentBrigitteUpgrade.salary[brigitteSalaryLevel] : 0;
-          const janiceSalary = hasJanice ? currentJaniceUpgrade.salary[janiceSalaryLevel] : 0;
+          const janiceSalary = 0; // agence marketing : pas de salaire
           const lennySalary = hasLenny ? lennyGrade.salary[lennySalaryLevel] : 0;
           // Karen
           const karenTierId = ['karen_drh', 'karen_senior', 'karen_junior'].find(id => owned[id]);
@@ -26728,61 +26690,7 @@ export default function App() {
                     </div>
                   )}
 
-                  {hasJanice && (() => {
-                    const janicePerfMult = ({ bas: 0.8, std: 1.0, haut: 1.2 }[janiceSalaryLevel] || 1) * (janiceGrumpy ? 0 : 1);
-                    const baseMarketing = janiceGrumpy ? 1 : stats.marketingMult;
-                    return (
-                      <div className={`personnel-section ${janiceStress >= 60 ? 'is-stressed' : ''}`}>
-                        <div className="personnel-name">
-                          <span className="personnel-name-left">
-                            <span className="personnel-firstname">Janice</span> · {localizeField(currentJaniceUpgrade.gradeName, language)}
-                            {janiceGrumpy && <span className="personnel-grumpy"> · {t('staff.grumpy')}</span>}
-                            {janiceStress >= 60 && !janiceGrumpy && <span className="personnel-stress-tag"> · {t('boost.stress_high')}</span>}
-                          </span>
-                          {(() => { const p = getMoralPenaltyLabel('janice', janiceMoral); return p ? <span className={`personnel-status ${p.mood === 'crit' ? 'is-crit' : ''}`}>{p.label}</span> : null; })()}
-                        </div>
-                        <span className="personnel-moral"><span className="moral-bar-label">{t('staff.moral')}</span><span className="moral-bar-value">{Math.round(janiceMoral)}</span><div className="moral-bar-vertical"><div className={`moral-bar-fill moral-${janiceMoral >= 80 ? 'high' : janiceMoral >= 50 ? 'mid' : janiceMoral >= 30 ? 'low' : 'crit'}`} style={{ height: `${Math.max(2, Math.min(100, janiceMoral))}%` }} /></div></span>{renderEcouterBtn('janice', janiceMoral, setJaniceMoral)}
-                        {janiceStress > 5 && (<div className="stress-bar-wrap"><span className="stress-bar-label">{t('staff.stress')}</span><div className="stress-bar"><div className={`stress-bar-fill ${janiceStress >= 60 ? 'high' : ''}`} style={{ width: `${janiceStress}%` }} /></div></div>)}
-                        <div className="salary-slider-wrap">
-                          <div className="salary-slider-labels">
-                            <span className={janiceSalaryLevel === 'bas' ? 'active' : ''} onClick={() => setJaniceSalaryLevel('bas')}>{t('staff.salary_low')}</span>
-                            <span className={janiceSalaryLevel === 'std' ? 'active' : ''} onClick={() => setJaniceSalaryLevel('std')}>{t('staff.salary_std')}</span>
-                            <span className={janiceSalaryLevel === 'haut' ? 'active' : ''} onClick={() => setJaniceSalaryLevel('haut')}>{t('staff.salary_high')}</span>
-                          </div>
-                          <div className="salary-slider-row">
-                            <button
-                              className="salary-slider-arrow"
-                              disabled={janiceSalaryLevel === 'bas'}
-                              onClick={() => setJaniceSalaryLevel(janiceSalaryLevel === 'haut' ? 'std' : 'bas')}
-                              aria-label="−"
-                            >
-                              <ChevronLeft size={12} strokeWidth={2.5} />
-                            </button>
-                            <input
-                              type="range"
-                              min="0" max="2" step="1"
-                              value={janiceSalaryLevel === 'bas' ? 0 : janiceSalaryLevel === 'std' ? 1 : 2}
-                              onChange={e => setJaniceSalaryLevel(['bas', 'std', 'haut'][+e.target.value])}
-                              className="salary-slider"
-                            />
-                            <button
-                              className="salary-slider-arrow"
-                              disabled={janiceSalaryLevel === 'haut'}
-                              onClick={() => setJaniceSalaryLevel(janiceSalaryLevel === 'bas' ? 'std' : 'haut')}
-                              aria-label="+"
-                            >
-                              <ChevronRight size={12} strokeWidth={2.5} />
-                            </button>
-                          </div>
-                          <div className="salary-slider-amount">{fmtInt(currentJaniceUpgrade.salary[janiceSalaryLevel])}€</div>
-                        </div>
-                        <div className="personnel-info">
-                          {t('staff.marketing_perf')} : ×{(baseMarketing * janicePerfMult).toFixed(2)} · {janiceGrumpy ? t('staff.strike_noto_frozen') : t('staff.manages_brand')}
-                        </div>
-                        {renderBonusBtn('janice')}
-                      </div>
-                    );
-                  })()}
+                  {/* L'agence marketing (ex-Janice) n'est pas une salariée : pas de carte Personnel. */}
 
                   {hasLenny && (() => {
                     const lennyPerfMult = LENNY_PERF_MULT[lennySalaryLevel] || 1;

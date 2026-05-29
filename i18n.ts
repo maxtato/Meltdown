@@ -160,10 +160,14 @@ export const TRANSLATIONS = {
 
   'positioning.title': { fr: 'POSITIONNEMENT DE MARQUE', en: 'BRAND POSITIONING', es: 'POSICIONAMIENTO DE MARCA', de: "MARKENPOSITIONIERUNG" , it: "POSIZIONAMENTO DEL MARCHIO", ru: "ПОЗИЦИОНИРОВАНИЕ БРЕНДА", zh: "品牌定位"},
   'positioning.intro': {
-    fr: "Janice : « Avant de lancer la première campagne, on doit choisir notre ADN. Tu pourras changer plus tard, mais tu perdras 50% de tes acquis. Choisis bien. »",
-    en: "Janice: \"Before launching the first campaign, we must choose our DNA. You can change later, but you'll lose 50% of your gains. Choose well.\"",
-    es: "Janice: « Antes de lanzar la primera campaña, debemos elegir nuestro ADN. Podrás cambiar más tarde, pero perderás el 50% de tus logros. Elige bien. »", de: "Janice: „Bevor wir die erste Kampagne starten, müssen wir unsere DNA wählen. Du kannst später wechseln, verlierst aber 50 % deiner Gewinne. Wähle gut.“"
-  , it: "", ru: "", zh: ""},
+    fr: "L'agence : « Avant de lancer la première campagne, on doit choisir l'ADN de la marque. Tu pourras changer plus tard, mais tu perdras 50% de tes acquis. Choisis bien. »",
+    en: "The agency: \"Before launching the first campaign, we must choose the brand's DNA. You can change later, but you'll lose 50% of your gains. Choose well.\"",
+    es: "La agencia: « Antes de lanzar la primera campaña, debemos elegir el ADN de la marca. Podrás cambiar más tarde, pero perderás el 50% de tus logros. Elige bien. »",
+    de: "Die Agentur: „Bevor wir die erste Kampagne starten, müssen wir die DNA der Marke wählen. Du kannst später wechseln, verlierst aber 50 % deiner Gewinne. Wähle gut.“",
+    it: "L'agenzia: « Prima di lanciare la prima campagna, dobbiamo scegliere il DNA del marchio. Potrai cambiare più tardi, ma perderai il 50% dei tuoi progressi. Scegli bene. »",
+    ru: "Агентство: «Прежде чем запускать первую кампанию, нужно выбрать ДНК бренда. Позже можно сменить, но вы потеряете 50% достижений. Выбирайте с умом.»",
+    zh: "代理公司：「在发起第一场活动之前，我们得先确定品牌的DNA。以后可以更改，但你会损失50%的已有成果。慎重选择。」"
+  },
   'positioning.rival': { fr: 'Rival principal', en: 'Main rival', es: 'Rival principal', de: "Hauptkonkurrent" , it: "Rivale principale", ru: "Главный соперник", zh: "主要对手"},
   'notif.positioning_set': { fr: 'POSITIONNEMENT FIXÉ', en: 'POSITIONING SET', es: 'POSICIONAMIENTO FIJADO', de: "POSITIONIERUNG FESTGELEGT" , it: "POSIZIONAMENTO IMPOSTATO", ru: "ПОЗИЦИОНИРОВАНИЕ ЗАДАНО", zh: "定位已设定"},
 
@@ -231,12 +235,12 @@ export const TRANSLATIONS = {
 
   'brand.title': { fr: 'TABLEAU DE BORD MARQUE', en: 'BRAND DASHBOARD', es: 'PANEL DE MARCA', de: "MARKEN-DASHBOARD" , it: "DASHBOARD MARCHIO", ru: "ПАНЕЛЬ БРЕНДА", zh: "品牌仪表盘"},
   'brand.positioning': { fr: 'POSITIONNEMENT', en: 'POSITIONING', es: 'POSICIONAMIENTO', de: "POSITIONIERUNG" , it: "POSIZIONAMENTO", ru: "ПОЗИЦИОНИРОВАНИЕ", zh: "定位"},
-  'brand.no_positioning': { fr: 'Aucun positionnement choisi. Janice va te demander.', en: 'No positioning chosen. Janice will ask you.', es: 'Sin posicionamiento. Janice te lo preguntará.', de: "Keine Positionierung gewählt. Janice wird dich fragen." , it: "Nessun posizionamento scelto. Janice te lo chiederà.", ru: "Позиционирование не выбрано. Дженис вас спросит.", zh: "尚未选择定位。贾妮丝会询问你。"},
+  'brand.no_positioning': { fr: "Aucun positionnement choisi. L'agence va te demander.", en: 'No positioning chosen. The agency will ask you.', es: 'Sin posicionamiento. La agencia te lo preguntará.', de: "Keine Positionierung gewählt. Die Agentur wird dich fragen." , it: "Nessun posizionamento scelto. L'agenzia te lo chiederà.", ru: "Позиционирование не выбрано. Агентство вас спросит.", zh: "尚未选择定位。代理公司会询问你。"},
   'brand.notoriety': { fr: 'Notoriété', en: 'Awareness', es: 'Notoriedad', de: "Bekanntheit" , it: "Notorietà", ru: "Известность", zh: "知名度"},
   'brand.avg_perception': { fr: 'Perception moy.', en: 'Avg perception', es: 'Percepción media', de: "Ø Wahrnehmung" , it: "Percezione media", ru: "Ср. восприятие", zh: "平均认知"},
   'brand.perception_by_segment': { fr: 'PERCEPTION PAR SEGMENT', en: 'PERCEPTION BY SEGMENT', es: 'PERCEPCIÓN POR SEGMENTO', de: "WAHRNEHMUNG NACH SEGMENT" , it: "PERCEZIONE PER SEGMENTO", ru: "ВОСПРИЯТИЕ ПО СЕГМЕНТАМ", zh: "各细分市场认知"},
   'brand.drift_hint': { fr: 'Le positionnement fait dériver les segments dans le temps. Les campagnes accélèrent.', en: 'Positioning drifts segments over time. Campaigns accelerate.', es: 'El posicionamiento desplaza los segmentos con el tiempo. Las campañas aceleran.', de: "Die Positionierung verschiebt Segmente mit der Zeit. Kampagnen beschleunigen das." , it: "Il posizionamento sposta i segmenti col tempo. Le campagne accelerano.", ru: "Позиционирование смещает сегменты со временем. Кампании ускоряют.", zh: "定位会随时间影响各细分市场。营销活动加速这一过程。"},
-  'brand.janice_suggests': { fr: 'JANICE SUGGÈRE', en: 'JANICE SUGGESTS', es: 'JANICE SUGIERE', de: "JANICE SCHLÄGT VOR" , it: "JANICE SUGGERISCE", ru: "ДЖЕНИС ПРЕДЛАГАЕТ", zh: "贾妮丝建议"},
+  'brand.janice_suggests': { fr: "L'AGENCE SUGGÈRE", en: 'THE AGENCY SUGGESTS', es: 'LA AGENCIA SUGIERE', de: "DIE AGENTUR SCHLÄGT VOR" , it: "L'AGENZIA SUGGERISCE", ru: "АГЕНТСТВО ПРЕДЛАГАЕТ", zh: "代理公司建议"},
   'brand.weak_segment': { fr: 'Le segment le plus faible :', en: 'The weakest segment:', es: 'El segmento más débil:', de: "Das schwächste Segment:" , it: "Il segmento più debole:", ru: "Самый слабый сегмент:", zh: "最薄弱的细分市场："},
   'brand.try_campaign': { fr: 'Essaie la campagne', en: 'Try the campaign', es: 'Prueba la campaña', de: "Probiere die Kampagne" , it: "Prova la campagna", ru: "Попробовать кампанию", zh: "尝试该活动"},
 
@@ -663,7 +667,7 @@ export const TRANSLATIONS = {
   'campaign.req_agence': { fr: 'REQUIERT AGENCE MARKETING', en: 'REQUIRES MARKETING AGENCY', es: 'REQUIERE AGENCIA MARKETING', de: "ERFORDERT MARKETINGAGENTUR" , it: "RICHIEDE AGENZIA MARKETING", ru: "ТРЕБУЕТСЯ МАРКЕТИНГ-АГЕНТСТВО", zh: "需要营销代理机构"},
   'campaign.req_senior': { fr: 'REQUIERT JANICE SENIOR', en: 'REQUIRES JANICE SENIOR', es: 'REQUIERE JANICE SENIOR', de: "ERFORDERT JANICE SENIOR" , it: "RICHIEDE JANICE SENIOR", ru: "ТРЕБУЕТСЯ ДЖЕНИС-СЕНЬОР", zh: "需要贾妮丝（高级）"},
   'campaign.req_dir': { fr: 'REQUIERT JANICE DIRECTRICE', en: 'REQUIRES JANICE DIRECTOR', es: 'REQUIERE JANICE DIRECTORA', de: "ERFORDERT JANICE DIREKTORIN" , it: "RICHIEDE JANICE DIRETTRICE", ru: "ТРЕБУЕТСЯ ДЖЕНИС-ДИРЕКТОР", zh: "需要贾妮丝（总监）"},
-  'campaign.foot_mult': { fr: 'Marketing mult Janice', en: 'Janice marketing mult', es: 'Multi marketing Janice', de: "Janice Marketing-Mult" , it: "Moltipl. marketing Janice", ru: "Маркет. множитель Дженис", zh: "贾妮丝营销倍数"},
+  'campaign.foot_mult': { fr: 'Mult. marketing agence', en: 'Agency marketing mult', es: 'Multi marketing agencia', de: "Agentur Marketing-Mult" , it: "Moltipl. marketing agenzia", ru: "Маркет. множитель агентства", zh: "代理营销倍数"},
   'campaign.foot_launched': { fr: 'campagnes lancées', en: 'campaigns launched', es: 'campañas lanzadas', de: "Kampagnen gestartet" , it: "campagne lanciate", ru: "кампаний запущено", zh: "已启动活动"},
   'campaign.years_short': { fr: 'an', en: 'yr', es: 'año', de: "J" , it: "a", ru: "г", zh: "年"},
   'campaign.minutes_short': { fr: 'min', en: 'min', es: 'min', de: "Min" , it: "min", ru: "мин", zh: "分"},
@@ -803,14 +807,16 @@ export const TRANSLATIONS = {
     it: "Yo. Lenny, quindici anni al volante. Conosco i posti giusti dove scaricare in fretta. La merce arriva, è quello che conta.",
     de: "Yo. Lenny, fünfzehn Jahre am Steuer. Ich kenne die richtigen Stellen, wo man schnell entlädt. Die Ware kommt an, das ist alles, was zählt."
   },
+  'agency.speaker': { fr: "Agence marketing", en: "Marketing agency", es: "Agencia de marketing", de: "Marketingagentur" , it: "Agenzia marketing", ru: "Маркетинговое агентство", zh: "营销代理公司"},
+  'agency.warn_quality': { fr: "On ne peut pas faire la promo d'un produit qui sort comme ça. Votre image se construit, là on la détruit. Remontez la qualité, sinon on gèle les campagnes.", en: "We can't promote a product that ships like this. Your image is built slowly — right now we're destroying it. Raise the quality, or we freeze the campaigns.", es: "No podemos promocionar un producto que sale así. Tu imagen se construye despacio; ahora la estamos destruyendo. Sube la calidad o congelamos las campañas.", de: "Wir können kein Produkt bewerben, das so rausgeht. Dein Image baut sich langsam auf — gerade zerstören wir es. Hebt die Qualität, sonst frieren wir die Kampagnen ein.", it: "Non possiamo promuovere un prodotto che esce così. La tua immagine si costruisce piano; ora la stiamo distruggendo. Alza la qualità, o congeliamo le campagne.", ru: "Мы не можем продвигать продукт в таком виде. Имидж строится медленно — сейчас мы его разрушаем. Поднимите качество, иначе заморозим кампании.", zh: "我们没法推广这样出厂的产品。你的形象是慢慢建立的，现在却在被摧毁。把质量提上去，否则我们就冻结活动。"},
   'hire_intro.janice': {
-    fr: "Salut ! Janice. J'ai fait du shampoing pendant cinq ans, c'était luxueux et inutile. Là c'est l'inverse. On va construire une vraie marque.",
-    en: "Hi! Janice. I did shampoo for five years, it was luxurious and useless. Here it's the opposite. We're going to build a real brand.",
-    es: "¡Hola! Janice. Hice champú durante cinco años, era lujoso e inútil. Aquí es lo contrario. Vamos a construir una marca de verdad.",
-    zh: "嗨！我是贾妮丝。我做了五年洗发水营销，奢华但没用。这里正好相反。我们要打造一个真正的品牌。",
-    ru: "Привет! Дженис. Пять лет занималась шампунями — роскошно и бесполезно. Тут наоборот. Будем строить настоящий бренд.",
-    it: "Ciao! Janice. Ho fatto shampoo per cinque anni, lussuoso e inutile. Qui è il contrario. Costruiremo un brand vero.",
-    de: "Hi! Janice. Hab fünf Jahre Shampoo gemacht, luxuriös und nutzlos. Hier ist es umgekehrt. Wir bauen eine echte Marke auf."
+    fr: "Contrat signé. On pilote vos campagnes à partir de maintenant. Résultats sur la durée, facturation à la hauteur. Et soyez prévenu : il nous arrive de nous planter — une pub qui tombe à plat, ça arrive aux meilleurs.",
+    en: "Contract signed. We'll run your campaigns from now on. Results over time, billing to match. And be warned: we do misfire sometimes — a flop ad happens to the best of us.",
+    es: "Contrato firmado. A partir de ahora dirigimos sus campañas. Resultados a largo plazo, facturación acorde. Y queda avisado: a veces fallamos — un anuncio que cae plano le pasa a los mejores.",
+    zh: "合同已签。从现在起由我们操盘你的营销活动。效果靠时间积累，收费也不便宜。提醒一句：我们偶尔会翻车——再好的团队也会有失手的广告。",
+    ru: "Контракт подписан. С этого момента кампании ведём мы. Результат — со временем, счёт — соответствующий. И предупреждаем: мы иногда промахиваемся — провальная реклама случается у лучших.",
+    it: "Contratto firmato. Da ora gestiamo noi le vostre campagne. Risultati nel tempo, fattura all'altezza. E badi bene: a volte sbagliamo — una pubblicità che fa flop capita anche ai migliori.",
+    de: "Vertrag unterschrieben. Ab jetzt steuern wir deine Kampagnen. Ergebnisse über Zeit, Rechnung entsprechend. Und sei gewarnt: Wir patzen manchmal — eine Werbung, die floppt, passiert den Besten."
   },
   'hire_intro.karen': {
     fr: "Coucou ! Karen, ravie d'être là. Quinze ans de RH, j'aime sincèrement les gens. On va prendre soin de cette équipe, doucement mais sûrement.",
@@ -929,6 +935,7 @@ export const TRANSLATIONS = {
   'notif.emp_strike_leaves': { fr: 'EN GRÈVE · part chez', en: 'ON STRIKE · leaves for', es: 'EN HUELGA · se va a', de: "IM STREIK · wechselt zu" , it: "IN SCIOPERO · se ne va per", ru: "ЗАБАСТОВКА · уходит на", zh: "罢工中 · 离职去"},
   'notif.emp_stays_loyalty': { fr: 'RESTE PAR LOYAUTÉ · t\'as eu chaud', en: 'STAYS OUT OF LOYALTY · close call', es: 'SE QUEDA POR LEALTAD · te has salvado', de: "BLEIBT AUS LOYALITÄT · knapp" , it: "RESTA PER LEALTÀ · per un pelo", ru: "ОСТАЁТСЯ ИЗ ЛОЯЛЬНОСТИ · на волоске", zh: "出于忠诚留下 · 险些"},
   'notif.campaign_launched': { fr: 'CAMPAGNE LANCÉE', en: 'CAMPAIGN LAUNCHED', es: 'CAMPAÑA LANZADA', de: "KAMPAGNE GESTARTET" , it: "CAMPAGNA LANCIATA", ru: "КАМПАНИЯ ЗАПУЩЕНА", zh: "活动已启动"},
+  'notif.campaign_misfire': { fr: 'PUB À CÔTÉ DE LA PLAQUE', en: 'OFF-TARGET AD', es: 'ANUNCIO FUERA DE LUGAR', de: "WERBUNG DANEBEN" , it: "PUBBLICITÀ FUORI BERSAGLIO", ru: "РЕКЛАМА МИМО ЦЕЛИ", zh: "广告翻车"},
   'notif.notoriety_short': { fr: 'notoriété', en: 'notoriety', es: 'notoriedad', de: "Bekanntheit" , it: "notorietà", ru: "известность", zh: "知名度"},
   'notif.emp_promoted': { fr: 'REVALORISÉ', en: 'GIVEN A RAISE', es: 'REVALORIZADO', de: "BEFÖRDERT" , it: "AUMENTO CONCESSO", ru: "ПОВЫШЕНИЕ ВЫДАНО", zh: "已加薪"},
   'notif.emp_strike_refused': { fr: 'EN GRÈVE · refus mal pris', en: 'ON STRIKE · refusal taken badly', es: 'EN HUELGA · rechazo mal aceptado', de: "IM STREIK · Ablehnung schlecht aufgenommen" , it: "IN SCIOPERO · rifiuto preso male", ru: "ЗАБАСТОВКА · отказ воспринят плохо", zh: "罢工中 · 拒绝令其不满"},
