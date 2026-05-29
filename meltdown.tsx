@@ -1499,12 +1499,6 @@ const LAWSUITS_BY_ID = Object.fromEntries(LAWSUITS.map(l => [l.id, l]));
 // Débloquées par paliers de Janice (Senior ou Directrice).
 const JANICE_ACTIONS = [
   // === JANICE SENIOR ===
-  { id: 'refonte_identite', tier: 'janice_senior', cost: 40000, cooldownMonths: 0, oneShot: true,
-    Icon: 'Camera',
-    effects: { notoInstant: 12 },
-    title: { fr: 'Refonte identité visuelle', en: 'Visual identity overhaul', es: 'Renovación identidad visual', de: 'Visuelle Identitäts-Erneuerung', it: 'Restyling identità visiva', ru: 'Ребрендинг айдентики', zh: '视觉形象重塑' },
-    fx: { fr: 'Noto +12 (one-shot)', en: 'Awareness +12 (one-shot)', es: 'Notor. +12 (única)', de: 'Bekanntheit +12 (einmalig)', it: 'Notorietà +12 (una tantum)', ru: 'Известность +12 (1 раз)', zh: '知名度 +12（一次性）' },
-    desc: { fr: "Nouveau logo, nouvelle charte, nouveau site. Janice repart de zéro côté image.", en: "New logo, new guidelines, new website. Janice starts the brand image from scratch.", es: "Nuevo logo, nueva carta, nueva web. Janice rehace la imagen desde cero.", de: "Neues Logo, neue Richtlinien, neue Website. Janice baut das Markenbild neu auf.", it: "Nuovo logo, nuove linee guida, nuovo sito. Janice ricomincia l'immagine da zero.", ru: "Новый логотип, гайдлайны, сайт. Дженис обновляет бренд с нуля.", zh: "新Logo、新规范、新网站。贾妮丝把品牌形象从零开始重做。" } },
   { id: 'campagne_digitale', tier: 'janice_senior', cost: 25000, cooldownMonths: 2,
     Icon: 'BarChart3',
     effects: { notoInstant: 8 },
@@ -1543,18 +1537,6 @@ const JANICE_ACTIONS = [
     title: { fr: 'Sponsoring sport', en: 'Sports sponsorship', es: 'Patrocinio deportivo', de: 'Sport-Sponsoring', it: 'Sponsorizzazione sport', ru: 'Спортивное спонсорство', zh: '体育赞助' },
     fx: { fr: 'Noto +30 · prix +5% perma · cd 12 mois', en: 'Awareness +30 · price +5% perma · cd 12mo', es: 'Notor. +30 · precio +5% perma · cd 12m', de: 'Bekanntheit +30 · Preis +5% dauerhaft · CD 12 Mon', it: 'Notorietà +30 · prezzo +5% perma · cd 12m', ru: 'Известность +30 · цена +5% перм. · кд 12мес', zh: '知名度 +30 · 价格 +5% 永久 · 冷却12月' },
     desc: { fr: "Tu sponsorises un grand club de foot ou un athlète médaillé. Visibilité massive et bonus perma sur le prix.", en: "You sponsor a top-flight football club or a medal-winning athlete. Massive visibility and permanent price bonus.", es: "Patrocinas un club de primera división o un atleta medallista. Visibilidad masiva y bonus perma de precio.", de: "Du sponserst einen Erstliga-Club oder einen Medaillen-Athleten. Massive Sichtbarkeit und dauerhafter Preisbonus.", it: "Sponsorizzi un club di prima divisione o un atleta medagliato. Visibilità massiccia e bonus prezzo perma.", ru: "Спонсируете клуб высшей лиги или титулованного атлета. Массовая видимость и постоянный бонус к цене.", zh: "赞助一支顶级联赛球队或夺牌运动员。海量曝光，价格永久加成。" } },
-  { id: 'documentaire', tier: 'janice_dir', cost: 250000, cooldownMonths: 0, oneShot: true,
-    Icon: 'Camera',
-    effects: { notoInstant: 40, legendeUnlocked: true },
-    title: { fr: 'Documentaire de marque', en: 'Brand documentary', es: 'Documental de marca', de: 'Marken-Dokumentation', it: 'Documentario di marca', ru: 'Документальный фильм о бренде', zh: '品牌纪录片' },
-    fx: { fr: 'Noto +40 · débloque palier Légende · one-shot', en: 'Awareness +40 · unlocks Legend tier · one-shot', es: 'Notor. +40 · desbloquea nivel Leyenda · única', de: 'Bekanntheit +40 · schaltet Legenden-Stufe frei · einmalig', it: 'Notorietà +40 · sblocca livello Leggenda · una tantum', ru: 'Известность +40 · открывает уровень Легенда · 1 раз', zh: '知名度 +40 · 解锁传奇级别 · 一次性' },
-    desc: { fr: "Documentaire produit par une grande plateforme de streaming sur l'aventure de la boîte. Aura culturelle inestimable.", en: "Documentary produced by a major streaming platform on the company's adventure. Priceless cultural aura.", es: "Documental producido por una gran plataforma de streaming sobre la aventura de la empresa. Aura cultural invaluable.", de: "Von einer großen Streaming-Plattform produzierte Dokumentation über das Unternehmensabenteuer. Unbezahlbare kulturelle Aura.", it: "Documentario prodotto da una grande piattaforma di streaming sull'avventura dell'azienda. Aura culturale impagabile.", ru: "Документальный фильм от крупной стриминговой платформы о приключении компании. Бесценная культурная аура.", zh: "由一家大型流媒体平台制作的公司奋斗历程纪录片。文化光环无价。" } },
-  { id: 'plan_media_360', tier: 'janice_dir', cost: 400000, cooldownMonths: 0, oneShot: true,
-    Icon: 'Megaphone',
-    effects: { notoInstant: 50, sellBoostFactor: 2.0, sellBoostMonths: 2 },
-    title: { fr: 'Plan média 360°', en: '360° media plan', es: 'Plan media 360°', de: '360°-Mediaplan', it: 'Piano media 360°', ru: 'Медиаплан 360°', zh: '360°媒体计划' },
-    fx: { fr: 'Noto +50 · prix ×2 (2 mois) · one-shot', en: 'Awareness +50 · price ×2 (2mo) · one-shot', es: 'Notor. +50 · precio ×2 (2m) · única', de: 'Bekanntheit +50 · Preis ×2 (2 Mon) · einmalig', it: 'Notorietà +50 · prezzo ×2 (2m) · una tantum', ru: 'Известность +50 · цена ×2 (2мес) · 1 раз', zh: '知名度 +50 · 价格 ×2（2月）· 一次性' },
-    desc: { fr: "TV nationale, presse écrite, affichage, digital, événementiel. Saturation totale 2 mois. La marque devient un mythe.", en: "National TV, print, billboards, digital, events. Total saturation for 2 months. The brand becomes a myth.", es: "TV nacional, prensa, exterior, digital, eventos. Saturación total 2 meses. La marca se vuelve mito.", de: "Nationales TV, Print, Außenwerbung, Digital, Events. Volle Sättigung 2 Monate. Die Marke wird zum Mythos.", it: "TV nazionale, stampa, esterna, digitale, eventi. Saturazione totale 2 mesi. Il marchio diventa mito.", ru: "Национальное ТВ, пресса, наружка, digital, ивенты. Полная сатурация 2 месяца. Бренд становится мифом.", zh: "全国电视、报刊、户外、数字、活动。2个月全媒体饱和。品牌成神话。" } },
 ];
 
 // Helper : palier Janice du joueur
@@ -5167,64 +5149,64 @@ const PRESS_TEMPLATES = [
 ];
 
 const CAMPAIGNS = [
-  { id: 'bus', tier: 1,        name: { fr: "Affichage Bus Urbain", en: "Urban Bus Posters", es: "Carteles Autobús Urbano", zh: "城市公交海报", ru: "Плакаты на городских автобусах", it: "Manifesti su autobus urbani", de: "Stadtbus-Plakate" },    cost: 200,    duration: 120,  notoBoost: 3,
+  { id: 'bus', tier: 1,        name: { fr: "Affichage Bus Urbain", en: "Urban Bus Posters", es: "Carteles Autobús Urbano", zh: "城市公交海报", ru: "Плакаты на городских автобусах", it: "Manifesti su autobus urbani", de: "Stadtbus-Plakate" },    cost: 200,    duration: 60,  notoBoost: 3,
     segmentImpact: { famille: 5, jeunesse: 3, pro: 1, luxe: -2, eco: 1 },
     effectLabel: { fr: "Visibilité locale · +Famille", en: "Local visibility · +Family", es: "Visibilidad local · +Familia", zh: "本地曝光 · +家庭", ru: "Локальная видимость · +Семьи", it: "Visibilità locale · +Famiglia", de: "Lokale Sichtbarkeit · +Familien" },
     description: { fr: "Affiches dans les abribus de la ville. Démarrage soft.", en: "Posters in city bus shelters. A soft start.", es: "Carteles en marquesinas de autobús de la ciudad. Arranque suave.", zh: "城市公交候车亭海报。柔和的开始。", ru: "Плакаты на городских автобусных остановках. Мягкий старт.", it: "Manifesti nelle pensiline dei bus cittadini. Un inizio soft.", de: "Plakate in Stadtbushaltestellen. Ein sanfter Start." } },
-  { id: 'radio', tier: 1,      name: { fr: "Spot Radio Locale", en: "Local Radio Spot", es: "Cuña Radio Local", zh: "本地电台广告", ru: "Спот на местном радио", it: "Spot Radio Locale", de: "Lokaler Radiospot" },       cost: 800,    duration: 480,  notoBoost: 8,
+  { id: 'radio', tier: 1,      name: { fr: "Spot Radio Locale", en: "Local Radio Spot", es: "Cuña Radio Local", zh: "本地电台广告", ru: "Спот на местном радио", it: "Spot Radio Locale", de: "Lokaler Radiospot" },       cost: 800,    duration: 240,  notoBoost: 8,
     segmentImpact: { famille: 8, jeunesse: 2, pro: 3, luxe: -3, eco: 2 },
     effectLabel: { fr: "Prix vente spot ×1.20 · +Famille", en: "Spot price ×1.20 · +Family", es: "Precio spot ×1.20 · +Familia", zh: "现货价 ×1.20 · +家庭", ru: "Спот-цена ×1.20 · +Семьи", it: "Prezzo spot ×1.20 · +Famiglia", de: "Spotpreis ×1.20 · +Familien" },
     description: { fr: "30s en heure de pointe sur la radio régionale.", en: "30s during rush hour on regional radio.", es: "30s en hora punta en la radio regional.", zh: "地区电台高峰时段30秒。", ru: "30с в час пик на региональном радио.", it: "30s nell'ora di punta sulla radio regionale.", de: "30s zur Stoßzeit im Regionalradio." } },
-  { id: 'influencers', tier: 2, name: { fr: "Influenceurs réseaux", en: "Social Media Influencers", es: "Influencers redes", zh: "社媒网红", ru: "Инфлюенсеры в соцсетях", it: "Influencer sui Social", de: "Social-Media-Influencer" }, cost: 3000,   duration: 480,  notoBoost: 15,
+  { id: 'influencers', tier: 2, name: { fr: "Influenceurs réseaux", en: "Social Media Influencers", es: "Influencers redes", zh: "社媒网红", ru: "Инфлюенсеры в соцсетях", it: "Influencer sui Social", de: "Social-Media-Influencer" }, cost: 3000,   duration: 240,  notoBoost: 15,
     segmentImpact: { famille: -3, jeunesse: 18, pro: 0, luxe: -5, eco: 0 },
     effectLabel: { fr: "Prix retail ×1.10 · +Jeunesse", en: "Retail price ×1.10 · +Youth", es: "Precio retail ×1.10 · +Juventud", zh: "零售价 ×1.10 · +青年", ru: "Розничная цена ×1.10 · +Молодёжь", it: "Prezzo retail ×1.10 · +Giovani", de: "Einzelhandelspreis ×1.10 · +Jugend" },
     description: { fr: "30 brand kits balancés à des comptes lifestyle.", en: "30 brand kits sent to lifestyle accounts.", es: "30 brand kits enviados a cuentas lifestyle.", zh: "30份品牌套装寄给生活方式账号。", ru: "30 брендовых наборов отправлено лайфстайл-аккаунтам.", it: "30 kit di marca inviati ad account lifestyle.", de: "30 Marken-Kits an Lifestyle-Accounts verschickt." } },
-  { id: 'tv', tier: 4,         name: { fr: "Pub TV Nationale", en: "National TV Ad", es: "Anuncio TV Nacional", zh: "全国电视广告", ru: "Национальная ТВ-реклама", it: "Spot TV Nazionale", de: "Nationaler TV-Spot" },        cost: 15000,  duration: 960,  notoBoost: 30,
+  { id: 'tv', tier: 4,         name: { fr: "Pub TV Nationale", en: "National TV Ad", es: "Anuncio TV Nacional", zh: "全国电视广告", ru: "Национальная ТВ-реклама", it: "Spot TV Nazionale", de: "Nationaler TV-Spot" },        cost: 15000,  duration: 480,  notoBoost: 30,
     segmentImpact: { famille: 15, jeunesse: 5, pro: 8, luxe: 3, eco: 3 },
     effectLabel: { fr: "Tous prix ×1.15 · large", en: "All prices ×1.15 · broad", es: "Precios ×1.15 · amplio", zh: "所有价格 ×1.15 · 广泛", ru: "Все цены ×1.15 · широко", it: "Tutti i prezzi ×1.15 · ampio", de: "Alle Preise ×1.15 · breit" },
     description: { fr: "Spot 15s à 20h, prime time. Le passage à l'échelle nationale.", en: "15s spot at 8 PM, prime time. Going national.", es: "Cuña de 15s a las 20h, prime time. El salto a la escala nacional.", zh: "晚8点黄金时段15秒广告。走向全国。", ru: "15с спот в 20:00, прайм-тайм. Выходим на национальный.", it: "Spot da 15s alle 20, prime time. Si va sul nazionale.", de: "15s-Spot um 20 Uhr, Prime Time. Geht national." } },
-  { id: 'glamour_mag', tier: 3, name: { fr: "Encart Glamour Mag", en: "Glamour Mag Insert", es: "Inserción Glamour Mag", zh: "时尚杂志插页", ru: "Вставка в глянцевый журнал", it: "Inserto su Rivista Glamour", de: "Glamour-Magazin-Beilage" },         cost: 6000,   duration: 600,  notoBoost: 12,
+  { id: 'glamour_mag', tier: 3, name: { fr: "Encart Glamour Mag", en: "Glamour Mag Insert", es: "Inserción Glamour Mag", zh: "时尚杂志插页", ru: "Вставка в глянцевый журнал", it: "Inserto su Rivista Glamour", de: "Glamour-Magazin-Beilage" },         cost: 6000,   duration: 300,  notoBoost: 12,
     segmentImpact: { famille: -8, jeunesse: -2, pro: 3, luxe: 22, eco: -2 },
     effectLabel: { fr: "Prix retail ×1.15 · +Luxe", en: "Retail price ×1.15 · +Luxury", es: "Precio retail ×1.15 · +Lujo", zh: "零售价 ×1.15 · +奢侈", ru: "Розничная цена ×1.15 · +Люкс", it: "Prezzo retail ×1.15 · +Lusso", de: "Einzelhandelspreis ×1.15 · +Luxus" },
     description: { fr: "Page premium dans le numéro spécial automne. Élégance et exclusivité.", en: "Premium page in the autumn special. Elegance and exclusivity.", es: "Página premium en el número especial otoño. Elegancia y exclusividad.", zh: "秋季特刊高端整页。优雅与独家。", ru: "Премиум-страница в осеннем спецвыпуске. Элегантность и эксклюзивность.", it: "Pagina premium nello speciale autunno. Eleganza ed esclusività.", de: "Premium-Seite im Herbst-Spezial. Eleganz und Exklusivität." } },
-  { id: 'b2b_pro', tier: 2,   name: { fr: "Campagne pro B2B", en: "B2B Pro Campaign", es: "Campaña Pro B2B", zh: "B2B专业活动", ru: "B2B Pro кампания", it: "Campagna Pro B2B", de: "B2B-Profi-Kampagne" },     cost: 2500,   duration: 480,  notoBoost: 10,
+  { id: 'b2b_pro', tier: 2,   name: { fr: "Campagne pro B2B", en: "B2B Pro Campaign", es: "Campaña Pro B2B", zh: "B2B专业活动", ru: "B2B Pro кампания", it: "Campagna Pro B2B", de: "B2B-Profi-Kampagne" },     cost: 2500,   duration: 240,  notoBoost: 10,
     segmentImpact: { famille: -2, jeunesse: -1, pro: 20, luxe: 4, eco: 1 },
     effectLabel: { fr: "Prix retail B2B ×1.12 · +Pro", en: "B2B retail ×1.12 · +Pro", es: "Retail B2B ×1.12 · +Pro", zh: "B2B零售 ×1.12 · +专业", ru: "B2B розница ×1.12 · +Про", it: "Retail B2B ×1.12 · +Pro", de: "B2B-Handel ×1.12 · +Profis" },
     description: { fr: "Annonces ciblées sur réseaux pro : CHR et hôtellerie haut de gamme.", en: "Targeted ads on pro networks: HoReCa and upscale hospitality.", es: "Anuncios dirigidos en redes pro: HoReCa y hostelería de gama alta.", zh: "职业网络定向广告：餐饮酒店业与高档接待。", ru: "Таргетированная реклама в профсетях: HoReCa и фешенебельное гостеприимство.", it: "Annunci mirati su social pro: HoReCa e ospitalità di fascia alta.", de: "Gezielte Anzeigen in Profi-Netzwerken: HoReCa und gehobene Gastronomie." } },
-  { id: 'esg', tier: 2,        name: { fr: "Campagne ESG", en: "ESG Campaign", es: "Campaña ESG", zh: "ESG活动", ru: "ESG-кампания", it: "Campagna ESG", de: "ESG-Kampagne" },     cost: 4000,   duration: 720,  notoBoost: 11,
+  { id: 'esg', tier: 2,        name: { fr: "Campagne ESG", en: "ESG Campaign", es: "Campaña ESG", zh: "ESG活动", ru: "ESG-кампания", it: "Campagna ESG", de: "ESG-Kampagne" },     cost: 4000,   duration: 360,  notoBoost: 11,
     segmentImpact: { famille: 4, jeunesse: 6, pro: -1, luxe: -3, eco: 22 },
     effectLabel: { fr: "Réputation +0.5 · +Éco", en: "Reputation +0.5 · +Eco", es: "Reputación +0.5 · +Eco", zh: "声誉 +0.5 · +环保", ru: "Репутация +0.5 · +Эко", it: "Reputazione +0.5 · +Eco", de: "Ruf +0.5 · +Öko" },
     description: { fr: "Storytelling sur l'eau locale, énergie renouvelable, emballage compostable.", en: "Storytelling on local water, renewable energy, compostable packaging.", es: "Storytelling sobre agua local, energía renovable, embalaje compostable.", zh: "关于本地水、可再生能源、可堆肥包装的叙事。", ru: "Сторителлинг о местной воде, возобновляемой энергии, компостируемой упаковке.", it: "Storytelling su acqua locale, energia rinnovabile, packaging compostabile.", de: "Storytelling über lokales Wasser, erneuerbare Energie, kompostierbare Verpackung." } },
   // === NOUVELLES CAMPAGNES — profondeur par niveau marketing ===
   // Niveau 1 (base, début P3) : local, modeste, orienté famille/éco
-  { id: 'flyers_bal',  tier: 1, name: { fr: "Flyers boîtes aux lettres", en: "Mailbox Flyers", es: "Folletos en buzones", zh: "信箱传单", ru: "Листовки в почтовые ящики", it: "Volantini nelle cassette", de: "Briefkasten-Flyer" }, cost: 400, duration: 240, notoBoost: 4,
+  { id: 'flyers_bal',  tier: 1, name: { fr: "Flyers boîtes aux lettres", en: "Mailbox Flyers", es: "Folletos en buzones", zh: "信箱传单", ru: "Листовки в почтовые ящики", it: "Volantini nelle cassette", de: "Briefkasten-Flyer" }, cost: 400, duration: 120, notoBoost: 4,
     segmentImpact: { famille: 9, jeunesse: 1, pro: 1, luxe: -3, eco: 4 },
     effectLabel: { fr: "Visibilité quartier · +Famille +Éco", en: "Neighborhood reach · +Family +Eco", es: "Alcance barrio · +Familia +Eco", zh: "街区触达 · +家庭 +环保", ru: "Охват района · +Семьи +Эко", it: "Copertura di quartiere · +Famiglia +Eco", de: "Nachbarschaftsreichweite · +Familien +Öko" },
     description: { fr: "Distribution toutes-boîtes dans les quartiers résidentiels. Du concret, proche des gens.", en: "Door-to-door drop in residential areas. Concrete, close to people.", es: "Buzoneo en barrios residenciales. Concreto, cercano a la gente.", zh: "住宅区挨户投放。具体，贴近民众。", ru: "Раскладка по ящикам в жилых районах. Конкретно, близко к людям.", it: "Distribuzione porta a porta nelle zone residenziali. Concreto, vicino alla gente.", de: "Haus-zu-Haus-Verteilung in Wohngebieten. Konkret, nah am Menschen." } },
-  { id: 'stand_marche', tier: 1, name: { fr: "Stand marché local", en: "Local Market Stand", es: "Puesto mercado local", zh: "本地市集摊位", ru: "Стенд на местном рынке", it: "Banco al Mercato Locale", de: "Marktstand vor Ort" }, cost: 600, duration: 360, notoBoost: 5,
+  { id: 'stand_marche', tier: 1, name: { fr: "Stand marché local", en: "Local Market Stand", es: "Puesto mercado local", zh: "本地市集摊位", ru: "Стенд на местном рынке", it: "Banco al Mercato Locale", de: "Marktstand vor Ort" }, cost: 600, duration: 180, notoBoost: 5,
     segmentImpact: { famille: 11, jeunesse: 2, pro: 2, luxe: -4, eco: 7 },
     effectLabel: { fr: "Prix vente spot ×1.15 · +Famille +Éco", en: "Spot price ×1.15 · +Family +Eco", es: "Precio spot ×1.15 · +Familia +Eco", zh: "现货价 ×1.15 · +家庭 +环保", ru: "Спот-цена ×1.15 · +Семьи +Эко", it: "Prezzo spot ×1.15 · +Famiglia +Eco", de: "Spotpreis ×1.15 · +Familien +Öko" },
     description: { fr: "Stand de dégustation sur le marché du dimanche. Le bouche-à-oreille des familles.", en: "Tasting stand at the Sunday market. Family word-of-mouth.", es: "Puesto de degustación en el mercado del domingo. El boca a boca de las familias.", zh: "周日市集的品尝摊。家庭口碑。", ru: "Дегустационный стенд на воскресном рынке. Семейное сарафанное радио.", it: "Banco di degustazione al mercato della domenica. Passaparola di famiglia.", de: "Verkostungsstand auf dem Sonntagsmarkt. Familien-Mundpropaganda." } },
   // Niveau 2 (agence marketing) : digital, ciblé
-  { id: 'pub_en_ligne', tier: 2, name: { fr: "Publicité en ligne ciblée", en: "Targeted Online Ads", es: "Publicidad online dirigida", zh: "定向网络广告", ru: "Таргетированная онлайн-реклама", it: "Annunci Online Mirati", de: "Gezielte Online-Werbung" }, cost: 3500, duration: 480, notoBoost: 13,
+  { id: 'pub_en_ligne', tier: 2, name: { fr: "Publicité en ligne ciblée", en: "Targeted Online Ads", es: "Publicidad online dirigida", zh: "定向网络广告", ru: "Таргетированная онлайн-реклама", it: "Annunci Online Mirati", de: "Gezielte Online-Werbung" }, cost: 3500, duration: 240, notoBoost: 13,
     segmentImpact: { famille: 2, jeunesse: 12, pro: 10, luxe: 0, eco: 2 },
     effectLabel: { fr: "Prix retail ×1.10 · +Jeunesse +Pro", en: "Retail price ×1.10 · +Youth +Pro", es: "Precio retail ×1.10 · +Juventud +Pro", zh: "零售价 ×1.10 · +青年 +专业", ru: "Розничная цена ×1.10 · +Молодёжь +Про", it: "Prezzo retail ×1.10 · +Giovani +Pro", de: "Einzelhandelspreis ×1.10 · +Jugend +Profis" },
     description: { fr: "Display et search ciblés par data : on touche pile les bonnes audiences.", en: "Data-targeted display and search: hitting exactly the right audiences.", es: "Display y search segmentados por data: alcanzamos justo a las audiencias correctas.", zh: "数据定向的展示和搜索：精准命中合适受众。", ru: "Дисплей и поиск по данным: попадание ровно в нужную аудиторию.", it: "Display e search mirati con dati: colpisci esattamente il pubblico giusto.", de: "Datengezielte Display- und Suchwerbung: trifft genau die richtigen Zielgruppen." } },
   // Niveau 3 (Janice Senior) : premium, presse, prestige
-  { id: 'chef_etoile', tier: 3, name: { fr: "Partenariat chef étoilé", en: "Starred Chef Partnership", es: "Alianza chef con estrella", zh: "星级大厨合作", ru: "Партнёрство со звёздным шефом", it: "Partnership Chef Stellato", de: "Sternekoch-Partnerschaft" }, cost: 7000, duration: 600, notoBoost: 14,
+  { id: 'chef_etoile', tier: 3, name: { fr: "Partenariat chef étoilé", en: "Starred Chef Partnership", es: "Alianza chef con estrella", zh: "星级大厨合作", ru: "Партнёрство со звёздным шефом", it: "Partnership Chef Stellato", de: "Sternekoch-Partnerschaft" }, cost: 7000, duration: 300, notoBoost: 14,
     segmentImpact: { famille: -5, jeunesse: 0, pro: 12, luxe: 20, eco: 0 },
     effectLabel: { fr: "Prix retail ×1.18 · +Luxe +Pro", en: "Retail price ×1.18 · +Luxury +Pro", es: "Precio retail ×1.18 · +Lujo +Pro", zh: "零售价 ×1.18 · +奢侈 +专业", ru: "Розничная цена ×1.18 · +Люкс +Про", it: "Prezzo retail ×1.18 · +Lusso +Pro", de: "Einzelhandelspreis ×1.18 · +Luxus +Profis" },
     description: { fr: "Un chef triplement étoilé sert ta glace à sa table. Caution gastronomique absolue.", en: "A triple-starred chef serves your ice at his table. Absolute culinary endorsement.", es: "Un chef con tres estrellas sirve tu hielo en su mesa. Aval gastronómico absoluto.", zh: "一位三星大厨在他的餐桌上供应你的冰。绝对的烹饪背书。", ru: "Трёхзвёздочный шеф подаёт ваш лёд за своим столом. Абсолютное кулинарное одобрение.", it: "Uno chef tristellato serve il tuo ghiaccio alla sua tavola. Endorsement culinario assoluto.", de: "Ein Drei-Sterne-Koch serviert dein Eis an seinem Tisch. Absolute kulinarische Empfehlung." } },
-  { id: 'sponsoring_event', tier: 3, name: { fr: "Sponsoring événementiel", en: "Event Sponsorship", es: "Patrocinio de eventos", zh: "活动赞助", ru: "Спонсорство мероприятий", it: "Sponsorizzazione Eventi", de: "Event-Sponsoring" }, cost: 5500, duration: 540, notoBoost: 13,
+  { id: 'sponsoring_event', tier: 3, name: { fr: "Sponsoring événementiel", en: "Event Sponsorship", es: "Patrocinio de eventos", zh: "活动赞助", ru: "Спонсорство мероприятий", it: "Sponsorizzazione Eventi", de: "Event-Sponsoring" }, cost: 5500, duration: 270, notoBoost: 13,
     segmentImpact: { famille: 3, jeunesse: 14, pro: 4, luxe: 10, eco: -2 },
     effectLabel: { fr: "Prix retail ×1.12 · +Jeunesse +Luxe", en: "Retail price ×1.12 · +Youth +Luxury", es: "Precio retail ×1.12 · +Juventud +Lujo", zh: "零售价 ×1.12 · +青年 +奢侈", ru: "Розничная цена ×1.12 · +Молодёжь +Люкс", it: "Prezzo retail ×1.12 · +Giovani +Lusso", de: "Einzelhandelspreis ×1.12 · +Jugend +Luxus" },
     description: { fr: "Naming d'un festival branché et de soirées VIP. Visibilité chic et virale.", en: "Naming a trendy festival and VIP parties. Chic, viral visibility.", es: "Naming de un festival de moda y fiestas VIP. Visibilidad chic y viral.", zh: "冠名一个时髦音乐节和VIP派对。时尚、病毒式曝光。", ru: "Нейминг трендового фестиваля и VIP-вечеринок. Шикарная вирусная видимость.", it: "Naming di un festival di tendenza e feste VIP. Visibilità chic e virale.", de: "Namensgeber eines Trend-Festivals und von VIP-Partys. Schicke, virale Sichtbarkeit." } },
   // Niveau 4 (Janice Directrice) : national, massif
-  { id: 'documentaire', tier: 4, name: { fr: "Documentaire de marque", en: "Brand Documentary", es: "Documental de marca", zh: "品牌纪录片", ru: "Документальный фильм о бренде", it: "Documentario sul Marchio", de: "Marken-Dokumentation" }, cost: 18000, duration: 960, notoBoost: 28,
+  { id: 'documentaire', tier: 4, name: { fr: "Documentaire de marque", en: "Brand Documentary", es: "Documental de marca", zh: "品牌纪录片", ru: "Документальный фильм о бренде", it: "Documentario sul Marchio", de: "Marken-Dokumentation" }, cost: 18000, duration: 480, notoBoost: 28,
     segmentImpact: { famille: 8, jeunesse: 6, pro: 12, luxe: 14, eco: 16 },
     effectLabel: { fr: "Réputation +0.8 · Tous prix ×1.12", en: "Reputation +0.8 · All prices ×1.12", es: "Reputación +0.8 · Precios ×1.12", zh: "声誉 +0.8 · 所有价格 ×1.12", ru: "Репутация +0.8 · Все цены ×1.12", it: "Reputazione +0.8 · Tutti i prezzi ×1.12", de: "Ruf +0.8 · Alle Preise ×1.12" },
     description: { fr: "Un film de 52 min sur ton savoir-faire diffusé en prime sur une grande chaîne. Image en or.", en: "A 52-min film on your craft aired in prime time on a major channel. Golden image.", es: "Un film de 52 min sobre tu saber hacer emitido en prime en una gran cadena. Imagen de oro.", zh: "一部52分钟关于你手艺的影片在大频道黄金时段播出。金色形象。", ru: "52-минутный фильм о вашем ремесле в прайм-тайм на крупном канале. Золотой имидж.", it: "Un film di 52 min sul tuo artigianato in prime time su un grande canale. Immagine d'oro.", de: "Ein 52-min-Film über dein Handwerk zur Prime Time auf einem großen Sender. Goldenes Image." } },
-  { id: 'campagne_360', tier: 4, name: { fr: "Campagne nationale 360°", en: "National 360° Campaign", es: "Campaña nacional 360°", zh: "全国360°活动", ru: "Национальная 360° кампания", it: "Campagna 360° Nazionale", de: "Nationale 360°-Kampagne" }, cost: 25000, duration: 960, notoBoost: 40,
+  { id: 'campagne_360', tier: 4, name: { fr: "Campagne nationale 360°", en: "National 360° Campaign", es: "Campaña nacional 360°", zh: "全国360°活动", ru: "Национальная 360° кампания", it: "Campagna 360° Nazionale", de: "Nationale 360°-Kampagne" }, cost: 25000, duration: 480, notoBoost: 40,
     segmentImpact: { famille: 14, jeunesse: 12, pro: 12, luxe: 10, eco: 8 },
     effectLabel: { fr: "Tous prix ×1.20 · saturation totale", en: "All prices ×1.20 · total saturation", es: "Precios ×1.20 · saturación total", zh: "所有价格 ×1.20 · 全面饱和", ru: "Все цены ×1.20 · полное насыщение", it: "Tutti i prezzi ×1.20 · saturazione totale", de: "Alle Preise ×1.20 · totale Sättigung" },
     description: { fr: "TV + affichage + digital + presse, déployés simultanément à l'échelle nationale. Le matraquage ultime.", en: "TV + billboards + digital + press, deployed simultaneously nationwide. The ultimate blitz.", es: "TV + vallas + digital + prensa, desplegados simultáneamente a escala nacional. El bombardeo definitivo.", zh: "电视 + 户外 + 数字 + 媒体，全国同步铺开。终极闪电战。", ru: "ТВ + билборды + цифра + пресса, развёрнуто одновременно по всей стране. Окончательный блиц.", it: "TV + cartelloni + digitale + stampa, dispiegati simultaneamente in tutto il paese. Il blitz definitivo.", de: "TV + Plakate + Digital + Presse, landesweit gleichzeitig ausgerollt. Der ultimative Blitz." } },
@@ -5553,12 +5535,13 @@ const fmtInt = n => Math.floor(n).toLocaleString('fr-FR').replace(/,/g, ' ');
 // Précis sous 10 000, puis « k » (millier) et « M » (million) au-dessus.
 // Pas de séparateur de milliers : la police monospace du HUD le rend comme
 // une pleine chasse, ce qui creuse un écart disgracieux (ex « 9 999 »).
-// Ex : 9999 → "9999", 10 000 → "10k", 12 345 → "12,3k", 1 500 000 → "1,5M".
+// Ex : 9999 → "9999", 10 000 → "10k", 12 345 → "12.3k", 1 500 000 → "1.5M".
+// Séparateur décimal : point (pas de virgule) — plus lisible sur le gros chiffre.
 const fmtK = n => {
   const abs = Math.abs(n);
   if (abs < 10000) return String(Math.floor(n));
-  if (abs < 1000000) return ((Math.round(n / 100) / 10).toLocaleString('fr-FR') + 'k').replace(/\s/g, '');
-  return ((Math.round(n / 10000) / 100).toLocaleString('fr-FR') + 'M').replace(/\s/g, '');
+  if (abs < 1000000) return ((Math.round(n / 100) / 10).toLocaleString('fr-FR') + 'k').replace(/\s/g, '').replace(',', '.');
+  return ((Math.round(n / 10000) / 100).toLocaleString('fr-FR') + 'M').replace(/\s/g, '').replace(',', '.');
 };
 // fmtCash : format compact pour le HUD principal — précis (centimes) sous 10k€, k€/M€ au-dessus.
 const fmtCash = n => {
@@ -16236,13 +16219,15 @@ export default function App() {
         </button>
         {phase >= 3 && hasJanice && (
           <button
-            className={`menu-btn menu-btn-marketing ${canMarketing && cyberLockout <= 0 ? '' : 'locked'} ${cyberLockout > 0 ? 'cyber-disabled' : ''} ${canMarketing && cyberLockout <= 0 && !activeCampaign ? 'marketing-idle' : ''}`}
+            className={`menu-btn menu-btn-marketing ${canMarketing && cyberLockout <= 0 ? '' : 'locked'} ${cyberLockout > 0 ? 'cyber-disabled' : ''} ${canMarketing && cyberLockout <= 0 && !activeCampaign ? 'alert' : ''}`}
+            data-alert={canMarketing && cyberLockout <= 0 && !activeCampaign ? 'phone' : undefined}
             onClick={(canMarketing && cyberLockout <= 0) ? () => setCampaignsOpen(true) : undefined}
             disabled={!canMarketing || cyberLockout > 0}
             aria-label={t('aria.campaigns')}
           >
             <Megaphone size={18} strokeWidth={1.8} />
             <span className="menu-btn-label">{cyberLockout > 0 ? t('cyber.line_down') : t('menu.marketing')}</span>
+            {canMarketing && cyberLockout <= 0 && !activeCampaign && <span className="menu-btn-badge">!</span>}
           </button>
         )}
         {phase >= 2 && (
@@ -16354,13 +16339,15 @@ export default function App() {
         </button>
         {/* === Bouton MARKETING : toujours visible, locked si pas Janice === */}
         <button
-          className={`menu-btn menu-btn-marketing ${canMarketing && cyberLockout <= 0 ? '' : 'locked'} ${cyberLockout > 0 ? 'cyber-disabled' : ''} ${canMarketing && cyberLockout <= 0 && !activeCampaign ? 'marketing-idle' : ''}`}
+          className={`menu-btn menu-btn-marketing ${canMarketing && cyberLockout <= 0 ? '' : 'locked'} ${cyberLockout > 0 ? 'cyber-disabled' : ''} ${canMarketing && cyberLockout <= 0 && !activeCampaign ? 'alert' : ''}`}
+          data-alert={canMarketing && cyberLockout <= 0 && !activeCampaign ? 'phone' : undefined}
           onClick={(canMarketing && cyberLockout <= 0) ? () => setCampaignsOpen(true) : undefined}
           disabled={!canMarketing || cyberLockout > 0}
           aria-label={t('aria.campaigns')}
         >
           <Megaphone size={14} strokeWidth={1.6} />
           <span className="menu-btn-label">{cyberLockout > 0 ? t('cyber.line_down') : t('menu.marketing')}</span>
+          {canMarketing && cyberLockout <= 0 && !activeCampaign && <span className="menu-btn-badge">!</span>}
         </button>
         {/* === Bouton RH : toujours visible, locked si pas Karen === */}
         <button
@@ -17842,7 +17829,7 @@ export default function App() {
         .market-ttl { font-size: 9px; letter-spacing: 3px; margin-bottom: 10px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
         .market-ttl::after { content: ''; flex: 1; height: 1px; background: var(--line); }
         .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
-        .market-card { padding: 12px 11px; border: 1px solid var(--line); margin-left: -1px; margin-top: -1px; cursor: pointer; transition: all 0.12s; background: var(--bg); color: var(--fg); display: flex; flex-direction: column; gap: 4px; text-align: left; font-family: 'JetBrains Mono', monospace; border-radius: 0; position: relative; user-select: none; }
+        .market-card { padding: 7px 8px; border: 1px solid var(--line); margin-left: -1px; margin-top: -1px; cursor: pointer; transition: all 0.12s; background: var(--bg); color: var(--fg); display: flex; flex-direction: column; gap: 2px; text-align: left; font-family: 'JetBrains Mono', monospace; border-radius: 0; position: relative; user-select: none; }
         .market-card:hover:not(.is-disabled) { border-color: var(--fg); z-index: 2; }
         .market-card.is-disabled { opacity: 0.55; cursor: pointer; border-style: dashed; border-color: var(--m1); }
         .market-card.is-disabled .market-card-name,
@@ -17850,7 +17837,7 @@ export default function App() {
         .market-card.is-quality-warning { border-color: var(--m1); border-style: dashed; }
         .market-card-warning { font-size: 9px; font-weight: 700; letter-spacing: 1px; color: var(--m1); padding: 4px 0; border-top: 1px dashed var(--line); margin-top: 4px; }
         /* Bandeau qualité requis (toujours affiché). */
-        .market-card-quality { display: flex; justify-content: space-between; align-items: center; gap: 4px; font-size: 8.5px; padding: 3px 0; margin-top: 4px; border-top: 1px dashed var(--line); font-variant-numeric: tabular-nums; }
+        .market-card-quality { display: flex; justify-content: space-between; align-items: center; gap: 4px; font-size: 8.5px; padding: 2px 0; margin-top: 2px; border-top: 1px dashed var(--line); font-variant-numeric: tabular-nums; }
         .market-card-quality .mcq-lbl { color: var(--m1); letter-spacing: 1px; font-weight: 400; }
         .market-card-quality .mcq-val { color: var(--fg); letter-spacing: 0.5px; font-weight: 700; }
         .market-card-quality.is-low .mcq-val { color: var(--fg); text-decoration: line-through; }
@@ -17862,14 +17849,14 @@ export default function App() {
         .qty-delta { display: inline-block; margin-left: 3px; font-size: 9px; font-weight: 900; color: var(--m1); }
         .market-card-info-btn { position: absolute; top: 6px; right: 6px; width: 18px; height: 18px; border: 1px solid var(--line); background: var(--bg); color: var(--m1); display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 0; padding: 0; font-family: inherit; transition: all 0.12s; }
         .market-card-info-btn:hover { border-color: var(--fg); color: var(--fg); }
-        .market-card-name { font-size: 10px; font-weight: 700; letter-spacing: 0.3px; line-height: 1.2; padding-right: 22px; }
+        .market-card-name { font-size: 9px; font-weight: 700; letter-spacing: 0.3px; line-height: 1.15; padding-right: 2px; }
         .market-card-arch { font-size: 8px; letter-spacing: 2px; color: var(--m2); font-weight: 400; }
         .market-card-loyalty { margin-left: 6px; padding: 1px 4px; border: 1px solid var(--m1); border-radius: 2px; color: var(--m1); font-weight: 700; letter-spacing: 1px; white-space: nowrap; }
-        .market-card-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; margin-top: 5px; font-size: 9px; font-variant-numeric: tabular-nums; }
+        .market-card-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 8px; margin-top: 3px; font-size: 8.5px; font-variant-numeric: tabular-nums; }
         .market-card-stat { display: flex; justify-content: space-between; gap: 3px; }
         .market-card-stat .sl { color: var(--m1); font-weight: 400; letter-spacing: 0.5px; }
         .market-card-stat .sv { font-weight: 700; }
-        .market-card-life { margin-top: 6px; padding-top: 5px; border-top: 1px dashed var(--line); display: flex; flex-direction: column; gap: 3px; }
+        .market-card-life { margin-top: 4px; padding-top: 3px; border-top: 1px dashed var(--line); display: flex; flex-direction: column; gap: 2px; }
         .market-card-life-bar { height: 2px; background: var(--line); position: relative; overflow: hidden; }
         .market-card-life-fill { height: 100%; background: var(--fg); transition: width 0.2s linear; }
         .market-card-foot { font-size: 9px; font-weight: 700; letter-spacing: 0.5px; text-align: center; display: flex; justify-content: space-between; }
@@ -18037,7 +18024,7 @@ export default function App() {
         .stock-logo-bg { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 100%; height: 100%; color: var(--fg); opacity: 0.03; pointer-events: none; z-index: 0; }
         .stock-logo-bg path { fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
         .hero-center .stock, .hero-center .stock-lbl, .hero-center .status, .hero-center .cap-line, .hero-center .prod-melt-mini { position: relative; z-index: 1; text-shadow: -1px -1px 0 var(--bg), 0 -1px 0 var(--bg), 1px -1px 0 var(--bg), -1px 0 0 var(--bg), 1px 0 0 var(--bg), -1px 1px 0 var(--bg), 0 1px 0 var(--bg), 1px 1px 0 var(--bg), 0 0 2px var(--bg); }
-        .stock { font-family: 'Major Mono Display', monospace; font-size: 84px; letter-spacing: -3px; line-height: 0.9; font-variant-numeric: tabular-nums; display: inline-block; }
+        .stock { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 80px; font-weight: 800; letter-spacing: -5px; line-height: 0.9; font-variant-numeric: tabular-nums; display: inline-block; }
         .stock.canicule { animation: shakeDigit 0.18s linear infinite; }
         .stock.full { animation: capShakeBig 0.2s ease-in-out infinite, capPulseBig 1.1s ease-in-out infinite; }
         .stock.full.canicule { animation: shakeDigit 0.18s linear infinite, capPulseBig 1.1s ease-in-out infinite; }
@@ -23647,9 +23634,7 @@ export default function App() {
                           <div className="market-card-arch">{c.archetype}{loyCount > 0 && <span className="market-card-loyalty">★ {t('loyalty.badge')} ×{loyCount} · +{Math.round((loyMult - 1) * 100)}%</span>}</div>
                           <div className="market-card-stats">
                             <div className="market-card-stat"><span className="sl">{t('market.qty')}</span><span className="sv">{c.qty}{c.qty !== c._baseQty ? <span className="qty-delta">{c.qty > c._baseQty ? '↑' : '↓'}</span> : null}</span></div>
-                            <div className="market-card-stat"><span className="sl">{t('market.price_per')}</span><span className="sv">{fmt2(dispPrice)}{loyCount > 0 ? <span className="qty-delta">↑</span> : null}</span></div>
-                            <div className="market-card-stat"><span className="sl">{t('market.trip')}</span><span className="sv">{c.deliveryTime}s</span></div>
-                            <div className="market-card-stat"><span className="sl">{t('market.per_cycle')}</span><span className="sv">{fmt2(cycleRevenue)}</span></div>
+                            <div className="market-card-stat"><span className="sl">{t('market.per_cycle')}</span><span className="sv">{fmt2(cycleRevenue)}{loyCount > 0 ? <span className="qty-delta">↑</span> : null}</span></div>
                           </div>
                           {/* Bandeau qualité TOUJOURS visible — le joueur sait à
                               quoi s'attendre AVANT de cliquer. */}
@@ -23956,7 +23941,7 @@ export default function App() {
                           <div className="campaign-card-desc">{localizeField(c.description, language)}</div>
                           <div className="campaign-card-stats">
                             <div className="campaign-card-stat"><span>{t('campaign.cost')}</span><span>{fmtInt(c.cost)}€</span></div>
-                            <div className="campaign-card-stat"><span>{t('campaign.duration')}</span><span>{c.duration < 480 ? `${c.duration / 60}${t('campaign.minutes_short')}` : `${(c.duration / 480).toFixed(0)} ${t('campaign.years_short')}${c.duration > 480 ? 's' : ''}`}</span></div>
+                            <div className="campaign-card-stat"><span>{t('campaign.duration')}</span><span>{+(c.duration / 60).toFixed(1)}{t('campaign.minutes_short')}</span></div>
                             <div className="campaign-card-stat"><span>{t('campaign.noto_boost')}</span><span>+{(c.notoBoost * effMult).toFixed(1)}</span></div>
                             <div className="campaign-card-stat-full"><span>{t('campaign.effect')}</span><span>{localizeField(c.effectLabel, language)}</span></div>
                           </div>
