@@ -3031,6 +3031,48 @@ const BONUS_THANKS = {
       { fr: "Tiens, ça paye le ticket-resto du midi. Sympa.", en: "Hey, that covers lunch vouchers. Nice.", es: "Mira, eso paga los vales de comida. Majo.", zh: "嘿，这够餐券钱。不错。", ru: "Эй, это покрывает обеденные талоны. Неплохо.", it: "Ehi, copre i buoni pasto. Carino.", de: "Hey, das deckt die Essensgutscheine. Schön." },
     ],
   },
+  karen: {
+    sarcastic: [
+      { fr: "Une prime. Pour la RH. C'est presque méta.", en: "A bonus. For HR. That's almost meta.", es: "Una prima. Para RRHH. Casi meta.", zh: "奖金。给人事。简直有点元了。", ru: "Бонус. Для HR. Почти мета.", it: "Un bonus. Per le RU. Quasi meta.", de: "Eine Prämie. Für die HR. Fast schon meta." },
+      { fr: "Je remonte le moral des autres toute l'année. Le mien, on verra.", en: "I boost everyone's morale all year. Mine, we'll see.", es: "Subo la moral de todos todo el año. La mía, ya veremos.", zh: "我全年给所有人打气。我自己的，再说吧。", ru: "Я весь год поднимаю мораль другим. Свою — посмотрим.", it: "Tiro su il morale a tutti tutto l'anno. Il mio, vedremo.", de: "Ich hebe das ganze Jahr die Moral aller. Meine, mal sehen." },
+    ],
+    lukewarm: [
+      { fr: "Merci. C'est noté au dossier.", en: "Thanks. Noted in the file.", es: "Gracias. Anotado en el expediente.", zh: "谢谢。记入档案。", ru: "Спасибо. Занесено в дело.", it: "Grazie. Annotato nel fascicolo.", de: "Danke. In der Akte vermerkt." },
+      { fr: "Sympa. Je retourne gérer les humeurs.", en: "Nice. Back to managing moods.", es: "Majo. Vuelvo a gestionar humores.", zh: "不错。继续管理情绪去了。", ru: "Мило. Обратно к управлению настроениями.", it: "Carino. Torno a gestire gli umori.", de: "Schön. Zurück zum Stimmungsmanagement." },
+    ],
+    sincere: [
+      { fr: "Oh, merci. Ça fait du bien d'être vue, pour une fois.", en: "Oh, thanks. Nice to be seen, for once.", es: "Oh, gracias. Se agradece que me vean, por una vez.", zh: "哦，谢谢。难得被看见，挺好。", ru: "О, спасибо. Приятно, когда тебя замечают, хоть раз.", it: "Oh, grazie. Bello essere vista, per una volta.", de: "Oh, danke. Schön, mal gesehen zu werden." },
+      { fr: "Ça compte. L'équipe va le sentir, crois-moi.", en: "It matters. The team will feel it, trust me.", es: "Importa. El equipo lo notará, créeme.", zh: "这很重要。团队会感受到的，相信我。", ru: "Это важно. Команда это почувствует, поверь.", it: "Conta. La squadra lo sentirà, fidati.", de: "Das zählt. Das Team wird es spüren, glaub mir." },
+    ],
+  },
+  mark: {
+    sarcastic: [
+      { fr: "Une prime. J'aurais négocié mieux, mais je prends.", en: "A bonus. I'd have negotiated better, but I'll take it.", es: "Una prima. Habría negociado mejor, pero la cojo.", zh: "奖金。我本可以谈得更好，但我收下。", ru: "Бонус. Я бы выторговал больше, но возьму.", it: "Un bonus. Avrei trattato meglio, ma lo prendo.", de: "Eine Prämie. Ich hätte besser verhandelt, aber ich nehm's." },
+      { fr: "Tu paies enfin le prix du marché. Pour moi.", en: "You're finally paying market price. For me.", es: "Por fin pagas precio de mercado. Por mí.", zh: "你终于按市场价付了。为我。", ru: "Наконец-то платишь рыночную цену. За меня.", it: "Finalmente paghi il prezzo di mercato. Per me.", de: "Du zahlst endlich Marktpreis. Für mich." },
+    ],
+    lukewarm: [
+      { fr: "Ok, merci. Bon calcul.", en: "Ok, thanks. Good call.", es: "Vale, gracias. Buen cálculo.", zh: "好，谢谢。算得不错。", ru: "Ок, спасибо. Верный расчёт.", it: "Ok, grazie. Buon calcolo.", de: "Ok, danke. Gute Rechnung." },
+      { fr: "Apprécié. Je retourne aux fournisseurs.", en: "Appreciated. Back to the suppliers.", es: "Apreciado. Vuelvo con los proveedores.", zh: "感激。回去找供应商了。", ru: "Ценю. Обратно к поставщикам.", it: "Apprezzato. Torno dai fornitori.", de: "Geschätzt. Zurück zu den Lieferanten." },
+    ],
+    sincere: [
+      { fr: "Merci. Je vais te trouver de meilleures marges en échange.", en: "Thanks. I'll find you better margins in return.", es: "Gracias. Te conseguiré mejores márgenes a cambio.", zh: "谢谢。作为回报，我给你找更好的利润率。", ru: "Спасибо. Взамен найду тебе маржу получше.", it: "Grazie. In cambio ti troverò margini migliori.", de: "Danke. Dafür hole ich dir bessere Margen raus." },
+      { fr: "Bien joué. C'est le genre de deal que j'aime.", en: "Well played. That's the kind of deal I like.", es: "Bien jugado. Ese es el tipo de trato que me gusta.", zh: "干得好。这才是我喜欢的交易。", ru: "Хорошо сыграно. Вот такие сделки я люблю.", it: "Ben fatto. È il tipo di accordo che mi piace.", de: "Gut gespielt. Das ist die Art Deal, die ich mag." },
+    ],
+  },
+  sabine: {
+    sarcastic: [
+      { fr: "Une prime. Sans clause cachée ? J'ai un doute.", en: "A bonus. No hidden clause? I have doubts.", es: "Una prima. ¿Sin cláusula oculta? Lo dudo.", zh: "奖金。没有隐藏条款？我表示怀疑。", ru: "Бонус. Без скрытых пунктов? Сомневаюсь.", it: "Un bonus. Senza clausole nascoste? Ho dei dubbi.", de: "Eine Prämie. Ohne versteckte Klausel? Ich zweifle." },
+      { fr: "Je lis tout, même les primes. Celle-ci passe. De justesse.", en: "I read everything, even bonuses. This one passes. Barely.", es: "Lo leo todo, hasta las primas. Esta pasa. Por poco.", zh: "我什么都读，连奖金也是。这个通过了。勉强。", ru: "Я читаю всё, даже бонусы. Этот проходит. Едва.", it: "Leggo tutto, anche i bonus. Questo passa. Per un pelo.", de: "Ich lese alles, sogar Prämien. Die hier geht durch. Knapp." },
+    ],
+    lukewarm: [
+      { fr: "Merci. C'est dûment enregistré.", en: "Thanks. Duly recorded.", es: "Gracias. Debidamente registrado.", zh: "谢谢。已正式记录。", ru: "Спасибо. Должным образом зафиксировано.", it: "Grazie. Debitamente registrato.", de: "Danke. Ordnungsgemäß erfasst." },
+      { fr: "Correct. Je retourne aux dossiers.", en: "Fair. Back to the files.", es: "Correcto. Vuelvo a los expedientes.", zh: "可以。回去看卷宗了。", ru: "Справедливо. Обратно к делам.", it: "Corretto. Torno ai fascicoli.", de: "In Ordnung. Zurück zu den Akten." },
+    ],
+    sincere: [
+      { fr: "Merci. Ce genre de geste, ça crée de la loyauté. Légalement et sincèrement.", en: "Thanks. Gestures like this build loyalty. Legally and sincerely.", es: "Gracias. Estos gestos crean lealtad. Legal y sinceramente.", zh: "谢谢。这种举动能建立忠诚。无论法律上还是真心上。", ru: "Спасибо. Такие жесты создают лояльность. Юридически и искренне.", it: "Grazie. Gesti così creano lealtà. Legalmente e sinceramente.", de: "Danke. Solche Gesten schaffen Loyalität. Rechtlich und ehrlich." },
+      { fr: "Apprécié. Je blinderai tes contrats encore mieux.", en: "Appreciated. I'll bulletproof your contracts even better.", es: "Apreciado. Blindaré tus contratos aún mejor.", zh: "感激。我会把你的合同做得更滴水不漏。", ru: "Ценю. Защищу твои контракты ещё надёжнее.", it: "Apprezzato. Blinderò i tuoi contratti ancora meglio.", de: "Geschätzt. Ich mache deine Verträge noch wasserdichter." },
+    ],
+  },
 };
 
 const MORAL_WARNINGS = {
@@ -14945,6 +14987,9 @@ export default function App() {
     if (emp === 'brigitte') return currentBrigitteUpgrade ? currentBrigitteUpgrade.salary[brigitteSalaryLevel] : 0;
     if (emp === 'janice')   return currentJaniceUpgrade   ? currentJaniceUpgrade.salary[janiceSalaryLevel]     : 0;
     if (emp === 'lenny')    return lennyGrade             ? lennyGrade.salary[lennySalaryLevel]                : 0;
+    if (emp === 'karen')  { const id = ['karen_drh','karen_senior','karen_junior'].find(i => owned[i]); const u = id ? UPGRADES.find(x => x.id === id) : null; return u ? u.salary[karenSalaryLevel] : 0; }
+    if (emp === 'mark')   { const id = ['mark_dir','mark_resp','mark_jr'].find(i => owned[i]);          const u = id ? UPGRADES.find(x => x.id === id) : null; return u ? u.salary[markSalaryLevel] : 0; }
+    if (emp === 'sabine') { const id = ['sabine_dg','sabine_sr','sabine_jr'].find(i => owned[i]);       const u = id ? UPGRADES.find(x => x.id === id) : null; return u ? u.salary[sabineSalaryLevel] : 0; }
     return 0;
   };
   const getBonusCost = (emp) => getEmpSalary(emp) * BONUS_COST_MULT;
@@ -14964,6 +15009,9 @@ export default function App() {
       emp === 'fred' ? fredMoral :
       emp === 'brigitte' ? brigitteMoral :
       emp === 'janice' ? janiceMoral :
+      emp === 'karen' ? karenMoral :
+      emp === 'mark' ? markMoral :
+      emp === 'sabine' ? sabineMoral :
       lennyMoral;
     setMoney(m => m - cost);
     adjustMoralFor(emp, BONUS_MORAL_BOOST);
@@ -26553,6 +26601,7 @@ export default function App() {
                           <div className="salary-slider-amount">{fmtInt(markUpg.salary[markSalaryLevel])}€</div>
                         </div>
                         <div className="personnel-info">{localizeField(markUpg.desc, language)}</div>
+                        {renderBonusBtn('mark')}
                       </div>
                     );
                   })()}
@@ -26581,6 +26630,7 @@ export default function App() {
                           <div className="salary-slider-amount">{fmtInt(sabineUpg.salary[sabineSalaryLevel])}€</div>
                         </div>
                         <div className="personnel-info">{localizeField(sabineUpg.desc, language)}</div>
+                        {renderBonusBtn('sabine')}
                       </div>
                     );
                   })()}
