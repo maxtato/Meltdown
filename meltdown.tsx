@@ -7389,17 +7389,21 @@ export default function App() {
         // Le NOMBRE d'améliorations possédées pèse aussi : chaque achat
         // structurel agrandit la boîte et dépersonnalise un peu plus.
         const upgradeCount = Object.keys(ownedSnap).filter(k => ownedSnap[k]).length;
-        // Drain de base permanent : le moral baisse tout seul (-0.15/tick),
-        // PLUS une part qui croît avec la taille et le nombre d'améliorations.
-        const baseDrain = 0.15;
+        // Drain de base permanent : le moral baisse tout seul.
+        // Le drain de base monte avec la phase (entreprise plus impersonnelle),
+        // pour que Karen garde de l'intérêt en P3/P4 — sans Karen ça pique vite.
+        const phaseDrainBoost = phaseRef.current >= 4 ? 0.10 : phaseRef.current >= 3 ? 0.07 : phaseRef.current >= 2 ? 0.03 : 0;
+        const baseDrain = 0.15 + phaseDrainBoost;
         const sizeOver = Math.max(0, companySize - 3);
-        const sizeDrain = sizeOver * 0.035;                // +0.035 / point de taille au-delà de 3
-        const upgradeDrain = Math.max(0, upgradeCount - 5) * 0.012; // +0.012 / amélioration au-delà de 5
+        const sizeDrain = sizeOver * 0.045;                // +0.045 / point de taille au-delà de 3 (était 0.035)
+        const upgradeDrain = Math.max(0, upgradeCount - 5) * 0.018; // +0.018 / amélioration (était 0.012)
         const totalErosion = baseDrain + sizeDrain + upgradeDrain;
         // Karen (RH) atténue UNIQUEMENT la part liée à la croissance
-        // (dépersonnalisation), pas le drain de base : Junior -40%,
-        // Senior -65%, DRH -85%. Le drain de base reste toujours présent.
-        const karenMitigation = ownedSnap['karen_drh'] ? 0.85 : ownedSnap['karen_senior'] ? 0.65 : ownedSnap['karen_junior'] ? 0.40 : 0;
+        // (dépersonnalisation), pas le drain de base : Junior -35%,
+        // Senior -55%, DRH -70%. La DRH ne neutralise plus presque tout :
+        // elle aide vraiment mais le joueur doit encore agir (team-building,
+        // augmentations, etc.).
+        const karenMitigation = ownedSnap['karen_drh'] ? 0.70 : ownedSnap['karen_senior'] ? 0.55 : ownedSnap['karen_junior'] ? 0.35 : 0;
         d -= baseDrain + (sizeDrain + upgradeDrain) * (1 - karenMitigation);
         // Crèche : baseline 75 au lieu de 70 (cumul avec Karen)
         const baseline = (ownedSnap['creche_entreprise'] ? 75 : 70) + karenBaselineBoost;
@@ -12694,7 +12698,7 @@ export default function App() {
 
   const triggerSabotageCyber = () => {
     setStock(s => Math.floor(s * 0.5));
-    setCyberLockout(180); // 3 minutes
+    setCyberLockout(90); // 1 min 30 — assez douloureux mais sans casser le rythme
     setEventNotif(t('notif.cyberattack'));
     setReputation(r => Math.max(0, r - 8)); // fuite/incident public : image entachée
     setBrigitteMoral(m => Math.max(0, m - 15));
@@ -12703,9 +12707,9 @@ export default function App() {
     setLennyMoral(m => Math.max(0, m - 8));
     lastSabotageAtRef.current = gameTimeRef.current;
     const msg = {
-      fr: "Cyberattaque sur les systèmes de gestion. Contrats, téléphone, banque et marketing sont coupés pendant 3 minutes. La production continue. Pas de rançon : juste vous couper du marché.",
-      en: "Cyberattack on the management systems. Contracts, phone, bank and marketing are down for 3 minutes. Production continues. No ransom: just cutting you off from the market.",
-      es: "Ciberataque a los sistemas de gestión. Contratos, teléfono, banco y marketing cortados durante 3 minutos. La producción sigue. Sin rescate: solo cortarte del mercado.", zh: "对管理系统的网络攻击。合同、电话、银行和营销中断3分钟。生产继续。无赎金：只是把你从市场切断。", ru: "Кибератака на системы управления. Контракты, телефон, банк и маркетинг не работают 3 минуты. Производство продолжается. Без выкупа: просто отрезать вас от рынка.", it: "Cyberattacco ai sistemi gestionali. Contratti, telefono, banca e marketing fuori uso per 3 minuti. La produzione continua. Nessun riscatto: solo tagliarti fuori dal mercato.", de: "Cyberangriff auf die Verwaltungssysteme. Verträge, Telefon, Bank und Marketing sind 3 Minuten lang offline. Die Produktion läuft weiter. Kein Lösegeld: Sie schneiden dich nur vom Markt ab."
+      fr: "Cyberattaque sur les systèmes de gestion. Contrats, téléphone, banque et marketing sont coupés pendant 90 secondes. La production continue. Pas de rançon : juste vous couper du marché.",
+      en: "Cyberattack on the management systems. Contracts, phone, bank and marketing are down for 90 seconds. Production continues. No ransom: just cutting you off from the market.",
+      es: "Ciberataque a los sistemas de gestión. Contratos, teléfono, banco y marketing cortados durante 90 segundos. La producción sigue. Sin rescate: solo cortarte del mercado.", zh: "对管理系统的网络攻击。合同、电话、银行和营销中断90秒。生产继续。无赎金：只是把你从市场切断。", ru: "Кибератака на системы управления. Контракты, телефон, банк и маркетинг не работают 90 секунд. Производство продолжается. Без выкупа: просто отрезать вас от рынка.", it: "Cyberattacco ai sistemi gestionali. Contratti, telefono, banca e marketing fuori uso per 90 secondi. La produzione continua. Nessun riscatto: solo tagliarti fuori dal mercato.", de: "Cyberangriff auf die Verwaltungssysteme. Verträge, Telefon, Bank und Marketing sind 90 Sekunden lang offline. Die Produktion läuft weiter. Kein Lösegeld: Sie schneiden dich nur vom Markt ab."
     };
     setPopupMessage({ type: 'sabotage', text: msg[sabLangNow()] || msg.fr });
   };
@@ -12990,8 +12994,10 @@ export default function App() {
     if (money < c.cost) return;
     setMoney(m => m - c.cost);
     setActiveCampaign({ id, startedAt: gameTime, endsAt: gameTime + c.duration });
-    // Apply notoriety boost (multiplied by Janice's mult, unless she's on strike)
-    const mult = janiceGrumpy ? 1 : stats.marketingMult;
+    // Apply notoriety boost (multiplied by Janice's mult, unless she's on strike).
+    // Damper 0.65 : la noto ne doit pas saturer en quelques campagnes —
+    // Janice reste utile mais l'image se construit dans la durée.
+    const mult = (janiceGrumpy ? 1 : stats.marketingMult) * 0.65;
     setNotoriety(n => Math.min(100, n + c.notoBoost * mult));
     // Bonus réputation des campagnes "image" (esg/documentaire) — promesse de leur libellé.
     const REP_FX = { esg: 0.5, documentaire: 0.8 };
@@ -15152,6 +15158,24 @@ export default function App() {
     setLinePopups({});
     totalsRef.current = { produced: 0, sold: 0, delivered: 0, melted: 0, moneyEarned: 0, contractsCompleted: 0, destructions: 0, vehicleBreakdowns: 0 };
     setTotals({ ...totalsRef.current });
+    // === Nettoyage explicite des événements actifs / timers / cooldowns ===
+    // Sans ça, une pandémie, un sabotage ou un arrêt maladie peut survivre
+    // au reset et son timer (gameTime + duration) reste anormalement élevé
+    // après que gameTime ait été remis à 0.
+    setActiveFrictions({});
+    activeFrictionsRef.current = {};
+    setActiveTensionEffect(null);
+    activeTensionEffectRef.current = null;
+    setSickUntil({});
+    sickUntilRef.current = {};
+    lastFrictionAtRef.current = 0;
+    lastSabotageAtRef.current = -9999;
+    setPosterCooldownUntil(0);
+    ecouterCooldownsRef.current = {};
+    setEcouterTick(0);
+    pendingLennyDispatchRef.current.clear();
+    // Réinitialise les marqueurs « une seule fois par an » des frictions.
+    firedThisYearRef.current = { year: -1, ids: new Set() };
     setHasSave(false);
   };
   const handleReset = () => {
@@ -23248,7 +23272,9 @@ export default function App() {
           const mins = Math.floor(remaining / 60);
           const secs = Math.floor(remaining % 60);
           const timeStr = `${mins}:${secs.toString().padStart(2, '0')}`;
-          const effMult = janiceGrumpy ? 1 : stats.marketingMult;
+          // Damper 0.65 cohérent avec handleLaunchCampaign / handleLaunchFlash :
+          // l'affichage doit montrer la vraie noto gagnée, pas la valeur brute.
+          const effMult = (janiceGrumpy ? 1 : stats.marketingMult) * 0.65;
           const flashActive = flashCampaign && flashCampaign.expiresAt > gameTime;
           const flashTimeLeft = flashActive ? Math.max(0, flashCampaign.expiresAt - gameTime) : 0;
 
@@ -23299,7 +23325,7 @@ export default function App() {
             if (!flashActive || activeCampaign || money < flashCampaign.cost) return;
             setMoney(m => m - flashCampaign.cost);
             setActiveCampaign({ id: flashCampaign.id, startedAt: gameTime, endsAt: gameTime + flashCampaign.duration });
-            const mult = janiceGrumpy ? 1 : stats.marketingMult;
+            const mult = (janiceGrumpy ? 1 : stats.marketingMult) * 0.65;
             setNotoriety(n => Math.min(100, n + flashCampaign.notoBoost * mult));
             setCampaignsLaunched(n => n + 1);
             adjustMoralFor('janice', 5);
