@@ -1124,6 +1124,16 @@ const FRICTION_EVENTS = {
     effects: { b2bDemMult: 0.55 },
     requires: (ctx) => ctx.contractsActive > 0,
   },
+  // Première escarmouche Glacier Frères — version P2, plus douce que la
+  // GUERRE DES PRIX de P3. Rend le nemesis crédible dès qu'on entre sur son
+  // terrain (un contrat signé). Réversible, temporaire, aucun malus persistant.
+  fric_glacier_p2: {
+    id: 'fric_glacier_p2', iconKey: 'chart_down', minPhase: 2, maxPhase: 2, weight: 0.6, duration: 52,
+    name: { fr: 'OFFENSIVE GLACIER FRÈRES', en: 'GLACIER BROS OFFENSIVE', es: 'OFENSIVA GLACIER HNOS', zh: '冰川兄弟出击', ru: 'НАСТУПЛЕНИЕ GLACIER BROS', it: 'OFFENSIVA GLACIER FRÈRES', de: 'GLACIER-BROS-OFFENSIVE' },
+    sub:  { fr: 'Glacier casse les prix dans ton quartier · ventes ×0.7', en: 'Glacier undercuts in your area · sales ×0.7', es: 'Glacier revienta precios en tu zona · ventas ×0.7', zh: '冰川兄弟在你的地盘打价格战 · 销量 ×0.7', ru: 'Glacier демпингует в твоём районе · продажи ×0.7', it: 'Glacier taglia i prezzi nella tua zona · vendite ×0.7', de: 'Glacier unterbietet in deiner Gegend · Verkäufe ×0.7' },
+    effects: { directDemMult: 0.7, b2bDemMult: 0.85 },
+    requires: (ctx) => ctx.contractsActive > 0,
+  },
   // ====== PHASE 3 ======
   fric_boycott: {
     id: 'fric_boycott', iconKey: 'megaphone', minPhase: 3, maxPhase: 3, weight: 0.5, duration: 150,
