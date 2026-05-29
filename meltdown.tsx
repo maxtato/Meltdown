@@ -11589,7 +11589,12 @@ export default function App() {
       const PHASE3_STAGE_DELAY = 90; // 90s game time = 1.5 saison entre chaque message
       const curStage = phase3TriggerStageRef.current;
       const stageReady = curGameTime - phase3LastStageAtRef.current >= PHASE3_STAGE_DELAY;
-      if (!currentCallRef.current && phaseRef.current === 2) {
+      // La cascade narrative Phase 3 (Glacier → centrale → locaux étroits →
+      // "PHASE 03 débloquée") ne doit JAMAIS démarrer avant l'appel de Robert 2 :
+      // c'est lui le vrai sas vers la Phase 3. Sans ce garde-fou, les messages
+      // "phase 3 débloquée" sonnaient bien avant que Robert n'appelle (conditions
+      // de la cascade bien plus légères que celles de l'appel Robert).
+      if (!currentCallRef.current && phaseRef.current === 2 && robertCall2TriggeredRef.current) {
         const curLevel = levelForXp(xpFromTotals(totalsRef.current, completedCallsRef.current.length, ownedRef.current));
         if (curStage === 0 && curLevel >= 6 && totalsRef.current.contractsCompleted >= 30 && moneyRef.current >= 12000) {
           // Trigger 1er appel : Glacier Frères (pas de délai pour le tout premier)
@@ -16100,11 +16105,6 @@ export default function App() {
           })()}
         </div>
         <div className="hero-center">
-          <svg className="stock-logo-bg" viewBox="8 33 84 80" aria-hidden="true" preserveAspectRatio="xMidYMid meet">
-            <path d="M 50 38 L 87 56 L 50 74 L 13 56 Z" />
-            <path d="M 87 56 L 87 90 L 50 108 L 50 74 Z" />
-            <path d="M 13 56 L 13 90 L 50 108 L 50 74 Z" />
-          </svg>
           <div className={`stock ${atCap ? 'full' : ''} ${inHeatwave ? 'canicule' : ''}`}>{displayStock}</div>
           <div className="stock-lbl">{t('status.stock')}</div>
           <div className={`status ${atCap && status ? 'warn' : ''}`}>
