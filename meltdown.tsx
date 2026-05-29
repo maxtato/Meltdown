@@ -5399,12 +5399,14 @@ const fmt2 = n => n.toFixed(2).replace('.', ',');
 const fmtInt = n => Math.floor(n).toLocaleString('fr-FR').replace(/,/g, ' ');
 // fmtK : format compact pour les gros chiffres principaux (stock, etc.).
 // Précis sous 10 000, puis « k » (millier) et « M » (million) au-dessus.
-// Ex : 9 999 → "9 999", 10 000 → "10k", 12 345 → "12,3k", 1 500 000 → "1,5M".
+// Pas de séparateur de milliers : la police monospace du HUD le rend comme
+// une pleine chasse, ce qui creuse un écart disgracieux (ex « 9 999 »).
+// Ex : 9999 → "9999", 10 000 → "10k", 12 345 → "12,3k", 1 500 000 → "1,5M".
 const fmtK = n => {
   const abs = Math.abs(n);
-  if (abs < 10000) return Math.floor(n).toLocaleString('fr-FR').replace(/,/g, ' ');
-  if (abs < 1000000) return (Math.round(n / 100) / 10).toLocaleString('fr-FR') + 'k';
-  return (Math.round(n / 10000) / 100).toLocaleString('fr-FR') + 'M';
+  if (abs < 10000) return String(Math.floor(n));
+  if (abs < 1000000) return ((Math.round(n / 100) / 10).toLocaleString('fr-FR') + 'k').replace(/\s/g, '');
+  return ((Math.round(n / 10000) / 100).toLocaleString('fr-FR') + 'M').replace(/\s/g, '');
 };
 // fmtCash : format compact pour le HUD principal — précis (centimes) sous 10k€, k€/M€ au-dessus.
 const fmtCash = n => {
