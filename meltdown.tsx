@@ -1716,6 +1716,36 @@ function rollLawsuit(purchaseSliders, owned) {
   return weighted[0].ls;
 }
 
+// === AVOCATS (résolution manuelle des procès) ===
+// Quand un procès tombe, le joueur choisit d'engager (ou non) un avocat.
+// On ne montre QUE le nom, un court ressenti d'après la présentation, et le prix.
+// La probabilité de gain reste CACHÉE. Même le meilleur ténor peut perdre.
+//   feeMult  : honoraires = dommages de base × feeMult (payés quoi qu'il arrive)
+//   winChance: probabilité CACHÉE de gagner (jamais 100%)
+// Gagner  → on ne paie que les honoraires (dommages quasi annulés, réputation sauve).
+// Perdre  → honoraires + dommages pleins (×1.5) + perte de réputation. Ça pique.
+const LAWYERS = [
+  { id: 'self', feeMult: 0.0, winChance: 0.22,
+    name: { fr: 'Te défendre seul', en: 'Defend yourself', es: 'Defenderte solo', zh: '自行辩护', ru: 'Защищаться самому', it: 'Difenderti da solo', de: 'Selbst verteidigen' },
+    blurb: { fr: "Gratuit. Tu lis le code la veille sur un forum. Courage.", en: "Free. You read the code the night before on a forum. Good luck.", es: "Gratis. Lees el código la víspera en un foro. Suerte.", zh: "免费。开庭前一晚在论坛上读法条。祝你好运。", ru: "Бесплатно. Читаешь кодекс накануне на форуме. Удачи.", it: "Gratis. Leggi il codice la sera prima su un forum. Coraggio.", de: "Kostenlos. Du liest das Gesetz am Vorabend in einem Forum. Viel Glück." } },
+  { id: 'brassart', feeMult: 0.25, winChance: 0.38,
+    name: { fr: 'Me Kévin Brassart', en: 'Kevin Brassart, Esq.', es: 'Ldo. Kévin Brassart', zh: '凯文·布拉萨尔律师', ru: 'Адв. Кевин Брассар', it: 'Avv. Kévin Brassart', de: 'RA Kévin Brassart' },
+    blurb: { fr: "Costume froissé, débit rapide. Pas donné mais pas hors de prix. Te promet la lune en serrant fort la main.", en: "Crumpled suit, fast talker. Cheap-ish, not free. Promises the moon with a firm handshake.", es: "Traje arrugado, habla rápido. Baratito, no gratis. Te promete la luna con un apretón firme.", zh: "西装皱巴巴，语速飞快。不算贵也不便宜。握手有力，向你许下漫天承诺。", ru: "Мятый костюм, тараторит. Недорого, но не даром. Обещает золотые горы и крепко жмёт руку.", it: "Completo sgualcito, parlantina veloce. Economico ma non gratis. Ti promette la luna con una stretta decisa.", de: "Zerknitterter Anzug, schnelle Zunge. Günstig, nicht gratis. Verspricht dir das Blaue vom Himmel mit festem Händedruck." } },
+  { id: 'ortega', feeMult: 0.45, winChance: 0.52,
+    name: { fr: 'Me Sylvie Ortega', en: 'Sylvie Ortega, Esq.', es: 'Lda. Sylvie Ortega', zh: '西尔维·奥尔特加律师', ru: 'Адв. Сильви Ортега', it: 'Avv. Sylvie Ortega', de: 'RA Sylvie Ortega' },
+    blurb: { fr: "Avocate de quartier, dossiers carrés, ton posé. Inspire confiance sans esbroufe.", en: "Neighborhood lawyer, tidy files, calm tone. Inspires trust without showing off.", es: "Abogada de barrio, expedientes ordenados, tono sereno. Inspira confianza sin alardes.", zh: "社区律师，卷宗工整，语气沉稳。不张扬却让人放心。", ru: "Местный адвокат, аккуратные дела, спокойный тон. Внушает доверие без понтов.", it: "Avvocata di quartiere, fascicoli ordinati, tono pacato. Ispira fiducia senza strafare.", de: "Anwältin aus dem Viertel, saubere Akten, ruhiger Ton. Schafft Vertrauen ohne Angeberei." } },
+  { id: 'vasseur', feeMult: 0.65, winChance: 0.64,
+    name: { fr: 'Me Roland Vasseur', en: 'Roland Vasseur, Esq.', es: 'Ldo. Roland Vasseur', zh: '罗兰·瓦瑟律师', ru: 'Адв. Ролан Вассёр', it: 'Avv. Roland Vasseur', de: 'RA Roland Vasseur' },
+    blurb: { fr: "Vieux briscard du tribunal de commerce. Connaît les greffiers par leur prénom. Cher, mais ça se sent.", en: "Old hand at the commercial court. Knows the clerks by first name. Pricey, but it shows.", es: "Veterano del tribunal mercantil. Conoce a los secretarios por su nombre. Caro, pero se nota.", zh: "商事法庭的老手。叫得出书记员的名字。价高，但物有所值。", ru: "Бывалый в коммерческом суде. Зовёт секретарей по имени. Дорого, но это чувствуется.", it: "Vecchia volpe del tribunale commerciale. Conosce i cancellieri per nome. Caro, ma si vede.", de: "Alter Hase am Handelsgericht. Kennt die Urkundsbeamten beim Vornamen. Teuer, aber man merkt's." } },
+  { id: 'delcourt', feeMult: 0.85, winChance: 0.73,
+    name: { fr: 'Cabinet Delcourt & Associés', en: 'Delcourt & Partners', es: 'Bufete Delcourt & Asociados', zh: '德尔库尔联合律所', ru: 'Бюро Делькур и партнёры', it: 'Studio Delcourt & Associati', de: 'Kanzlei Delcourt & Partner' },
+    blurb: { fr: "Cabinet d'affaires, marbre dans le hall, costumes impeccables. Facture salée, dossier blindé.", en: "Corporate firm, marble lobby, flawless suits. Steep bill, airtight case.", es: "Bufete de negocios, mármol en el vestíbulo, trajes impecables. Factura salada, expediente blindado.", zh: "商务律所，大堂铺大理石，西装笔挺。账单不菲，案卷滴水不漏。", ru: "Корпоративное бюро, мрамор в холле, безупречные костюмы. Счёт солидный, дело железное.", it: "Studio d'affari, marmo nell'atrio, completi impeccabili. Parcella salata, fascicolo blindato.", de: "Wirtschaftskanzlei, Marmor in der Lobby, makellose Anzüge. Saftige Rechnung, wasserdichte Akte." } },
+  { id: 'senghor', feeMult: 1.15, winChance: 0.85,
+    name: { fr: 'Me Béatrice Senghor', en: 'Béatrice Senghor, Esq.', es: 'Lda. Béatrice Senghor', zh: '贝阿特丽斯·桑戈尔律师', ru: 'Адв. Беатрис Сенгор', it: 'Avv. Béatrice Senghor', de: 'RA Béatrice Senghor' },
+    blurb: { fr: "Ténor du barreau. On murmure qu'elle n'a pas perdu un dossier depuis des années. Le prix donne le vertige.", en: "Star of the bar. Word is she hasn't lost a case in years. The price is dizzying.", es: "Estrella del foro. Se rumorea que no pierde un caso desde hace años. El precio marea.", zh: "律界顶尖。传闻她多年未输过一案。价格令人眩晕。", ru: "Звезда адвокатуры. Поговаривают, годами не проигрывала дел. Цена кружит голову.", it: "Stella del foro. Si mormora che non perda una causa da anni. Il prezzo dà le vertigini.", de: "Star der Anwaltschaft. Man munkelt, sie habe seit Jahren keinen Fall verloren. Der Preis ist schwindelerregend." } },
+];
+const LAWYERS_BY_ID = Object.fromEntries(LAWYERS.map(l => [l.id, l]));
+
 function computeUtilitiesBill(freezerCount, seasonProd, seasonFuelCost, utilMult) {
   const base = freezerCount * UTIL_BASE_PER_FREEZER;
   const prodCost = seasonProd * UTIL_PROD_PER_GL;
@@ -2237,7 +2267,6 @@ const UPGRADE_FAMILIES = [
   { id: 'pers_lenny',    label: 'LENNY',    icon: 'Users', tiers: ['camion_1'],                                                                  minPhase: 2, hideWhenMax: true },
   { id: 'pers_janice',   label: 'AGENCE MARKETING',   icon: 'Megaphone', tiers: ['janice_jr'],                                  minPhase: 3, requireUnlock: 'headquarters' },
   { id: 'pers_mark',     label: 'MARK',     icon: 'Users', tiers: ['mark_jr', 'mark_resp', 'mark_dir'],                                          minPhase: 3, requireUnlock: 'headquarters' },
-  { id: 'pers_sabine',   label: 'SABINE',   icon: 'Users', tiers: ['sabine_jr', 'sabine_sr', 'sabine_dg'],                                       minPhase: 3, requireUnlock: 'headquarters' },
   { id: 'pers_bienetre', label: 'BIEN-ÊTRE & FORMATION', icon: 'Users',
     tiers: ['machine_cafe', 'salle_repos', 'salle_sport', 'plan_formation', 'creche_entreprise', 'formation_interne', 'robotisation'],
     minPhase: 2 },
@@ -2393,15 +2422,15 @@ const TUTORIAL_STEPS = [
     }, targetSel: '.menu-btn-achats', side: 'bottom', delay: 1500,
     canShow: s => (!!(s.owned && (s.owned['mark_jr'] || s.owned['mark_resp'] || s.owned['mark_dir']))), autoClose: null },
   { id: 't_sabine_intro', text: {
-      fr: "Sabine gère ton risque juridique. Plus tes curseurs Achats sont agressifs, plus les procès tombent. Sabine en absorbe automatiquement un certain nombre par an (1 puis 2 puis 3 selon son grade) et réduit fortement les dommages. Sans elle, chaque procès te coûte plein pot.",
-      en: "Sabine handles your legal risk. The more aggressive your Purchasing sliders, the more lawsuits. Sabine absorbs a fixed number per year (1, then 2, then 3 depending on her rank) and heavily reduces damages. Without her, every lawsuit hits at full cost.",
-      es: "Sabine gestiona tu riesgo jurídico. Cuanto más agresivos sean tus cursores de Compras, más juicios caerán. Sabine absorbe un número fijo al año (1, luego 2, luego 3 según su rango) y reduce mucho los daños. Sin ella, cada juicio te cuesta al precio total.",
-      zh: "萨宾管理你的法律风险。采购滑块越激进，诉讼就越多。萨宾每年自动吸收一定数量（按等级 1、2、3 起）并大幅减少损失。没有她，每起诉讼按全价算账。",
-      ru: "Сабина управляет вашими юридическими рисками. Чем агрессивнее ползунки Закупок, тем больше исков. Сабина берёт на себя определённое количество в год (1, потом 2, потом 3 в зависимости от ранга) и серьёзно снижает ущерб. Без неё каждый иск бьёт по полной.",
-      it: "Sabine gestisce il rischio legale. Più sono aggressivi i cursori Acquisti, più arrivano cause. Sabine ne assorbe un numero fisso all'anno (1, poi 2, poi 3 a seconda del grado) e riduce molto i danni. Senza di lei, ogni causa ti colpisce a tariffa piena.",
-      de: "Sabine verwaltet dein rechtliches Risiko. Je aggressiver deine Einkaufs-Regler, desto mehr Klagen kommen. Sabine fängt eine feste Anzahl pro Jahr ab (1, dann 2, dann 3 je nach Rang) und reduziert Schäden stark. Ohne sie trifft dich jede Klage in voller Höhe."
+      fr: "Un procès vient de tomber. Ouvre l'écran JURIDIQUE : tu choisis un avocat pour te défendre. Plus tu paies cher, plus tes chances de gagner montent — mais rien n'est garanti, et perdre coûte très cher. Tu peux aussi te défendre seul, gratuitement… et prier.",
+      en: "A lawsuit just hit. Open the LEGAL screen: pick a lawyer to defend you. The more you pay, the better your odds — but nothing is guaranteed, and losing costs a fortune. You can also defend yourself for free… and pray.",
+      es: "Acaba de caer un juicio. Abre la pantalla JURÍDICO: eliges un abogado para defenderte. Cuanto más pagas, más posibilidades de ganar — pero nada está garantizado, y perder cuesta carísimo. También puedes defenderte solo, gratis… y rezar.",
+      zh: "一起诉讼刚刚来袭。打开法务界面：选一位律师为你辩护。付得越多，胜算越大——但没有保证，而败诉代价高昂。你也可以免费自辩……然后祈祷。",
+      ru: "Только что поступил иск. Откройте экран ЮРИДИКА: выберите адвоката для защиты. Чем больше платите, тем выше шансы — но гарантий нет, а проигрыш стоит целое состояние. Можно защищаться самому, бесплатно… и молиться.",
+      it: "È appena arrivata una causa. Apri la schermata LEGALE: scegli un avvocato per difenderti. Più paghi, più aumentano le chance — ma niente è garantito, e perdere costa carissimo. Puoi anche difenderti da solo, gratis… e pregare.",
+      de: "Eine Klage ist gerade eingegangen. Öffne den RECHTS-Bildschirm: Wähle einen Anwalt zu deiner Verteidigung. Je mehr du zahlst, desto besser die Chancen — aber nichts ist garantiert, und Verlieren kostet ein Vermögen. Du kannst dich auch gratis selbst verteidigen… und beten."
     }, targetSel: '.menu-btn-juridique', side: 'bottom', delay: 1500,
-    canShow: s => (!!(s.owned && (s.owned['sabine_jr'] || s.owned['sabine_sr'] || s.owned['sabine_dg']))), autoClose: null },
+    canShow: s => s.activeLawsuitsCount > 0, autoClose: s => s.activeLawsuitsCount === 0 },
   { id: 't_janice_intro', text: {
       fr: "L'agence marketing débloque l'écran MARKETING. Lance des campagnes : chacune gagne de la notoriété sur la durée. Attention : l'agence se plante parfois et sort une pub à côté de la plaque qui fait CHUTER ta notoriété.",
       en: "The marketing agency unlocks the MARKETING screen. Launch campaigns: each earns notoriety over time. Careful: the agency sometimes blunders and ships an off-target ad that DROPS your notoriety.",
@@ -9538,6 +9567,7 @@ export default function App() {
         linesBonus: rawStats.linesBonus,
         signedCount: lines.filter(l => l.contractId).length,
         notoriety, campaignsLaunched,
+        activeLawsuitsCount: activeLawsuits.length,
         currentXp: xpHere, reputation, upcomingAmount,
         hireDates,
         dismissedAt: tutorialDismissedAtRef.current,
@@ -11602,74 +11632,28 @@ export default function App() {
         if (notoDelta !== 0 && !isFirstYear) {
           setNotoriety(n => Math.max(0, Math.min(100, (n || 0) + notoDelta)));
         }
-        // === TIRAGE D'UN PROCÈS ÉVENTUEL ===
-        // Probabilité = somme des riskMonthly des curseurs dangereux.
-        // Sabine traite automatiquement tant qu'elle a du quota annuel.
-        // Sinon, le procès est mis en file (résolution manuelle par le joueur).
-        // Garde-fou : en Phase 2, aucun procès tant que Sabine n'est pas
-        // embauchée (sinon le joueur subit un procès sans aucun moyen de se
-        // défendre). En Phase 3+, le volet juridique est pleinement actif.
-        const _hasSabineForLaw = !!(ownedRef.current['sabine_jr'] || ownedRef.current['sabine_sr'] || ownedRef.current['sabine_dg']);
-        if (!isFirstYear && (phaseRef.current >= 3 || (phaseRef.current >= 2 && _hasSabineForLaw))) {
-          // Reset annuel du compteur Sabine
-          const curYear = Math.floor(gameTimeRef.current / (SEASON_DURATION * 4));
-          if (curYear !== lastLawsuitYearRef.current) {
-            lastLawsuitYearRef.current = curYear;
-            setSabineYearCount(0);
-            sabineYearCountRef.current = 0;
-          }
-          let risk = computePurchaseRiskMonthly(purchaseSlidersRef.current, ownedRef.current);
-          // Lobbying Sabine actif : le risque lié aux curseurs Achats de Mark est annulé.
-          if (sabineLobbyUntilRef.current > gameTimeRef.current) risk = 0;
-          // Petit risque de fond conformité (cotisations/fiscal) ≈ 1%/mois en P3+
-          const baseRisk = phaseRef.current >= 3 ? 0.012 : 0.005;
-          let totalRisk = Math.min(0.85, baseRisk + risk);
-          // Mise en conformité / bouclier juridique Sabine : réduit (ou annule) le risque total.
-          if (sabineComplianceRef.current.until > gameTimeRef.current) {
-            totalRisk *= sabineComplianceRef.current.factor;
-          }
+        // === TIRAGE D'UN PROCÈS ÉVENTUEL (accidents, incidents, conformité) ===
+        // Plus de gestion automatique : tout procès tombe en file et c'est au
+        // joueur de décider d'engager (ou non) un avocat (cf. modale Juridique).
+        // Risque de fond « accidents & litiges », croissant avec la phase.
+        if (!isFirstYear && phaseRef.current >= 2) {
+          const baseRisk = phaseRef.current >= 3 ? 0.035 : 0.015;
+          const totalRisk = Math.min(0.85, baseRisk);
           if (Math.random() < totalRisk) {
             const lsTemplate = rollLawsuit(purchaseSlidersRef.current, ownedRef.current);
             if (lsTemplate) {
-              const ownedNow = ownedRef.current;
-              const quota = getSabineYearlyQuota(ownedNow);
-              // Arrêt maladie : Sabine ne peut pas prendre le procès, il
-              // tombe en file pour décision manuelle du joueur (= comme si
-              // elle n'était pas embauchée).
-              const sabineHere = !isSickNow('sabine');
-              const handled = sabineHere && (sabineYearCountRef.current < quota);
-              const damageMult = handled ? getSabineDamageMult(ownedNow) : 1.0;
-              const moneyLoss = Math.round(lsTemplate.baseDamage.money * damageMult);
-              const notoLoss = Math.round(lsTemplate.baseDamage.noto * damageMult);
-              if (handled) {
-                // Sabine gère automatiquement → applique tout de suite les dommages réduits
-                setMoney(m => Math.max(0, m - moneyLoss));
-                setReputation(r => Math.max(0, Math.min(100, r - notoLoss)));
-                setSabineYearCount(c => c + 1);
-                sabineYearCountRef.current = sabineYearCountRef.current + 1;
-                const histEntry = {
-                  id: lsTemplate.id, ts: gameTimeRef.current,
-                  outcome: 'sabine', moneyLoss, notoLoss,
-                };
-                setLawsuitHistory(h => [histEntry, ...h].slice(0, 12));
-                // Notification discrète
-                queuePopup({ type: 'character', speaker: 'Sabine',
-                  text: `${localizeField(lsTemplate.title, language)} : géré. ${moneyLoss > 0 ? '−' + fmtInt(moneyLoss) + '€' : ''}${notoLoss > 0 ? ', −' + notoLoss + ' réput' : ''}.` });
-              } else {
-                // Pas de Sabine ou quota dépassé → procès actif en file pour décision joueur
-                const ls = {
-                  uid: `ls_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
-                  id: lsTemplate.id, ts: gameTimeRef.current,
-                  baseMoney: lsTemplate.baseDamage.money,
-                  baseNoto: lsTemplate.baseDamage.noto,
-                };
-                setActiveLawsuits(arr => [...arr, ls]);
-                // Achievement counter
-                totalsRef.current = { ...totalsRef.current, lawsuitsTotal: (totalsRef.current.lawsuitsTotal || 0) + 1 };
-                setTotals(t => ({ ...t, lawsuitsTotal: (t.lawsuitsTotal || 0) + 1 }));
-                queuePopup({ type: 'character', speaker: 'Brigitte',
-                  text: `⚖ Plainte reçue : ${localizeField(lsTemplate.title, language)}. ${ownedNow['sabine_jr'] || ownedNow['sabine_sr'] || ownedNow['sabine_dg'] ? 'Sabine a épuisé son quota annuel, à toi de décider.' : 'Sans juriste, à toi de trancher.'}` });
-              }
+              const ls = {
+                uid: `ls_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+                id: lsTemplate.id, ts: gameTimeRef.current,
+                baseMoney: lsTemplate.baseDamage.money,
+                baseNoto: lsTemplate.baseDamage.noto,
+              };
+              setActiveLawsuits(arr => [...arr, ls]);
+              // Achievement counter
+              totalsRef.current = { ...totalsRef.current, lawsuitsTotal: (totalsRef.current.lawsuitsTotal || 0) + 1 };
+              setTotals(t => ({ ...t, lawsuitsTotal: (t.lawsuitsTotal || 0) + 1 }));
+              queuePopup({ type: 'character', speaker: 'Brigitte',
+                text: `⚖ ${localizeField(lsTemplate.title, language)}. ${t('juridique.notif_received')}` });
             }
           }
         }
@@ -16339,13 +16323,13 @@ export default function App() {
           <ShoppingCart size={14} strokeWidth={1.6} />
           <span className="menu-btn-label">{t('menu.achats')}</span>
         </button>
-        {/* === Bouton JURIDIQUE : visible dès qu'on a Sabine OU au moins un procès en cours === */}
+        {/* === Bouton JURIDIQUE : visible dès qu'on a au moins un procès en cours ou un historique === */}
         <button
-          className={`menu-btn menu-btn-juridique ${(owned['sabine_jr'] || owned['sabine_sr'] || owned['sabine_dg'] || activeLawsuits.length > 0) ? '' : 'locked'}`}
-          onClick={(owned['sabine_jr'] || owned['sabine_sr'] || owned['sabine_dg'] || activeLawsuits.length > 0) ? () => setJuridiqueOpen(true) : undefined}
-          disabled={!(owned['sabine_jr'] || owned['sabine_sr'] || owned['sabine_dg'] || activeLawsuits.length > 0)}
+          className={`menu-btn menu-btn-juridique ${(activeLawsuits.length > 0 || lawsuitHistory.length > 0) ? '' : 'locked'}`}
+          onClick={(activeLawsuits.length > 0 || lawsuitHistory.length > 0) ? () => setJuridiqueOpen(true) : undefined}
+          disabled={!(activeLawsuits.length > 0 || lawsuitHistory.length > 0)}
           aria-label="Juridique"
-          title={(owned['sabine_jr'] || owned['sabine_sr'] || owned['sabine_dg'] || activeLawsuits.length > 0) ? t('menu.juridique') : t('menu.juridique_locked')}
+          title={(activeLawsuits.length > 0 || lawsuitHistory.length > 0) ? t('menu.juridique') : t('menu.juridique_locked')}
         >
           <Scale size={14} strokeWidth={1.6} />
           <span className="menu-btn-label">{t('menu.juridique')}</span>
@@ -20506,6 +20490,20 @@ export default function App() {
         .lawsuit-btn.is-danger { border-style: dashed; }
         .lawsuit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
         .lawsuit-history-row { font-size: 8px; color: var(--m1); font-variant-numeric: tabular-nums; }
+        .lawsuit-lawyers-title { font-size: 8.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--m1); margin-top: 8px; font-weight: 700; }
+        .lawsuit-lawyers { display: flex; flex-direction: column; gap: 5px; margin-top: 6px; }
+        .lawyer-card {
+          background: var(--bg); border: 1px solid var(--fg);
+          padding: 7px 9px; font-family: inherit; cursor: pointer;
+          text-align: left; color: var(--fg); width: 100%;
+          display: flex; flex-direction: column; gap: 3px;
+        }
+        .lawyer-card:hover:not(:disabled) { background: var(--fg); color: var(--bg); }
+        .lawyer-card:disabled { opacity: 0.4; cursor: not-allowed; }
+        .lawyer-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+        .lawyer-name { font-size: 10px; font-weight: 800; letter-spacing: 0.3px; }
+        .lawyer-fee { font-size: 10px; font-weight: 900; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .lawyer-blurb { font-size: 8px; line-height: 1.35; opacity: 0.78; }
         .juridique-empty { font-size: 10px; color: var(--m2); text-align: center; padding: 16px; border: 1px dashed var(--line); letter-spacing: 1px; }
 
         /* === Modale ACHATS (Mark) === */
@@ -24211,15 +24209,15 @@ export default function App() {
                         },
                         {
                           key: 'juridique',
-                          term: { fr: 'PROCÈS & SABINE', en: 'LAWSUITS & SABINE', es: 'DEMANDAS & SABINE', de: 'KLAGEN & SABINE', it: 'CAUSE & SABINE', ru: 'ИСКИ И САБИНА', zh: '诉讼与Sabine' },
+                          term: { fr: 'PROCÈS & AVOCATS', en: 'LAWSUITS & LAWYERS', es: 'DEMANDAS & ABOGADOS', de: 'KLAGEN & ANWÄLTE', it: 'CAUSE & AVVOCATI', ru: 'ИСКИ И АДВОКАТЫ', zh: '诉讼与律师' },
                           desc: {
-                            fr: "À partir de P2, des procès peuvent tomber. Plus tu pousses les curseurs Achats de Mark vers la limite légale, plus le risque grimpe. Sabine (juriste) en gère automatiquement un quota par an (1/an junior, 3/an senior, 6/an DG) et réduit les dommages. Au-delà, à toi de décider.",
-                            en: "From P2, lawsuits can hit. The more you push Mark's purchasing sliders toward legal limit, the higher the risk. Sabine (lawyer) auto-handles a quota per year (1/y junior, 3/y senior, 6/y CEO) and reduces damages. Beyond that, you decide.",
-                            es: "Desde F2, pueden caer demandas. Cuanto más empujas las barras Compras de Mark al límite legal, más sube el riesgo. Sabine (jurista) gestiona automáticamente un cupo anual (1/año junior, 3/año senior, 6/año DG) y reduce daños. Más allá, decides tú.",
-                            de: "Ab P2 können Klagen kommen. Je mehr du Marks Einkaufs-Regler ans Limit drückst, desto höher das Risiko. Sabine (Juristin) erledigt automatisch ein Jahreskontingent (1/J junior, 3/J senior, 6/J GF) und reduziert Schäden. Darüber hinaus entscheidest du.",
-                            it: "Da F2, possono arrivare cause. Più spingi i cursori Acquisti di Mark verso il limite legale, più sale il rischio. Sabine (giurista) gestisce automaticamente una quota annuale (1/anno junior, 3/anno senior, 6/anno DG) e riduce i danni. Oltre, decidi tu.",
-                            ru: "С P2 могут прилететь иски. Чем дальше двигаешь ползунки закупок Марка к правовому пределу, тем выше риск. Сабина (юрист) автоматически обрабатывает квоту в год (1/г junior, 3/г senior, 6/г DG) и снижает ущерб. Сверх — решаешь сам.",
-                            zh: "P2起，可能有诉讼。Mark采购滑杆推向法律边缘越多，风险越高。Sabine（法务）每年自动处理一定配额（1/年初级、3/年高级、6/年总监）并减少损害。超出的部分由你决定。"
+                            fr: "À partir de P2, des procès peuvent tomber suite à des accidents ou litiges. Pour chacun, ouvre l'écran JURIDIQUE et choisis un avocat. Plus tu paies cher, meilleures sont tes chances de gagner — mais c'est invisible et jamais garanti. Gagner = tu ne paies que les honoraires. Perdre = honoraires + dommages pleins + réputation. Tu peux te défendre seul, gratuitement, à tes risques.",
+                            en: "From P2, lawsuits can hit after accidents or disputes. For each one, open the LEGAL screen and pick a lawyer. The more you pay, the better your odds — but it's hidden and never guaranteed. Win = you only pay the fee. Lose = fee + full damages + reputation. You can defend yourself for free, at your own risk.",
+                            es: "Desde F2, pueden caer demandas tras accidentes o litigios. Para cada una, abre la pantalla JURÍDICO y elige un abogado. Cuanto más pagas, más posibilidades de ganar — pero es invisible y nunca garantizado. Ganar = solo pagas los honorarios. Perder = honorarios + daños completos + reputación. Puedes defenderte solo, gratis, bajo tu riesgo.",
+                            de: "Ab P2 können nach Unfällen oder Streitigkeiten Klagen kommen. Öffne für jede den RECHTS-Bildschirm und wähle einen Anwalt. Je mehr du zahlst, desto besser die Chancen — aber unsichtbar und nie garantiert. Gewinnen = du zahlst nur das Honorar. Verlieren = Honorar + volle Schäden + Ruf. Du kannst dich gratis selbst verteidigen, auf eigenes Risiko.",
+                            it: "Da F2, possono arrivare cause dopo incidenti o controversie. Per ognuna, apri la schermata LEGALE e scegli un avvocato. Più paghi, più chance hai — ma è nascosto e mai garantito. Vinci = paghi solo l'onorario. Perdi = onorario + danni pieni + reputazione. Puoi difenderti da solo, gratis, a tuo rischio.",
+                            ru: "С P2 могут прилететь иски после аварий или споров. Для каждого открой экран ЮРИДИКА и выбери адвоката. Чем больше платишь, тем выше шансы — но это скрыто и никогда не гарантировано. Выигрыш = платишь только гонорар. Проигрыш = гонорар + полный ущерб + репутация. Можно защищаться самому, бесплатно, на свой риск.",
+                            zh: "P2起，事故或纠纷后可能有诉讼。每起诉讼，打开法务界面并选一位律师。付得越多，胜算越大——但这是隐藏的，且从无保证。胜诉=只付律师费。败诉=律师费+全额赔偿+声誉。你也可以免费自辩，风险自负。"
                           }
                         },
                       ];
@@ -26024,51 +26022,38 @@ export default function App() {
 
         {/* === PANEL JURIDIQUE (clic sur le bouton JURIDIQUE du HUD) === */}
         {juridiqueOpen && (() => {
-          const hasSabineJr = !!owned['sabine_jr'];
-          const hasSabineSr = !!owned['sabine_sr'];
-          const hasSabineDg = !!owned['sabine_dg'];
-          const sabineTier = hasSabineDg ? 'dg' : hasSabineSr ? 'sr' : hasSabineJr ? 'jr' : null;
-          const quota = getSabineYearlyQuota(owned);
-          const used = sabineYearCount;
-          // Résoudre un procès — 3 actions possibles
-          const resolveLawsuit = (uid, action) => {
+          // Engager un avocat (ou se défendre seul) pour un procès donné.
+          // Honoraires payés quoi qu'il arrive ; issue tirée sur une proba CACHÉE.
+          const hireLawyer = (uid, lawyerId) => {
             const ls = activeLawsuitsRef.current.find(x => x.uid === uid);
             if (!ls) return;
-            const tpl = LAWSUITS_BY_ID[ls.id];
-            let moneyLoss = 0, notoLoss = 0, outcome = '';
-            if (action === 'regler') {
-              // Régler = transaction rapide : 60% du montant, réput sauve
-              moneyLoss = Math.round(ls.baseMoney * 0.6);
-              notoLoss = Math.round(ls.baseNoto * 0.3);
-              outcome = 'regle';
-            } else if (action === 'defendre') {
-              // Défendre = pari : 65% de gagner (quasi gratuit), sinon plus cher que régler.
-              // Recalibré pour que "Défendre" ne soit plus dominé en espérance par "Régler".
-              const win = Math.random() < 0.65;
-              if (win) {
-                moneyLoss = Math.round(ls.baseMoney * 0.10); // frais avocat seulement
-                notoLoss = 0;
-                outcome = 'gagne';
-                // Achievement counter
-                totalsRef.current = { ...totalsRef.current, lawsuitsWon: (totalsRef.current.lawsuitsWon || 0) + 1 };
-                setTotals(t => ({ ...t, lawsuitsWon: (t.lawsuitsWon || 0) + 1 }));
-              } else {
-                moneyLoss = Math.round(ls.baseMoney * 1.6);
-                notoLoss = Math.round(ls.baseNoto * 1.2);
-                outcome = 'perdu';
-              }
-            } else if (action === 'ignorer') {
-              // Ignorer = plainte tombe d'elle-même, mais réput ×2
-              moneyLoss = Math.round(ls.baseMoney * 0.3);
-              notoLoss = Math.round(ls.baseNoto * 2.5);
-              outcome = 'ignore';
+            const lawyer = LAWYERS_BY_ID[lawyerId];
+            if (!lawyer) return;
+            const fee = Math.round(ls.baseMoney * lawyer.feeMult);
+            if (moneyRef.current < fee) return; // garde-fou : honoraires impayables
+            const win = Math.random() < lawyer.winChance;
+            let moneyLoss, notoLoss, outcome;
+            if (win) {
+              // Gagné : on ne paie que les honoraires, réputation sauve.
+              moneyLoss = fee + Math.round(ls.baseMoney * 0.05);
+              notoLoss = 0;
+              outcome = 'gagne';
+              totalsRef.current = { ...totalsRef.current, lawsuitsWon: (totalsRef.current.lawsuitsWon || 0) + 1 };
+              setTotals(tt => ({ ...tt, lawsuitsWon: (tt.lawsuitsWon || 0) + 1 }));
+            } else {
+              // Perdu : honoraires + dommages pleins (×1.5) + réputation.
+              moneyLoss = fee + Math.round(ls.baseMoney * 1.5);
+              notoLoss = Math.round(ls.baseNoto * 1.2);
+              outcome = 'perdu';
             }
             setMoney(m => Math.max(0, m - moneyLoss));
             setReputation(r => Math.max(0, Math.min(100, r - notoLoss)));
             setActiveLawsuits(arr => arr.filter(x => x.uid !== uid));
             setLawsuitHistory(h => [{
-              id: ls.id, ts: gameTime, outcome, moneyLoss, notoLoss,
+              id: ls.id, ts: gameTime, outcome, moneyLoss, notoLoss, lawyer: lawyerId,
             }, ...h].slice(0, 12));
+            queuePopup({ type: 'character', speaker: 'Brigitte',
+              text: win ? t('juridique.verdict_win') : t('juridique.verdict_lose') });
           };
           return (
             <div className="modal-backdrop" onClick={() => setJuridiqueOpen(false)}>
@@ -26082,73 +26067,9 @@ export default function App() {
                 </div>
                 <div className="juridique-body">
                   <div className="juridique-intro">
-                    {sabineTier === 'dg' ? t('juridique.intro_dg')
-                      : sabineTier === 'sr' ? t('juridique.intro_sr')
-                      : sabineTier === 'jr' ? t('juridique.intro_jr')
-                      : t('juridique.intro_none')}
+                    {t('juridique.intro_none')}
                   </div>
-                  {/* Stats Sabine */}
-                  {sabineTier && (
-                    <div className="juridique-stats">
-                      <div className="js-stat">
-                        <span className="js-val">{activeLawsuits.length}</span>
-                        <span className="js-lbl">{t('juridique.stat_active')}</span>
-                      </div>
-                      <div className="js-stat">
-                        <span className="js-val">{quota === Infinity ? '∞' : `${used}/${quota}`}</span>
-                        <span className="js-lbl">{t('juridique.stat_quota')}</span>
-                      </div>
-                      <div className="js-stat">
-                        <span className="js-val">{lawsuitHistory.filter(h => h.outcome === 'sabine' || h.outcome === 'gagne').length}</span>
-                        <span className="js-lbl">{t('juridique.stat_won')}</span>
-                      </div>
-                    </div>
-                  )}
-                  {/* === ACTIONS STRATÉGIQUES SABINE === */}
-                  {getSabinePeakTier(owned) && (
-                    <div className="janice-actions-section">
-                      <div className="janice-actions-title">{t('sabine.actions_title')}</div>
-                      <div className="janice-actions-intro">{t('sabine.actions_intro')}</div>
-                      <div className="janice-actions-grid">
-                        {SABINE_ACTIONS.filter(a => {
-                          const peak = getSabinePeakTier(owned);
-                          return peak && SABINE_TIER_ORDER.indexOf(peak) >= SABINE_TIER_ORDER.indexOf(a.tier);
-                        }).map(action => {
-                          const status = getSabineActionStatus(action, sabineActionState, gameTime, owned, money);
-                          let stateLabel = '';
-                          if (status.reason === 'oneshot') stateLabel = t('janice.act_done');
-                          else if (status.reason === 'cooldown') stateLabel = `${t('janice.act_cd')} ${status.cooldownLeftMonths}${t('janice.month_short')}`;
-                          else if (status.reason === 'funds') stateLabel = t('janice.act_no_funds');
-                          return (
-                            <button
-                              key={action.id}
-                              className={`janice-action-card ${!status.available ? 'is-disabled' : ''}`}
-                              disabled={!status.available}
-                              onClick={() => triggerSabineAction(action.id)}
-                            >
-                              <div className="janice-action-label">{localizeField(action.title, language)}</div>
-                              <div className="janice-action-cost">{fmtInt(action.cost)}€</div>
-                              <div className="janice-action-fx">{localizeField(action.fx, language)}</div>
-                              {stateLabel && <div className="janice-action-state">{stateLabel}</div>}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      {sabineCompliance.until > gameTime && (
-                        <div className="janice-boost-active">
-                          <Zap size={10} strokeWidth={2} /> {t('sabine.compliance_active')} ×{sabineCompliance.factor.toFixed(2)} ·
-                          {' '}{Math.ceil((sabineCompliance.until - gameTime) / MONTH_DURATION)} {t('janice.months_short')}
-                        </div>
-                      )}
-                      {sabineLobbyUntil > gameTime && (
-                        <div className="janice-boost-active">
-                          <Zap size={10} strokeWidth={2} /> {t('sabine.lobby_active')} ·
-                          {' '}{Math.ceil((sabineLobbyUntil - gameTime) / MONTH_DURATION)} {t('janice.months_short')}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  {/* Procès actifs (urgents) */}
+                  {/* Procès actifs (urgents) : on choisit un avocat (ou on se défend seul). */}
                   {activeLawsuits.length > 0 && (
                     <div className="juridique-section">
                       <div className="juridique-section-title">{t('juridique.urgent_title')}</div>
@@ -26165,27 +26086,25 @@ export default function App() {
                             <div className="lawsuit-stakes">
                               {t('juridique.stakes_base')} : <b>−{fmtInt(ls.baseMoney)}€</b>, <b>−{ls.baseNoto} réput</b>
                             </div>
-                            <div className="lawsuit-actions">
-                              <button
-                                className="lawsuit-btn is-primary"
-                                disabled={money < Math.round(ls.baseMoney * 0.6)}
-                                onClick={() => resolveLawsuit(ls.uid, 'regler')}>
-                                {t('juridique.act_settle')}
-                                <small>{t('juridique.act_settle_hint')}</small>
-                              </button>
-                              <button
-                                className="lawsuit-btn"
-                                disabled={money < Math.round(ls.baseMoney * 1.8)}
-                                onClick={() => resolveLawsuit(ls.uid, 'defendre')}>
-                                {t('juridique.act_defend')}
-                                <small>{t('juridique.act_defend_hint')}</small>
-                              </button>
-                              <button
-                                className="lawsuit-btn is-danger"
-                                onClick={() => resolveLawsuit(ls.uid, 'ignorer')}>
-                                {t('juridique.act_ignore')}
-                                <small>{t('juridique.act_ignore_hint')}</small>
-                              </button>
+                            <div className="lawsuit-lawyers-title">{t('juridique.choose_lawyer')}</div>
+                            <div className="lawsuit-lawyers">
+                              {LAWYERS.map(lawyer => {
+                                const fee = Math.round(ls.baseMoney * lawyer.feeMult);
+                                const tooPoor = money < fee;
+                                return (
+                                  <button
+                                    key={lawyer.id}
+                                    className={`lawyer-card ${tooPoor ? 'is-disabled' : ''}`}
+                                    disabled={tooPoor}
+                                    onClick={() => hireLawyer(ls.uid, lawyer.id)}>
+                                    <div className="lawyer-head">
+                                      <span className="lawyer-name">{localizeField(lawyer.name, language)}</span>
+                                      <span className="lawyer-fee">{fee > 0 ? `${fmtInt(fee)}€` : t('juridique.free')}</span>
+                                    </div>
+                                    <div className="lawyer-blurb">{localizeField(lawyer.blurb, language)}</div>
+                                  </button>
+                                );
+                              })}
                             </div>
                           </div>
                         );
@@ -26199,12 +26118,11 @@ export default function App() {
                       {lawsuitHistory.slice(0, 6).map((h, i) => {
                         const tpl = LAWSUITS_BY_ID[h.id];
                         if (!tpl) return null;
-                        const tagLabel = h.outcome === 'sabine' ? t('juridique.tag_sabine')
-                          : h.outcome === 'gagne' ? t('juridique.tag_won')
+                        const tagLabel = h.outcome === 'gagne' ? t('juridique.tag_won')
                           : h.outcome === 'perdu' ? t('juridique.tag_lost')
                           : h.outcome === 'regle' ? t('juridique.tag_settled')
                           : t('juridique.tag_ignored');
-                        const cls = (h.outcome === 'sabine' || h.outcome === 'gagne') ? 'is-good'
+                        const cls = h.outcome === 'gagne' ? 'is-good'
                           : h.outcome === 'perdu' ? 'is-bad'
                           : '';
                         return (
