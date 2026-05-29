@@ -1508,6 +1508,12 @@ const JANICE_ACTIONS = [
     title: { fr: 'Campagne digitale ciblée', en: 'Targeted digital campaign', es: 'Campaña digital dirigida', de: 'Gezielte Digitalkampagne', it: 'Campagna digitale mirata', ru: 'Целевая digital-кампания', zh: '精准数字营销' },
     fx: { fr: 'Noto +8 · cooldown 2 mois', en: 'Awareness +8 · 2-month cooldown', es: 'Notor. +8 · cd 2 meses', de: 'Bekanntheit +8 · CD 2 Mon', it: 'Notorietà +8 · cd 2 mesi', ru: 'Известность +8 · кд 2 мес', zh: '知名度 +8 · 冷却2月' },
     desc: { fr: "Ads sur réseaux sociaux + Google Search + retargeting. Petite enveloppe, ROI rapide.", en: "Social ads + Google Search + retargeting. Small budget, quick ROI.", es: "Ads en redes + Google Search + retargeting. Presupuesto bajo, ROI rápido.", de: "Social Ads + Google Search + Retargeting. Kleines Budget, schneller ROI.", it: "Ads social + Google Search + retargeting. Budget piccolo, ROI rapido.", ru: "Соцреклама + Google Search + ретаргетинг. Малый бюджет, быстрый ROI.", zh: "社媒+Google搜索+再营销。预算小，回报快。" } },
+  { id: 'operation_rse', tier: 'janice_senior', cost: 30000, cooldownMonths: 4,
+    Icon: 'Leaf',
+    effects: { repInstant: 15 },
+    title: { fr: 'Opération RSE', en: 'CSR operation', es: 'Operación RSC', de: 'CSR-Aktion', it: 'Operazione CSR', ru: 'CSR-операция', zh: '企业社会责任行动' },
+    fx: { fr: 'Réputation +15 · cd 4 mois', en: 'Reputation +15 · 4-month cooldown', es: 'Reputación +15 · cd 4 meses', de: 'Reputation +15 · CD 4 Mon', it: 'Reputazione +15 · cd 4 mesi', ru: 'Репутация +15 · кд 4 мес', zh: '声誉 +15 · 冷却4月' },
+    desc: { fr: "Plantation d'arbres sponsorisée, communiqué « neutralité carbone d'ici 2050 », photos d'équipe en gilet de bénévole. L'image se répare — le glacier, lui, fond toujours.", en: "Sponsored tree-planting, a \"carbon neutral by 2050\" press release, team photos in volunteer vests. The image gets patched up — the glacier keeps melting all the same.", es: "Plantación de árboles patrocinada, comunicado «neutralidad de carbono para 2050», fotos del equipo con chalecos de voluntario. La imagen se repara — el glaciar sigue derritiéndose igual.", de: "Gesponserte Baumpflanzung, Pressemitteilung „klimaneutral bis 2050\", Teamfotos in Freiwilligenwesten. Das Image wird geflickt — der Gletscher schmilzt trotzdem weiter.", it: "Piantumazione sponsorizzata, comunicato «neutralità carbonica entro il 2050», foto del team in pettorina da volontario. L'immagine si ripara — il ghiacciaio continua a sciogliersi.", ru: "Спонсорская посадка деревьев, пресс-релиз «углеродная нейтральность к 2050», фото команды в волонтёрских жилетах. Имидж латается — ледник всё равно тает.", zh: "赞助植树、发布「2050碳中和」公告、团队穿志愿者背心拍照。形象修好了——冰川照样在融。" } },
   { id: 'pub_tv_regionale', tier: 'janice_senior', cost: 80000, cooldownMonths: 6,
     Icon: 'Megaphone',
     effects: { notoInstant: 20, sellBoostFactor: 1.30, sellBoostMonths: 1 },
@@ -1522,6 +1528,12 @@ const JANICE_ACTIONS = [
     title: { fr: 'Partenariat influenceurs', en: 'Influencer partnership', es: 'Partnership influencers', de: 'Influencer-Partnerschaft', it: 'Partnership influencer', ru: 'Партнёрство с инфлюенсерами', zh: '网红合作' },
     fx: { fr: 'Noto +15 · prix ×1.15 (1 mois) · cd 3 mois', en: 'Awareness +15 · price ×1.15 (1mo) · cd 3mo', es: 'Notor. +15 · precio ×1.15 (1m) · cd 3m', de: 'Bekanntheit +15 · Preis ×1.15 (1 Mon) · CD 3 Mon', it: 'Notorietà +15 · prezzo ×1.15 (1m) · cd 3m', ru: 'Известность +15 · цена ×1.15 (1мес) · кд 3мес', zh: '知名度 +15 · 价格 ×1.15（1月）· 冷却3月' },
     desc: { fr: "Tu équipes 12 influenceurs lifestyle. La marque devient virale chez les jeunes urbains.", en: "You partner with 12 lifestyle influencers. The brand goes viral with young urbans.", es: "Te asocias con 12 influencers lifestyle. La marca se vuelve viral entre urbanos jóvenes.", de: "Du arbeitest mit 12 Lifestyle-Influencern. Die Marke wird viral bei Jung-Urbanen.", it: "Collabori con 12 influencer lifestyle. Il marchio diventa virale tra i giovani urbani.", ru: "Сотрудничаешь с 12 лайфстайл-инфлюенсерами. Бренд становится вирусным у молодых горожан.", zh: "与12位生活方式网红合作。品牌在都市年轻人中爆红。" } },
+  { id: 'mecenat_climat', tier: 'janice_dir', cost: 120000, cooldownMonths: 8,
+    Icon: 'Leaf',
+    effects: { repInstant: 30 },
+    title: { fr: 'Mécénat & engagement climat', en: 'Climate patronage & pledge', es: 'Mecenazgo y compromiso climático', de: 'Klima-Mäzenatentum & Pledge', it: 'Mecenatismo e impegno clima', ru: 'Климатическое меценатство', zh: '气候赞助与承诺' },
+    fx: { fr: 'Réputation +30 · cd 8 mois', en: 'Reputation +30 · 8-month cooldown', es: 'Reputación +30 · cd 8 meses', de: 'Reputation +30 · CD 8 Mon', it: 'Reputazione +30 · cd 8 mesi', ru: 'Репутация +30 · кд 8 мес', zh: '声誉 +30 · 冷却8月' },
+    desc: { fr: "Don retentissant à une ONG triée sur le volet, label éthique acheté, grand discours du PDG sur « la transition ». La réputation remonte fort — la sincérité reste optionnelle.", en: "A loud donation to a hand-picked NGO, a bought ethics label, a grand CEO speech on \"the transition.\" Reputation bounces back hard — sincerity stays optional.", es: "Donación sonada a una ONG escogida, sello ético comprado, gran discurso del CEO sobre «la transición». La reputación sube fuerte — la sinceridad es opcional.", de: "Eine laute Spende an eine handverlesene NGO, ein gekauftes Ethik-Siegel, eine große CEO-Rede über „die Transformation\". Die Reputation springt stark zurück — Aufrichtigkeit bleibt optional.", it: "Donazione clamorosa a una ONG selezionata, label etico comprato, grande discorso del CEO sulla «transizione». La reputazione risale forte — la sincerità resta opzionale.", ru: "Громкое пожертвование избранной НКО, купленный этический лейбл, большая речь гендира о «переходе». Репутация резко растёт — искренность опциональна.", zh: "向精挑细选的NGO高调捐款、买来道德标签、CEO发表「转型」长篇演讲。声誉大幅回升——真诚与否可选。" } },
   { id: 'sponsoring_sport', tier: 'janice_dir', cost: 150000, cooldownMonths: 12,
     Icon: 'Dumbbell',
     effects: { notoInstant: 30, sellPermaBonus: 0.05 },
@@ -6293,6 +6305,9 @@ export default function App() {
   // Fidélité client : { [contractId]: nombre de contrats honorés avec succès }
   const [clientLoyalty, setClientLoyalty] = useState({});
   const clientLoyaltyRef = useRef({});
+  // Série de contrats honorés d'affilée (remise à 0 au moindre échec).
+  // Tous les 3 succès consécutifs → bonus de réputation (jeu propre récompensé).
+  const contractSuccessStreakRef = useRef(0);
   useEffect(() => { clientLoyaltyRef.current = clientLoyalty; }, [clientLoyalty]);
   const [activeCampaign, setActiveCampaign] = useState(null); // {id, startedAt, endsAt}
   const [campaignsOpen, setCampaignsOpen] = useState(false);
@@ -12445,8 +12460,21 @@ export default function App() {
                 if (success) {
                   moneyDelta += bonus;
                   totalsRef.current.moneyEarned += bonus;
-                  setReputation(r => Math.min(100, r + 1));
-                  if (punctual) setEventNotif(language === 'fr' ? 'LIVRAISON SANS ACCROC · PRIME PONCTUALITÉ' : 'FLAWLESS DELIVERY · PUNCTUALITY BONUS');
+                  // Contrat honoré : +2 réputation de base, +1 de plus si ponctuel.
+                  const baseRepGain = 2 + (punctual ? 1 : 0);
+                  setReputation(r => Math.min(100, r + baseRepGain));
+                  // === Série de contrats honorés : tous les 3 d'affilée → +5 bonus ===
+                  // Récompense le jeu propre dans la durée (levier B de remontée réput).
+                  const newStreak = (contractSuccessStreakRef.current || 0) + 1;
+                  contractSuccessStreakRef.current = newStreak;
+                  if (newStreak % 3 === 0) {
+                    setReputation(r => Math.min(100, r + 5));
+                    setEventNotif(language === 'fr'
+                      ? `SÉRIE DE ${newStreak} CONTRATS HONORÉS · RÉPUTATION +5`
+                      : `${newStreak} CONTRACTS DELIVERED IN A ROW · REPUTATION +5`);
+                  } else if (punctual) {
+                    setEventNotif(language === 'fr' ? 'LIVRAISON SANS ACCROC · PRIME PONCTUALITÉ' : 'FLAWLESS DELIVERY · PUNCTUALITY BONUS');
+                  }
                   // Fidélité : ce client a été honoré → +1 (boost à la prochaine signature).
                   const _cid = line.contractId;
                   if (_cid) {
@@ -12454,8 +12482,9 @@ export default function App() {
                     setClientLoyalty(prev => ({ ...prev, [_cid]: (prev[_cid] || 0) + 1 }));
                   }
                 } else {
-                  // Échec : pénalité réputation (plus de seconde chance)
+                  // Échec : pénalité réputation (plus de seconde chance) + série brisée.
                   setReputation(r => Math.max(0, r - 10));
+                  contractSuccessStreakRef.current = 0;
                 }
                 // Trigger modale (sera affichée par React, ne bloque pas le tick)
                 // Plus de seconde chance : un contrat raté est terminé.
@@ -14881,6 +14910,10 @@ export default function App() {
     if (eff.notoInstant) {
       setNotoriety(n => Math.min(100, (n || 0) + eff.notoInstant));
     }
+    // Réputation instantanée (actions de réparation d'image / RSE)
+    if (eff.repInstant) {
+      setReputation(r => Math.min(100, (r || 0) + eff.repInstant));
+    }
     // Bonus prix permanent
     if (eff.sellPermaBonus) {
       setJanicePermaSellBonus(b => b * (1 + eff.sellPermaBonus));
@@ -15256,6 +15289,7 @@ export default function App() {
     setVictoryAchieved(false); setVictoryModalOpen(false); setVictoryTimestamp(null); setEndgameEpilogueStage(0);
     setGlacierBeats({}); glacierFiredRef.current = {};
     setClientLoyalty({}); clientLoyaltyRef.current = {};
+    contractSuccessStreakRef.current = 0;
     setStolenTrucks(0); stolenTrucksRef.current = 0;
     setGameTime(0); setHeatwaveLeft(0); setDroughtLeft(0); setOutageLeft(0);
     setTempJitter(0);
