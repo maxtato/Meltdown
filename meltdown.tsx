@@ -15322,6 +15322,15 @@ export default function App() {
     pendingLennyDispatchRef.current.clear();
     // Réinitialise les marqueurs « une seule fois par an » des frictions.
     firedThisYearRef.current = { year: -1, ids: new Set() };
+    // === Timers basés sur gameTime restants (même classe de bug que la pandémie) ===
+    // Sans ça, une panne chaîne, un boost Brigitte/Janice ou un team-building
+    // Karen dont l'échéance vaut (gameTime + durée) survit au reset : gameTime
+    // repart à 0 mais l'échéance reste élevée → effet/cooldown fantôme actif.
+    setChainBroken(null); chainBrokenRef.current = null;
+    setBrigitteBoostUntil(0); setJaniceBoostUntil(0);
+    setKarenTeamBuildUntil(0); karenTeamBuildUntilRef.current = 0;
+    setKarenTeamBuildCooldownUntil(0); karenTeamBuildCooldownUntilRef.current = 0;
+    setTutCooldownUntil(0);
     setHasSave(false);
   };
   const handleReset = () => {
