@@ -18117,6 +18117,7 @@ export default function App() {
         .upg.broken svg { opacity: 0.4; }
         .upg-row { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; }
         .upg-icons { display: flex; align-items: center; gap: 3px; }
+        .upg-icon-more { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 0.3px; }
         .upg-tag { font-size: 8px; letter-spacing: 1.5px; color: var(--m2); font-weight: 400; padding-top: 3px; display: flex; align-items: center; gap: 4px; }
         .upg-name { font-size: 9px; font-weight: 700; margin-bottom: 2px; letter-spacing: 0; line-height: 1.2; color: inherit; }
         .upg-broken-tag { display: block; font-size: 8px; margin-top: 2px; letter-spacing: 1px; color: var(--fg); }
@@ -23728,7 +23729,7 @@ export default function App() {
                             disabled={blocked}
                             onClick={() => handleLaunchCampaign(c.id)}
                           >
-                            {tierLocked ? tierLabel : camp ? t('campaign.btn_in_progress') : !canAfford ? t('campaign.btn_no_funds') : t('campaign.btn_launch')}
+                            {tierLocked ? <><Lock size={9} strokeWidth={2} /> {tierLabel}</> : camp ? t('campaign.btn_in_progress') : !canAfford ? t('campaign.btn_no_funds') : t('campaign.btn_launch')}
                           </button>
                         </div>
                       );
@@ -26036,14 +26037,11 @@ export default function App() {
           // Calculs bilan
           const globalCostMult = computePurchaseCostMult(purchaseSliders, owned, isSickNow('mark'));
           const costPct = Math.round((globalCostMult - 1) * 100);
-          // Score qualité (anciennement affiché dans Personnel) :
-          // moyenne 100 - (idx × 25) sur les 5 curseurs configurés.
-          let _qSum = 0, _qCnt = 0;
-          for (const k of sliderKeys) {
-            if (typeof purchaseSliders[k] === 'number') { _qSum += (100 - purchaseSliders[k] * 25); _qCnt++; }
-          }
-          const qualityScore = _qCnt > 0 ? Math.round(_qSum / _qCnt) : null;
-          const qCls = qualityScore == null ? 'mid' : qualityScore >= 70 ? 'is-pos' : qualityScore >= 40 ? '' : 'is-neg';
+          // Score qualité produit : EXACTEMENT le même que celui affiché sur les
+          // contrats (computeQualityScore = upgrades qualité + curseurs Mark),
+          // pour éviter toute divergence entre la carte ACHATS et les contrats.
+          const qualityScore = Math.round(computeQualityScore(owned, purchaseSliders) * 100);
+          const qCls = qualityScore >= 70 ? 'is-pos' : qualityScore >= 40 ? '' : 'is-neg';
           return (
             <div className="modal-backdrop" onClick={() => setAchatsOpen(false)}>
               <div className="modal achats-modal" onClick={e => e.stopPropagation()}>
@@ -27408,9 +27406,16 @@ export default function App() {
                 </div>
                 <div className="upg-row">
                   <div className="upg-icons">
-                    {Array.from({ length: displayUpgrade.count }).map((_, k) => (
-                      <Icon key={k} size={displayUpgrade.count > 1 ? 20 : 26} strokeWidth={1.2} />
-                    ))}
+                    {displayUpgrade.count > 3 ? (
+                      <>
+                        <Icon size={26} strokeWidth={1.2} />
+                        <span className="upg-icon-more">+{displayUpgrade.count - 1}</span>
+                      </>
+                    ) : (
+                      Array.from({ length: displayUpgrade.count }).map((_, k) => (
+                        <Icon key={k} size={displayUpgrade.count > 1 ? 20 : 26} strokeWidth={1.2} />
+                      ))
+                    )}
                   </div>
                   <div className="upg-tier">
                     {state === 'max' ? '✓' : ''}
