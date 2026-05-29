@@ -27285,7 +27285,7 @@ export default function App() {
             if (nextUpgrade) {
               state = 'buy';
               const afford = money >= nextUpgrade.cost;
-              actionLabel = `${nextUpgrade.cost} €`;
+              actionLabel = `${fmtInt(nextUpgrade.cost)} €`;
               displayUpgrade = nextUpgrade;
               disabled = !afford;
               onClick = () => handleUpgClick(nextUpgrade);
