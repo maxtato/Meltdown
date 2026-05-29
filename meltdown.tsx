@@ -2305,6 +2305,46 @@ const TUTORIAL_STEPS = [
       de: "Sabine verwaltet dein rechtliches Risiko. Je aggressiver deine Einkaufs-Regler, desto mehr Klagen kommen. Sabine fängt eine feste Anzahl pro Jahr ab (1, dann 2, dann 3 je nach Rang) und reduziert Schäden stark. Ohne sie trifft dich jede Klage in voller Höhe."
     }, targetSel: '.menu-btn-juridique', side: 'bottom', delay: 1500,
     canShow: s => (!!(s.owned && (s.owned['sabine_jr'] || s.owned['sabine_sr'] || s.owned['sabine_dg']))), autoClose: null },
+  { id: 't_janice_intro', text: {
+      fr: "Janice débloque l'écran MARKETING. Lance des campagnes : chaque campagne gagne de la notoriété sur la durée. Tu peux aussi flasher des campagnes ciblées sur ton segment faible. Plus elle monte en grade, plus ses campagnes claquent.",
+      en: "Janice unlocks the MARKETING screen. Launch campaigns: each one earns notoriety over time. You can also flash targeted campaigns on your weakest segment. The higher her rank, the harder her campaigns hit.",
+      es: "Janice desbloquea la pantalla MARKETING. Lanza campañas: cada una gana notoriedad con el tiempo. También puedes hacer campañas flash dirigidas a tu segmento más débil. Cuanto más sube de grado, más pegan sus campañas.",
+      zh: "贾妮丝解锁营销界面。发起活动：每场活动会随时间提升知名度。你也可以针对最弱细分市场做闪电活动。她级别越高，活动威力越大。",
+      ru: "Дженис открывает экран МАРКЕТИНГА. Запускайте кампании: каждая приносит известность со временем. Можно делать флэш-кампании по слабому сегменту. Чем выше её ранг, тем сильнее бьют её кампании.",
+      it: "Janice sblocca la schermata MARKETING. Lancia campagne: ognuna guadagna notorietà nel tempo. Puoi anche fare campagne flash mirate sul segmento più debole. Più sale di grado, più colpiscono le campagne.",
+      de: "Janice schaltet den MARKETING-Bildschirm frei. Starte Kampagnen: jede bringt Bekanntheit über Zeit. Du kannst auch Flash-Kampagnen auf dein schwächstes Segment fahren. Je höher ihr Rang, desto härter treffen ihre Kampagnen."
+    }, targetSel: '.menu-btn-campaigns', side: 'bottom', delay: 1500,
+    canShow: s => (!!(s.owned && (s.owned['janice_jr'] || s.owned['janice_senior'] || s.owned['janice_dir']))), autoClose: null },
+  { id: 't_karen_intro', text: {
+      fr: "Karen débloque l'écran RH. 5 actions disponibles (petit-déj, individuel, afterwork, médiation, team-building) pour remonter le moral. Chaque action a un cooldown, et il y a un quota par an. Karen est ton airbag : un moral en chute libre coûte cher en prod.",
+      en: "Karen unlocks the HR screen. 5 actions available (breakfast, 1:1, afterwork, mediation, team-building) to lift morale. Each has a cooldown and a yearly quota. Karen is your airbag: a free-falling morale crushes production.",
+      es: "Karen desbloquea la pantalla RRHH. 5 acciones disponibles (desayuno, 1:1, afterwork, mediación, team-building) para subir la moral. Cada una tiene un cooldown y una cuota anual. Karen es tu airbag: una moral en caída libre destroza la producción.",
+      zh: "凯伦解锁人事界面。5种行动可用（早餐、1对1、afterwork、调解、团建）提升士气。各有冷却和年度配额。凯伦是你的安全气囊：士气暴跌会拖垮生产。",
+      ru: "Карен открывает экран HR. 5 действий (завтрак, 1:1, afterwork, медиация, тимбилдинг) поднимают мораль. У каждого свой кулдаун и годовая квота. Карен — ваш airbag: падение морали бьёт по производству.",
+      it: "Karen sblocca la schermata RU. 5 azioni disponibili (colazione, 1:1, afterwork, mediazione, team-building) per risollevare il morale. Ognuna ha un cooldown e una quota annuale. Karen è il tuo airbag: un morale in caduta libera distrugge la produzione.",
+      de: "Karen schaltet den HR-Bildschirm frei. 5 Aktionen (Frühstück, 1:1, After-Work, Mediation, Teambuilding) heben die Moral. Jede mit Abklingzeit und Jahresquote. Karen ist dein Airbag: freier Moralfall killt die Produktion."
+    }, targetSel: '.menu-btn-rh', side: 'bottom', delay: 1500,
+    canShow: s => (!!(s.owned && (s.owned['karen_junior'] || s.owned['karen_senior'] || s.owned['karen_drh']))), autoClose: null },
+  { id: 't_lenny_intro', text: {
+      fr: "Lenny est ton transporteur. Chaque palier ajoute UNE ligne de livraison parallèle et augmente la capacité par trajet. Une ligne = un contrat B2B qui tourne en autonomie. Garde un œil sur son moral : un Lenny grognon, c'est des livraisons figées.",
+      en: "Lenny is your transporter. Each tier adds ONE parallel delivery lane and increases per-trip capacity. One lane = one B2B contract running on autopilot. Watch his morale: a grumpy Lenny means frozen deliveries.",
+      es: "Lenny es tu transportista. Cada nivel añade UNA línea de reparto paralela y aumenta la capacidad por trayecto. Una línea = un contrato B2B en piloto automático. Vigila su moral: un Lenny gruñón = entregas congeladas.",
+      zh: "莱尼是你的运输员。每升一级新增一条并行配送线并提高每趟容量。一条线 = 一个B2B合同自动运转。盯紧他的士气：莱尼闹脾气 = 配送停摆。",
+      ru: "Ленни — ваш транспортник. Каждый уровень добавляет ОДНУ параллельную линию доставки и поднимает ёмкость рейса. Линия = B2B-контракт на автопилоте. Следите за моралью: бухтящий Ленни = замороженные доставки.",
+      it: "Lenny è il tuo trasportatore. Ogni livello aggiunge UNA linea di consegna in parallelo e aumenta la capacità per viaggio. Una linea = un contratto B2B in autopilota. Tieni d'occhio il morale: Lenny scontroso = consegne ferme.",
+      de: "Lenny ist dein Transporteur. Jede Stufe fügt EINE parallele Lieferspur hinzu und erhöht die Kapazität pro Fahrt. Eine Spur = ein B2B-Vertrag im Autopilot. Achte auf seine Moral: Ein griesgrämiger Lenny = eingefrorene Lieferungen."
+    }, targetSel: '.menu-btn-prod', side: 'top', delay: 1500,
+    canShow: s => (!!(s.owned && s.owned['camion_1'])), autoClose: null },
+  { id: 't_security_intro', text: {
+      fr: "En Phase 3, Glacier Frères passe à l'attaque : pneus crevés, faux avis, cyberattaques, sabotage frigo. Tu peux acheter des contre-mesures dans l'écran SÉCURITÉ pour les rendre impossibles. Chaque immunité coûte cher mais te débarrasse définitivement d'un type d'attaque.",
+      en: "In Phase 3, Glacier Brothers go on the offensive: slashed tires, fake reviews, cyberattacks, freezer sabotage. You can buy counter-measures in the SECURITY screen to neutralize them. Each immunity costs but permanently kills one attack type.",
+      es: "En la Fase 3, Hermanos Glacier pasan al ataque: ruedas pinchadas, reseñas falsas, ciberataques, sabotaje de cámara. Puedes comprar contramedidas en SEGURIDAD para anularlos. Cada inmunidad cuesta pero elimina permanentemente un tipo de ataque.",
+      zh: "进入第3阶段，格拉西耶兄弟开始进攻：割胎、虚假差评、网络攻击、破坏冷柜。你可以在安全界面购买反制措施使其无效。每项免疫成本高，但永久消除一种攻击。",
+      ru: "В Фазе 3 «Гласье Фрер» переходят в атаку: порезанные шины, фейковые отзывы, кибератаки, саботаж морозильника. В экране БЕЗОПАСНОСТИ можно купить контрмеры. Каждый иммунитет дорогой, но навсегда убирает один тип атаки.",
+      it: "Nella Fase 3, Glacier Frères passa all'attacco: gomme tagliate, recensioni false, cyberattacchi, sabotaggio del frigo. Puoi comprare contromisure nella schermata SICUREZZA per annullarli. Ogni immunità costa ma elimina per sempre un tipo di attacco.",
+      de: "In Phase 3 greifen Glacier Brothers an: zerstochene Reifen, Fake-Bewertungen, Cyberangriffe, Tiefkühl-Sabotage. Im SICHERHEITS-Bildschirm kaufst du Gegenmaßnahmen. Jede Immunität ist teuer, eliminiert aber dauerhaft eine Angriffsart."
+    }, targetSel: null, side: 'center', delay: 2000,
+    canShow: s => s.phase >= 3 && s.notoriety >= 15, autoClose: null },
 ];
 
 
@@ -6652,7 +6692,9 @@ export default function App() {
   // à la fois, et une bulle non urgente ne peut apparaître que 2 s
   // APRÈS la fermeture de la précédente. Exceptions urgentes (téléphone,
   // sabotages) : chemin direct, ignorent le verrou.
-  const BUBBLE_GAP_MS = 1000;
+  // 5 s minimum entre deux bulles (consigne joueur) pour éviter le « pop pop pop »
+  // qui rend le tuto invisible.
+  const BUBBLE_GAP_MS = 5000;
   const lastBubbleClosedAtRef = useRef(0); // Date.now() de la dernière fermeture (tuto OU popup)
   // Bypass ponctuel : après la fermeture de l'intro, on veut enchaîner rapidement
   // sur le 1er tuto (t_congeler) sans attendre cooldown ni bubble gap.
@@ -12054,10 +12096,14 @@ export default function App() {
               const meltRateB = BASE_TRUCK_MELT * curDynMelt * curHeat * curStats.truckColdMult;
               const prevMeltB = brokenMelt;
               brokenMelt = Math.min(0.9, brokenMelt + meltRateB * dt);
-              const prevBkt = Math.floor(prevMeltB * 10);
-              const curBkt = Math.floor(brokenMelt * 10);
+              // Popups plus fréquents pendant la panne (tous les 5 %, pas 10 %)
+              // : pendant l'immobilisation la fonte est l'enjeu principal,
+              // il faut que le joueur la VOIE monter en temps réel pour
+              // décider s'il répare maintenant ou pas.
+              const prevBkt = Math.floor(prevMeltB * 20);
+              const curBkt = Math.floor(brokenMelt * 20);
               if (curBkt > prevBkt && curBkt >= 1) {
-                newLinePopups[idx] = { text: `−${curBkt * 10}%`, ts: Date.now() };
+                newLinePopups[idx] = { text: `−${curBkt * 5}%`, ts: Date.now() };
               }
             }
             // Si une réparation est en cours et son timer s'est écoulé → camion réparé
