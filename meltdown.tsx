@@ -2235,13 +2235,12 @@ const UPGRADE_FAMILIES = [
   { id: 'pers_fred',     label: 'FRED',     icon: 'Users', tiers: ['fred_stage', 'fred', 'fred_perma', 'fred_chef', 'fred_dir', 'fred_legende'],   minPhase: 1 },
   { id: 'pers_brigitte', label: 'BRIGITTE', icon: 'Users', tiers: ['autosell', 'brigitte_compta', 'brigitte_ad', 'comptable_senior', 'brigitte_legende'], minPhase: 1 },
   { id: 'pers_lenny',    label: 'LENNY',    icon: 'Users', tiers: ['camion_1'],                                                                  minPhase: 2, hideWhenMax: true },
-  { id: 'pers_karen',    label: 'KAREN',    icon: 'Users', tiers: ['karen_junior', 'karen_senior', 'karen_drh'],                                 minPhase: 2 },
   { id: 'pers_janice',   label: 'AGENCE MARKETING',   icon: 'Megaphone', tiers: ['janice_jr'],                                  minPhase: 3, requireUnlock: 'headquarters' },
   { id: 'pers_mark',     label: 'MARK',     icon: 'Users', tiers: ['mark_jr', 'mark_resp', 'mark_dir'],                                          minPhase: 3, requireUnlock: 'headquarters' },
   { id: 'pers_sabine',   label: 'SABINE',   icon: 'Users', tiers: ['sabine_jr', 'sabine_sr', 'sabine_dg'],                                       minPhase: 3, requireUnlock: 'headquarters' },
   { id: 'pers_bienetre', label: 'BIEN-ÊTRE & FORMATION', icon: 'Users',
     tiers: ['machine_cafe', 'salle_repos', 'salle_sport', 'plan_formation', 'creche_entreprise', 'formation_interne', 'robotisation'],
-    minPhase: 1, requireUnlock: 'karen' },
+    minPhase: 2 },
 
   // ============ DIVERSIFICATION (P4 désactivée) ============
   // FAMILLE DIVERSIFICATION DÉSACTIVÉE (résidu P4)
@@ -2414,15 +2413,15 @@ const TUTORIAL_STEPS = [
     }, targetSel: '.menu-btn-campaigns', side: 'bottom', delay: 1500,
     canShow: s => (!!(s.owned && s.owned['janice_jr'])), autoClose: null },
   { id: 't_karen_intro', text: {
-      fr: "Karen débloque l'écran RH. 5 actions disponibles (petit-déj, individuel, afterwork, médiation, team-building) pour remonter le moral. Chaque action a un cooldown, et il y a un quota par an. Karen est ton airbag : un moral en chute libre coûte cher en prod.",
-      en: "Karen unlocks the HR screen. 5 actions available (breakfast, 1:1, afterwork, mediation, team-building) to lift morale. Each has a cooldown and a yearly quota. Karen is your airbag: a free-falling morale crushes production.",
-      es: "Karen desbloquea la pantalla RRHH. 5 acciones disponibles (desayuno, 1:1, afterwork, mediación, team-building) para subir la moral. Cada una tiene un cooldown y una cuota anual. Karen es tu airbag: una moral en caída libre destroza la producción.",
-      zh: "凯伦解锁人事界面。5种行动可用（早餐、1对1、afterwork、调解、团建）提升士气。各有冷却和年度配额。凯伦是你的安全气囊：士气暴跌会拖垮生产。",
-      ru: "Карен открывает экран HR. 5 действий (завтрак, 1:1, afterwork, медиация, тимбилдинг) поднимают мораль. У каждого свой кулдаун и годовая квота. Карен — ваш airbag: падение морали бьёт по производству.",
-      it: "Karen sblocca la schermata RU. 5 azioni disponibili (colazione, 1:1, afterwork, mediazione, team-building) per risollevare il morale. Ognuna ha un cooldown e una quota annuale. Karen è il tuo airbag: un morale in caduta libera distrugge la produzione.",
-      de: "Karen schaltet den HR-Bildschirm frei. 5 Aktionen (Frühstück, 1:1, After-Work, Mediation, Teambuilding) heben die Moral. Jede mit Abklingzeit und Jahresquote. Karen ist dein Airbag: freier Moralfall killt die Produktion."
+      fr: "L'écran RH est à toi, en direct. 5 actions (petit-déj, individuel, afterwork, médiation, team-building) pour remonter le moral. Chaque action coûte de l'argent, a un quota annuel et fatigue l'équipe. Un moral en chute libre coûte cher en prod : à toi de doser.",
+      en: "The HR screen is yours to run directly. 5 actions (breakfast, 1:1, afterwork, mediation, team-building) to lift morale. Each costs money, has a yearly quota and tires the team. A free-falling morale crushes production: pace yourself.",
+      es: "La pantalla RRHH la gestionas tú directamente. 5 acciones (desayuno, 1:1, afterwork, mediación, team-building) para subir la moral. Cada una cuesta dinero, tiene cuota anual y cansa al equipo. Una moral en caída libre destroza la producción: dosifica.",
+      zh: "人事界面由你亲自掌管。5种行动（早餐、1对1、afterwork、调解、团建）提升士气。每项都要花钱、有年度配额并消耗团队。士气暴跌会拖垮生产：自己把握节奏。",
+      ru: "Экран HR теперь под твоим прямым управлением. 5 действий (завтрак, 1:1, afterwork, медиация, тимбилдинг) поднимают мораль. Каждое стоит денег, имеет годовую квоту и утомляет команду. Падение морали бьёт по производству: дозируй.",
+      it: "La schermata RU la gestisci tu direttamente. 5 azioni (colazione, 1:1, afterwork, mediazione, team-building) per risollevare il morale. Ognuna costa, ha una quota annuale e affatica il team. Un morale in caduta libera distrugge la produzione: dosa bene.",
+      de: "Den HR-Bildschirm steuerst du direkt. 5 Aktionen (Frühstück, 1:1, After-Work, Mediation, Teambuilding) heben die Moral. Jede kostet Geld, hat eine Jahresquote und ermüdet das Team. Freier Moralfall killt die Produktion: dosiere klug."
     }, targetSel: '.menu-btn-rh', side: 'bottom', delay: 1500,
-    canShow: s => (!!(s.owned && (s.owned['karen_junior'] || s.owned['karen_senior'] || s.owned['karen_drh']))), autoClose: null },
+    canShow: s => (s.phase >= 2), autoClose: null },
   { id: 't_lenny_intro', text: {
       fr: "Lenny est ton transporteur. Chaque palier ajoute UNE ligne de livraison parallèle et augmente la capacité par trajet. Une ligne = un contrat B2B qui tourne en autonomie. Garde un œil sur son moral : un Lenny grognon, c'est des livraisons figées.",
       en: "Lenny is your transporter. Each tier adds ONE parallel delivery lane and increases per-trip capacity. One lane = one B2B contract running on autopilot. Watch his morale: a grumpy Lenny means frozen deliveries.",
@@ -4716,22 +4715,22 @@ const UPGRADE_THANKS = {
     ru: "Второй завод! Шеф, теперь у нас два. Официально, у меня клон. Ну, на самом деле это просто вторая площадка, но идея мне нравится. Производство ×2.",
     it: "Fabbrica bis! Capo due fabbriche adesso. È ufficiale, ho un clone. Beh, in realtà è solo un secondo sito, ma l'idea mi piace. Produzione ×2.",
     de: "Zweitfabrik! Chef, zwei Fabriken jetzt. Ist offiziell, ich hab 'nen Klon. Naja, eigentlich nur 'n zweiter Standort, aber die Idee gefällt mir. Produktion ×2." },
-  formation_interne: { speaker: 'Karen',
-    fr: "Centre de formation interne. Patron, c'est exactement ce qu'il fallait. On forme nos gens en interne, ils montent en compétence, productivité ×1,4, moral +10. Ils nous le rendent au centuple.",
-    en: "In-house training center. Boss, exactly what we needed. We train people internally, they grow in skills, productivity ×1.4, morale +10. They give it back a hundredfold.",
-    es: "Centro de formación interno. Jefe, justo lo que hacía falta. Formamos a nuestra gente en casa, crecen en competencia, productividad ×1,4, moral +10. Nos lo devuelven multiplicado.",
-    zh: "内部培训中心。老板，这正是我们需要的。我们自己培训员工，他们的技能成长，生产力×1.4，士气+10。他们会百倍回报我们。",
-    ru: "Внутренний учебный центр. Шеф, как раз то, что было нужно. Учим своих внутри, они растут в компетенциях, производительность ×1,4, мораль +10. Они нам это возвращают сторицей.",
-    it: "Centro di formazione interno. Capo, esattamente quello che serviva. Formiamo i nostri in casa, crescono in competenze, produttività ×1,4, morale +10. Ce lo restituiscono centuplicato.",
-    de: "Internes Schulungszentrum. Chef, genau das brauchten wir. Wir bilden unsere Leute intern aus, sie wachsen in Kompetenz, Produktivität ×1,4, Moral +10. Sie geben es hundertfach zurück." },
-  robotisation: { speaker: 'Karen',
-    fr: "Robotisation partielle. Patron, j'ai exécuté la mesure mais je te le dis en face : ça pèse. La moitié des postes remplacés, moral -15 en permanence. C'était nécessaire, peut-être. Mais c'est dur.",
-    en: "Partial robotization. Boss, I've executed the measure but I'll tell you straight: it weighs heavy. Half the jobs replaced, morale -15 permanently. Maybe it was necessary. But it's hard.",
-    es: "Robotización parcial. Jefe, he ejecutado la medida pero te lo digo a la cara: pesa. La mitad de los puestos sustituidos, moral -15 permanente. Quizás era necesario. Pero es duro.",
-    zh: "部分机器人化。老板，措施我执行了，但当面跟你说：这事儿压人。一半岗位被替代，士气永久-15。也许是必要的。但很难受。",
-    ru: "Частичная роботизация. Шеф, я выполнила меру, но скажу прямо: тяжело. Половина должностей заменены, мораль -15 навсегда. Возможно, это было нужно. Но это больно.",
-    it: "Robotizzazione parziale. Capo, ho eseguito la misura ma te lo dico in faccia: pesa. Metà dei posti sostituiti, morale -15 permanente. Forse era necessario. Ma è duro.",
-    de: "Teil-Robotisierung. Chef, ich hab die Maßnahme umgesetzt, aber ich sag's dir direkt: das wiegt. Die Hälfte der Stellen ersetzt, Moral -15 dauerhaft. Vielleicht war's nötig. Aber es ist hart." },
+  formation_interne: { speaker: 'Fred',
+    fr: "Centre de formation interne, patron. On forme nos gens nous-mêmes, ils montent en compétence. Productivité ×1,4, moral +10. Ça paie, crois-moi.",
+    en: "In-house training center, boss. We train our people ourselves, they grow in skills. Productivity ×1.4, morale +10. It pays off, trust me.",
+    es: "Centro de formación interno, jefe. Formamos a nuestra gente nosotros mismos, crecen en competencia. Productividad ×1,4, moral +10. Vale la pena, créeme.",
+    zh: "内部培训中心，老板。我们自己培训员工，他们的技能成长。生产力×1.4，士气+10。很值，相信我。",
+    ru: "Внутренний учебный центр, шеф. Учим своих сами, они растут в компетенциях. Производительность ×1,4, мораль +10. Окупается, поверь.",
+    it: "Centro di formazione interno, capo. Formiamo i nostri da soli, crescono in competenze. Produttività ×1,4, morale +10. Rende, fidati.",
+    de: "Internes Schulungszentrum, Chef. Wir bilden unsere Leute selbst aus, sie wachsen in Kompetenz. Produktivität ×1,4, Moral +10. Es zahlt sich aus, glaub mir." },
+  robotisation: { speaker: 'Fred',
+    fr: "Robotisation partielle, patron. La moitié des postes remplacés, moral -15 en permanence. Nécessaire, peut-être. Mais c'est dur à encaisser.",
+    en: "Partial robotization, boss. Half the jobs replaced, morale -15 permanently. Maybe necessary. But it's hard to swallow.",
+    es: "Robotización parcial, jefe. La mitad de los puestos sustituidos, moral -15 permanente. Quizás necesario. Pero es duro de tragar.",
+    zh: "部分机器人化，老板。一半岗位被替代，士气永久-15。也许是必要的。但很难受。",
+    ru: "Частичная роботизация, шеф. Половина должностей заменены, мораль -15 навсегда. Возможно, нужно. Но это тяжело принять.",
+    it: "Robotizzazione parziale, capo. Metà dei posti sostituiti, morale -15 permanente. Forse necessario. Ma è dura da digerire.",
+    de: "Teil-Robotisierung, Chef. Die Hälfte der Stellen ersetzt, Moral -15 dauerhaft. Vielleicht nötig. Aber schwer zu verkraften." },
   usine_2_0: { speaker: 'Fred',
     fr: "Usine 2.0. Patron. Ouvre les yeux. Tout connecté, tout temps-réel. J'comprends pas tout mais ça fait ×5 sur tout. J'vais juste appuyer sur les boutons et faire semblant d'être à l'aise.",
     en: "Factory 2.0. Boss. Open your eyes. All connected, all real-time. I don't get all of it but it's ×5 on everything. I'll just push the buttons and pretend I know what I'm doing.",
@@ -15025,13 +15024,9 @@ export default function App() {
     mediation: RH_MEDIATION_COST,
   };
   const canDoRhAction = (kind) => {
-    if (!ownedRef.current['karen_junior'] && !ownedRef.current['karen_senior'] && !ownedRef.current['karen_drh']) return false;
-    if (karenGrumpyRef.current) return false;
     if (rhFatigueRef.current >= RH_FATIGUE_MAX) return false;
-    // === Karen DRH : Cooldown actions ÷2 ===
-    // Avec DRH, chaque action peut être utilisée 2 fois par an au lieu de 1.
-    const hasKarenDrh = !!ownedRef.current['karen_drh'];
-    const maxUses = hasKarenDrh ? 2 : 1;
+    // Actions RH en self-service : 2 utilisations par an et par action.
+    const maxUses = 2;
     const usedCount = typeof rhActionsUsedRef.current[kind] === 'number'
       ? rhActionsUsedRef.current[kind]
       : (rhActionsUsedRef.current[kind] ? 1 : 0);
@@ -15141,18 +15136,13 @@ export default function App() {
       const cur = typeof prev[kind] === 'number' ? prev[kind] : (prev[kind] ? 1 : 0);
       return { ...prev, [kind]: cur + 1 };
     });
-    // Impact moral Karen : ses actions sont moins efficaces si elle est démotivée.
-    // ≥80 → ×1.00 · 50-79 → ×0.90 · 30-49 → ×0.80 · <30 → ×0.70 (plancher anti-spirale)
-    const km = karenMoralRef.current;
-    const karenFactor = km >= 80 ? 1.00 : km >= 50 ? 0.90 : km >= 30 ? 0.80 : 0.70;
-    // Application des effets selon l'action — delta atténué par karenFactor
+    // Actions RH en self-service : effet plein (plus de modulation Karen).
     const empBoost = (delta) => {
-      const eff = Math.round(delta * karenFactor);
+      const eff = Math.round(delta);
       if (!fredGrumpyRef.current) setFredMoral(m => Math.min(100, m + eff));
       if (!brigitteGrumpyRef.current) setBrigitteMoral(m => Math.min(100, m + eff));
       if (!janiceGrumpyRef.current) setJaniceMoral(m => Math.min(100, m + eff));
       if (!lennyGrumpyRef.current) setLennyMoral(m => Math.min(100, m + eff));
-      setKarenMoral(m => Math.min(100, m + Math.floor(eff / 3)));
     };
     if (kind === 'breakfast') {
       empBoost(15);
@@ -15178,12 +15168,11 @@ export default function App() {
       if (moralValues.length > 0) {
         moralValues.sort((a, b) => a.v - b.v);
         const target = moralValues[0].k;
-        const indivDelta = Math.round(35 * karenFactor);
+        const indivDelta = 35;
         if (target === 'fred') setFredMoral(m => Math.min(100, m + indivDelta));
         else if (target === 'brigitte') setBrigitteMoral(m => Math.min(100, m + indivDelta));
         else if (target === 'janice') setJaniceMoral(m => Math.min(100, m + indivDelta));
         else if (target === 'lenny') setLennyMoral(m => Math.min(100, m + indivDelta));
-        setKarenMoral(m => Math.min(100, m + 5));
       }
       setEventNotif(t('rh.individual_done'));
     } else if (kind === 'mediation') {
@@ -16213,11 +16202,10 @@ export default function App() {
         )}
         {phase >= 2 && (
           <button
-            className={`menu-btn menu-btn-rh ${(owned['karen_junior'] || owned['karen_senior'] || owned['karen_drh']) ? '' : 'locked'}`}
-            onClick={(owned['karen_junior'] || owned['karen_senior'] || owned['karen_drh']) ? () => setRhOpen(true) : undefined}
-            disabled={!(owned['karen_junior'] || owned['karen_senior'] || owned['karen_drh'])}
+            className="menu-btn menu-btn-rh"
+            onClick={() => setRhOpen(true)}
             aria-label="RH"
-            title={(owned['karen_junior'] || owned['karen_senior'] || owned['karen_drh']) ? t('menu.rh') : t('menu.rh_locked')}
+            title={t('menu.rh')}
           >
             <Users size={18} strokeWidth={1.8} />
             <span className="menu-btn-label">{t('menu.rh')}</span>
@@ -16330,13 +16318,12 @@ export default function App() {
           <span className="menu-btn-label">{cyberLockout > 0 ? t('cyber.line_down') : t('menu.marketing')}</span>
           {canMarketing && cyberLockout <= 0 && !activeCampaign && <span className="menu-btn-badge">!</span>}
         </button>
-        {/* === Bouton RH : toujours visible, locked si pas Karen === */}
+        {/* === Bouton RH : actions self-service === */}
         <button
-          className={`menu-btn menu-btn-rh ${(owned['karen_junior'] || owned['karen_senior'] || owned['karen_drh']) ? '' : 'locked'}`}
-          onClick={(owned['karen_junior'] || owned['karen_senior'] || owned['karen_drh']) ? () => setRhOpen(true) : undefined}
-          disabled={!(owned['karen_junior'] || owned['karen_senior'] || owned['karen_drh'])}
+          className="menu-btn menu-btn-rh"
+          onClick={() => setRhOpen(true)}
           aria-label="RH"
-          title={(owned['karen_junior'] || owned['karen_senior'] || owned['karen_drh']) ? t('menu.rh') : t('menu.rh_locked')}
+          title={t('menu.rh')}
         >
           <Users size={14} strokeWidth={1.6} />
           <span className="menu-btn-label">{t('menu.rh')}</span>
@@ -16515,16 +16502,14 @@ export default function App() {
                   </button>
                 );
               })()}
-              {/* === Bouton RH en P2 — accès Karen === */}
+              {/* === Bouton RH en P2 — actions self-service === */}
               {(() => {
-                const hasKaren = !!(owned['karen_junior'] || owned['karen_senior'] || owned['karen_drh']);
                 return (
                   <button
-                    className={`hero-action btn-rh ${hasKaren ? 'enabled' : 'inactive'}`}
-                    onClick={hasKaren ? () => setRhOpen(true) : undefined}
-                    disabled={!hasKaren}
+                    className="hero-action btn-rh enabled"
+                    onClick={() => setRhOpen(true)}
                     aria-label="RH"
-                    title={hasKaren ? t('menu.rh') : t('menu.rh_locked')}
+                    title={t('menu.rh')}
                   >
                     <Users size={14} strokeWidth={1.6} />
                   </button>
@@ -24176,13 +24161,13 @@ export default function App() {
                           key: 'moral',
                           term: { fr: 'MORAL', en: 'MORALE', es: 'MORAL', de: 'MORAL', it: 'MORALE', ru: 'МОРАЛЬНЫЙ ДУХ', zh: '士气' },
                           desc: {
-                            fr: "État d'esprit de chaque employé. Monte avec salaires hauts, machine à café, salle de repos. Baisse avec robotisation, charges retardées. Sous 30 → grève. Sous 50 → productivité chute. Karen et la RH peuvent stabiliser.",
-                            en: "Each employee's state of mind. Rises with high salaries, coffee machine, break room. Falls with robotization, delayed charges. Below 30 → strike. Below 50 → productivity drops. Karen and HR can stabilize.",
-                            es: "Estado de ánimo de cada empleado. Sube con salarios altos, máquina café, sala descanso. Baja con robotización, cargos retrasados. Bajo 30 → huelga. Bajo 50 → productividad cae. Karen y RRHH pueden estabilizar.",
-                            de: "Geisteszustand jedes Mitarbeiters. Steigt durch hohe Gehälter, Kaffeemaschine, Pausenraum. Sinkt durch Robotisierung, verspätete Zahlungen. Unter 30 → Streik. Unter 50 → Produktivität sinkt. Karen und HR können stabilisieren.",
-                            it: "Stato d'animo di ogni dipendente. Sale con stipendi alti, macchina caffè, sala relax. Scende con robotizzazione, spese ritardate. Sotto 30 → sciopero. Sotto 50 → produttività cala. Karen e HR possono stabilizzare.",
-                            ru: "Настроение каждого сотрудника. Растёт с высокими зарплатами, кофемашиной, комнатой отдыха. Падает с роботизацией, задержками. Ниже 30 → забастовка. Ниже 50 → производительность падает. Карен и HR могут стабилизировать.",
-                            zh: "每位员工的状态。靠高薪、咖啡机、休息室来涨。被机器人化、延迟付款拖累。低于30 → 罢工。低于50 → 产能下降。Karen和人力资源能稳定它。"
+                            fr: "État d'esprit de chaque employé. Monte avec salaires hauts, machine à café, salle de repos. Baisse avec robotisation, charges retardées. Sous 30 → grève. Sous 50 → productivité chute. Les actions RH, que tu pilotes toi-même, peuvent stabiliser.",
+                            en: "Each employee's state of mind. Rises with high salaries, coffee machine, break room. Falls with robotization, delayed charges. Below 30 → strike. Below 50 → productivity drops. Your hands-on HR actions can stabilize it.",
+                            es: "Estado de ánimo de cada empleado. Sube con salarios altos, máquina café, sala descanso. Baja con robotización, cargos retrasados. Bajo 30 → huelga. Bajo 50 → productividad cae. Tus acciones de RRHH, que gestionas tú, pueden estabilizar.",
+                            de: "Geisteszustand jedes Mitarbeiters. Steigt durch hohe Gehälter, Kaffeemaschine, Pausenraum. Sinkt durch Robotisierung, verspätete Zahlungen. Unter 30 → Streik. Unter 50 → Produktivität sinkt. Deine selbst gesteuerten HR-Aktionen können stabilisieren.",
+                            it: "Stato d'animo di ogni dipendente. Sale con stipendi alti, macchina caffè, sala relax. Scende con robotizzazione, spese ritardate. Sotto 30 → sciopero. Sotto 50 → produttività cala. Le tue azioni RU, gestite da te, possono stabilizzare.",
+                            ru: "Настроение каждого сотрудника. Растёт с высокими зарплатами, кофемашиной, комнатой отдыха. Падает с роботизацией, задержками. Ниже 30 → забастовка. Ниже 50 → производительность падает. Твои HR-действия, которыми ты управляешь сам, могут стабилизировать.",
+                            zh: "每位员工的状态。靠高薪、咖啡机、休息室来涨。被机器人化、延迟付款拖累。低于30 → 罢工。低于50 → 产能下降。你亲自操作的人事行动能稳定它。"
                           }
                         },
                         {
@@ -24860,18 +24845,18 @@ export default function App() {
             1: {
               title: language === 'fr' ? 'ACQUISITION SIGNÉE' : language === 'es' ? 'ADQUISICIÓN FIRMADA' : language === 'de' ? 'ÜBERNAHME UNTERZEICHNET' : language === 'it' ? 'ACQUISIZIONE FIRMATA' : language === 'ru' ? 'ПОГЛОЩЕНИЕ ПОДПИСАНО' : language === 'zh' ? '收购已签署' : 'ACQUISITION SIGNED',
               body: language === 'fr'
-                ? `Tu as signé avec ${company}. Les documents sont en cours de finalisation. Janice débouche le champagne — elle l'avait gardé pour ce moment précis.`
+                ? `Tu as signé avec ${company}. Les documents sont en cours de finalisation. Brigitte débouche le champagne — elle l'avait gardé pour ce moment précis.`
                 : language === 'es'
-                ? `Has firmado con ${company}. Los documentos se están finalizando. Janice descorcha el champán, lo guardaba para este momento exacto.`
+                ? `Has firmado con ${company}. Los documentos se están finalizando. Brigitte descorcha el champán, lo guardaba para este momento exacto.`
                 : language === 'de'
-                ? `Du hast mit ${company} unterschrieben. Die Dokumente werden gerade finalisiert. Janice lässt den Champagner knallen, sie hatte ihn für genau diesen Moment aufgehoben.`
+                ? `Du hast mit ${company} unterschrieben. Die Dokumente werden gerade finalisiert. Brigitte lässt den Champagner knallen, sie hatte ihn für genau diesen Moment aufgehoben.`
                 : language === 'it'
-                ? `Hai firmato con ${company}. I documenti sono in fase di finalizzazione. Janice stappa lo champagne, lo teneva da parte proprio per questo momento.`
+                ? `Hai firmato con ${company}. I documenti sono in fase di finalizzazione. Brigitte stappa lo champagne, lo teneva da parte proprio per questo momento.`
                 : language === 'ru'
-                ? `Вы подписали с ${company}. Документы финализируются. Дженис открывает шампанское, она берегла его именно для этого момента.`
+                ? `Вы подписали с ${company}. Документы финализируются. Бриджит открывает шампанское, она берегла его именно для этого момента.`
                 : language === 'zh'
-                ? `你与${company}签约了。文件正在最终敲定。贾妮丝开了香槟,,她一直把它留着，就为这一刻。`
-                : `You signed with ${company}. Documents are being finalized. Janice pops the champagne, she'd been saving it for this exact moment.`,
+                ? `你与${company}签约了。文件正在最终敲定。布丽吉特开了香槟，她一直把它留着，就为这一刻。`
+                : `You signed with ${company}. Documents are being finalized. Brigitte pops the champagne, she'd been saving it for this exact moment.`,
               cta: language === 'fr' ? 'CONTINUER' : language === 'es' ? 'CONTINUAR' : language === 'de' ? 'FORTSETZEN' : language === 'it' ? 'CONTINUA' : language === 'ru' ? 'ПРОДОЛЖИТЬ' : language === 'zh' ? '继续' : 'CONTINUE',
             },
             2: {
@@ -26391,15 +26376,11 @@ export default function App() {
         })()}
 
         {rhOpen && (() => {
-          const hasKaren = !!(owned['karen_junior'] || owned['karen_senior'] || owned['karen_drh']);
-          if (!hasKaren) return null;
           const fatiguePct = Math.round(rhFatigue);
           const fatigueBlocked = rhFatigue >= RH_FATIGUE_MAX;
           const boostActive = gameTime < rhBoostUntil;
           const boostLeft = Math.max(0, rhBoostUntil - gameTime);
-          const boostPct = boostActive ? (boostLeft / RH_BOOST_DURATION) * 100 : 0;
           const yearNum = Math.floor(gameTime / (SEASON_DURATION * 4)) + 1;
-          const boostDisabled = boostActive || karenGrumpy || karenBurnedLock || !hasKaren;
           const actions = [
             { id: 'breakfast',    label: t('rh.breakfast'),    cost: RH_BREAKFAST_COST,    fx: t('rh.breakfast_fx'),    Icon: Coffee },
             { id: 'individual',   label: t('rh.individual'),   cost: RH_INDIVIDUAL_COST,   fx: t('rh.individual_fx'),   Icon: Heart },
@@ -26438,15 +26419,14 @@ export default function App() {
                   {/* Cartes actions */}
                   <div className="rh-actions-grid">
                     {actions.map(a => {
-                      const hasKarenDrh = !!owned['karen_drh'];
-                      const maxUses = hasKarenDrh ? 2 : 1;
+                      const maxUses = 2;
                       const usedRaw = rhActionsUsed[a.id];
                       const usedCount = typeof usedRaw === 'number' ? usedRaw : (usedRaw ? 1 : 0);
                       const used = usedCount >= maxUses;
                       const canAfford = money >= a.cost;
                       // Médiation : nécessite un incident en cours
                       const mediationBlocked = a.id === 'mediation' && !pendingIncident;
-                      const disabled = used || fatigueBlocked || karenGrumpy || !canAfford || mediationBlocked;
+                      const disabled = used || fatigueBlocked || !canAfford || mediationBlocked;
                       const stateText = used
                         ? t('rh.action_done_this_year')
                         : mediationBlocked
@@ -26455,7 +26435,7 @@ export default function App() {
                             ? t('rh.action_blocked_fatigue')
                             : !canAfford
                               ? t('rh.action_blocked_funds')
-                              : hasKarenDrh && usedCount === 1
+                              : usedCount === 1
                                 ? `1/${maxUses}`
                                 : '';
                       const Icon = a.Icon;
@@ -26474,29 +26454,6 @@ export default function App() {
                         </button>
                       );
                     })}
-                  </div>
-                  {/* Boost Karen */}
-                  <div className="rh-boost-wrap">
-                    <button
-                      className={`boost-btn ${karenStress >= 80 ? 'high' : karenStress >= 50 ? 'mid' : ''} ${boostActive ? 'is-boosting' : ''} ${karenBurnedLock ? 'is-burned' : ''}`}
-                      disabled={boostDisabled}
-                      onClick={() => { if (!boostDisabled) triggerRhBoost(); }}
-                    >
-                      <div className="boost-btn-récupération">
-                        {boostActive && <div className="boost-btn-récupération-fill" style={{ width: `${boostPct}%` }} />}
-                      </div>
-                      <div className="boost-btn-line1">
-                        <Zap size={12} strokeWidth={2.2} />
-                        <span>{karenBurnedLock ? t('boost.burned') : t('rh.boost_btn_label')}</span>
-                      </div>
-                      <div className="boost-btn-line2">
-                        <span className="boost-btn-name">{t('boost.stress_label')} KAREN</span>
-                        <div className="boost-btn-stress-gauge">
-                          <div className={`boost-btn-stress-fill ${karenStress >= 80 ? 'high' : karenStress >= 50 ? 'mid' : ''}`} style={{ width: `${karenStress}%` }} />
-                        </div>
-                        <span className="boost-btn-stress-pct">{Math.round(karenStress)}%</span>
-                      </div>
-                    </button>
                   </div>
                   <div className="rh-foot-note">{t('rh.foot_note')}</div>
                 </div>
@@ -27477,7 +27434,6 @@ export default function App() {
               if (!f.requireUnlock) return true;
               // Anciens flags maintenus pour rétro-compat éventuelle
               if (f.requireUnlock === 'phase3') return phase3TriggerStage >= 5;
-              if (f.requireUnlock === 'karen') return !!(owned['karen_junior'] || owned['karen_senior'] || owned['karen_drh']);
               // Les familles Janice / Mark / Sabine ne s'affichent qu'après l'achat du nouveau siège (agence_marketing).
               if (f.requireUnlock === 'headquarters') return !!owned['agence_marketing'];
               // === Nouveaux flags Robert / Vandenberg ===
