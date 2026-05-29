@@ -16170,18 +16170,34 @@ export default function App() {
     );
   };
 
+  // === Compte des contrats B2B FAISABLES sur la marketplace ===
+  // Un contrat est "faisable" s'il serait signable en libérant un slot :
+  // on ignore le blocage de slot (noSlot:false) mais on respecte qualité,
+  // segment et réputation. Sert au badge du bouton Contrats.
+  const feasibleMarketCount = marketplace.reduce((n, item) => {
+    const cBase = B2B_BY_ID[item.contractId];
+    if (!cBase) return n;
+    const c = applyContractDynamics(cBase, owned, notoriety, 1.0, purchaseSliders);
+    const avail = getContractAvailability(c, {
+      noSlot: false,
+      reputation,
+      segments: { famille: segFamille, jeunesse: segJeunesse, pro: segPro, luxe: segLuxe, eco: segEco },
+    });
+    return avail.available ? n + 1 : n;
+  }, 0);
+
   const renderMenuBar = () => {
     const hasAnyEmp = hasFred || hasBrigitte || hasJanice || hasLenny;
     const canContracts = phase >= 4 ? true : (phase >= 2 && rawStats.linesBonus >= 1);
     const canBank = phase >= 2;
     const canMarketing = hasJanice;
     const hasCall = !!currentCall;
-    const marketBadge = phase >= 4 ? marketplaceP4.length : (canContracts ? marketplace.length : 0);
+    const marketBadge = phase >= 4 ? marketplaceP4.length : (canContracts ? feasibleMarketCount : 0);
     const _p4MaxLines = phase >= 4 ? computeP4MaxLines(owned) : 0;
     const hasFreeSlot = phase >= 4 ? (linesP4.length < _p4MaxLines) : (canContracts && lines.some(l => !l.contractId));
     const contractsRinging = phase >= 4
       ? (linesP4.length < _p4MaxLines && marketplaceP4.length > 0)
-      : (canContracts && hasFreeSlot && marketplace.length > 0);
+      : (canContracts && hasFreeSlot && feasibleMarketCount > 0);
     const anyStressed = fredStress >= 60 || brigitteStress >= 60 || janiceStress >= 60 || lennyStress >= 60;
     // === ALERTE MORAL : indique au joueur que des actions RH sont nécessaires ===
     // Conditions : moral moyen équipe < 50 OU au moins un employé avec moral < 30
@@ -16296,9 +16312,9 @@ export default function App() {
     // Badge : nombre de contrats disponibles dans la marketplace (permanent dès qu'il y en a)
     // Animation "ringing" : déclenchée uniquement quand au moins 1 slot camion est libre
     // ET au moins 1 contrat est dispo → "vas-y, signe maintenant"
-    const marketBadge = canContracts ? marketplace.length : 0;
+    const marketBadge = canContracts ? feasibleMarketCount : 0;
     const hasFreeSlot = canContracts && lines.some(l => !l.contractId);
-    const contractsRinging = canContracts && hasFreeSlot && marketplace.length > 0;
+    const contractsRinging = canContracts && hasFreeSlot && feasibleMarketCount > 0;
     const anyStressed = fredStress >= 60 || brigitteStress >= 60 || janiceStress >= 60 || lennyStress >= 60;
     // === ALERTE MORAL : indique au joueur que des actions RH sont nécessaires ===
     // Conditions : moral moyen équipe < 50 OU au moins un employé avec moral < 30
@@ -16516,8 +16532,8 @@ export default function App() {
                 // Badge permanent : nombre de contrats dans la marketplace
                 const canContractsP2 = phase >= 2 && rawStats.linesBonus >= 1;
                 const hasFreeSlotP2 = canContractsP2 && lines.some(l => !l.contractId);
-                const ringingP2 = canContractsP2 && hasFreeSlotP2 && marketplace.length > 0;
-                const badgeCountP2 = canContractsP2 ? marketplace.length : 0;
+                const ringingP2 = canContractsP2 && hasFreeSlotP2 && feasibleMarketCount > 0;
+                const badgeCountP2 = canContractsP2 ? feasibleMarketCount : 0;
                 return (
                   <button
                     className={`hero-action btn-contracts ${canContractsP2 ? (showMarket ? 'active' : (ringingP2 ? 'ringing' : 'enabled')) : 'inactive'}`}
