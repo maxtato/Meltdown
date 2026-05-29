@@ -23203,10 +23203,10 @@ export default function App() {
                   </div>
                 ) : marketplace.length === 0 ? (
                   <div className="market-empty">
-                    {rawStats.truckMaxCap === 0 ? ', AUCUN CAMION : ACHÈTE UN UTILITAIRE,' :
-                     brigitteMaxTier === 0 ? ', AUCUN CONTRAT,' :
-                     marketTarget === 0 ? ', PÉRIODE CREUSE,' :
-                     `— RIEN À CETTE TAILLE (cap ${rawStats.truckMaxCap} GL) · UPGRADE FLOTTE —`}
+                    {rawStats.truckMaxCap === 0 ? t('market.empty_no_truck') :
+                     brigitteMaxTier === 0 ? t('market.empty_no_contract') :
+                     marketTarget === 0 ? t('market.empty_lull') :
+                     t('market.empty_too_small').replace('{cap}', String(rawStats.truckMaxCap))}
                   </div>
                 ) : (
                   <div className="market-grid">

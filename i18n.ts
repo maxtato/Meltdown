@@ -508,6 +508,10 @@ export const TRANSLATIONS = {
   'btn.close':                  { fr: 'FERMER',                en: 'CLOSE',               es: 'CERRAR', de: "SCHLIESSEN" , it: "CHIUDI", ru: "ЗАКРЫТЬ", zh: "关闭"},
   'market.info': { fr: 'Détails du contrat', en: 'Contract details', es: 'Detalles del contrato', de: "Vertragsdetails" , it: "Dettagli contratto", ru: "Детали контракта", zh: "合同详情"},
   'market.no_truck_short': { fr: ', PAS DE CAMION DISPO,', en: ', NO TRUCK AVAILABLE,', es: ', SIN CAMIÓN,', de: ", KEIN LKW VERFÜGBAR," , it: ", NESSUN CAMION DISPONIBILE,", ru: ", НЕТ ДОСТУПНОГО ГРУЗОВИКА,", zh: ", 无可用卡车,"},
+  'market.empty_no_truck': { fr: ', AUCUN CAMION : ACHÈTE UN UTILITAIRE,', en: ', NO TRUCK: BUY A VAN,', es: ', SIN CAMIÓN: COMPRA UNA FURGONETA,', de: ", KEIN LKW: KAUF EINEN TRANSPORTER," , it: ", NESSUN CAMION: COMPRA UN FURGONE,", ru: ", НЕТ ГРУЗОВИКА: КУПИ ФУРГОН,", zh: ", 无卡车：购买一辆货车,"},
+  'market.empty_no_contract': { fr: ', AUCUN CONTRAT,', en: ', NO CONTRACTS,', es: ', SIN CONTRATOS,', de: ", KEINE VERTRÄGE," , it: ", NESSUN CONTRATTO,", ru: ", НЕТ КОНТРАКТОВ,", zh: ", 无合同,"},
+  'market.empty_lull': { fr: ', PÉRIODE CREUSE,', en: ', QUIET PERIOD,', es: ', PERIODO TRANQUILO,', de: ", FLAUTE," , it: ", PERIODO MORTO,", ru: ", ЗАТИШЬЕ,", zh: ", 淡季,"},
+  'market.empty_too_small': { fr: '— RIEN À CETTE TAILLE (cap {cap} GL) · AMÉLIORE LA FLOTTE —', en: '— NOTHING AT THIS SIZE (cap {cap} IC) · UPGRADE FLEET —', es: '— NADA A ESTE TAMAÑO (cap {cap} CB) · MEJORA LA FLOTA —', de: "— NICHTS IN DIESER GRÖSSE (Kap. {cap} EW) · FLOTTE AUSBAUEN —" , it: "— NIENTE A QUESTA TAGLIA (cap {cap} CB) · POTENZIA LA FLOTTA —", ru: "— НИЧЕГО ДЛЯ ЭТОГО РАЗМЕРА (вмест. {cap} К) · УЛУЧШИ ПАРК —", zh: "— 此规模无合同（容量 {cap} 冰块）· 升级车队 —"},
 
   // Personnel
   'staff.title': { fr: 'PERSONNEL', en: 'STAFF', es: 'PERSONAL', de: "PERSONAL" , it: "PERSONALE", ru: "ПЕРСОНАЛ", zh: "员工"},
