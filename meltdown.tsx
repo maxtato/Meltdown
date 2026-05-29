@@ -6293,7 +6293,6 @@ export default function App() {
   const [activeCampaign, setActiveCampaign] = useState(null); // {id, startedAt, endsAt}
   const [campaignsOpen, setCampaignsOpen] = useState(false);
   // Phase 3+ — Campagne FLASH générée par boost Janice (éphémère, 60s)
-  const [flashCampaign, setFlashCampaign] = useState(null); // { id, name, cost, notoBoost, duration, segmentImpact, expiresAt }
   const [campaignsLaunched, setCampaignsLaunched] = useState(0);
   const [marketTarget, setMarketTarget] = useState(2);
   const [nextMarketReroll, setNextMarketReroll] = useState(0);
@@ -13218,9 +13217,9 @@ export default function App() {
     setMoney(m => m - c.cost);
     setActiveCampaign({ id, startedAt: gameTime, endsAt: gameTime + c.duration });
     // Apply notoriety boost (multiplied by Janice's mult, unless she's on strike).
-    // Damper 0.65 : la noto ne doit pas saturer en quelques campagnes —
-    // Janice reste utile mais l'image se construit dans la durée.
-    const mult = (janiceGrumpy ? 1 : stats.marketingMult) * 0.65;
+    // Damper 0.28 : la noto se construit TRÈS lentement — il faut de
+    // nombreuses campagnes répétées pour grimper, l'image est un travail de fond.
+    const mult = (janiceGrumpy ? 1 : stats.marketingMult) * 0.28;
     setNotoriety(n => Math.min(100, n + c.notoBoost * mult));
     // Bonus réputation des campagnes "image" (esg/documentaire) — promesse de leur libellé.
     const REP_FX = { esg: 0.5, documentaire: 0.8 };
@@ -15931,7 +15930,7 @@ export default function App() {
         </button>
         {phase >= 3 && hasJanice && (
           <button
-            className={`menu-btn menu-btn-marketing ${canMarketing && cyberLockout <= 0 ? '' : 'locked'} ${cyberLockout > 0 ? 'cyber-disabled' : ''}`}
+            className={`menu-btn menu-btn-marketing ${canMarketing && cyberLockout <= 0 ? '' : 'locked'} ${cyberLockout > 0 ? 'cyber-disabled' : ''} ${canMarketing && cyberLockout <= 0 && !activeCampaign ? 'marketing-idle' : ''}`}
             onClick={(canMarketing && cyberLockout <= 0) ? () => setCampaignsOpen(true) : undefined}
             disabled={!canMarketing || cyberLockout > 0}
             aria-label={t('aria.campaigns')}
@@ -16049,7 +16048,7 @@ export default function App() {
         </button>
         {/* === Bouton MARKETING : toujours visible, locked si pas Janice === */}
         <button
-          className={`menu-btn menu-btn-marketing ${canMarketing && cyberLockout <= 0 ? '' : 'locked'} ${cyberLockout > 0 ? 'cyber-disabled' : ''}`}
+          className={`menu-btn menu-btn-marketing ${canMarketing && cyberLockout <= 0 ? '' : 'locked'} ${cyberLockout > 0 ? 'cyber-disabled' : ''} ${canMarketing && cyberLockout <= 0 && !activeCampaign ? 'marketing-idle' : ''}`}
           onClick={(canMarketing && cyberLockout <= 0) ? () => setCampaignsOpen(true) : undefined}
           disabled={!canMarketing || cyberLockout > 0}
           aria-label={t('aria.campaigns')}
@@ -17712,6 +17711,20 @@ export default function App() {
         @keyframes menuContractsRing {
           0% { opacity: 1; transform: scale(1); }
           100% { opacity: 0; transform: scale(1.3); }
+        }
+        /* Marketing au repos (aucune campagne active) : pulsation douce
+           pour inviter à lancer une campagne, sans l'urgence du téléphone. */
+        .menu-btn-marketing.marketing-idle { animation: menuMarketingIdle 2.2s ease-in-out infinite; }
+        .menu-btn-marketing.marketing-idle svg { animation: menuMarketingIcon 2.2s ease-in-out infinite; transform-origin: center; }
+        @keyframes menuMarketingIdle {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); }
+          50% { box-shadow: 0 0 0 2px var(--fg); }
+        }
+        @keyframes menuMarketingIcon {
+          0%, 100% { transform: rotate(0deg) scale(1); }
+          15% { transform: rotate(-9deg) scale(1.08); }
+          30% { transform: rotate(9deg) scale(1.08); }
+          45% { transform: rotate(0deg) scale(1); }
         }
         .hero-grid { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; }
         .hero-center { text-align: center; min-width: 0; position: relative; padding: 6px 0; }
@@ -23542,69 +23555,9 @@ export default function App() {
           const mins = Math.floor(remaining / 60);
           const secs = Math.floor(remaining % 60);
           const timeStr = `${mins}:${secs.toString().padStart(2, '0')}`;
-          // Damper 0.65 cohérent avec handleLaunchCampaign / handleLaunchFlash :
+          // Damper 0.28 cohérent avec handleLaunchCampaign :
           // l'affichage doit montrer la vraie noto gagnée, pas la valeur brute.
-          const effMult = (janiceGrumpy ? 1 : stats.marketingMult) * 0.65;
-          const flashActive = flashCampaign && flashCampaign.expiresAt > gameTime;
-          const flashTimeLeft = flashActive ? Math.max(0, flashCampaign.expiresAt - gameTime) : 0;
-
-          const handleBoostJanice = () => {
-            // Trouve le segment le plus faible
-            const segs = [
-              { key: 'famille', val: segFamille, name: t('seg.famille') },
-              { key: 'jeunesse', val: segJeunesse, name: t('seg.jeunesse') },
-              { key: 'pro', val: segPro, name: t('seg.pro') },
-              { key: 'luxe', val: segLuxe, name: t('seg.luxe') },
-              { key: 'eco', val: segEco, name: t('seg.eco') },
-            ];
-            const weakest = [...segs].sort((a, b) => a.val - b.val)[0];
-            // Génère une campagne FLASH ciblée sur le segment faible
-            const baseCost = 1500;
-            const segImpact = {};
-            segImpact[weakest.key] = 18;
-            const flash = {
-              id: 'flash_' + Date.now(),
-              name: {
-                fr: `FLASH ${weakest.name.toUpperCase()}`,
-                en: `FLASH ${weakest.name.toUpperCase()}`,
-                es: `FLASH ${weakest.name.toUpperCase()}`, de: "FLASH ${weakest.name.toUpperCase()}"
-              },
-              description: {
-                fr: `Coup spécial de Janice ciblant ${weakest.name}. Effet ×1.5, coût −40%, disponible 60s.`,
-                en: `Special move by Janice targeting ${weakest.name}. ×1.5 effect, −40% cost, 60s window.`,
-                es: `Movimiento especial de Janice apuntando a ${weakest.name}. Efecto ×1.5, coste −40%, ventana 60s.`, de: "Spezialaktion von Janice gegen ${weakest.name}. ×1.5 Effekt, −40% Kosten, 60s Fenster."
-              },
-              effectLabel: {
-                fr: `+${weakest.name} fort · éphémère`,
-                en: `+${weakest.name} strong · ephemeral`,
-                es: `+${weakest.name} fuerte · efímero`, de: "+${weakest.name} stark · kurzlebig"
-              },
-              cost: Math.round(baseCost * 0.6),
-              duration: 240,
-              notoBoost: 18,
-              segmentImpact: segImpact,
-              expiresAt: gameTime + 60,
-              targetSegment: weakest.key
-            };
-            setFlashCampaign(flash);
-            setJaniceBoostUntil(gameTime + JANICE_BOOST_DURATION);
-            triggerBoost('janice');
-          };
-
-          const handleLaunchFlash = () => {
-            if (!flashActive || activeCampaign || money < flashCampaign.cost) return;
-            setMoney(m => m - flashCampaign.cost);
-            setActiveCampaign({ id: flashCampaign.id, startedAt: gameTime, endsAt: gameTime + flashCampaign.duration });
-            const mult = (janiceGrumpy ? 1 : stats.marketingMult) * 0.65;
-            setNotoriety(n => Math.min(100, n + flashCampaign.notoBoost * mult));
-            setCampaignsLaunched(n => n + 1);
-            adjustMoralFor('janice', 5);
-            applySegmentImpact(flashCampaign.segmentImpact);
-            setEventNotif(`${t('notif.campaign_launched')} · ${localizeField(flashCampaign.name, language).toUpperCase()} · +${(flashCampaign.notoBoost * mult).toFixed(1)} ${t('notif.notoriety_short')}`);
-            setFlashCampaign(null);
-            setCampaignsOpen(false);
-          };
-
+          const effMult = (janiceGrumpy ? 1 : stats.marketingMult) * 0.28;
           return (
             <div className="modal-backdrop" onClick={() => setCampaignsOpen(false)}>
               <div className="modal campaigns-modal" onClick={e => e.stopPropagation()}>
@@ -23674,29 +23627,6 @@ export default function App() {
                       </div>
                     </div>
                   )}
-                  {flashActive && (() => {
-                    const canAffordFlash = money >= flashCampaign.cost;
-                    return (
-                      <div className="campaign-flash-card">
-                        <div className="campaign-flash-tag"><Zap size={10} strokeWidth={2} /> FLASH · {Math.ceil(flashTimeLeft)}s</div>
-                        <div className="campaign-card-name">{localizeField(flashCampaign.name, language)}</div>
-                        <div className="campaign-card-desc">{localizeField(flashCampaign.description, language)}</div>
-                        <div className="campaign-card-stats">
-                          <div className="campaign-card-stat"><span>{t('campaign.cost')}</span><span>{fmtInt(flashCampaign.cost)}€</span></div>
-                          <div className="campaign-card-stat"><span>{t('campaign.duration')}</span><span>{flashCampaign.duration / 60}{t('campaign.minutes_short')}</span></div>
-                          <div className="campaign-card-stat"><span>{t('campaign.noto_boost')}</span><span>+{(flashCampaign.notoBoost * effMult).toFixed(1)}</span></div>
-                          <div className="campaign-card-stat-full"><span>{t('campaign.effect')}</span><span>{localizeField(flashCampaign.effectLabel, language)}</span></div>
-                        </div>
-                        <button
-                          className="campaign-launch-btn flash"
-                          disabled={!!activeCampaign || !canAffordFlash}
-                          onClick={handleLaunchFlash}
-                        >
-                          {activeCampaign ? t('campaign.btn_in_progress') : !canAffordFlash ? t('campaign.btn_no_funds') : t('campaign.btn_launch')}
-                        </button>
-                      </div>
-                    );
-                  })()}
                   <div className="campaigns-grid">
                     {CAMPAIGNS.map(c => {
                       // Niveau marketing débloqué : base 1, Janice Junior 2,
@@ -23735,20 +23665,6 @@ export default function App() {
                       );
                     })}
                   </div>
-                  {hasJanice && !janiceGrumpy && (
-                    <div className="boost-btn-wrap">
-                      {renderBoostBtn({
-                        emp: 'janice',
-                        action: t('boost.act.campaigns'),
-                        stress: janiceStress,
-                        boostUntil: janiceBoostUntil,
-                        boostDuration: JANICE_BOOST_DURATION,
-                        isLocked: janiceBurnedLock,
-                        additionalDisabled: flashActive,
-                        onBoost: () => handleBoostJanice(),
-                      })}
-                    </div>
-                  )}
                   {phase >= 3 && brandPositioning && (
                     <div className="campaign-reposition-block">
                       <div className="campaign-reposition-label">
