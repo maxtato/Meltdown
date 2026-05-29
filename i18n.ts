@@ -223,6 +223,12 @@ export const TRANSLATIONS = {
   'seg.luxe_short': { fr: 'LUX', en: 'LUX', es: 'LUJ', de: "LUX" , it: "LUX", ru: "ЛЮК", zh: "奢侈"},
   'seg.eco_short': { fr: 'ECO', en: 'ECO', es: 'ECO', de: "ÖKO" , it: "ECO", ru: "ЭКО", zh: "环保"},
 
+  // Type de contrat (carte marketplace + détail)
+  'ctype.retail': { fr: 'Retail', en: 'Retail', es: 'Retail', de: "Retail" , it: "Retail", ru: "Ритейл", zh: "零售"},
+  'ctype.b2b_local': { fr: 'B2B · Proximité', en: 'B2B · Local', es: 'B2B · Local', de: "B2B · Lokal" , it: "B2B · Locale", ru: "B2B · Локальный", zh: "B2B · 本地"},
+  'ctype.b2b_volume': { fr: 'B2B · Volume', en: 'B2B · Volume', es: 'B2B · Volumen', de: "B2B · Volumen" , it: "B2B · Volume", ru: "B2B · Объём", zh: "B2B · 批量"},
+  'ctype.b2b_premium': { fr: 'B2B · Premium', en: 'B2B · Premium', es: 'B2B · Premium', de: "B2B · Premium" , it: "B2B · Premium", ru: "B2B · Премиум", zh: "B2B · 高端"},
+
   'brand.title': { fr: 'TABLEAU DE BORD MARQUE', en: 'BRAND DASHBOARD', es: 'PANEL DE MARCA', de: "MARKEN-DASHBOARD" , it: "DASHBOARD MARCHIO", ru: "ПАНЕЛЬ БРЕНДА", zh: "品牌仪表盘"},
   'brand.positioning': { fr: 'POSITIONNEMENT', en: 'POSITIONING', es: 'POSICIONAMIENTO', de: "POSITIONIERUNG" , it: "POSIZIONAMENTO", ru: "ПОЗИЦИОНИРОВАНИЕ", zh: "定位"},
   'brand.no_positioning': { fr: 'Aucun positionnement choisi. Janice va te demander.', en: 'No positioning chosen. Janice will ask you.', es: 'Sin posicionamiento. Janice te lo preguntará.', de: "Keine Positionierung gewählt. Janice wird dich fragen." , it: "Nessun posizionamento scelto. Janice te lo chiederà.", ru: "Позиционирование не выбрано. Дженис вас спросит.", zh: "尚未选择定位。贾妮丝会询问你。"},

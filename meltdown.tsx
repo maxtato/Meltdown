@@ -17850,7 +17850,7 @@ export default function App() {
         .market-card-info-btn { position: absolute; top: 6px; right: 6px; width: 18px; height: 18px; border: 1px solid var(--line); background: var(--bg); color: var(--m1); display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 0; padding: 0; font-family: inherit; transition: all 0.12s; }
         .market-card-info-btn:hover { border-color: var(--fg); color: var(--fg); }
         .market-card-name { font-size: 9px; font-weight: 700; letter-spacing: 0.3px; line-height: 1.15; padding-right: 2px; }
-        .market-card-arch { font-size: 8px; letter-spacing: 2px; color: var(--m2); font-weight: 400; }
+        .market-card-arch { font-size: 8px; letter-spacing: 0.5px; color: var(--m2); font-weight: 600; text-transform: uppercase; line-height: 1.2; }
         .market-card-loyalty { margin-left: 6px; padding: 1px 4px; border: 1px solid var(--m1); border-radius: 2px; color: var(--m1); font-weight: 700; letter-spacing: 1px; white-space: nowrap; }
         .market-card-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 8px; margin-top: 3px; font-size: 8.5px; font-variant-numeric: tabular-nums; }
         .market-card-stat { display: flex; justify-content: space-between; gap: 3px; }
@@ -23621,6 +23621,12 @@ export default function App() {
                       // pour que le joueur sache anticiper.
                       const _qCur = Math.round((c._qualityScore || 0) * 100);
                       const _qReq = Math.round(((c._qExpect || 0) - 0.15) * 100);
+                      // Type de contrat clair (Retail + secteur, ou B2B + sous-type)
+                      const _typeLabel = c.archetype === 'RETAIL'
+                        ? `${t('ctype.retail')} · ${t('seg.' + c.targetSegment)}`
+                        : c.archetype === 'VOLUME' ? t('ctype.b2b_volume')
+                        : c.archetype === 'PREMIUM' ? t('ctype.b2b_premium')
+                        : t('ctype.b2b_local');
                       return (
                         <div
                           key={item.contractId}
@@ -23631,7 +23637,7 @@ export default function App() {
                           onClick={() => setContractDetailId(item.contractId)}
                         >
                           <div className="market-card-name">{localizeField(c.name, language).toUpperCase()}</div>
-                          <div className="market-card-arch">{c.archetype}{loyCount > 0 && <span className="market-card-loyalty">★ {t('loyalty.badge')} ×{loyCount} · +{Math.round((loyMult - 1) * 100)}%</span>}</div>
+                          <div className="market-card-arch">{_typeLabel}{loyCount > 0 && <span className="market-card-loyalty">★ {t('loyalty.badge')} ×{loyCount} · +{Math.round((loyMult - 1) * 100)}%</span>}</div>
                           <div className="market-card-stats">
                             <div className="market-card-stat"><span className="sl">{t('market.qty')}</span><span className="sv">{c.qty}{c.qty !== c._baseQty ? <span className="qty-delta">{c.qty > c._baseQty ? '↑' : '↓'}</span> : null}</span></div>
                             <div className="market-card-stat"><span className="sl">{t('market.per_cycle')}</span><span className="sv">{fmt2(cycleRevenue)}{loyCount > 0 ? <span className="qty-delta">↑</span> : null}</span></div>
@@ -24340,7 +24346,7 @@ export default function App() {
                   <span className="modal-title">{localizeField(c.name, language).toUpperCase()}</span>
                   <button className="modal-close" onClick={() => setLineStatusIdx(null)}><X size={14} strokeWidth={2} /></button>
                 </div>
-                <div className="contract-detail-arch">{c.archetype}{c.archetype === 'RETAIL' ? '' : ` · ${t('contract.tier')} ${c.brigitteTier || 1}`}{c.notorietyMin ? ` · ${t('contract.noto')} ${c.notorietyMin}` : ''} · {profile.maxDeliveries} {t('contract.deliveries_short')} / {profile.globalDeadlineSec}s</div>
+                <div className="contract-detail-arch">{c.archetype === 'RETAIL' ? `${t('ctype.retail')} · ${t('seg.' + c.targetSegment)}` : `${c.archetype === 'VOLUME' ? t('ctype.b2b_volume') : c.archetype === 'PREMIUM' ? t('ctype.b2b_premium') : t('ctype.b2b_local')} · ${t('contract.tier')} ${c.brigitteTier || 1}`}{c.notorietyMin ? ` · ${t('contract.noto')} ${c.notorietyMin}` : ''} · {profile.maxDeliveries} {t('contract.deliveries_short')} / {profile.globalDeadlineSec}s</div>
                 {c.narrative && <div className="modal-narrative">« {localizeField(c.narrative, language)} »</div>}
                 {/* === État du contrat en cours === */}
                 <div className="status-section">
@@ -24465,7 +24471,7 @@ export default function App() {
                   <span className="modal-title">{localizeField(c.name, language).toUpperCase()}</span>
                   <button className="modal-close" onClick={() => setContractDetailId(null)}><X size={14} strokeWidth={2} /></button>
                 </div>
-                <div className="contract-detail-arch">{c.archetype}{c.archetype === 'RETAIL' ? '' : ` · ${t('contract.tier')} ${c.brigitteTier || 1}`}{c.notorietyMin ? ` · ${t('contract.noto')} ${c.notorietyMin}` : ''} · {(() => { const p = getContractProfile(c); return `${p.maxDeliveries} ${t('contract.deliveries_short')} / ${p.globalDeadlineSec}s`; })()}</div>
+                <div className="contract-detail-arch">{c.archetype === 'RETAIL' ? `${t('ctype.retail')} · ${t('seg.' + c.targetSegment)}` : `${c.archetype === 'VOLUME' ? t('ctype.b2b_volume') : c.archetype === 'PREMIUM' ? t('ctype.b2b_premium') : t('ctype.b2b_local')} · ${t('contract.tier')} ${c.brigitteTier || 1}`}{c.notorietyMin ? ` · ${t('contract.noto')} ${c.notorietyMin}` : ''} · {(() => { const p = getContractProfile(c); return `${p.maxDeliveries} ${t('contract.deliveries_short')} / ${p.globalDeadlineSec}s`; })()}</div>
                 {c.narrative && <div className="modal-narrative">« {localizeField(c.narrative, language)} »</div>}
                 <div className="modal-grid">
                   <div className="modal-row">
