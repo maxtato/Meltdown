@@ -1587,6 +1587,97 @@ function getJaniceActionStatus(action, janiceActionState, gameTime, owned, money
   return { available: true, locked: false };
 }
 
+// === ACTIONS MARK (Achats) ===
+// Boucle active pour Mark : actions stratégiques payantes à cooldown, sur le
+// modèle des actions Janice. Mark/Sabine n'ont pas de système de stress (pas de
+// bouton boost « classique ») — on leur donne donc une boucle d'actions payantes
+// qui agit sur les charges (renégociation) et le prix de vente (audit qualité).
+const MARK_TIER_ORDER = ['mark_jr', 'mark_resp', 'mark_dir'];
+const MARK_ACTIONS = [
+  { id: 'renego_fournisseurs', tier: 'mark_jr', cost: 20000, cooldownMonths: 4,
+    Icon: 'Handshake',
+    effects: { billDiscountFactor: 0.65, billDiscountMonths: 3 },
+    title: { fr: 'Renégociation fournisseurs', en: 'Supplier renegotiation', es: 'Renegociación proveedores', de: 'Lieferanten-Neuverhandlung', it: 'Rinegoziazione fornitori', ru: 'Пересмотр контрактов с поставщиками', zh: '供应商重新谈判' },
+    fx: { fr: 'Charges −35% · 3 mois · cd 4 mois', en: 'Bills −35% · 3 mo · cd 4 mo', es: 'Gastos −35% · 3 meses · cd 4 m', de: 'Kosten −35% · 3 Mon · CD 4 Mon', it: 'Spese −35% · 3 mesi · cd 4 m', ru: 'Расходы −35% · 3 мес · кд 4 мес', zh: '开支 −35% · 3月 · 冷却4月' },
+    desc: { fr: "Mark coince trois fournisseurs en réunion, agite un concurrent moins cher et arrache une ristourne « exceptionnelle ». Les charges fondent 3 mois — eux, ils se rattraperont plus tard.", en: "Mark corners three suppliers in a meeting, waves a cheaper competitor and wrings out an \"exceptional\" rebate. Bills drop for 3 months — they'll claw it back later.", es: "Mark acorrala a tres proveedores en una reunión, agita un competidor más barato y arranca un descuento «excepcional». Los gastos bajan 3 meses — ya se cobrarán después.", de: "Mark stellt drei Lieferanten in einem Meeting in die Ecke, schwenkt einen billigeren Wettbewerber und erpresst einen „außergewöhnlichen\" Rabatt. Die Kosten sinken 3 Monate — die holen es sich später zurück.", it: "Mark mette all'angolo tre fornitori in riunione, agita un concorrente più economico e strappa uno sconto «eccezionale». Le spese calano 3 mesi — si rifaranno dopo.", ru: "Марк зажимает трёх поставщиков на встрече, машет более дешёвым конкурентом и выбивает «исключительную» скидку. Расходы падают на 3 месяца — потом отыграются.", zh: "马克在会上逼住三家供应商，亮出更便宜的竞争者，硬抠出「特别」折扣。开支降3个月——他们日后会找补回来。" } },
+  { id: 'audit_qualite', tier: 'mark_resp', cost: 45000, cooldownMonths: 5,
+    Icon: 'Sparkles',
+    effects: { sellBoostFactor: 1.20, sellBoostMonths: 2 },
+    title: { fr: 'Audit qualité éclair', en: 'Flash quality audit', es: 'Auditoría de calidad exprés', de: 'Blitz-Qualitätsaudit', it: 'Audit qualità lampo', ru: 'Экспресс-аудит качества', zh: '闪电质量审计' },
+    fx: { fr: 'Prix ×1.20 · 2 mois · cd 5 mois', en: 'Price ×1.20 · 2 mo · cd 5 mo', es: 'Precio ×1.20 · 2 meses · cd 5 m', de: 'Preis ×1.20 · 2 Mon · CD 5 Mon', it: 'Prezzo ×1.20 · 2 mesi · cd 5 m', ru: 'Цена ×1.20 · 2 мес · кд 5 мес', zh: '价格 ×1.20 · 2月 · 冷却5月' },
+    desc: { fr: "Mark fait venir un cabinet d'audit, colle un label « qualité premium certifiée » sur les sachets et augmente les prix dans la foulée. Le glaçon n'a pas changé — l'étiquette, si.", en: "Mark brings in an audit firm, slaps a \"certified premium quality\" label on the bags and raises prices right after. The ice cube hasn't changed — the label has.", es: "Mark trae una firma de auditoría, pega un sello «calidad premium certificada» en las bolsas y sube los precios acto seguido. El cubito no ha cambiado — la etiqueta sí.", de: "Mark holt eine Prüffirma, klebt ein „zertifizierte Premium-Qualität\"-Label auf die Tüten und erhöht gleich darauf die Preise. Der Eiswürfel ist gleich geblieben — das Etikett nicht.", it: "Mark chiama una società di audit, appiccica un'etichetta «qualità premium certificata» sui sacchetti e alza subito i prezzi. Il cubetto è lo stesso — l'etichetta no.", ru: "Марк зовёт аудиторскую фирму, лепит на пакеты ярлык «сертифицированное премиум-качество» и тут же поднимает цены. Кубик не изменился — этикетка изменилась.", zh: "马克请来审计公司，在包装贴上「认证高端品质」标签，随即涨价。冰块没变——标签变了。" } },
+  { id: 'centrale_achat', tier: 'mark_dir', cost: 110000, cooldownMonths: 8,
+    Icon: 'Boxes',
+    effects: { billDiscountFactor: 0.50, billDiscountMonths: 4 },
+    title: { fr: "Centrale d'achat mondiale", en: 'Global purchasing hub', es: 'Central de compras global', de: 'Globale Einkaufszentrale', it: 'Centrale acquisti globale', ru: 'Глобальный закупочный хаб', zh: '全球采购中心' },
+    fx: { fr: 'Charges −50% · 4 mois · cd 8 mois', en: 'Bills −50% · 4 mo · cd 8 mo', es: 'Gastos −50% · 4 meses · cd 8 m', de: 'Kosten −50% · 4 Mon · CD 8 Mon', it: 'Spese −50% · 4 mesi · cd 8 m', ru: 'Расходы −50% · 4 мес · кд 8 мес', zh: '开支 −50% · 4月 · 冷却8月' },
+    desc: { fr: "Mark centralise tous les achats via une filiale offshore qui négocie en volume à l'échelle mondiale. Charges divisées par deux 4 mois. On évite la question de savoir qui produit, et comment.", en: "Mark routes all purchasing through an offshore subsidiary that negotiates in volume worldwide. Bills halved for 4 months. Best not to ask who produces it, or how.", es: "Mark centraliza todas las compras vía una filial offshore que negocia en volumen a escala mundial. Gastos a la mitad 4 meses. Mejor no preguntar quién lo produce, ni cómo.", de: "Mark bündelt den gesamten Einkauf über eine Offshore-Tochter, die weltweit in Volumen verhandelt. Kosten 4 Monate halbiert. Besser nicht fragen, wer es produziert, und wie.", it: "Mark centralizza tutti gli acquisti tramite una controllata offshore che negozia a volume su scala mondiale. Spese dimezzate 4 mesi. Meglio non chiedere chi produce, né come.", ru: "Марк сводит все закупки через офшорную «дочку», которая торгуется объёмом по всему миру. Расходы вдвое меньше на 4 месяца. Лучше не спрашивать, кто это производит и как.", zh: "马克通过一家离岸子公司集中所有采购，在全球范围按量议价。开支4个月减半。最好别问是谁生产的、怎么生产的。" } },
+];
+function getMarkPeakTier(owned) {
+  if (owned['mark_dir']) return 'mark_dir';
+  if (owned['mark_resp']) return 'mark_resp';
+  if (owned['mark_jr']) return 'mark_jr';
+  return null;
+}
+
+// === ACTIONS SABINE (Juridique) ===
+// Boucle active pour Sabine : actions de conformité / lobbying payantes à cooldown.
+// Elles agissent sur le risque de procès (réduction temporaire) et relient Sabine
+// aux curseurs Achats de Mark (le lobbying autorise de pousser les curseurs au max
+// sans déclencher de procès pendant un temps).
+const SABINE_TIER_ORDER = ['sabine_jr', 'sabine_sr', 'sabine_dg'];
+const SABINE_ACTIONS = [
+  { id: 'mise_en_conformite', tier: 'sabine_jr', cost: 25000, cooldownMonths: 5,
+    Icon: 'ShieldCheck',
+    effects: { lawRiskMult: 0.30, lawRiskMonths: 3 },
+    title: { fr: 'Mise en conformité', en: 'Compliance overhaul', es: 'Puesta en conformidad', de: 'Compliance-Offensive', it: 'Messa a norma', ru: 'Приведение в соответствие', zh: '合规整改' },
+    fx: { fr: 'Risque procès ×0.30 · 3 mois · cd 5 mois', en: 'Lawsuit risk ×0.30 · 3 mo · cd 5 mo', es: 'Riesgo de demanda ×0.30 · 3 meses · cd 5 m', de: 'Klagerisiko ×0.30 · 3 Mon · CD 5 Mon', it: 'Rischio cause ×0.30 · 3 mesi · cd 5 m', ru: 'Риск исков ×0.30 · 3 мес · кд 5 мес', zh: '诉讼风险 ×0.30 · 3月 · 冷却5月' },
+    desc: { fr: "Sabine déploie chartes, registres et formations obligatoires « éthique & sécurité ». Rien ne change sur le terrain, mais les dossiers sont en règle : les plaintes glissent 3 mois.", en: "Sabine rolls out charters, registries and mandatory \"ethics & safety\" training. Nothing changes on the ground, but the paperwork is airtight: complaints slide off for 3 months.", es: "Sabine despliega cartas, registros y formaciones obligatorias «ética y seguridad». Nada cambia en el terreno, pero los expedientes están en regla: las demandas resbalan 3 meses.", de: "Sabine rollt Chartas, Register und Pflichtschulungen „Ethik & Sicherheit\" aus. Vor Ort ändert sich nichts, aber die Akten sind sauber: Klagen prallen 3 Monate ab.", it: "Sabine dispiega carte, registri e formazioni obbligatorie «etica e sicurezza». Sul campo non cambia nulla, ma i fascicoli sono in regola: le denunce scivolano 3 mesi.", ru: "Сабин разворачивает хартии, реестры и обязательные тренинги «этика и безопасность». На местах ничего не меняется, но бумаги в порядке: иски соскальзывают 3 месяца.", zh: "萨宾推出章程、登记册和强制「道德与安全」培训。现场毫无改变，但文件无懈可击：投诉滑落3个月。" } },
+  { id: 'lobbying', tier: 'sabine_sr', cost: 60000, cooldownMonths: 8,
+    Icon: 'Landmark',
+    effects: { lawSliderImmuneMonths: 4 },
+    title: { fr: 'Lobbying réglementaire', en: 'Regulatory lobbying', es: 'Lobby regulatorio', de: 'Regulatorisches Lobbying', it: 'Lobbying normativo', ru: 'Регуляторное лоббирование', zh: '监管游说' },
+    fx: { fr: 'Curseurs Achats sans risque · 4 mois · cd 8 mois', en: 'Purchasing sliders risk-free · 4 mo · cd 8 mo', es: 'Sliders de compras sin riesgo · 4 meses · cd 8 m', de: 'Einkaufsregler risikofrei · 4 Mon · CD 8 Mon', it: 'Slider acquisti senza rischio · 4 mesi · cd 8 m', ru: 'Слайдеры закупок без риска · 4 мес · кд 8 мес', zh: '采购滑杆无风险 · 4月 · 冷却8月' },
+    desc: { fr: "Sabine paie quelques « déjeuners de travail » aux bons députés et un cabinet de relations institutionnelles. Les normes s'assouplissent pile pour vous : pousse les curseurs de Mark à fond sans craindre le moindre procès, 4 mois.", en: "Sabine buys a few \"working lunches\" for the right lawmakers and an institutional-relations firm. Regulations soften just for you: push Mark's sliders to the max with zero lawsuit risk, 4 months.", es: "Sabine paga algunos «almuerzos de trabajo» a los diputados adecuados y un gabinete de relaciones institucionales. Las normas se flexibilizan justo para ti: lleva los sliders de Mark al máximo sin riesgo de demanda, 4 meses.", de: "Sabine zahlt ein paar „Arbeitsessen\" für die richtigen Abgeordneten und eine Agentur für institutionelle Beziehungen. Die Normen lockern sich genau für dich: Schiebe Marks Regler ans Maximum ohne Klagerisiko, 4 Monate.", it: "Sabine paga qualche «pranzo di lavoro» ai deputati giusti e uno studio di relazioni istituzionali. Le norme si ammorbidiscono apposta per te: spingi gli slider di Mark al massimo senza rischio cause, 4 mesi.", ru: "Сабин оплачивает пару «рабочих обедов» нужным депутатам и агентство по связям с госорганами. Нормы смягчаются именно для вас: выкручивай слайдеры Марка на максимум без риска исков, 4 месяца.", zh: "萨宾给对的议员买几顿「工作午餐」，再请一家政企关系公司。规则恰好为你松动：把马克的滑杆拉满也零诉讼风险，4个月。" } },
+  { id: 'blanchiment_juridique', tier: 'sabine_dg', cost: 150000, cooldownMonths: 12,
+    Icon: 'Gavel',
+    effects: { lawRiskMult: 0.0, lawRiskMonths: 3 },
+    title: { fr: 'Bouclier juridique total', en: 'Total legal shield', es: 'Escudo jurídico total', de: 'Totaler Rechtsschild', it: 'Scudo legale totale', ru: 'Тотальный юридический щит', zh: '全面法律护盾' },
+    fx: { fr: 'Aucun procès · 3 mois · cd 12 mois', en: 'No lawsuits · 3 mo · cd 12 mo', es: 'Ninguna demanda · 3 meses · cd 12 m', de: 'Keine Klagen · 3 Mon · CD 12 Mon', it: 'Nessuna causa · 3 mesi · cd 12 m', ru: 'Никаких исков · 3 мес · кд 12 мес', zh: '零诉讼 · 3月 · 冷却12月' },
+    desc: { fr: "Sabine verrouille tout : clauses d'arbitrage privé, holdings en cascade, avocats les plus chers du marché. Pendant 3 mois, aucune plainte n'arrive jusqu'à vous. La justice existe encore — juste pas pour cette entreprise.", en: "Sabine locks everything down: private arbitration clauses, cascading holdings, the priciest lawyers around. For 3 months, no complaint reaches you. Justice still exists — just not for this company.", es: "Sabine lo blinda todo: cláusulas de arbitraje privado, holdings en cascada, los abogados más caros del mercado. Durante 3 meses, ninguna denuncia llega a ti. La justicia aún existe — solo que no para esta empresa.", de: "Sabine riegelt alles ab: private Schiedsklauseln, kaskadierende Holdings, die teuersten Anwälte am Markt. 3 Monate lang erreicht dich keine Klage. Gerechtigkeit gibt es noch — nur nicht für dieses Unternehmen.", it: "Sabine blinda tutto: clausole di arbitrato privato, holding a cascata, gli avvocati più cari sul mercato. Per 3 mesi nessuna denuncia ti raggiunge. La giustizia esiste ancora — solo non per questa azienda.", ru: "Сабин запирает всё: оговорки о частном арбитраже, каскад холдингов, самые дорогие юристы рынка. 3 месяца ни одна жалоба до вас не доходит. Правосудие ещё существует — просто не для этой компании.", zh: "萨宾把一切锁死：私人仲裁条款、层层叠叠的控股架构、市场上最贵的律师。3个月内，没有任何投诉能找上你。正义仍然存在——只是不为这家公司。" } },
+];
+function getSabinePeakTier(owned) {
+  if (owned['sabine_dg']) return 'sabine_dg';
+  if (owned['sabine_sr']) return 'sabine_sr';
+  if (owned['sabine_jr']) return 'sabine_jr';
+  return null;
+}
+
+// Helper générique : statut d'une action Mark/Sabine (palier, one-shot, cooldown, fonds)
+function getEmpActionStatus(action, actionState, gameTime, peak, tierOrder, money) {
+  if (!peak || tierOrder.indexOf(peak) < tierOrder.indexOf(action.tier)) {
+    return { available: false, locked: true, reason: 'tier' };
+  }
+  const st = actionState[action.id];
+  if (action.oneShot && st && st.used) return { available: false, locked: true, reason: 'oneshot' };
+  if (st && action.cooldownMonths > 0) {
+    const elapsedSec = gameTime - st.lastUsedTs;
+    const cooldownSec = action.cooldownMonths * MONTH_DURATION;
+    if (elapsedSec < cooldownSec) {
+      const leftMonths = Math.ceil((cooldownSec - elapsedSec) / MONTH_DURATION);
+      return { available: false, locked: false, reason: 'cooldown', cooldownLeftMonths: leftMonths };
+    }
+  }
+  if (money < action.cost) return { available: false, locked: false, reason: 'funds' };
+  return { available: true, locked: false };
+}
+function getMarkActionStatus(action, markActionState, gameTime, owned, money) {
+  return getEmpActionStatus(action, markActionState, gameTime, getMarkPeakTier(owned), MARK_TIER_ORDER, money);
+}
+function getSabineActionStatus(action, sabineActionState, gameTime, owned, money) {
+  return getEmpActionStatus(action, sabineActionState, gameTime, getSabinePeakTier(owned), SABINE_TIER_ORDER, money);
+}
+
 
 // === HELPERS PROCÈS ===
 
@@ -6226,6 +6317,27 @@ export default function App() {
   const janiceTempSellBoostRef = useRef(janiceTempSellBoost);
   useEffect(() => { janiceTempSellBoostRef.current = janiceTempSellBoost; }, [janiceTempSellBoost]);
   const [janiceLegendeUnlocked, setJaniceLegendeUnlocked] = useState(false);
+  // === ACTIONS MARK (Achats) ===
+  // Boucle active : actions stratégiques payantes à cooldown (cf. MARK_ACTIONS).
+  const [markActionState, setMarkActionState] = useState({});
+  // Boost temporaire prix de vente (audit qualité) — miroir de janiceTempSellBoost.
+  const [markTempSellBoost, setMarkTempSellBoost] = useState({ factor: 1.0, until: 0 });
+  const markTempSellBoostRef = useRef(markTempSellBoost);
+  useEffect(() => { markTempSellBoostRef.current = markTempSellBoost; }, [markTempSellBoost]);
+  // Réduction temporaire des charges (renégociation fournisseurs / centrale d'achat).
+  const [markBillDiscount, setMarkBillDiscount] = useState({ factor: 1.0, until: 0 });
+  const markBillDiscountRef = useRef(markBillDiscount);
+  useEffect(() => { markBillDiscountRef.current = markBillDiscount; }, [markBillDiscount]);
+  // === ACTIONS SABINE (Juridique) ===
+  const [sabineActionState, setSabineActionState] = useState({});
+  // Mise en conformité / bouclier : multiplie le risque total de procès pendant N mois.
+  const [sabineCompliance, setSabineCompliance] = useState({ factor: 1.0, until: 0 });
+  const sabineComplianceRef = useRef(sabineCompliance);
+  useEffect(() => { sabineComplianceRef.current = sabineCompliance; }, [sabineCompliance]);
+  // Lobbying : annule le risque lié aux curseurs Achats de Mark pendant N mois.
+  const [sabineLobbyUntil, setSabineLobbyUntil] = useState(0);
+  const sabineLobbyUntilRef = useRef(0);
+  useEffect(() => { sabineLobbyUntilRef.current = sabineLobbyUntil; }, [sabineLobbyUntil]);
   // === VICTOIRE FIN DE JEU ===
   // Déclenchée quand les 5 missions P3 sont validées. Reste possible de continuer
   // à jouer après (mode sandbox). Le joueur peut rouvrir la modale via le bouton MISSIONS.
@@ -9678,6 +9790,10 @@ export default function App() {
   // Arrêt maladie Janice : ses bonus de vente (perma + temp boosts) sont
   // suspendus pendant la durée de l'arrêt.
   const janiceMultTotal = isSickNow('janice') ? 1.0 : (janicePermaSellBonus * janiceTempMult);
+  // Boost prix temporaire de Mark (action « Audit qualité éclair »).
+  // Suspendu si Mark est en arrêt maladie.
+  const markTempSellActive = gameTime < markTempSellBoost.until;
+  const markSellMult = (markTempSellActive && !isSickNow('mark')) ? markTempSellBoost.factor : 1.0;
   // Bonus de demande Janice Directrice : +15% (s'éteint si Janice grumpy)
   const janiceDemandMult = (stats.janiceDemandBonus && !janiceGrumpy) ? (1 + stats.janiceDemandBonus) : 1;
   // Effet durable d'événement de tension (crise médiatique, rappel sanitaire, ou bonus interview TV)
@@ -9708,7 +9824,7 @@ export default function App() {
     premiumWater: visibleFrictions.find(f => f.effects && f.effects.disablePremium),
   };
   const fricDirectDemMult = fricForSell.directDemMult;
-  const _rawEffectiveSell = BASE_SELL_PRICE * directSellMultEffective * (fricForSell.disablePremium ? 1 : getPremiumWaterMult(owned)) * dynamicDemand * heatDemandMult * droughtDemandMult * autumnRushMult * campaignBonuses.spotMult * janiceMultTotal * janiceDemandMult * tensionSellMult * fricDirectDemMult;
+  const _rawEffectiveSell = BASE_SELL_PRICE * directSellMultEffective * (fricForSell.disablePremium ? 1 : getPremiumWaterMult(owned)) * dynamicDemand * heatDemandMult * droughtDemandMult * autumnRushMult * campaignBonuses.spotMult * janiceMultTotal * janiceDemandMult * tensionSellMult * fricDirectDemMult * markSellMult;
   // Garde-fou anti-NaN au point de convergence : si un multiplicateur amont
   // devient invalide (NaN/Infinity/négatif), on retombe sur le prix de base
   // plutôt que de propager un NaN qui afficherait « NaN€ » et bloquerait les ventes.
@@ -9969,6 +10085,12 @@ export default function App() {
           if (typeof s.janicePermaSellBonus === 'number') setJanicePermaSellBonus(s.janicePermaSellBonus);
           if (s.janiceTempSellBoost && typeof s.janiceTempSellBoost === 'object') setJaniceTempSellBoost(s.janiceTempSellBoost);
           if (typeof s.janiceLegendeUnlocked === 'boolean') setJaniceLegendeUnlocked(s.janiceLegendeUnlocked);
+          if (s.markActionState && typeof s.markActionState === 'object') setMarkActionState(s.markActionState);
+          if (s.markTempSellBoost && typeof s.markTempSellBoost === 'object') setMarkTempSellBoost(s.markTempSellBoost);
+          if (s.markBillDiscount && typeof s.markBillDiscount === 'object') setMarkBillDiscount(s.markBillDiscount);
+          if (s.sabineActionState && typeof s.sabineActionState === 'object') setSabineActionState(s.sabineActionState);
+          if (s.sabineCompliance && typeof s.sabineCompliance === 'object') setSabineCompliance(s.sabineCompliance);
+          if (typeof s.sabineLobbyUntil === 'number') setSabineLobbyUntil(s.sabineLobbyUntil);
           if (typeof s.victoryAchieved === 'boolean') setVictoryAchieved(s.victoryAchieved);
           if (s.glacierBeats && typeof s.glacierBeats === 'object') setGlacierBeats(s.glacierBeats);
           if (typeof s.victoryTimestamp === 'number') setVictoryTimestamp(s.victoryTimestamp);
@@ -10141,6 +10263,8 @@ export default function App() {
       purchaseSliders,
       activeLawsuits, lawsuitHistory, sabineYearCount,
       janiceActionState, janicePermaSellBonus, janiceTempSellBoost, janiceLegendeUnlocked,
+      markActionState, markTempSellBoost, markBillDiscount,
+      sabineActionState, sabineCompliance, sabineLobbyUntil,
       victoryAchieved, victoryTimestamp,
       trialAnnounced: trialAnnouncedRef.current,
       rhFatigue, rhActionsUsed, rhActionsYearIdx, rhBoostUntil,
@@ -11495,7 +11619,10 @@ export default function App() {
         const freezerCount = 1 + (ownedRef.current['mini_freezer'] ? 1 : 0) + (ownedRef.current['pro_freezer'] ? 2 : 0);
         const bill0 = computeUtilitiesBill(freezerCount, seasonProd, seasonFuelRef.current, prevSeason.utilMult);
         // Multiplicateur lié aux curseurs Achats Mark (charges allégées si curseurs vers la droite, alourdies si Premium)
-        const bill = Math.max(0, bill0 * computePurchaseCostMult(purchaseSlidersRef.current, ownedRef.current, isSickNow('mark')));
+        // Réduction temporaire des charges via une action Mark (renégociation / centrale d'achat).
+        const markBillFactor = (markBillDiscountRef.current.until > gameTimeRef.current && !isSickNow('mark'))
+          ? markBillDiscountRef.current.factor : 1.0;
+        const bill = Math.max(0, bill0 * computePurchaseCostMult(purchaseSlidersRef.current, ownedRef.current, isSickNow('mark')) * markBillFactor);
         if (bill > 0 && !isFirstYear) {
           // Cumule (au cas où plusieurs mois passent d'un coup).
           pendingUtilityBillRef.current += bill;
@@ -11524,10 +11651,16 @@ export default function App() {
             setSabineYearCount(0);
             sabineYearCountRef.current = 0;
           }
-          const risk = computePurchaseRiskMonthly(purchaseSlidersRef.current, ownedRef.current);
+          let risk = computePurchaseRiskMonthly(purchaseSlidersRef.current, ownedRef.current);
+          // Lobbying Sabine actif : le risque lié aux curseurs Achats de Mark est annulé.
+          if (sabineLobbyUntilRef.current > gameTimeRef.current) risk = 0;
           // Petit risque de fond conformité (cotisations/fiscal) ≈ 1%/mois en P3+
           const baseRisk = phaseRef.current >= 3 ? 0.012 : 0.005;
-          const totalRisk = Math.min(0.85, baseRisk + risk);
+          let totalRisk = Math.min(0.85, baseRisk + risk);
+          // Mise en conformité / bouclier juridique Sabine : réduit (ou annule) le risque total.
+          if (sabineComplianceRef.current.until > gameTimeRef.current) {
+            totalRisk *= sabineComplianceRef.current.factor;
+          }
           if (Math.random() < totalRisk) {
             const lsTemplate = rollLawsuit(purchaseSlidersRef.current, ownedRef.current);
             if (lsTemplate) {
@@ -14933,6 +15066,50 @@ export default function App() {
     return true;
   };
 
+  const triggerMarkAction = (actionId) => {
+    const action = MARK_ACTIONS.find(a => a.id === actionId);
+    if (!action) return false;
+    const status = getMarkActionStatus(action, markActionState, gameTime, owned, money);
+    if (!status.available) return false;
+    setMoney(m => m - action.cost);
+    setMarkActionState(prev => ({
+      ...prev,
+      [action.id]: { used: !!action.oneShot, lastUsedTs: gameTime, count: (prev[action.id]?.count || 0) + 1 },
+    }));
+    const eff = action.effects;
+    if (eff.billDiscountFactor && eff.billDiscountMonths) {
+      setMarkBillDiscount({ factor: eff.billDiscountFactor, until: gameTime + eff.billDiscountMonths * MONTH_DURATION });
+    }
+    if (eff.sellBoostFactor && eff.sellBoostMonths) {
+      setMarkTempSellBoost({ factor: eff.sellBoostFactor, until: gameTime + eff.sellBoostMonths * MONTH_DURATION });
+    }
+    queuePopup({ type: 'character', speaker: 'Mark',
+      text: `${localizeField(action.title, language)} lancée. ${localizeField(action.fx, language)}.` });
+    return true;
+  };
+
+  const triggerSabineAction = (actionId) => {
+    const action = SABINE_ACTIONS.find(a => a.id === actionId);
+    if (!action) return false;
+    const status = getSabineActionStatus(action, sabineActionState, gameTime, owned, money);
+    if (!status.available) return false;
+    setMoney(m => m - action.cost);
+    setSabineActionState(prev => ({
+      ...prev,
+      [action.id]: { used: !!action.oneShot, lastUsedTs: gameTime, count: (prev[action.id]?.count || 0) + 1 },
+    }));
+    const eff = action.effects;
+    if (eff.lawRiskMult != null && eff.lawRiskMonths) {
+      setSabineCompliance({ factor: eff.lawRiskMult, until: gameTime + eff.lawRiskMonths * MONTH_DURATION });
+    }
+    if (eff.lawSliderImmuneMonths) {
+      setSabineLobbyUntil(gameTime + eff.lawSliderImmuneMonths * MONTH_DURATION);
+    }
+    queuePopup({ type: 'character', speaker: 'Sabine',
+      text: `${localizeField(action.title, language)} lancée. ${localizeField(action.fx, language)}.` });
+    return true;
+  };
+
   const triggerRhAction = (kind) => {
     if (!canDoRhAction(kind)) return false;
     const cost = RH_ACTION_COST[kind] || 0;
@@ -15391,6 +15568,13 @@ export default function App() {
     setActiveCampaign(null);
     setCampaignsOpen(false);
     setCampaignsLaunched(0);
+    // Actions Mark / Sabine : état + effets temporaires
+    setMarkActionState({});
+    setMarkTempSellBoost({ factor: 1.0, until: 0 }); markTempSellBoostRef.current = { factor: 1.0, until: 0 };
+    setMarkBillDiscount({ factor: 1.0, until: 0 }); markBillDiscountRef.current = { factor: 1.0, until: 0 };
+    setSabineActionState({});
+    setSabineCompliance({ factor: 1.0, until: 0 }); sabineComplianceRef.current = { factor: 1.0, until: 0 };
+    setSabineLobbyUntil(0); sabineLobbyUntilRef.current = 0;
     setMarketTarget(2);
     setNextMarketReroll(0);
     setCyberLockout(0);
@@ -25908,6 +26092,50 @@ export default function App() {
                       </div>
                     </div>
                   )}
+                  {/* === ACTIONS STRATÉGIQUES SABINE === */}
+                  {getSabinePeakTier(owned) && (
+                    <div className="janice-actions-section">
+                      <div className="janice-actions-title">{t('sabine.actions_title')}</div>
+                      <div className="janice-actions-intro">{t('sabine.actions_intro')}</div>
+                      <div className="janice-actions-grid">
+                        {SABINE_ACTIONS.filter(a => {
+                          const peak = getSabinePeakTier(owned);
+                          return peak && SABINE_TIER_ORDER.indexOf(peak) >= SABINE_TIER_ORDER.indexOf(a.tier);
+                        }).map(action => {
+                          const status = getSabineActionStatus(action, sabineActionState, gameTime, owned, money);
+                          let stateLabel = '';
+                          if (status.reason === 'oneshot') stateLabel = t('janice.act_done');
+                          else if (status.reason === 'cooldown') stateLabel = `${t('janice.act_cd')} ${status.cooldownLeftMonths}${t('janice.month_short')}`;
+                          else if (status.reason === 'funds') stateLabel = t('janice.act_no_funds');
+                          return (
+                            <button
+                              key={action.id}
+                              className={`janice-action-card ${!status.available ? 'is-disabled' : ''}`}
+                              disabled={!status.available}
+                              onClick={() => triggerSabineAction(action.id)}
+                            >
+                              <div className="janice-action-label">{localizeField(action.title, language)}</div>
+                              <div className="janice-action-cost">{fmtInt(action.cost)}€</div>
+                              <div className="janice-action-fx">{localizeField(action.fx, language)}</div>
+                              {stateLabel && <div className="janice-action-state">{stateLabel}</div>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {sabineCompliance.until > gameTime && (
+                        <div className="janice-boost-active">
+                          <Zap size={10} strokeWidth={2} /> {t('sabine.compliance_active')} ×{sabineCompliance.factor.toFixed(2)} ·
+                          {' '}{Math.ceil((sabineCompliance.until - gameTime) / MONTH_DURATION)} {t('janice.months_short')}
+                        </div>
+                      )}
+                      {sabineLobbyUntil > gameTime && (
+                        <div className="janice-boost-active">
+                          <Zap size={10} strokeWidth={2} /> {t('sabine.lobby_active')} ·
+                          {' '}{Math.ceil((sabineLobbyUntil - gameTime) / MONTH_DURATION)} {t('janice.months_short')}
+                        </div>
+                      )}
+                    </div>
+                  )}
                   {/* Procès actifs (urgents) */}
                   {activeLawsuits.length > 0 && (
                     <div className="juridique-section">
@@ -26037,6 +26265,50 @@ export default function App() {
                       </div>
                     )}
                   </div>
+                  {/* === ACTIONS STRATÉGIQUES MARK === */}
+                  {getMarkPeakTier(owned) && (
+                    <div className="janice-actions-section">
+                      <div className="janice-actions-title">{t('mark.actions_title')}</div>
+                      <div className="janice-actions-intro">{t('mark.actions_intro')}</div>
+                      <div className="janice-actions-grid">
+                        {MARK_ACTIONS.filter(a => {
+                          const peak = getMarkPeakTier(owned);
+                          return peak && MARK_TIER_ORDER.indexOf(peak) >= MARK_TIER_ORDER.indexOf(a.tier);
+                        }).map(action => {
+                          const status = getMarkActionStatus(action, markActionState, gameTime, owned, money);
+                          let stateLabel = '';
+                          if (status.reason === 'oneshot') stateLabel = t('janice.act_done');
+                          else if (status.reason === 'cooldown') stateLabel = `${t('janice.act_cd')} ${status.cooldownLeftMonths}${t('janice.month_short')}`;
+                          else if (status.reason === 'funds') stateLabel = t('janice.act_no_funds');
+                          return (
+                            <button
+                              key={action.id}
+                              className={`janice-action-card ${!status.available ? 'is-disabled' : ''}`}
+                              disabled={!status.available}
+                              onClick={() => triggerMarkAction(action.id)}
+                            >
+                              <div className="janice-action-label">{localizeField(action.title, language)}</div>
+                              <div className="janice-action-cost">{fmtInt(action.cost)}€</div>
+                              <div className="janice-action-fx">{localizeField(action.fx, language)}</div>
+                              {stateLabel && <div className="janice-action-state">{stateLabel}</div>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {markBillDiscount.until > gameTime && (
+                        <div className="janice-boost-active">
+                          <Zap size={10} strokeWidth={2} /> {t('mark.bill_discount_active')} ×{markBillDiscount.factor.toFixed(2)} ·
+                          {' '}{Math.ceil((markBillDiscount.until - gameTime) / MONTH_DURATION)} {t('janice.months_short')}
+                        </div>
+                      )}
+                      {markTempSellBoost.until > gameTime && (
+                        <div className="janice-boost-active">
+                          <Zap size={10} strokeWidth={2} /> {t('mark.sell_boost_active')} ×{markTempSellBoost.factor.toFixed(2)} ·
+                          {' '}{Math.ceil((markTempSellBoost.until - gameTime) / MONTH_DURATION)} {t('janice.months_short')}
+                        </div>
+                      )}
+                    </div>
+                  )}
                   {/* Liste des curseurs */}
                   <div className="achats-sliders-list">
                     {sliderKeys.map(key => {
