@@ -17162,7 +17162,8 @@ export default function App() {
         .lines-ttl::after { content: ''; flex: 1; height: 1px; background: var(--line); }
         .prod-line { border: 1px solid var(--line); padding: 5px 12px; margin-bottom: -1px; background: var(--bg); display: flex; align-items: center; gap: 12px; }
         .prod-line.empty { opacity: 0.45; }
-        .prod-line.line-broken { border-color: var(--fg); border-style: dashed; }
+        /* Panne : on garde le contour normal de la ligne (l'icône camion
+           anime déjà l'état « en panne »), pas de bordure pointillée. */
         .prod-line.line-strike { border-color: var(--fg); border-style: dashed; background: var(--line-soft); }
         .truck-wrap.truck-strike { transition: none; opacity: 0.55; background: transparent; padding: 0; }
         .truck-wrap.truck-strike .truck-icon { animation: truckStrike 1.4s ease-in-out infinite; }
