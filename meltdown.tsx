@@ -173,6 +173,10 @@ const SABOTAGE_FRIGO_CHANCE = 0.0028;   // ~tous les 360s = 6 min
 const POACHING_CHANCE = 0.00010;
 const SABOTAGE_COOLDOWN_SEC = 45; // pas 2 sabotages dans 45s
 const SABOTAGE_GRACE_SEASONS = 1; // délai de grâce 1 saison = 2 min de Phase 3
+// La sécurité ne rend plus AUCUNE attaque impossible : elle la rend ~4,5× plus
+// rare. Glacier Frères trouve toujours une faille — tu réduis l'exposition, tu
+// ne l'effaces pas. (Avant : immunité totale.)
+const SABOTAGE_RESIDUAL_WITH_SECURITY = 0.22;
 
 // === ÉVÉNEMENTS DE TENSION P3 ===
 // Crises majeures et opportunités énormes pour générer des hauts et bas dramatiques.
@@ -2000,17 +2004,17 @@ const UPGRADES = [
     longDesc: { fr: "Flotte complète à 6 camions sous la direction de Lenny. Tu peux saturer ton agenda de livraisons et générer du chiffre massif.", en: "Full fleet of 6 trucks under Lenny's direction. You can saturate your delivery schedule and generate massive revenue.", es: "Flota completa de 6 camiones bajo la dirección de Lenny. Puedes saturar tu agenda de entregas y generar ingresos masivos.", zh: "莱尼麾下6辆卡车的完整车队。你可以填满配送排程，创造巨额收入。", ru: "Полный парк из 6 грузовиков под управлением Ленни. Можно насытить график доставок и генерировать огромную выручку.", it: "Flotta completa di 6 camion sotto la direzione di Lenny. Puoi saturare il calendario di consegne e generare ricavi enormi.", de: "Volle Flotte aus 6 LKW unter Lennys Leitung. Du kannst deinen Lieferplan auslasten und massiven Umsatz erzeugen." },
     apply: s => ({ ...s, linesBonus: s.linesBonus + 1, truckMaxCap: Math.max(s.truckMaxCap, 16000) }) },
   // === PHASE 3 — SÉCURITÉ (contre-mesures sabotage) ===
-  { id: 'security_camera', Icon: Camera, count: 1, destructible: false, phase: 3, name: { fr: 'Vidéosurveillance', en: 'CCTV surveillance', es: 'Videovigilancia', zh: "闭路监控", ru: "Видеонаблюдение", it: "Videosorveglianza", de: "Videoüberwachung" }, desc: { fr: 'Immunise contre pneus crevés', en: 'Immune to slashed tires', es: 'Inmune a neumáticos pinchados', zh: "免疫割胎", ru: "Иммунитет к порезу шин", it: "Immune al taglio gomme", de: "Immun gegen zerstochene Reifen" }, cost: 14000,
-    longDesc: { fr: "Caméras autour du dépôt et trackers GPS sur tes camions. Les saboteurs ne peuvent plus toucher tes pneus sans laisser une preuve.", en: "CCTV around the depot and GPS trackers on your trucks. Saboteurs can no longer touch your tires without leaving evidence.", es: "Cámaras alrededor del depósito y rastreadores GPS en tus camiones. Los saboteadores ya no pueden tocar tus neumáticos sin dejar pruebas.", zh: "仓库周围闭路监控，卡车上装GPS追踪器。破坏者再也无法在不留证据的情况下动你的轮胎。", ru: "Камеры вокруг склада и GPS-трекеры на грузовиках. Саботажники больше не могут тронуть ваши шины, не оставив улик.", it: "Telecamere intorno al deposito e tracker GPS sui camion. I sabotatori non possono più toccare le tue gomme senza lasciare prove.", de: "Videoüberwachung rund ums Depot und GPS-Tracker an den LKW. Saboteure können deine Reifen nicht mehr anrühren, ohne Spuren zu hinterlassen." },
+  { id: 'security_camera', Icon: Camera, count: 1, destructible: false, phase: 3, name: { fr: 'Vidéosurveillance', en: 'CCTV surveillance', es: 'Videovigilancia', zh: "闭路监控", ru: "Видеонаблюдение", it: "Videosorveglianza", de: "Videoüberwachung" }, desc: { fr: 'Pneus crevés bien plus rares', en: 'Slashed tires far rarer', es: 'Pinchazos mucho más raros', zh: "割胎大幅减少", ru: "Порезы шин гораздо реже", it: "Tagli gomme molto più rari", de: "Reifenstiche viel seltener" }, cost: 14000,
+    longDesc: { fr: "Caméras autour du dépôt et trackers GPS sur tes camions. Les saboteurs y réfléchissent à deux fois : les pneus crevés deviennent bien plus rares, mais une équipe déterminée trouve encore parfois une faille.", en: "CCTV around the depot and GPS trackers on your trucks. Saboteurs think twice: slashed tires become far rarer, but a determined crew still finds a gap now and then.", es: "Cámaras alrededor del depósito y rastreadores GPS en tus camiones. Los saboteadores se lo piensan: los pinchazos son mucho más raros, pero un equipo decidido aún encuentra a veces un hueco.", zh: "仓库周围闭路监控，卡车上装GPS追踪器。破坏者会三思：割胎大幅减少，但铁了心的团伙偶尔仍能钻空子。", ru: "Камеры вокруг склада и GPS-трекеры на грузовиках. Саботажники задумаются: порезы шин станут гораздо реже, но упорная команда иногда всё же находит лазейку.", it: "Telecamere intorno al deposito e tracker GPS sui camion. I sabotatori ci pensano due volte: i tagli alle gomme diventano molto più rari, ma una squadra decisa trova ancora ogni tanto un varco.", de: "Videoüberwachung rund ums Depot und GPS-Tracker an den LKW. Saboteure überlegen es sich zweimal: Reifenstiche werden viel seltener, doch eine entschlossene Crew findet ab und zu noch eine Lücke." },
     apply: s => ({ ...s, immunePneus: true }) },
-  { id: 'community_mgmt', Icon: MessageCircle, count: 1, destructible: false, phase: 3, name: { fr: 'Community Manager', en: 'Community Manager', es: 'Community Manager', zh: "社群经理", ru: "Комьюнити-менеджер", it: "Community Manager", de: "Community Manager" }, desc: { fr: 'Immunise contre faux avis', en: 'Immune to fake reviews', es: 'Inmune a reseñas falsas', zh: "免疫虚假评论", ru: "Иммунитет к фейковым отзывам", it: "Immune alle recensioni false", de: "Immun gegen Fake-Bewertungen" }, cost: 22000,
-    longDesc: { fr: "Un CM répond en temps réel aux attaques web et fait modérer les faux avis. Ta réputation est blindée.", en: "A CM responds in real time to web attacks and moderates fake reviews. Your reputation is bulletproof.", es: "Un CM responde en tiempo real a los ataques web y modera las reseñas falsas. Tu reputación está blindada.", zh: "一名社群经理实时回应网络攻击并管控虚假评论。你的声誉刀枪不入。", ru: "КМ отвечает в реальном времени на веб-атаки и модерирует фейковые отзывы. Ваша репутация пуленепробиваема.", it: "Un CM risponde in tempo reale agli attacchi sul web e modera le recensioni false. La tua reputazione è a prova di proiettile.", de: "Ein Community Manager reagiert in Echtzeit auf Web-Angriffe und moderiert Fake-Bewertungen. Dein Ruf ist kugelsicher." },
+  { id: 'community_mgmt', Icon: MessageCircle, count: 1, destructible: false, phase: 3, name: { fr: 'Community Manager', en: 'Community Manager', es: 'Community Manager', zh: "社群经理", ru: "Комьюнити-менеджер", it: "Community Manager", de: "Community Manager" }, desc: { fr: 'Faux avis bien plus rares', en: 'Fake reviews far rarer', es: 'Reseñas falsas mucho más raras', zh: "虚假评论大幅减少", ru: "Фейковые отзывы гораздо реже", it: "Recensioni false molto più rare", de: "Fake-Bewertungen viel seltener" }, cost: 22000,
+    longDesc: { fr: "Un CM répond en temps réel aux attaques web et fait modérer les faux avis. Les campagnes de dénigrement deviennent bien plus rares — mais aucune modération n'arrête tout, certaines passent encore.", en: "A CM responds in real time to web attacks and moderates fake reviews. Smear campaigns become far rarer — but no moderation stops everything, a few still slip through.", es: "Un CM responde en tiempo real a los ataques web y modera las reseñas falsas. Las campañas de desprestigio son mucho más raras — pero ninguna moderación lo frena todo, algunas aún se cuelan.", zh: "一名社群经理实时回应网络攻击并管控虚假评论。抹黑行动大幅减少——但没有任何管控能挡下全部，仍有少数漏网。", ru: "КМ отвечает в реальном времени на веб-атаки и модерирует фейковые отзывы. Кампании очернения станут гораздо реже — но никакая модерация не остановит всё, кое-что всё равно прорывается.", it: "Un CM risponde in tempo reale agli attacchi sul web e modera le recensioni false. Le campagne diffamatorie diventano molto più rare — ma nessuna moderazione ferma tutto, alcune passano ancora.", de: "Ein Community Manager reagiert in Echtzeit auf Web-Angriffe und moderiert Fake-Bewertungen. Schmutzkampagnen werden viel seltener — doch keine Moderation stoppt alles, einige kommen noch durch." },
     apply: s => ({ ...s, immuneAvis: true }) },
-  { id: 'cyber_security', Icon: Lock, count: 1, destructible: false, phase: 3, name: { fr: 'Cybersécurité', en: 'Cybersecurity', es: 'Ciberseguridad', zh: "网络安全", ru: "Кибербезопасность", it: "Cybersicurezza", de: "Cybersicherheit" }, desc: { fr: 'Immunise contre cyberattaque', en: 'Immune to cyberattack', es: 'Inmune a ciberataque', zh: "免疫网络攻击", ru: "Иммунитет к кибератаке", it: "Immune al cyberattacco", de: "Immun gegen Cyberangriff" }, cost: 35000,
-    longDesc: { fr: "Pare-feu pro + audit annuel + sauvegardes chiffrées. Plus aucune cyberattaque ne peut corrompre ton système.", en: "Pro firewall + annual audit + encrypted backups. No cyberattack can corrupt your system anymore.", es: "Cortafuegos pro + auditoría anual + copias de seguridad cifradas. Ningún ciberataque puede corromper ya tu sistema.", zh: "专业防火墙 + 年度审计 + 加密备份。再没有网络攻击能破坏你的系统。", ru: "Профессиональный фаервол + ежегодный аудит + шифрованные бэкапы. Никакая кибератака больше не может повредить вашу систему.", it: "Firewall pro + audit annuale + backup criptati. Nessun cyberattacco può più corrompere il tuo sistema.", de: "Profi-Firewall + jährliches Audit + verschlüsselte Backups. Kein Cyberangriff kann dein System mehr beschädigen." },
+  { id: 'cyber_security', Icon: Lock, count: 1, destructible: false, phase: 3, name: { fr: 'Cybersécurité', en: 'Cybersecurity', es: 'Ciberseguridad', zh: "网络安全", ru: "Кибербезопасность", it: "Cybersicurezza", de: "Cybersicherheit" }, desc: { fr: 'Cyberattaques bien plus rares', en: 'Cyberattacks far rarer', es: 'Ciberataques mucho más raros', zh: "网络攻击大幅减少", ru: "Кибератаки гораздо реже", it: "Cyberattacchi molto più rari", de: "Cyberangriffe viel seltener" }, cost: 35000,
+    longDesc: { fr: "Pare-feu pro + audit annuel + sauvegardes chiffrées. Les cyberattaques deviennent bien plus rares — mais le risque zéro n'existe pas, une intrusion peut encore passer.", en: "Pro firewall + annual audit + encrypted backups. Cyberattacks become far rarer — but zero risk doesn't exist, an intrusion can still get through.", es: "Cortafuegos pro + auditoría anual + copias de seguridad cifradas. Los ciberataques son mucho más raros — pero el riesgo cero no existe, una intrusión aún puede colarse.", zh: "专业防火墙 + 年度审计 + 加密备份。网络攻击大幅减少——但零风险不存在，仍可能有入侵得手。", ru: "Профессиональный фаервол + ежегодный аудит + шифрованные бэкапы. Кибератаки станут гораздо реже — но нулевого риска не бывает, взлом всё ещё может пройти.", it: "Firewall pro + audit annuale + backup criptati. I cyberattacchi diventano molto più rari — ma il rischio zero non esiste, un'intrusione può ancora passare.", de: "Profi-Firewall + jährliches Audit + verschlüsselte Backups. Cyberangriffe werden viel seltener — doch Nullrisiko gibt es nicht, ein Eindringen kann noch durchkommen." },
     apply: s => ({ ...s, immuneCyber: true }) },
-  { id: 'physical_security', Icon: ShieldAlert, count: 1, destructible: false, phase: 3, name: { fr: 'Gardiennage 24/7', en: '24/7 Security', es: 'Vigilancia 24/7', zh: "24/7安保", ru: "Охрана 24/7", it: "Sicurezza 24/7", de: "24/7-Sicherheitsdienst" }, desc: { fr: 'Immunise contre sabotage frigo', en: 'Immune to freezer sabotage', es: 'Inmune a sabotaje congelador', zh: "免疫冷冻柜破坏", ru: "Иммунитет к саботажу морозильников", it: "Immune al sabotaggio congelatori", de: "Immun gegen Gefriertruhen-Sabotage" }, cost: 56000,
-    longDesc: { fr: "Agent de sécurité posté au dépôt nuit et jour. Les sabotages physiques sur tes congélateurs sont impossibles.", en: "Security guard stationed at the depot day and night. Physical sabotage on your freezers is impossible.", es: "Vigilante de seguridad apostado en el depósito día y noche. Los sabotajes físicos sobre tus congeladores son imposibles.", zh: "保安日夜驻守仓库。对你冷冻柜的物理破坏不可能发生。", ru: "Охранник на складе днём и ночью. Физический саботаж ваших морозильников невозможен.", it: "Guardia di sicurezza al deposito giorno e notte. Il sabotaggio fisico dei tuoi congelatori è impossibile.", de: "Sicherheitsdienst Tag und Nacht am Depot. Physische Sabotage an deinen Gefriertruhen ist unmöglich." },
+  { id: 'physical_security', Icon: ShieldAlert, count: 1, destructible: false, phase: 3, name: { fr: 'Gardiennage 24/7', en: '24/7 Security', es: 'Vigilancia 24/7', zh: "24/7安保", ru: "Охрана 24/7", it: "Sicurezza 24/7", de: "24/7-Sicherheitsdienst" }, desc: { fr: 'Sabotage frigo bien plus rare', en: 'Freezer sabotage far rarer', es: 'Sabotaje congelador mucho más raro', zh: "冷冻柜破坏大幅减少", ru: "Саботаж морозильников гораздо реже", it: "Sabotaggio congelatori molto più raro", de: "Tiefkühl-Sabotage viel seltener" }, cost: 56000,
+    longDesc: { fr: "Agent de sécurité posté au dépôt nuit et jour. Les sabotages physiques sur tes congélateurs deviennent bien plus rares — mais un gardien ne peut pas être partout, ça arrive encore parfois.", en: "Security guard stationed at the depot day and night. Physical sabotage on your freezers becomes far rarer — but one guard can't be everywhere, it still happens occasionally.", es: "Vigilante de seguridad apostado en el depósito día y noche. Los sabotajes físicos a tus congeladores son mucho más raros — pero un vigilante no puede estar en todas partes, aún ocurre a veces.", zh: "保安日夜驻守仓库。对你冷冻柜的物理破坏大幅减少——但一名保安无法面面俱到，偶尔仍会发生。", ru: "Охранник на складе днём и ночью. Физический саботаж ваших морозильников станет гораздо реже — но один охранник не может быть везде, иногда это всё же случается.", it: "Guardia di sicurezza al deposito giorno e notte. Il sabotaggio fisico dei tuoi congelatori diventa molto più raro — ma una guardia non può essere ovunque, capita ancora a volte.", de: "Sicherheitsdienst Tag und Nacht am Depot. Physische Sabotage an deinen Gefriertruhen wird viel seltener — doch ein Wächter kann nicht überall sein, gelegentlich passiert es noch." },
     apply: s => ({ ...s, immuneFrigo: true }) },
   // === PHASE 3 — PROVENANCE DE L'EAU (montée en gamme premium) ===
   // Chaque palier améliore l'origine de l'eau → glaçons plus purs, plus
@@ -2352,13 +2356,13 @@ const TUTORIAL_STEPS = [
     }, targetSel: '.menu-btn-prod', side: 'top', delay: 1500,
     canShow: s => (!!(s.owned && s.owned['camion_1'])), autoClose: null },
   { id: 't_security_intro', text: {
-      fr: "En Phase 3, Glacier Frères passe à l'attaque : pneus crevés, faux avis, cyberattaques, sabotage frigo. Tu peux acheter des contre-mesures dans l'écran SÉCURITÉ pour les rendre impossibles. Chaque immunité coûte cher mais te débarrasse définitivement d'un type d'attaque.",
-      en: "In Phase 3, Glacier Brothers go on the offensive: slashed tires, fake reviews, cyberattacks, freezer sabotage. You can buy counter-measures in the SECURITY screen to neutralize them. Each immunity costs but permanently kills one attack type.",
-      es: "En la Fase 3, Hermanos Glacier pasan al ataque: ruedas pinchadas, reseñas falsas, ciberataques, sabotaje de cámara. Puedes comprar contramedidas en SEGURIDAD para anularlos. Cada inmunidad cuesta pero elimina permanentemente un tipo de ataque.",
-      zh: "进入第3阶段，格拉西耶兄弟开始进攻：割胎、虚假差评、网络攻击、破坏冷柜。你可以在安全界面购买反制措施使其无效。每项免疫成本高，但永久消除一种攻击。",
-      ru: "В Фазе 3 «Гласье Фрер» переходят в атаку: порезанные шины, фейковые отзывы, кибератаки, саботаж морозильника. В экране БЕЗОПАСНОСТИ можно купить контрмеры. Каждый иммунитет дорогой, но навсегда убирает один тип атаки.",
-      it: "Nella Fase 3, Glacier Frères passa all'attacco: gomme tagliate, recensioni false, cyberattacchi, sabotaggio del frigo. Puoi comprare contromisure nella schermata SICUREZZA per annullarli. Ogni immunità costa ma elimina per sempre un tipo di attacco.",
-      de: "In Phase 3 greifen Glacier Brothers an: zerstochene Reifen, Fake-Bewertungen, Cyberangriffe, Tiefkühl-Sabotage. Im SICHERHEITS-Bildschirm kaufst du Gegenmaßnahmen. Jede Immunität ist teuer, eliminiert aber dauerhaft eine Angriffsart."
+      fr: "En Phase 3, Glacier Frères passe à l'attaque : pneus crevés, faux avis, cyberattaques, sabotage frigo. Achète des contre-mesures dans l'écran SÉCURITÉ pour rendre chaque type d'attaque bien plus rare. Ça coûte cher et ça ne supprime pas le risque à 100 % — mais ça réduit fortement les coups que tu encaisses.",
+      en: "In Phase 3, Glacier Brothers go on the offensive: slashed tires, fake reviews, cyberattacks, freezer sabotage. Buy counter-measures in the SECURITY screen to make each attack type far rarer. It's pricey and won't kill the risk entirely — but it sharply cuts the hits you take.",
+      es: "En la Fase 3, Hermanos Glacier pasan al ataque: ruedas pinchadas, reseñas falsas, ciberataques, sabotaje de cámara. Compra contramedidas en SEGURIDAD para que cada tipo de ataque sea mucho más raro. Cuesta caro y no elimina el riesgo del todo — pero reduce mucho los golpes que recibes.",
+      zh: "进入第3阶段，格拉西耶兄弟开始进攻：割胎、虚假差评、网络攻击、破坏冷柜。在安全界面购买反制措施，使每种攻击大幅减少。代价高昂，且无法100%消除风险——但能大幅减少你受到的打击。",
+      ru: "В Фазе 3 «Гласье Фрер» переходят в атаку: порезанные шины, фейковые отзывы, кибератаки, саботаж морозильника. В экране БЕЗОПАСНОСТИ покупай контрмеры, чтобы каждый тип атаки стал гораздо реже. Это дорого и не убирает риск полностью — но резко снижает получаемые удары.",
+      it: "Nella Fase 3, Glacier Frères passa all'attacco: gomme tagliate, recensioni false, cyberattacchi, sabotaggio del frigo. Compra contromisure nella schermata SICUREZZA per rendere ogni tipo di attacco molto più raro. Costa caro e non elimina del tutto il rischio — ma riduce nettamente i colpi che subisci.",
+      de: "In Phase 3 greifen Glacier Brothers an: zerstochene Reifen, Fake-Bewertungen, Cyberangriffe, Tiefkühl-Sabotage. Kaufe im SICHERHEITS-Bildschirm Gegenmaßnahmen, um jede Angriffsart viel seltener zu machen. Das ist teuer und beseitigt das Risiko nicht völlig — aber es senkt die Treffer deutlich."
     }, targetSel: null, side: 'center', delay: 2000,
     canShow: s => s.phase >= 3 && s.notoriety >= 15, autoClose: null },
 ];
@@ -10377,20 +10381,26 @@ export default function App() {
         const curStatsForImmune = computeStats(curOwned);
         const sabotageCooldownActive = (gameTimeRef.current - lastSabotageAtRef.current) < SABOTAGE_COOLDOWN_SEC;
 
+        // La sécurité réduit fortement la fréquence (résiduel) mais ne supprime
+        // jamais le risque : une faille reste toujours possible.
+        const residPneus = curStatsForImmune.immunePneus ? SABOTAGE_RESIDUAL_WITH_SECURITY : 1;
+        const residAvis  = curStatsForImmune.immuneAvis  ? SABOTAGE_RESIDUAL_WITH_SECURITY : 1;
+        const residCyber = curStatsForImmune.immuneCyber ? SABOTAGE_RESIDUAL_WITH_SECURITY : 1;
+        const residFrigo = curStatsForImmune.immuneFrigo ? SABOTAGE_RESIDUAL_WITH_SECURITY : 1;
         // 1. Pneus crevés (noto ≥ 15)
-        if (!sabotageCooldownActive && curNoto >= 15 && !curStatsForImmune.immunePneus && Math.random() < SABOTAGE_PNEUS_CHANCE * dt) {
+        if (!sabotageCooldownActive && curNoto >= 15 && Math.random() < SABOTAGE_PNEUS_CHANCE * residPneus * dt) {
           triggerSabotageTires();
         }
         // 2. Faux avis (noto ≥ 25)
-        if (!sabotageCooldownActive && curNoto >= 25 && !curStatsForImmune.immuneAvis && Math.random() < SABOTAGE_AVIS_CHANCE * dt) {
+        if (!sabotageCooldownActive && curNoto >= 25 && Math.random() < SABOTAGE_AVIS_CHANCE * residAvis * dt) {
           triggerSabotageFakeReviews();
         }
         // 3. Cyberattaque (noto ≥ 35)
-        if (!sabotageCooldownActive && curNoto >= 35 && !curStatsForImmune.immuneCyber && Math.random() < SABOTAGE_CYBER_CHANCE * dt) {
+        if (!sabotageCooldownActive && curNoto >= 35 && Math.random() < SABOTAGE_CYBER_CHANCE * residCyber * dt) {
           triggerSabotageCyber();
         }
         // 4. Sabotage frigo / stock (noto ≥ 45)
-        if (!sabotageCooldownActive && curNoto >= 45 && !curStatsForImmune.immuneFrigo && Math.random() < SABOTAGE_FRIGO_CHANCE * dt) {
+        if (!sabotageCooldownActive && curNoto >= 45 && Math.random() < SABOTAGE_FRIGO_CHANCE * residFrigo * dt) {
           triggerSabotageFreezer();
         }
 
@@ -12874,6 +12884,7 @@ export default function App() {
     setEventNotif(t('notif.tires_slashed'));
     totalsRef.current.vehicleBreakdowns += 1;
     setReputation(r => Math.max(0, r - 6)); // un sabotage visible nuit à l'image
+    setNotoriety(n => Math.max(0, n - 4)); // livraisons stoppées : la clientèle le remarque
     setLennyMoral(m => Math.max(0, m - 15));
     setFredMoral(m => Math.max(0, m - 5));
     setBrigitteMoral(m => Math.max(0, m - 5));
@@ -12901,7 +12912,8 @@ export default function App() {
 
   const triggerSabotageFakeReviews = () => {
     setReputation(r => Math.max(0, r - 10));
-    setNotoriety(n => Math.max(0, n - 3));
+    // Faux avis = attaque DIRECTE sur l'image : la notoriété encaisse vraiment.
+    setNotoriety(n => Math.max(0, n - 10));
     setEventNotif(t('notif.fake_reviews'));
     setJaniceMoral(m => Math.max(0, m - 15));
     setFredMoral(m => Math.max(0, m - 5));
@@ -12923,6 +12935,7 @@ export default function App() {
     setCyberLockout(90); // 1 min 30 — assez douloureux mais sans casser le rythme
     setEventNotif(t('notif.cyberattack'));
     setReputation(r => Math.max(0, r - 8)); // fuite/incident public : image entachée
+    setNotoriety(n => Math.max(0, n - 5)); // incident rendu public : la marque encaisse
     setBrigitteMoral(m => Math.max(0, m - 15));
     setFredMoral(m => Math.max(0, m - 8));
     setJaniceMoral(m => Math.max(0, m - 8));
@@ -12948,6 +12961,7 @@ export default function App() {
     setEventNotif(t('notif.stock_burned'));
     totalsRef.current.destructions += 1;
     setReputation(r => Math.max(0, r - 8)); // incident grave : confiance entamée
+    setNotoriety(n => Math.max(0, n - 6)); // rupture de stock visible : la marque trinque
     lastSabotageAtRef.current = gameTimeRef.current;
     setFredMoral(m => Math.max(0, m - 20));
     setBrigitteMoral(m => Math.max(0, m - 10));
