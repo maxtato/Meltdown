@@ -2266,7 +2266,6 @@ const UPGRADE_FAMILIES = [
   { id: 'pers_brigitte', label: 'BRIGITTE', icon: 'Users', tiers: ['autosell', 'brigitte_compta', 'brigitte_ad', 'comptable_senior', 'brigitte_legende'], minPhase: 1 },
   { id: 'pers_lenny',    label: 'LENNY',    icon: 'Users', tiers: ['camion_1'],                                                                  minPhase: 2, hideWhenMax: true },
   { id: 'pers_janice',   label: 'AGENCE MARKETING',   icon: 'Megaphone', tiers: ['janice_jr'],                                  minPhase: 3, requireUnlock: 'headquarters' },
-  { id: 'pers_mark',     label: 'MARK',     icon: 'Users', tiers: ['mark_jr', 'mark_resp', 'mark_dir'],                                          minPhase: 3, requireUnlock: 'headquarters' },
   { id: 'pers_bienetre', label: 'BIEN-ÊTRE & FORMATION', icon: 'Users',
     tiers: ['machine_cafe', 'salle_repos', 'salle_sport', 'plan_formation', 'creche_entreprise', 'formation_interne', 'robotisation'],
     minPhase: 2 },
@@ -2411,16 +2410,16 @@ const TUTORIAL_STEPS = [
       es: "La notoriedad es lo conocido que es tu nombre por el público. Cada entrega a una cadena te suma puntos. Tus campañas de marketing también. Si no haces nada, la notoriedad baja lentamente. Apunta a más de 65 para interesar a las cadenas nacionales, y a más de 85 para las más grandes.", zh: "知名度 = 你的名号在公众中的知名程度。每次向零售商配送都让你得分。你的营销活动也是。如果什么都不做，知名度会缓慢下降。瞄准65+吸引全国连锁，85+吸引最大品牌。", ru: "Известность = насколько ваше имя знакомо публике. Каждая доставка ритейлеру приносит вам очки. Ваши маркетинговые кампании тоже. Если ничего не делать, известность медленно падает. Цельтесь на 65+ для привлечения национальных сетей и 85+ для крупнейших брендов.", it: "Notorietà = quanto il tuo nome è conosciuto dal pubblico. Ogni consegna a un retailer ti fa guadagnare punti. Anche le tue campagne marketing. Se non fai nulla, la notorietà cala lentamente. Punta a 65+ per attirare le catene nazionali, e 85+ per i marchi più grandi.", de: "Bekanntheit = wie gut dein Name beim Publikum bekannt ist. Jede Lieferung an einen Händler bringt Punkte. Deine Marketingkampagnen auch. Tust du nichts, sinkt die Bekanntheit langsam. Ziele auf 65+, um nationale Ketten anzuziehen, und 85+ für die größten Marken."
     }, targetSel: null, side: 'center', delay: 2500,
     canShow: s => s.phase >= 3 && s.notoriety >= 5 && s.campaignsLaunched >= 1, autoClose: null },
-  { id: 't_mark_intro', text: {
-      fr: "Mark débloque l'écran ACHATS. Chaque curseur (eau, énergie, emballages, logistique, fournisseurs) est un arbitrage entre coût et risque. PREMIUM = qualité haute + image, ÉCO/LIMITE = marges mais chance de procès et perte de notoriété. À toi de placer le bon niveau de risque.",
-      en: "Mark unlocks the PURCHASING screen. Each slider (water, energy, packaging, logistics, suppliers) is a trade-off between cost and risk. PREMIUM = high quality + image, ECO/LIMIT = better margins but higher chance of lawsuits and notoriety loss. Set your risk level.",
-      es: "Mark desbloquea la pantalla COMPRAS. Cada cursor (agua, energía, embalaje, logística, proveedores) es un equilibrio entre coste y riesgo. PREMIUM = calidad e imagen, ECO/LÍMITE = más margen pero mayor riesgo de juicios y pérdida de notoriedad. Define tu nivel de riesgo.",
-      zh: "马克解锁采购界面。每个滑块（水、能源、包装、物流、供应商）都是成本与风险之间的权衡。高端 = 质量与形象，经济/极限 = 利润更高但更易遭起诉和失去知名度。由你设定风险等级。",
-      ru: "Марк открывает экран ЗАКУПОК. Каждый ползунок (вода, энергия, упаковка, логистика, поставщики) — это компромисс между ценой и риском. ПРЕМИУМ = качество и образ, ЭКО/ЛИМИТ = маржа выше, но больше шансов на иски и потерю известности. Решай уровень риска.",
-      it: "Mark sblocca la schermata ACQUISTI. Ogni cursore (acqua, energia, imballaggi, logistica, fornitori) è un equilibrio tra costo e rischio. PREMIUM = qualità e immagine, ECO/LIMITE = più margine ma maggior rischio di cause e perdita di notorietà. Definisci il tuo livello di rischio.",
-      de: "Mark schaltet den EINKAUFS-Bildschirm frei. Jeder Regler (Wasser, Energie, Verpackung, Logistik, Lieferanten) ist ein Abwägen zwischen Kosten und Risiko. PREMIUM = Qualität & Image, ÖKO/GRENZE = mehr Marge, aber mehr Klagen und Bekanntheitsverlust. Du wählst das Risiko."
-    }, targetSel: '.menu-btn-achats', side: 'bottom', delay: 1500,
-    canShow: s => (!!(s.owned && (s.owned['mark_jr'] || s.owned['mark_resp'] || s.owned['mark_dir']))), autoClose: null },
+  { id: 't_water_quality', text: {
+      fr: "Voici la qualité de ton eau. Elle monte à chaque traitement et additif que tu achètes (provenance de l'eau, enrichissement minéral, salle blanche, R&D). Plus elle est haute, plus tu débloques de contrats premium, mieux payés. C'est ton levier qualité.",
+      en: "This is your water quality. It rises with every treatment and additive you buy (water source, mineral enrichment, clean room, R&D). The higher it is, the more premium, better-paid contracts you unlock. This is your quality lever.",
+      es: "Esta es la calidad de tu agua. Sube con cada tratamiento y aditivo que compras (origen del agua, enriquecimiento mineral, sala blanca, I+D). Cuanto más alta, más contratos premium y mejor pagados desbloqueas. Es tu palanca de calidad.",
+      zh: "这是你的水质。每购买一项处理与添加剂（水源、矿物强化、洁净室、研发），它都会上升。越高，解锁的高端高价合同越多。这是你的质量杠杆。",
+      ru: "Это качество твоей воды. Оно растёт с каждой покупкой обработки и добавок (источник воды, минерализация, чистая комната, R&D). Чем выше, тем больше премиальных, лучше оплачиваемых контрактов открывается. Это твой рычаг качества.",
+      it: "Questa è la qualità della tua acqua. Sale con ogni trattamento e additivo che compri (origine dell'acqua, arricchimento minerale, camera bianca, R&S). Più è alta, più contratti premium e meglio pagati sblocchi. È la tua leva qualità.",
+      de: "Das ist deine Wasserqualität. Sie steigt mit jeder Behandlung und jedem Zusatz, den du kaufst (Wasserquelle, Mineralanreicherung, Reinraum, F&E). Je höher, desto mehr Premium-Verträge mit besserer Bezahlung schaltest du frei. Das ist dein Qualitätshebel."
+    }, targetSel: '.water-quality', side: 'bottom', delay: 1500,
+    canShow: s => s.phase >= 3, autoClose: null },
   { id: 't_sabine_intro', text: {
       fr: "Un procès vient de tomber. Ouvre l'écran JURIDIQUE : tu choisis un avocat pour te défendre. Plus tu paies cher, plus tes chances de gagner montent — mais rien n'est garanti, et perdre coûte très cher. Tu peux aussi te défendre seul, gratuitement… et prier.",
       en: "A lawsuit just hit. Open the LEGAL screen: pick a lawyer to defend you. The more you pay, the better your odds — but nothing is guaranteed, and losing costs a fortune. You can also defend yourself for free… and pray.",
@@ -16313,16 +16312,6 @@ export default function App() {
           <span className="menu-btn-label">{t('menu.rh')}</span>
         </button>
         {/* === Bouton ACHATS : toujours visible, locked si pas Mark === */}
-        <button
-          className={`menu-btn menu-btn-achats ${(owned['mark_jr'] || owned['mark_resp'] || owned['mark_dir']) ? '' : 'locked'}`}
-          onClick={(owned['mark_jr'] || owned['mark_resp'] || owned['mark_dir']) ? () => setAchatsOpen(true) : undefined}
-          disabled={!(owned['mark_jr'] || owned['mark_resp'] || owned['mark_dir'])}
-          aria-label="Achats"
-          title={(owned['mark_jr'] || owned['mark_resp'] || owned['mark_dir']) ? t('menu.achats') : t('menu.achats_locked')}
-        >
-          <ShoppingCart size={14} strokeWidth={1.6} />
-          <span className="menu-btn-label">{t('menu.achats')}</span>
-        </button>
         {/* === Bouton JURIDIQUE : visible dès qu'on a au moins un procès en cours ou un historique === */}
         <button
           className={`menu-btn menu-btn-juridique ${(activeLawsuits.length > 0 || lawsuitHistory.length > 0) ? '' : 'locked'}`}
@@ -16451,6 +16440,19 @@ export default function App() {
               )}
             </div>
           )}
+          {/* === Qualité de l'eau : monte avec les traitements/additifs achetés, débloque les contrats premium === */}
+          {phase >= 2 && (() => {
+            const wq = Math.round(computeQualityScore(owned) * 100);
+            const wqCls = wq >= 70 ? 'is-high' : wq >= 40 ? '' : 'is-low';
+            return (
+              <div className={`water-quality ${wqCls}`} title={t('water.quality_title')}>
+                <Droplets size={11} strokeWidth={2} />
+                <span className="wq-lbl">{t('water.quality_label')}</span>
+                <div className="wq-bar"><div className="wq-fill" style={{ width: `${wq}%` }} /></div>
+                <span className="wq-val">{wq}%</span>
+              </div>
+            );
+          })()}
         </div>
         <div className="demand-side">
           {/* Anciens hero-actions désactivés : remplacés par la grande menu-bar visible dès P1 */}
@@ -17993,6 +17995,14 @@ export default function App() {
         .prod-melt-cell.off { opacity: 0.4; text-decoration: line-through; }
         .prod-melt-cell.morale-pen { color: var(--fg); font-weight: 700; }
         .prod-melt-sep { opacity: 0.4; }
+        .water-quality { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 9px; letter-spacing: 1px; color: var(--m1); font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+        .water-quality svg { flex-shrink: 0; color: var(--m1); }
+        .water-quality .wq-lbl { text-transform: uppercase; letter-spacing: 1.5px; }
+        .water-quality .wq-bar { width: 70px; height: 6px; border: 1px solid var(--fg); background: var(--bg); position: relative; overflow: hidden; }
+        .water-quality .wq-fill { position: absolute; top: 0; left: 0; bottom: 0; background: var(--fg); transition: width 0.3s ease; }
+        .water-quality .wq-val { font-weight: 700; color: var(--fg); }
+        .water-quality.is-high svg, .water-quality.is-high .wq-val { color: var(--fg); }
+        .water-quality.is-low .wq-val { opacity: 0.6; }
         .sell-rate { font-size: 9px; color: var(--m2); text-align: right; padding: 8px 4px 4px; font-variant-numeric: tabular-nums; letter-spacing: 0.5px; font-weight: 400; display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
         .sell-rate b { color: var(--fg); font-weight: 700; font-size: 11px; letter-spacing: 0; }
         .sell-rate-text { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
