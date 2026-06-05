@@ -15727,7 +15727,7 @@ export default function App() {
     return (
       <>
         <style>{`
-          @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Major+Mono+Display&family=Inter+Tight:wght@500;700;800&display=swap');
+          @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Azeret+Mono:wght@300;400&family=Major+Mono+Display&family=Inter+Tight:wght@500;700;800&display=swap');
           * { box-sizing: border-box; margin: 0; padding: 0; }
           html, body { background: ${theme === 'dark' ? '#000' : theme === 'retro' ? '#b8c3ac' : '#fff'}; }
           .theme-light { --bg: #ffffff; --fg: #000000; --m1: #666; --m2: #999; --m3: #ccc; --line: #e5e5e5; --line-soft: #f0f0f0; }
@@ -16656,7 +16656,7 @@ export default function App() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Major+Mono+Display&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Azeret+Mono:wght@300;400&family=Major+Mono+Display&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
         .theme-light { --bg: #ffffff; --fg: #000000; --m1: #666; --m2: #999; --m3: #ccc; --line: #e5e5e5; --line-soft: #f0f0f0; --bg-owned: #fafafa; }
         .theme-dark { --bg: #000000; --fg: #ffffff; --m1: #888; --m2: #555; --m3: #333; --line: #1c1c1c; --line-soft: #111111; --bg-owned: #080808; }
@@ -17976,7 +17976,7 @@ export default function App() {
         .stock-logo-bg { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 100%; height: 100%; color: var(--fg); opacity: 0.03; pointer-events: none; z-index: 0; }
         .stock-logo-bg path { fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
         .hero-center .stock, .hero-center .stock-lbl, .hero-center .status, .hero-center .cap-line, .hero-center .prod-melt-mini { position: relative; z-index: 1; text-shadow: -1px -1px 0 var(--bg), 0 -1px 0 var(--bg), 1px -1px 0 var(--bg), -1px 0 0 var(--bg), 1px 0 0 var(--bg), -1px 1px 0 var(--bg), 0 1px 0 var(--bg), 1px 1px 0 var(--bg), 0 0 2px var(--bg); }
-        .stock { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 80px; font-weight: 300; letter-spacing: -3px; line-height: 0.9; font-variant-numeric: tabular-nums; display: inline-block; }
+        .stock { font-family: 'Azeret Mono', ui-monospace, monospace; font-size: 80px; font-weight: 300; letter-spacing: -3px; line-height: 0.9; font-variant-numeric: tabular-nums; display: inline-block; }
         .stock.canicule { animation: shakeDigit 0.18s linear infinite; }
         .stock.full { animation: capShakeBig 0.2s ease-in-out infinite, capPulseBig 1.1s ease-in-out infinite; }
         .stock.full.canicule { animation: shakeDigit 0.18s linear infinite, capPulseBig 1.1s ease-in-out infinite; }
