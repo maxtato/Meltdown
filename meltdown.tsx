@@ -17853,14 +17853,16 @@ export default function App() {
         .hero { padding: 18px 0 12px; position: relative; }
 
         .menu-bar {
-          display: grid;
-          grid-template-columns: repeat(8, 1fr);
+          display: flex;
+          justify-content: center;
           gap: 4px;
           margin-bottom: 18px;
           padding: 0 2px;
         }
         .menu-bar-top { margin-top: 14px; margin-bottom: 16px; }
         .menu-btn {
+          flex: 1 1 0;
+          min-width: 0;
           background: var(--bg);
           color: var(--fg);
           border: 1px solid var(--fg);
