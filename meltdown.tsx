@@ -15640,6 +15640,11 @@ export default function App() {
     setKarenTeamBuildUntil(0); karenTeamBuildUntilRef.current = 0;
     setKarenTeamBuildCooldownUntil(0); karenTeamBuildCooldownUntilRef.current = 0;
     setTutCooldownUntil(0);
+    // Réinitialise le timing des bulles pour que le message d'accueil
+    // (t_intro) s'affiche immédiatement (~100 ms) et ne soit pas bloqué par
+    // le bubble-gap d'une bulle vue lors d'une partie précédente.
+    lastBubbleClosedAtRef.current = 0;
+    _bypassBubbleGapOnceRef.current = true;
     setHasSave(false);
   };
   const handleReset = () => setResetConfirmOpen(true);
