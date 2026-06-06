@@ -16325,21 +16325,18 @@ export default function App() {
           <span className="menu-btn-label">{cyberLockout > 0 ? t('cyber.line_down') : t('menu.marketing')}</span>
           {canMarketing && cyberLockout <= 0 && !activeCampaign && <span className="menu-btn-badge">!</span>}
         </button>
-        {/* === Bouton RH : apparaît une fois Lenny embauché (la boîte grandit) === */}
-        {owned['camion_1'] && (
+        {/* === Bouton RH : toujours visible, grisé tant que Lenny n'est pas embauché === */}
         <button
-          className="menu-btn menu-btn-rh"
-          onClick={() => setRhOpen(true)}
+          className={`menu-btn menu-btn-rh ${owned['camion_1'] ? '' : 'locked'}`}
+          onClick={owned['camion_1'] ? () => setRhOpen(true) : undefined}
+          disabled={!owned['camion_1']}
           aria-label="RH"
           title={t('menu.rh')}
         >
           <Users size={14} strokeWidth={1.6} />
           <span className="menu-btn-label">{t('menu.rh')}</span>
         </button>
-        )}
-        {/* === Bouton ACHATS : toujours visible, locked si pas Mark === */}
-        {/* === Bouton JURIDIQUE : uniquement en Phase 2+ (les procès ne tombent qu'à partir de la P2) === */}
-        {phase >= 2 && (
+        {/* === Bouton JURIDIQUE : toujours visible, grisé tant qu'aucun procès (les procès ne tombent qu'en P2+) === */}
         <button
           className={`menu-btn menu-btn-juridique ${(activeLawsuits.length > 0 || lawsuitHistory.length > 0) ? '' : 'locked'}`}
           onClick={(activeLawsuits.length > 0 || lawsuitHistory.length > 0) ? () => setJuridiqueOpen(true) : undefined}
@@ -16351,7 +16348,6 @@ export default function App() {
           <span className="menu-btn-label">{t('menu.juridique')}</span>
           {activeLawsuits.length > 0 && <span className="menu-btn-badge">{activeLawsuits.length}</span>}
         </button>
-        )}
         <button
           className={`menu-btn ${canBank && cyberLockout <= 0 ? '' : 'locked'} ${cyberLockout > 0 ? 'cyber-disabled' : ''}`}
           onClick={(canBank && cyberLockout <= 0) ? () => setBankOpen(true) : undefined}
