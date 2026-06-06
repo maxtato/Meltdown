@@ -6954,7 +6954,7 @@ export default function App() {
   // sabotages) : chemin direct, ignorent le verrou.
   // 5 s minimum entre deux bulles (consigne joueur) pour éviter le « pop pop pop »
   // qui rend le tuto invisible.
-  const BUBBLE_GAP_MS = 5000;
+  const BUBBLE_GAP_MS = 2000;
   const lastBubbleClosedAtRef = useRef(0); // Date.now() de la dernière fermeture (tuto OU popup)
   // Bypass ponctuel : après la fermeture de l'intro, on veut enchaîner rapidement
   // sur le 1er tuto (t_congeler) sans attendre cooldown ni bubble gap.
