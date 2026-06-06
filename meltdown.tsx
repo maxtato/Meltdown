@@ -6189,6 +6189,7 @@ export default function App() {
   const trialAnnouncedRef = useRef({});
   const [hasSave, setHasSave] = useState(false);
   const [optionsOpen, setOptionsOpen] = useState(false);
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
   const [newGameConfirmOpen, setNewGameConfirmOpen] = useState(false);
   const [pops, setPops] = useState([]);
   const [seasonNotif, setSeasonNotif] = useState(null);
@@ -15641,13 +15642,28 @@ export default function App() {
     setTutCooldownUntil(0);
     setHasSave(false);
   };
-  const handleReset = () => {
-    if (window.confirm(t('misc.reset_confirm'))) {
-      try { window.storage.delete(SAVE_KEY).catch(() => {}); } catch (e) {}
-      try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
-      performReset();
-    }
+  const handleReset = () => setResetConfirmOpen(true);
+  const doReset = () => {
+    try { window.storage.delete(SAVE_KEY).catch(() => {}); } catch (e) {}
+    try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+    performReset();
+    setOptionsOpen(false);
+    setResetConfirmOpen(false);
   };
+  // Modale de confirmation de reset (style B&W maison, remplace window.confirm).
+  // Rendue à la fois dans l'écran d'accueil et dans le jeu (variable partagée).
+  const resetConfirmModal = resetConfirmOpen ? (
+    <div className="modal-backdrop" onClick={() => setResetConfirmOpen(false)}>
+      <div className={`reset-confirm theme-${theme}`} onClick={e => e.stopPropagation()}>
+        <div className="reset-confirm-title">{t('misc.reset_title')}</div>
+        <div className="reset-confirm-msg">{t('misc.reset_confirm')}</div>
+        <div className="reset-confirm-actions">
+          <button className="reset-confirm-btn" onClick={() => setResetConfirmOpen(false)}>{t('misc.reset_cancel')}</button>
+          <button className="reset-confirm-btn danger" onClick={doReset}>{t('options.reset')}</button>
+        </div>
+      </div>
+    </div>
+  ) : null;
   const performFreshStart = () => {
     // 1. Clear persisted save in both storage layers
     try { window.storage.delete(SAVE_KEY).catch(() => {}); } catch (e) {}
@@ -15775,6 +15791,14 @@ export default function App() {
           .options-divider { height: 1px; background: var(--line); margin: 4px 0 16px; }
           .options-danger { width: 100%; background: var(--bg); color: var(--fg); border: 1px solid var(--fg); padding: 12px; font-family: 'Inter Tight', system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 3px; cursor: pointer; border-radius: 0; }
           .options-danger:hover { background: var(--fg); color: var(--bg); }
+          .reset-confirm { background: var(--bg); color: var(--fg); border: 1px solid var(--fg); max-width: 320px; width: 100%; padding: 24px 22px; text-align: center; font-family: 'Inter Tight', system-ui, sans-serif; }
+          .reset-confirm-title { font-size: 13px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; }
+          .reset-confirm-msg { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; line-height: 1.55; color: var(--m1); white-space: pre-line; margin-bottom: 22px; }
+          .reset-confirm-actions { display: flex; gap: 10px; }
+          .reset-confirm-btn { flex: 1; background: var(--bg); color: var(--fg); border: 1px solid var(--line); padding: 12px 8px; font-family: 'Inter Tight', system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; border-radius: 0; transition: background 0.12s, color 0.12s, border-color 0.12s; }
+          .reset-confirm-btn:hover { border-color: var(--fg); }
+          .reset-confirm-btn.danger { border-color: var(--fg); background: var(--fg); color: var(--bg); }
+          .reset-confirm-btn.danger:hover { opacity: 0.85; }
         `}</style>
         <div className={`home theme-${theme}`}>
           <div className="home-logo">
@@ -15894,14 +15918,7 @@ export default function App() {
               {hasSave && (
                 <>
                   <div className="options-divider" />
-                  <button className="options-danger" onClick={() => {
-                    if (window.confirm(t('misc.reset_confirm'))) {
-                      try { window.storage.delete(SAVE_KEY).catch(() => {}); } catch (e) {}
-                      try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
-                      performReset();
-                      setOptionsOpen(false);
-                    }
-                  }}>
+                  <button className="options-danger" onClick={() => { setOptionsOpen(false); setResetConfirmOpen(true); }}>
                     {t('options.reset')}
                   </button>
                 </>
@@ -15909,6 +15926,8 @@ export default function App() {
             </div>
           </div>
         )}
+
+        {resetConfirmModal}
       </>
     );
   }
@@ -22380,6 +22399,14 @@ export default function App() {
         .options-divider { height: 1px; background: var(--line); margin: 8px 0 16px; }
         .options-danger { width: 100%; background: var(--bg); color: var(--fg); border: 1px solid var(--fg); padding: 12px; font-family: 'Inter Tight', system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 3px; cursor: pointer; border-radius: 0; }
         .options-danger:hover { background: var(--fg); color: var(--bg); }
+        .reset-confirm { background: var(--bg); color: var(--fg); border: 2px solid var(--fg); max-width: 320px; width: 100%; padding: 24px 22px; text-align: center; font-family: 'Inter Tight', system-ui, sans-serif; }
+        .reset-confirm-title { font-size: 13px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; }
+        .reset-confirm-msg { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; line-height: 1.55; color: var(--m1); white-space: pre-line; margin-bottom: 22px; }
+        .reset-confirm-actions { display: flex; gap: 10px; }
+        .reset-confirm-btn { flex: 1; background: var(--bg); color: var(--fg); border: 1px solid var(--line); padding: 12px 8px; font-family: 'Inter Tight', system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; border-radius: 0; transition: background 0.12s, color 0.12s, border-color 0.12s; }
+        .reset-confirm-btn:hover { border-color: var(--fg); }
+        .reset-confirm-btn.danger { border-color: var(--fg); background: var(--fg); color: var(--bg); }
+        .reset-confirm-btn.danger:hover { opacity: 0.85; }
 
         /* === MOBILE / TACTILE : neutralise le ":hover" persistant après tap === */
         /* Sur écrans tactiles, après un tap, certains navigateurs gardent l'état :hover */
@@ -27528,6 +27555,8 @@ export default function App() {
           <RotateCcw size={11} strokeWidth={1.5} /> {t('footer.reset')}
         </button>
         <div className="footer">— MELTDOWN · {phase >= 3 ? t('footer.phase_brand') : phase >= 2 ? t('footer.phase_industry') : t('footer.phase_kitchen')} · 0{phase}/03 —</div>
+
+        {resetConfirmModal}
 
         {infoUpgrade && (() => {
           const isOwned = !!owned[infoUpgrade.id];
