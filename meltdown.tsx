@@ -2376,7 +2376,7 @@ const TUTORIAL_STEPS = [
       fr: 'PHASE INDUSTRIE débloquée. Embauche ton premier chauffeur-livreur pour démarrer le transport, puis signe tes premiers contrats B2B.',
       en: 'INDUSTRY PHASE unlocked. Hire your first delivery driver to start transport, then sign your first B2B contracts.',
       es: 'FASE INDUSTRIA desbloqueada. Contrata a tu primer chófer-repartidor para iniciar el transporte, luego firma tus primeros contratos B2B.', zh: "工业阶段已解锁。雇用你的第一名送货司机启动运输，然后签下你的首批B2B合同。", ru: "ФАЗА ПРОМЫШЛЕННОСТИ открыта. Найми первого водителя-курьера, чтобы запустить транспорт, затем подпиши первые B2B-контракты.", it: "FASE INDUSTRIA sbloccata. Assumi il tuo primo autista-fattorino per avviare il trasporto, poi firma i tuoi primi contratti B2B.", de: "INDUSTRIE-PHASE freigeschaltet. Stelle deinen ersten Lieferfahrer ein, um den Transport zu starten, dann unterschreibe deine ersten B2B-Verträge."
-    }, targetSel: '[data-family-id="pers_lenny"]', side: 'top', delay: 1200,
+    }, targetSel: '[data-family-id="pers_lenny"]', side: 'top', delay: 1200, persistent: true,
     canShow: s => s.phase >= 2 && s.linesBonus === 0, autoClose: s => s.linesBonus > 0 },
   { id: 't_market', text: {
       fr: 'Tu as un camion ! Ouvre le marché et signe ton premier contrat pour démarrer une livraison.',
@@ -2441,15 +2441,15 @@ const TUTORIAL_STEPS = [
     }, targetSel: '.menu-btn-campaigns', side: 'bottom', delay: 1500,
     canShow: s => (!!(s.owned && s.owned['janice_jr'])), autoClose: null },
   { id: 't_karen_intro', text: {
-      fr: "L'écran RH est à toi, en direct. 5 actions (petit-déj, individuel, afterwork, médiation, team-building) pour remonter le moral. Chaque action coûte de l'argent, a un quota annuel et fatigue l'équipe. Un moral en chute libre coûte cher en prod : à toi de doser.",
-      en: "The HR screen is yours to run directly. 5 actions (breakfast, 1:1, afterwork, mediation, team-building) to lift morale. Each costs money, has a yearly quota and tires the team. A free-falling morale crushes production: pace yourself.",
-      es: "La pantalla RRHH la gestionas tú directamente. 5 acciones (desayuno, 1:1, afterwork, mediación, team-building) para subir la moral. Cada una cuesta dinero, tiene cuota anual y cansa al equipo. Una moral en caída libre destroza la producción: dosifica.",
-      zh: "人事界面由你亲自掌管。5种行动（早餐、1对1、afterwork、调解、团建）提升士气。每项都要花钱、有年度配额并消耗团队。士气暴跌会拖垮生产：自己把握节奏。",
-      ru: "Экран HR теперь под твоим прямым управлением. 5 действий (завтрак, 1:1, afterwork, медиация, тимбилдинг) поднимают мораль. Каждое стоит денег, имеет годовую квоту и утомляет команду. Падение морали бьёт по производству: дозируй.",
-      it: "La schermata RU la gestisci tu direttamente. 5 azioni (colazione, 1:1, afterwork, mediazione, team-building) per risollevare il morale. Ognuna costa, ha una quota annuale e affatica il team. Un morale in caduta libera distrugge la produzione: dosa bene.",
-      de: "Den HR-Bildschirm steuerst du direkt. 5 Aktionen (Frühstück, 1:1, After-Work, Mediation, Teambuilding) heben die Moral. Jede kostet Geld, hat eine Jahresquote und ermüdet das Team. Freier Moralfall killt die Produktion: dosiere klug."
+      fr: "Avec Lenny, la boîte grandit : tu n'es plus seul, il faut prendre soin de l'humain. Voici l'écran RH. 5 actions (petit-déj, individuel, afterwork, médiation, team-building) pour remonter le moral. Chacune coûte de l'argent, a un quota annuel et fatigue l'équipe. Un moral en chute libre coûte cher en prod : à toi de doser.",
+      en: "With Lenny, the company is growing: you're not alone anymore — you have to look after the human side. Here's the HR screen. 5 actions (breakfast, 1:1, afterwork, mediation, team-building) to lift morale. Each costs money, has a yearly quota and tires the team. A free-falling morale crushes production: pace yourself.",
+      es: "Con Lenny, la empresa crece: ya no estás solo, hay que cuidar a las personas. Esta es la pantalla RRHH. 5 acciones (desayuno, 1:1, afterwork, mediación, team-building) para subir la moral. Cada una cuesta dinero, tiene cuota anual y cansa al equipo. Una moral en caída libre destroza la producción: dosifica.",
+      zh: "有了莱尼，公司在变大：你不再是一个人，得开始关心「人」。这是人事界面。5种行动（早餐、1对1、afterwork、调解、团建）提升士气。每项都要花钱、有年度配额并消耗团队。士气暴跌会拖垮生产：自己把握节奏。",
+      ru: "С Ленни компания растёт: ты больше не один — нужно заботиться о людях. Вот экран HR. 5 действий (завтрак, 1:1, afterwork, медиация, тимбилдинг) поднимают мораль. Каждое стоит денег, имеет годовую квоту и утомляет команду. Падение морали бьёт по производству: дозируй.",
+      it: "Con Lenny l'azienda cresce: non sei più solo, devi prenderti cura delle persone. Ecco la schermata RU. 5 azioni (colazione, 1:1, afterwork, mediazione, team-building) per risollevare il morale. Ognuna costa, ha una quota annuale e affatica il team. Un morale in caduta libera distrugge la produzione: dosa bene.",
+      de: "Mit Lenny wächst die Firma: Du bist nicht mehr allein — kümmere dich um den Menschen. Das ist der HR-Bildschirm. 5 Aktionen (Frühstück, 1:1, After-Work, Mediation, Teambuilding) heben die Moral. Jede kostet Geld, hat eine Jahresquote und ermüdet das Team. Freier Moralfall killt die Produktion: dosiere klug."
     }, targetSel: '.menu-btn-rh', side: 'bottom', delay: 1500,
-    canShow: s => (s.phase >= 2), autoClose: null },
+    canShow: s => (!!(s.owned && s.owned['camion_1'])), autoClose: null },
   { id: 't_lenny_intro', text: {
       fr: "Lenny est ton transporteur. Chaque palier ajoute UNE ligne de livraison parallèle et augmente la capacité par trajet. Une ligne = un contrat B2B qui tourne en autonomie. Garde un œil sur son moral : un Lenny grognon, c'est des livraisons figées.",
       en: "Lenny is your transporter. Each tier adds ONE parallel delivery lane and increases per-trip capacity. One lane = one B2B contract running on autopilot. Watch his morale: a grumpy Lenny means frozen deliveries.",
@@ -9693,7 +9693,7 @@ export default function App() {
   useEffect(() => {
     if (!activeTutorial) return;
     const step = TUTORIAL_STEPS.find(t => t.id === activeTutorial);
-    if (step && step.isIntro) return;
+    if (step && (step.isIntro || step.persistent)) return;
     const duration = (step && step.important) ? 25000 : 10000;
     const timeoutId = setTimeout(() => {
       if (activeTutorialRef.current === activeTutorial) {
@@ -16320,7 +16320,8 @@ export default function App() {
           <span className="menu-btn-label">{cyberLockout > 0 ? t('cyber.line_down') : t('menu.marketing')}</span>
           {canMarketing && cyberLockout <= 0 && !activeCampaign && <span className="menu-btn-badge">!</span>}
         </button>
-        {/* === Bouton RH : actions self-service === */}
+        {/* === Bouton RH : apparaît une fois Lenny embauché (la boîte grandit) === */}
+        {owned['camion_1'] && (
         <button
           className="menu-btn menu-btn-rh"
           onClick={() => setRhOpen(true)}
@@ -16330,8 +16331,10 @@ export default function App() {
           <Users size={14} strokeWidth={1.6} />
           <span className="menu-btn-label">{t('menu.rh')}</span>
         </button>
+        )}
         {/* === Bouton ACHATS : toujours visible, locked si pas Mark === */}
-        {/* === Bouton JURIDIQUE : visible dès qu'on a au moins un procès en cours ou un historique === */}
+        {/* === Bouton JURIDIQUE : uniquement en Phase 2+ (les procès ne tombent qu'à partir de la P2) === */}
+        {phase >= 2 && (
         <button
           className={`menu-btn menu-btn-juridique ${(activeLawsuits.length > 0 || lawsuitHistory.length > 0) ? '' : 'locked'}`}
           onClick={(activeLawsuits.length > 0 || lawsuitHistory.length > 0) ? () => setJuridiqueOpen(true) : undefined}
@@ -16343,6 +16346,7 @@ export default function App() {
           <span className="menu-btn-label">{t('menu.juridique')}</span>
           {activeLawsuits.length > 0 && <span className="menu-btn-badge">{activeLawsuits.length}</span>}
         </button>
+        )}
         <button
           className={`menu-btn ${canBank && cyberLockout <= 0 ? '' : 'locked'} ${cyberLockout > 0 ? 'cyber-disabled' : ''}`}
           onClick={(canBank && cyberLockout <= 0) ? () => setBankOpen(true) : undefined}
