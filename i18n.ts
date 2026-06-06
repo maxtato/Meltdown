@@ -1015,7 +1015,9 @@ export const TRANSLATIONS = {
   'provision.required': { fr: 'REQUIS', en: 'REQUIRED', es: 'REQUERIDO', de: "ERFORDERLICH" , it: "RICHIESTO", ru: "ТРЕБУЕТСЯ", zh: "所需"},
 
   // Misc UI
-  'misc.reset_confirm': { fr: 'Effacer la partie en cours et repartir de zéro ?\n\nTes trophées débloqués sont conservés.', en: 'Erase the current game and start from scratch?\n\nYour unlocked trophies are kept.', es: '¿Borrar la partida actual y empezar de cero?\n\nTus trofeos desbloqueados se conservan.', de: "Aktuelles Spiel löschen und neu beginnen?\n\nDeine freigeschalteten Trophäen bleiben erhalten." , it: "Cancellare la partita in corso e ripartire da zero?\n\nI tuoi trofei sbloccati vengono mantenuti.", ru: "Удалить текущую игру и начать с нуля?\n\nРазблокированные трофеи сохраняются.", zh: "删除当前进度并从头开始？\n\n已解锁的奖杯将被保留。"},
+  'misc.reset_confirm': { fr: 'La partie en cours sera effacée.\n\nTes trophées débloqués sont conservés.', en: 'The current game will be erased.\n\nYour unlocked trophies are kept.', es: 'La partida actual se borrará.\n\nTus trofeos desbloqueados se conservan.', de: "Das aktuelle Spiel wird gelöscht.\n\nDeine freigeschalteten Trophäen bleiben erhalten." , it: "La partita in corso sarà cancellata.\n\nI tuoi trofei sbloccati vengono mantenuti.", ru: "Текущая игра будет удалена.\n\nРазблокированные трофеи сохраняются.", zh: "当前进度将被删除。\n\n已解锁的奖杯将被保留。"},
+  'misc.reset_title': { fr: 'Recommencer ?', en: 'Start over?', es: '¿Empezar de nuevo?', de: 'Neu beginnen?', it: 'Ricominciare?', ru: 'Начать заново?', zh: '重新开始？' },
+  'misc.reset_cancel': { fr: 'Annuler', en: 'Cancel', es: 'Cancelar', de: 'Abbrechen', it: 'Annulla', ru: 'Отмена', zh: '取消' },
   'misc.toggle_theme': { fr: 'Inverser le thème', en: 'Toggle theme', es: 'Cambiar tema', de: "Thema wechseln" , it: "Cambia tema", ru: "Сменить тему", zh: "切换主题"},
 
   // Home screen
