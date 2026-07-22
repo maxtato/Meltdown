@@ -520,7 +520,7 @@ const EVENT_TYPES = {
     id: 'crisis_viral', category: 'tension_crisis', minPhase: 3,
     name: { fr: 'CRISE MÉDIATIQUE VIRALE', en: 'VIRAL MEDIA CRISIS', es: 'CRISIS MEDIÁTICA VIRAL', zh: "病毒式媒体危机", ru: "ВИРУСНЫЙ МЕДИА-КРИЗИС", it: "CRISI MEDIATICA VIRALE", de: "VIRALE MEDIENKRISE" },
     iconKey: 'megaphone',
-    intro: { fr: "Une vidéo virale t'accuse de mauvaises pratiques. Elle fait 2 millions de vues en 4 heures. Janice est au téléphone non-stop.", en: "A viral video accuses you of bad practices. 2M views in 4 hours. Janice is on the phone non-stop.", es: "Un vídeo viral te acusa de malas prácticas. 2M de visualizaciones en 4 horas. Janice no para al teléfono.", zh: "一段爆红视频指控你的不良做法。4小时内播放量200万。贾妮丝电话响个不停。", ru: "Вирусное видео обвиняет вас в плохих практиках. 2 млн просмотров за 4 часа. Дженис не выпускает телефон из рук.", it: "Un video virale ti accusa di pratiche scorrette. 2 milioni di views in 4 ore. Janice è al telefono no-stop.", de: "Ein virales Video wirft dir schlechte Praktiken vor. 2 Mio Views in 4 Stunden. Janice hängt am Telefon." },
+    intro: { fr: "Une vidéo virale t'accuse de mauvaises pratiques. Elle fait 2 millions de vues en 4 heures. L'agence est au téléphone non-stop.", en: "A viral video accuses you of bad practices. 2M views in 4 hours. The agency is on the phone non-stop.", es: "Un vídeo viral te acusa de malas prácticas. 2M de visualizaciones en 4 horas. La agencia no para al teléfono.", zh: "一段爆红视频指控你的不良做法。4小时内播放量200万。代理机构电话响个不停。", ru: "Вирусное видео обвиняет вас в плохих практиках. 2 млн просмотров за 4 часа. Агентство не выпускает телефон из рук.", it: "Un video virale ti accusa di pratiche scorrette. 2 milioni di views in 4 ore. L'agenzia è al telefono no-stop.", de: "Ein virales Video wirft dir schlechte Praktiken vor. 2 Mio Views in 4 Stunden. Die Agentur hängt am Telefon." },
     mitigateLabel: { fr: 'CONTRE-CAMPAGNE · 10 000€', en: 'COUNTER-CAMPAIGN · €10,000', es: 'CONTRA-CAMPAÑA · 10 000€', zh: "反击宣传 · 10 000€", ru: "ОТВЕТНАЯ КАМПАНИЯ · 10 000€", it: "CONTRO-CAMPAGNA · 10 000€", de: "GEGENKAMPAGNE · 10 000€" },
     ignoreLabel: { fr: 'SUBIR', en: 'WAIT IT OUT', es: 'AGUANTAR', zh: "承受", ru: "ПЕРЕТЕРПЕТЬ", it: "SUBIRE", de: "AUSSITZEN" },
     immediateImpact: { notorietyDivBy: 2 }, // notoriété /= 2
@@ -556,7 +556,7 @@ const EVENT_TYPES = {
     id: 'opp_tvinterview', category: 'tension_opportunity', minPhase: 3,
     name: { fr: 'INTERVIEW TV NATIONALE', en: 'NATIONAL TV INTERVIEW', es: 'ENTREVISTA TV NACIONAL', zh: "国家电视台采访", ru: "ИНТЕРВЬЮ НА НАЦ. ТВ", it: "INTERVISTA TV NAZIONALE", de: "NATIONALES TV-INTERVIEW" },
     iconKey: 'tv',
-    intro: { fr: "Une chaîne nationale veut un reportage sur ton entreprise demain. Janice trouve l'idée géniale. Mais tout dépend de l'ambiance dans l'équipe au moment du tournage.", en: "A national TV channel wants a feature on your company tomorrow. Janice loves the idea. But everything depends on the team's mood during filming.", es: "Una cadena nacional quiere un reportaje sobre tu empresa mañana. Janice está encantada. Pero todo depende del ambiente del equipo durante la grabación.", zh: "一家国家电视频道明天想做你公司的专题报道。贾妮丝觉得这个主意很棒。但一切都取决于拍摄时团队的氛围。", ru: "Национальный телеканал хочет завтра снять репортаж о вашей компании. Дженис в восторге. Но всё зависит от настроения команды во время съёмок.", it: "Una rete nazionale vuole un servizio sulla tua azienda domani. Janice è entusiasta. Ma tutto dipende dall'atmosfera in squadra al momento delle riprese.", de: "Ein nationaler Sender will morgen einen Beitrag über deine Firma. Janice findet's super. Aber alles hängt von der Teamstimmung beim Dreh ab." },
+    intro: { fr: "Une chaîne nationale veut un reportage sur ton entreprise demain. L'agence trouve l'idée géniale. Mais tout dépend de l'ambiance dans l'équipe au moment du tournage.", en: "A national TV channel wants a feature on your company tomorrow. The agency loves the idea. But everything depends on the team's mood during filming.", es: "Una cadena nacional quiere un reportaje sobre tu empresa mañana. La agencia está encantada. Pero todo depende del ambiente del equipo durante la grabación.", zh: "一家国家电视频道明天想做你公司的专题报道。代理机构觉得这个主意很棒。但一切都取决于拍摄时团队的氛围。", ru: "Национальный телеканал хочет завтра снять репортаж о вашей компании. Агентство в восторге. Но всё зависит от настроения команды во время съёмок.", it: "Una rete nazionale vuole un servizio sulla tua azienda domani. L'agenzia è entusiasta. Ma tutto dipende dall'atmosfera in squadra al momento delle riprese.", de: "Ein nationaler Sender will morgen einen Beitrag über deine Firma. Die Agentur findet's super. Aber alles hängt von der Teamstimmung beim Dreh ab." },
     acceptLabel: { fr: 'ACCEPTER', en: 'ACCEPT', es: 'ACEPTAR', zh: "接受", ru: "ПРИНЯТЬ", it: "ACCETTA", de: "ANNEHMEN" },
     declineLabel: { fr: 'REFUSER', en: 'DECLINE', es: 'RECHAZAR', zh: "拒绝", ru: "ОТКЛОНИТЬ", it: "RIFIUTA", de: "ABLEHNEN" },
     // Effet dépend du moral moyen équipe au moment de l'acceptation
@@ -2481,8 +2481,8 @@ const PHONE_CALLS = [
     narrative: { fr: "Patron, faut qu'on parle sérieusement. J'ai des cartons jusqu'au plafond, Fred bosse sur la table à manger, et les inspecteurs sanitaires reviennent dans deux semaines. On est quatre dans trente mètres carrés. C'est plus possible. Il faut qu'on bouge.", en: "Boss, we need to talk seriously. I have boxes up to the ceiling, Fred works on the dining table, and health inspectors are back in two weeks. We're four in thirty square meters. It's no longer possible. We need to move.", es: "Jefe, hay que hablar en serio. Tengo cajas hasta el techo, Fred trabaja en la mesa del comedor, y los inspectores sanitarios vuelven en dos semanas. Somos cuatro en treinta metros cuadrados. No es posible seguir así. Tenemos que mudarnos.", zh: "老板，我们得认真谈谈。我这儿箱子堆到天花板，弗雷德在餐桌上干活，卫生检查员两周后又来。我们四个人挤在三十平米里。再这样不行了。我们得搬。", ru: "Босс, нам надо серьёзно поговорить. У меня коробки до потолка, Фред работает за обеденным столом, а санинспекторы вернутся через две недели. Нас четверо на тридцати квадратных метрах. Так больше нельзя. Нужно переезжать.", it: "Capo, dobbiamo parlare seriamente. Ho scatole fino al soffitto, Fred lavora sul tavolo da pranzo, e gli ispettori sanitari tornano tra due settimane. Siamo in quattro in trenta metri quadri. Non è più possibile. Dobbiamo traslocare.", de: "Chef, wir müssen ernsthaft reden. Ich hab Kisten bis zur Decke, Fred arbeitet am Esstisch, und die Gesundheitskontrolle kommt in zwei Wochen wieder. Wir sind zu viert auf dreißig Quadratmetern. Das geht nicht mehr. Wir müssen umziehen." } },
   { id: 'phase3_fred_cramped', minRevenue: 0, title: { fr: "Fred, Production", en: "Fred, Production", es: "Fred, Producción", zh: "弗雷德, 生产", ru: "Фред, Производство", it: "Fred, Produzione", de: "Fred, Produktion" }, minPhase: 2, minLevel: 1, decisionTime: 30, needStock: 0, rewardAccept: { money: 0, rep: 0 }, narrativeOnly: true, phase3Stage: 4,
     narrative: { fr: "Chef, ma chambre froide c'est plus possible. Quand je sors une palette, Brigitte peut plus passer. Quand Lenny vient livrer, on s'écrase contre le mur. J'ai pas la place de respirer. Si on veut continuer à monter, faut un vrai atelier. Un vrai bureau. On déménage ou on coule.", en: "Boss, my cold room isn't working anymore. When I take out a pallet, Brigitte can't pass. When Lenny delivers, we crush against the wall. I have no room to breathe. If we want to keep growing, we need a real workshop. A real office. We move or we sink.", es: "Jefe, mi cámara frigorífica ya no funciona. Cuando saco un palé, Brigitte no puede pasar. Cuando Lenny entrega, nos aplastamos contra la pared. No tengo sitio para respirar. Si queremos seguir creciendo, necesitamos un taller de verdad. Una oficina de verdad. Nos mudamos o nos hundimos.", zh: "老板，我的冷库不行了。我搬出一个托盘，布丽吉特就过不去。莱尼配送时，我们挤在墙上。我没地方喘气。如果想继续增长，我们需要一个真正的车间。一个真正的办公室。要么搬，要么沉。", ru: "Босс, моя холодная комната больше не работает. Когда я вынимаю паллету, Брижит не пройти. Когда Ленни доставляет, мы вжимаемся в стену. Мне негде вздохнуть. Если хотим расти дальше, нужен настоящий цех. Настоящий офис. Переезжаем или тонем.", it: "Capo, la mia cella frigorifera non funziona più. Quando tiro fuori un pallet, Brigitte non passa. Quando Lenny consegna, ci schiacciamo contro il muro. Non ho spazio per respirare. Se vogliamo continuare a crescere, ci serve un vero laboratorio. Un vero ufficio. Traslochiamo o affondiamo.", de: "Chef, mein Kühlraum funktioniert nicht mehr. Wenn ich eine Palette rausziehe, kommt Brigitte nicht vorbei. Wenn Lenny liefert, quetschen wir uns an die Wand. Ich hab keinen Platz zum Atmen. Wenn wir weiter wachsen wollen, brauchen wir eine echte Werkstatt. Ein echtes Büro. Wir ziehen um oder wir gehen unter." } },
-  { id: 'janice_welcome', minRevenue: 500000, title: { fr: "Janice, Premier jour", en: "Janice, First day", es: "Janice, Primer día", zh: "贾妮丝, 第一天", ru: "Дженис, Первый день", it: "Janice, Primo giorno", de: "Janice, Erster Tag" }, minPhase: 3, minLevel: 1, decisionTime: 30, needStock: 0, rewardAccept: { money: 0, rep: 0 }, narrativeOnly: true,
-    narrative: { fr: "Bonjour. C'est Janice. J'ai pris mes marques dans les nouveaux locaux ce matin, joli choix de mobilier d'ailleurs. J'ai analysé le dossier complet : ta notoriété, tes contrats, ton positionnement. On a une fenêtre. Trois campagnes sont prêtes dans la fenêtre MARKETING. Choisis ta première : Affichage Local, Campagne TV ou Influence Digitale. Chaque choix construit une perception différente du produit. À toi de jouer.", en: "Hello. It's Janice. I settled into the new offices this morning, nice furniture choice by the way. I analyzed the full file: your awareness, your contracts, your positioning. We have a window. Three campaigns are ready in the MARKETING tab. Pick your first: Local Posters, TV Campaign or Digital Influence. Each choice builds a different perception of the product. Your move.", es: "Hola. Soy Janice. He cogido mis marcas en los nuevos locales esta mañana, buena elección de mobiliario por cierto. He analizado el expediente completo: tu notoriedad, tus contratos, tu posicionamiento. Tenemos una ventana. Tres campañas están listas en la ventana MARKETING. Elige la primera: Cartelería Local, Campaña TV o Influencia Digital. Cada elección construye una percepción diferente del producto. Te toca.", zh: "你好。我是贾妮丝。我今早搬进了新办公室,,顺便说，家具选得不错。我分析了完整档案：你的知名度、合同、定位。我们有个窗口。营销标签页里有三个活动准备好了。选你的第一个：本地海报、电视活动或数字影响力。每个选择塑造产品的不同认知。该你了。", ru: "Здравствуйте. Это Дженис. Я обустроилась в новых офисах утром, кстати, хороший выбор мебели. Я проанализировала всё досье: вашу известность, контракты, позиционирование. У нас есть окно. Три кампании готовы во вкладке МАРКЕТИНГ. Выберите первую: Локальные Плакаты, ТВ-Кампания или Цифровое Влияние. Каждый выбор строит разное восприятие продукта. Ваш ход.", it: "Salve. Sono Janice. Mi sono sistemata nei nuovi uffici stamattina, bella scelta di arredamento tra l'altro. Ho analizzato tutto il dossier: la tua notorietà, i tuoi contratti, il tuo posizionamento. Abbiamo una finestra. Tre campagne sono pronte nella scheda MARKETING. Scegli la prima: Manifesti Locali, Campagna TV o Influenza Digitale. Ogni scelta costruisce una percezione diversa del prodotto. Tocca a te.", de: "Hallo. Hier Janice. Ich hab mich heute früh in den neuen Büros eingerichtet, übrigens schöne Möbelwahl. Ich hab die ganze Akte analysiert: deine Bekanntheit, deine Verträge, deine Positionierung. Wir haben ein Zeitfenster. Drei Kampagnen sind im MARKETING-Tab bereit. Wähl deine erste: Lokale Plakate, TV-Kampagne oder Digitaler Einfluss. Jede Wahl baut eine andere Produktwahrnehmung auf. Du bist dran." } },
+  { id: 'janice_welcome', minRevenue: 500000, title: { fr: "Agence marketing, premier brief", en: "Marketing agency, first brief", es: "Agencia de marketing, primer brief", zh: "营销代理机构, 首次简报", ru: "Маркетинговое агентство, первый бриф", it: "Agenzia marketing, primo brief", de: "Marketingagentur, erstes Briefing" }, minPhase: 3, minLevel: 1, decisionTime: 30, needStock: 0, rewardAccept: { money: 0, rep: 0 }, narrativeOnly: true,
+    narrative: { fr: "Bonjour, votre agence marketing. On a analysé le dossier complet : ta notoriété, tes contrats, ton positionnement. On a une fenêtre. Trois campagnes sont prêtes dans la fenêtre MARKETING. Choisis ta première : Affichage Local, Campagne TV ou Influence Digitale. Chaque choix construit une perception différente du produit. À toi de jouer.", en: "Hello, your marketing agency here. We analyzed the full file: your awareness, your contracts, your positioning. We have a window. Three campaigns are ready in the MARKETING tab. Pick your first: Local Posters, TV Campaign or Digital Influence. Each choice builds a different perception of the product. Your move.", es: "Hola, su agencia de marketing. Hemos analizado el expediente completo: tu notoriedad, tus contratos, tu posicionamiento. Tenemos una ventana. Tres campañas están listas en la ventana MARKETING. Elige la primera: Cartelería Local, Campaña TV o Influencia Digital. Cada elección construye una percepción diferente del producto. Te toca.", zh: "你好，这是您的营销代理机构。我们分析了完整档案：你的知名度、合同、定位。我们有个窗口。营销标签页里有三个活动准备好了。选你的第一个：本地海报、电视活动或数字影响力。每个选择塑造产品的不同认知。该你了。", ru: "Здравствуйте, ваше маркетинговое агентство. Мы проанализировали всё досье: вашу известность, контракты, позиционирование. У нас есть окно. Три кампании готовы во вкладке МАРКЕТИНГ. Выберите первую: Локальные Плакаты, ТВ-Кампания или Цифровое Влияние. Каждый выбор строит разное восприятие продукта. Ваш ход.", it: "Salve, la vostra agenzia marketing. Abbiamo analizzato tutto il dossier: la tua notorietà, i tuoi contratti, il tuo posizionamento. Abbiamo una finestra. Tre campagne sono pronte nella scheda MARKETING. Scegli la prima: Manifesti Locali, Campagna TV o Influenza Digitale. Ogni scelta costruisce una percezione diversa del prodotto. Tocca a te.", de: "Hallo, Ihre Marketingagentur. Wir haben die ganze Akte analysiert: deine Bekanntheit, deine Verträge, deine Positionierung. Wir haben ein Zeitfenster. Drei Kampagnen sind im MARKETING-Tab bereit. Wähl deine erste: Lokale Plakate, TV-Kampagne oder Digitaler Einfluss. Jede Wahl baut eine andere Produktwahrnehmung auf. Du bist dran." } },
   // === Anciens clients repentants (Phase 3, post-grève)
   { id: 'ancien_palace', minRevenue: 500000, title: { fr: "Palace Royal, Direction Achats", en: "Royal Palace, Procurement", es: "Palace Real, Compras", zh: "皇家宫殿, 采购", ru: "Королевский дворец, Снабжение", it: "Palazzo Reale, Approvvigionamenti", de: "Königspalast, Beschaffung" }, minPhase: 3, minLevel: 1, decisionTime: 30, needStock: 200, rewardAccept: { money: 600, rep: 2 },
     narrative: { fr: "Bonjour. C'est la direction achats du Palace Royal. Notre fournisseur historique nous a... disons, déçus. Nous avons besoin de 200 GL sous 48h, avec une exigence de qualité absolue. Si tu peux livrer, on signe un contrat préférentiel à +20% prix marché. Ce serait sage d'oublier nos différends passés.", en: "Hello. Royal Palace procurement here. Our historical supplier has... let's say, disappointed us. We need 200 IC within 48h, with absolute quality requirements. If you can deliver, we sign a preferential contract at +20% market price. It would be wise to forget our past disagreements.", es: "Hola. Compras del Palace Real. Nuestro proveedor histórico nos ha... digamos, decepcionado. Necesitamos 200 CB en 48h, con exigencia de calidad absoluta. Si puedes entregar, firmamos contrato preferente a +20% precio mercado. Sería sabio olvidar nuestras diferencias pasadas.", zh: "你好。皇家宫殿采购部。我们的老供应商……这么说吧，让我们失望了。我们48小时内需要200冰块，质量要求绝对。如果你能交付，我们以高出市价20%签优先合同。明智的话就忘掉我们过去的分歧。", ru: "Здравствуйте. Снабжение Королевского дворца. Наш исторический поставщик нас... скажем так, разочаровал. Нам нужно 200 К в течение 48ч, с абсолютными требованиями к качеству. Если сможете доставить, подпишем преференциальный контракт по +20% к рыночной цене. Было бы мудро забыть наши прошлые разногласия.", it: "Salve. Qui approvvigionamenti del Palazzo Reale. Il nostro fornitore storico ci ha... diciamo, deluso. Ci servono 200 CB entro 48h, con requisiti di qualità assoluti. Se riesci a consegnare, firmiamo un contratto preferenziale a +20% sul prezzo di mercato. Sarebbe saggio dimenticare i nostri disaccordi passati.", de: "Hallo. Hier die Beschaffung des Königspalasts. Unser langjähriger Lieferant hat uns… sagen wir, enttäuscht. Wir brauchen 200 EW binnen 48 Std., mit absoluten Qualitätsanforderungen. Wenn Sie liefern können, unterschreiben wir einen Vorzugsvertrag zu +20% Marktpreis. Es wäre klug, unsere früheren Differenzen zu vergessen." } },
@@ -2733,31 +2733,6 @@ const STRESS_WARNINGS = {
     { fr: "Brigitte a annoté un dossier avec « POURQUOI ? ».", en: "Brigitte annotated a folder with 'WHY?'.", es: "Brigitte anotó una carpeta con '¿POR QUÉ?'.", zh: "布丽吉特在文件夹上批注「为什么？」。", ru: "Брижит пометила папку «ЗАЧЕМ?».", it: "Brigitte ha annotato una cartella con «PERCHÉ?».", de: "Brigitte hat einen Ordner mit „WARUM?“ beschriftet." },
     { fr: "Brigitte a soulevé un sourcil. Au-dessus de ses lunettes. Pesant.", en: "Brigitte raised an eyebrow. Above her glasses. Heavy.", es: "Brigitte levantó una ceja. Por encima de las gafas. Pesada.", zh: "布丽吉特扬了下眉。在眼镜上方。沉重。", ru: "Брижит подняла бровь. Поверх очков. Тяжёлую.", it: "Brigitte ha alzato un sopracciglio. Sopra gli occhiali. Pesante.", de: "Brigitte hob eine Augenbraue. Über die Brille. Schwer." },
   ],
-  janice: [
-    { fr: "Janice t'a hoché la tête. Trop doucement.", en: "Janice nodded at you. Too gently.", es: "Janice asintió. Demasiado suave.", zh: "贾妮丝向你点头。太温和了。", ru: "Дженис кивнула вам. Слишком мягко.", it: "Janice ti ha fatto un cenno. Troppo gentile.", de: "Janice nickte dir zu. Zu sanft." },
-    { fr: "Janice soupire. Elle relit son brief pour la dixième fois.", en: "Janice sighs. She's rereading the brief for the tenth time.", es: "Janice suspira. Relee el brief por décima vez.", zh: "贾妮丝叹气。她在第十次重读简报。", ru: "Дженис вздыхает. Перечитывает бриф в десятый раз.", it: "Janice sospira. Rilegge il brief per la decima volta.", de: "Janice seufzt. Sie liest das Briefing zum zehnten Mal." },
-    { fr: "Attention, Janice est au bout. Ne tente pas le coup.", en: "Careful, Janice is done. Don't push it.", es: "Cuidado, Janice está al límite. No fuerces.", zh: "小心,,贾妮丝到极限了。别逼。", ru: "Осторожно, Дженис на пределе. Не дави.", it: "Attenzione, Janice è alla frutta. Non insistere.", de: "Vorsicht, Janice ist am Ende. Treib es nicht." },
-    { fr: "Janice tape son crayon contre son carnet. Régulièrement.", en: "Janice taps her pencil against her notebook. Steadily.", es: "Janice golpea el lápiz contra el cuaderno. Sin parar.", zh: "贾妮丝用铅笔敲笔记本。稳稳地。", ru: "Дженис стучит карандашом по блокноту. Размеренно.", it: "Janice batte la matita sul taccuino. In modo costante.", de: "Janice klopft mit dem Bleistift an ihr Notizbuch. Gleichmäßig." },
-    { fr: "Janice s'est servi un troisième matcha. Pas convaincue.", en: "Janice poured a third matcha. Not convinced.", es: "Janice se sirvió un tercer matcha. Sin entusiasmo.", zh: "贾妮丝倒了第三杯抹茶。不信服。", ru: "Дженис налила третий матча. Не убеждена.", it: "Janice si è versata un terzo matcha. Non convinta.", de: "Janice goss einen dritten Matcha ein. Nicht überzeugt." },
-    { fr: "Lenny t'a glissé : « ménage Janice ».", en: "Lenny whispered to you: 'go easy on Janice'.", es: "Lenny te susurró: 'cuídate con Janice'.", zh: "莱尼对你低声说：「对贾妮丝温柔点」。", ru: "Ленни шепнул вам: «полегче с Дженис».", it: "Lenny ti ha sussurrato: «vacci piano con Janice».", de: "Lenny hat dir zugeflüstert: „Geh sanft mit Janice um.“" },
-    { fr: "Janice a écrit « ok » sur la messagerie. Avec un point.", en: "Janice typed 'ok' in the team chat. With a period.", es: "Janice escribió 'ok' en el chat del equipo. Con punto.", zh: "贾妮丝在团队群里打了「ok」。带句号。", ru: "Дженис набрала «ок» в рабочем чате. С точкой.", it: "Janice ha scritto «ok» sulla chat di lavoro. Col punto.", de: "Janice tippte „ok“ im Team-Chat. Mit einem Punkt." },
-    { fr: "Janice met à jour son portfolio. C'est nouveau.", en: "Janice is updating her portfolio. That's new.", es: "Janice actualiza su porfolio. Eso es nuevo.", zh: "贾妮丝在更新作品集。这是新鲜事。", ru: "Дженис обновляет портфолио. Это новость.", it: "Janice sta aggiornando il portfolio. È una novità.", de: "Janice aktualisiert ihr Portfolio. Das ist neu." },
-    { fr: "Janice a posté une citation cryptique sur le réseau pro.", en: "Janice just posted a cryptic quote on a pro network.", es: "Janice publicó una cita críptica en la red pro.", zh: "贾妮丝刚在职业社交网络发了句晦涩的引言。", ru: "Дженис только что выложила загадочную цитату в профсети.", it: "Janice ha appena postato una citazione criptica su un social pro.", de: "Janice hat gerade ein kryptisches Zitat in einem Profi-Netzwerk gepostet." },
-    { fr: "Encore une demande et Janice plie boutique.", en: "One more request and Janice closes shop.", es: "Una petición más y Janice cierra el negocio.", zh: "再提一个要求贾妮丝就关门了。", ru: "Ещё одна просьба, и Дженис закрывает лавочку.", it: "Ancora una richiesta e Janice chiude bottega.", de: "Noch eine Anfrage und Janice macht den Laden dicht." },
-    { fr: "Janice a mis à jour ses préférences sur le réseau pro. Discrètement.", en: "Janice quietly updated her pro network preferences.", es: "Janice actualizó sus preferencias en la red pro. Discretamente.", zh: "贾妮丝悄悄更新了职业社交网络偏好。", ru: "Дженис тихо обновила настройки в профсети.", it: "Janice ha aggiornato in silenzio le preferenze del suo social pro.", de: "Janice hat still ihre Profi-Netzwerk-Einstellungen aktualisiert." },
-    { fr: "Janice a regardé sa montre. Puis son agenda. Puis la porte.", en: "Janice glanced at her watch. Then her calendar. Then the door.", es: "Janice miró el reloj. Luego la agenda. Luego la puerta.", zh: "贾妮丝瞟了眼手表。然后日历。然后门。", ru: "Дженис глянула на часы. Потом в календарь. Потом на дверь.", it: "Janice ha guardato l'orologio. Poi il calendario. Poi la porta.", de: "Janice sah auf ihre Uhr. Dann auf den Kalender. Dann zur Tür." },
-    { fr: "Janice a archivé un brief sans le lire.", en: "Janice archived a brief without reading it.", es: "Janice archivó un brief sin leerlo.", zh: "贾妮丝没读就归档了一份简报。", ru: "Дженис заархивировала бриф, не читая.", it: "Janice ha archiviato un brief senza leggerlo.", de: "Janice hat ein Briefing archiviert, ohne es zu lesen." },
-    { fr: "Janice a dit « bien noté » sans rien noter.", en: "Janice said 'noted' without noting anything.", es: "Janice dijo 'tomo nota' sin tomar ninguna.", zh: "贾妮丝说「记下了」却什么都没记。", ru: "Дженис сказала «принято», ничего не приняв.", it: "Janice ha detto «annotato» senza annotare nulla.", de: "Janice sagte „notiert“, ohne etwas zu notieren." },
-    { fr: "Janice ne propose plus d'idées depuis ce matin.", en: "Janice hasn't pitched a single idea since morning.", es: "Janice no propone ideas desde esta mañana.", zh: "贾妮丝从早上起没提过一个点子。", ru: "Дженис не предложила ни одной идеи с утра.", it: "Janice non ha proposto una sola idea da stamattina.", de: "Janice hat seit dem Morgen keine einzige Idee gepitcht." },
-    { fr: "Janice a oublié de fermer son onglet Pinterest. Symbolique.", en: "Janice forgot to close her Pinterest tab. Symbolic.", es: "Janice olvidó cerrar su pestaña de Pinterest. Simbólico.", zh: "贾妮丝忘了关Pinterest标签页。象征性的。", ru: "Дженис забыла закрыть вкладку Pinterest. Символично.", it: "Janice ha dimenticato di chiudere la scheda Pinterest. Simbolico.", de: "Janice hat ihren Pinterest-Tab nicht geschlossen. Symbolisch." },
-    { fr: "Janice déjeune devant son écran. En silence.", en: "Janice eats lunch at her screen. In silence.", es: "Janice come delante de la pantalla. En silencio.", zh: "贾妮丝对着屏幕吃午饭。沉默地。", ru: "Дженис обедает перед экраном. В тишине.", it: "Janice pranza davanti allo schermo. In silenzio.", de: "Janice isst am Bildschirm zu Mittag. Schweigend." },
-    { fr: "Janice scroll les annonces emploi entre deux brainstormings.", en: "Janice scrolls job listings between brainstorms.", es: "Janice navega anuncios de empleo entre dos lluvias de ideas.", zh: "贾妮丝在头脑风暴间隙刷招聘启事。", ru: "Дженис листает вакансии между мозговыми штурмами.", it: "Janice scorre annunci di lavoro tra un brainstorming e l'altro.", de: "Janice scrollt zwischen Brainstormings durch Stellenanzeigen." },
-    { fr: "Janice t'a écrit. Elle a mis « M. » devant ton prénom.", en: "Janice wrote to you. She used 'Mr.' before your first name.", es: "Janice te escribió. Puso 'Sr.' delante de tu nombre.", zh: "贾妮丝给你写信。在你名字前用了「先生」。", ru: "Дженис написала вам. Использовала «г-н» перед вашим именем.", it: "Janice ti ha scritto. Ha usato «Signor» prima del tuo nome.", de: "Janice hat dir geschrieben. Sie benutzte „Herr“ vor deinem Vornamen." },
-    { fr: "Janice parle au moodboard. Pas à toi.", en: "Janice talks to the moodboard. Not to you.", es: "Janice le habla al moodboard. No a ti.", zh: "贾妮丝对着情绪板说话。不是对你。", ru: "Дженис разговаривает с мудбордом. Не с вами.", it: "Janice parla col moodboard. Non con te.", de: "Janice spricht mit dem Moodboard. Nicht mit dir." },
-    { fr: "Janice livre les concepts. Mais sans les défendre.", en: "Janice delivers the concepts. But doesn't defend them.", es: "Janice entrega los conceptos. Pero no los defiende.", zh: "贾妮丝交出概念。但不为它们辩护。", ru: "Дженис сдаёт концепты. Но не защищает их.", it: "Janice consegna i concept. Ma non li difende.", de: "Janice liefert die Konzepte. Aber verteidigt sie nicht." },
-    { fr: "Janice a noté « pourquoi ? » dans son sketchbook.", en: "Janice scribbled 'why?' in her sketchbook.", es: "Janice escribió '¿por qué?' en su cuaderno.", zh: "贾妮丝在速写本上潦草写了「为什么？」。", ru: "Дженис накарябала «зачем?» в скетчбуке.", it: "Janice ha scarabocchiato «perché?» sul suo blocco schizzi.", de: "Janice hat „warum?“ in ihr Skizzenbuch gekritzelt." },
-    { fr: "Janice a souri. Une seconde. Puis non.", en: "Janice smiled. For a second. Then not.", es: "Janice sonrió. Un segundo. Luego no.", zh: "贾妮丝笑了。一秒。然后没了。", ru: "Дженис улыбнулась. На секунду. Потом нет.", it: "Janice ha sorriso. Per un secondo. Poi più no.", de: "Janice lächelte. Eine Sekunde lang. Dann nicht mehr." },
-  ],
   lenny: [
     { fr: "Lenny t'a regardé. Il a craché par terre. Symbolique.", en: "Lenny looked at you. Spat on the ground. Symbolic.", es: "Lenny te miró. Escupió al suelo. Simbólico.", zh: "莱尼看了你一眼。往地上吐了口痰。象征性的。", ru: "Ленни посмотрел на вас. Плюнул на землю. Символично.", it: "Lenny ti ha guardato. Ha sputato a terra. Simbolico.", de: "Lenny sah dich an. Spuckte auf den Boden. Symbolisch." },
     { fr: "Lenny soupire. Tu l'entends sur la radio CB.", en: "Lenny sighs. You hear it on the CB radio.", es: "Lenny suspira. Lo oyes por la CB.", zh: "莱尼叹气。你在对讲机里听见。", ru: "Ленни вздыхает. Слышно по рации.", it: "Lenny sospira. Lo senti sul CB.", de: "Lenny seufzt. Du hörst es über den CB-Funk." },
@@ -2829,25 +2804,6 @@ const BONUS_THANKS = {
       { fr: "Merci. Ça compense les heures sup. Un peu.", en: "Thanks. Makes up for the overtime. A bit.", es: "Gracias. Compensa las horas extra. Un poco.", zh: "谢谢。补回点加班。一点。", ru: "Спасибо. Компенсирует переработки. Немного.", it: "Grazie. Recupera gli straordinari. Un po'.", de: "Danke. Macht die Überstunden wett. Ein bisschen." },
       { fr: "Je note dans mes comptes : prime exceptionnelle. Bien noté.", en: "Logging it: exceptional bonus. Duly noted.", es: "Lo anoto: prima excepcional. Tomado nota.", zh: "记账：特别奖金。如实记录。", ru: "Заношу: исключительный бонус. Учтено.", de: "Verbuche es: Sonderprämie. Ordnungsgemäß vermerkt." },
       { fr: "C'est ce genre de geste qui fait la différence.", en: "It's gestures like this that make a difference.", es: "Son estos gestos los que marcan la diferencia.", zh: "正是这种举动才有差别。", ru: "Именно такие жесты делают разницу.", it: "Sono gesti come questo che fanno la differenza.", de: "Es sind solche Gesten, die den Unterschied machen." },
-    ],
-  },
-  janice: {
-    sarcastic: [
-      { fr: "Wow. Une prime. Je vais en parler à mon coach.", en: "Wow. A bonus. I'll mention it to my coach.", es: "Wow. Una prima. Se lo cuento a mi coach.", zh: "哇。一笔奖金。我会跟我的教练提的。", ru: "Вау. Бонус. Расскажу своему коучу.", it: "Wow. Un bonus. Lo dico al mio coach.", de: "Wow. Eine Prämie. Ich erwähne das bei meinem Coach." },
-      { fr: "Ça arrive en plein burnout, c'est noté.", en: "Comes mid-burnout, noted.", es: "Llega en pleno burnout, tomado nota.", zh: "在倦怠中途来的，记下了。", ru: "Приходит в разгар выгорания, учтено.", it: "Arriva in pieno burnout, annotato.", de: "Kommt mitten im Burnout, notiert." },
-      { fr: "Cool. Mais je révise déjà mon profil pro.", en: "Cool. But I'm already updating my pro profile.", es: "Genial. Pero ya estoy actualizando perfil pro.", zh: "酷。但我已经在更新职业档案了。", ru: "Круто. Но я уже обновляю свой профпрофиль.", it: "Bello. Ma sto già aggiornando il mio profilo pro.", de: "Cool. Aber ich aktualisiere schon mein Profi-Profil." },
-      { fr: "Une prime. Pas un poste de directrice. D'accord.", en: "A bonus. Not a director title. Got it.", es: "Una prima. No un puesto de directora. Vale.", zh: "奖金。不是总监头衔。明白了。", ru: "Бонус. Не должность директора. Ясно.", it: "Un bonus. Non un titolo da direttore. Ho capito.", de: "Eine Prämie. Kein Direktorentitel. Verstanden." },
-    ],
-    lukewarm: [
-      { fr: "Merci. C'est un signal positif.", en: "Thanks. Positive signal.", es: "Gracias. Es una señal positiva.", zh: "谢谢。积极信号。", ru: "Спасибо. Позитивный сигнал.", it: "Grazie. Segnale positivo.", de: "Danke. Positives Signal." },
-      { fr: "Ok. Bonne initiative.", en: "Okay. Good initiative.", es: "Vale. Buena iniciativa.", zh: "好吧。好的主动。", ru: "Ладно. Хорошая инициатива.", it: "Okay. Buona iniziativa.", de: "Okay. Gute Initiative." },
-      { fr: "Apprécié. Continuons sur cette lancée.", en: "Appreciated. Let's keep going.", es: "Apreciado. Sigamos así.", zh: "感激。继续吧。", ru: "Ценится. Продолжаем.", it: "Apprezzato. Continuiamo.", de: "Geschätzt. Machen wir weiter." },
-    ],
-    sincere: [
-      { fr: "Yes ! T'as compris comment ça marche. Investir dans le talent.", en: "Yes! You get it. Invest in talent.", es: "¡Sí! Lo pillas. Invierte en talento.", zh: "对！你懂的。投资人才。", ru: "Да! Ты понимаешь. Инвестируй в таланты.", it: "Sì! Hai capito. Investi nel talento.", de: "Ja! Du verstehst es. Investier in Talent." },
-      { fr: "Merci ! Je vais relancer une campagne, je le sens bien.", en: "Thanks! I'll spin up a new campaign, I'm feeling it.", es: "¡Gracias! Voy a lanzar otra campaña, me lo huelo.", zh: "谢谢！我去搞个新活动，我有感觉了。", ru: "Спасибо! Запущу новую кампанию, чувствую вдохновение.", it: "Grazie! Lancio una nuova campagna, mi sento ispirata.", de: "Danke! Ich starte eine neue Kampagne, ich hab Bock drauf." },
-      { fr: "C'est ce qu'on appelle un bon people management.", en: "That's what we call good people management.", es: "Eso es lo que llamamos buena gestión de personas.", zh: "这才叫好的用人管理。", ru: "Это называется хорошим управлением людьми.", it: "Questa si chiama buona gestione delle persone.", de: "Das nennt man gute Mitarbeiterführung." },
-      { fr: "Top. Je note ça sur mon profil pro dans 'pourquoi je reste'.", en: "Solid. Adding this to my 'why I stay' pro profile post.", es: "Top. Lo añado a mi post de perfil pro 'por qué me quedo'.", zh: "扎实。加进我「为什么留下」的职业档案帖。", ru: "Солидно. Добавляю в пост «почему я остаюсь» в профпрофиле.", it: "Solido. Lo aggiungo al mio post «perché resto» sul profilo pro.", de: "Solide. Kommt in meinen „darum bleibe ich“-Post im Profi-Profil." },
     ],
   },
   lenny: {
@@ -2964,31 +2920,6 @@ const MORAL_WARNINGS = {
     { fr: "Brigitte a écrit « à quoi bon » dans la marge d'un dossier.", en: "Brigitte wrote 'what's the point' in a folder margin.", es: "Brigitte escribió '¿para qué?' en el margen de un expediente.", zh: "布丽吉特在文件夹边上写了「有什么意义」。", ru: "Брижит написала «какой смысл» на полях папки.", it: "Brigitte ha scritto «a che pro» a margine di una cartella.", de: "Brigitte schrieb „wozu das alles“ an einen Ordnerrand." },
     { fr: "Brigitte est passée devant ton bureau sans s'arrêter.", en: "Brigitte walked past your office without stopping.", es: "Brigitte pasó delante de tu despacho sin pararse.", zh: "布丽吉特路过你办公室没停。", ru: "Брижит прошла мимо вашего кабинета не остановившись.", it: "Brigitte è passata davanti al tuo ufficio senza fermarsi.", de: "Brigitte ging an deinem Büro vorbei, ohne anzuhalten." },
   ],
-  janice: [
-    { fr: "Janice a fermé son moodboard sans le sauvegarder.", en: "Janice closed her moodboard without saving.", es: "Janice cerró su moodboard sin guardar.", zh: "贾妮丝没保存就关了情绪板。", ru: "Дженис закрыла мудборд не сохранив.", it: "Janice ha chiuso il moodboard senza salvare.", de: "Janice schloss ihr Moodboard ohne zu speichern." },
-    { fr: "Janice a dit qu'elle « se réinvente ». Drapeau rouge.", en: "Janice said she's 'reinventing herself'. Red flag.", es: "Janice dijo que se está 'reinventando'. Bandera roja.", zh: "贾妮丝说她在「重塑自我」。红色警报。", ru: "Дженис сказала, что «переизобретает себя». Тревожный звоночек.", it: "Janice ha detto che si sta «reinventando». Campanello d'allarme.", de: "Janice sagte, sie „erfinde sich neu“. Alarmsignal." },
-    { fr: "Janice a refusé un brief. Premier refus en six mois.", en: "Janice declined a brief. First refusal in six months.", es: "Janice rechazó un brief. Primer rechazo en seis meses.", zh: "贾妮丝拒了一份简报。半年来第一次拒绝。", ru: "Дженис отклонила бриф. Первый отказ за полгода.", it: "Janice ha rifiutato un brief. Primo rifiuto in sei mesi.", de: "Janice lehnte ein Briefing ab. Erste Absage in sechs Monaten." },
-    { fr: "Janice a montré son portfolio à un freelance. « Pour avis ».", en: "Janice showed her portfolio to a freelancer. 'For feedback'.", es: "Janice enseñó su porfolio a un freelance. 'Para opinión'.", zh: "贾妮丝把作品集给一个自由职业者看。「求反馈」。", ru: "Дженис показала портфолио фрилансеру. «Для отзыва».", it: "Janice ha mostrato il portfolio a un freelance. «Per un parere».", de: "Janice zeigte ihr Portfolio einem Freelancer. „Für Feedback.“" },
-    { fr: "Janice ne se maquille plus avant les visios.", en: "Janice doesn't put on makeup before video calls anymore.", es: "Janice ya no se maquilla antes de las videollamadas.", zh: "贾妮丝视频通话前不再化妆了。", ru: "Дженис больше не красится перед видеозвонками.", it: "Janice non si trucca più prima delle videocall.", de: "Janice schminkt sich vor Videocalls nicht mehr." },
-    { fr: "Janice a évoqué « le salaire moyen du marketing en agence ».", en: "Janice mentioned 'average marketing salary in an agency'.", es: "Janice mencionó 'el sueldo medio de marketing en agencia'.", zh: "贾妮丝提到「代理机构的平均营销薪资」。", ru: "Дженис упомянула «среднюю маркетинговую зарплату в агентстве».", it: "Janice ha menzionato «lo stipendio medio marketing in agenzia».", de: "Janice erwähnte „das durchschnittliche Marketinggehalt in einer Agentur“." },
-    { fr: "Janice fait des heures sup. Mais pour son projet perso.", en: "Janice works overtime. But on her side project.", es: "Janice hace horas extra. Pero en su proyecto personal.", zh: "贾妮丝在加班。但是做她的副业项目。", ru: "Дженис работает сверхурочно. Но над своим сайд-проектом.", it: "Janice fa straordinari. Ma sul suo progetto personale.", de: "Janice macht Überstunden. Aber an ihrem Nebenprojekt." },
-    { fr: "Janice a posté un post philosophique sur le réseau pro.", en: "Janice posted a philosophical post on a pro network.", es: "Janice publicó un post filosófico en la red pro.", zh: "贾妮丝在职业社交网络发了篇哲学帖。", ru: "Дженис выложила философский пост в профсети.", it: "Janice ha postato un pensiero filosofico su un social pro.", de: "Janice hat einen philosophischen Beitrag in einem Profi-Netzwerk gepostet." },
-    { fr: "Janice n'écoute plus de musique au bureau. Autre chose.", en: "Janice doesn't play music in the office anymore. Something else.", es: "Janice ya no pone música en la oficina. Otra cosa.", zh: "贾妮丝不在办公室放音乐了。另有他意。", ru: "Дженис больше не ставит музыку в офисе. Что-то другое.", it: "Janice non mette più musica in ufficio. Qualcos'altro.", de: "Janice spielt im Büro keine Musik mehr. Etwas anderes." },
-    { fr: "Janice a archivé tes briefs sans réagir.", en: "Janice archived your briefs with no reaction.", es: "Janice archivó tus briefs sin reaccionar.", zh: "贾妮丝没反应地归档了你的简报。", ru: "Дженис заархивировала ваши брифы без реакции.", it: "Janice ha archiviato i tuoi brief senza reazione.", de: "Janice hat deine Briefings ohne Reaktion archiviert." },
-    { fr: "Janice cherche « comment quitter un CDI » en ligne.", en: "Janice is searching 'how to leave a permanent job' online.", es: "Janice busca 'cómo dejar un contrato fijo' en internet.", zh: "贾妮丝在网上搜「如何辞掉正式工作」。", ru: "Дженис ищет онлайн «как уйти с постоянной работы».", it: "Janice cerca online «come lasciare un posto fisso».", de: "Janice sucht online „wie man einen festen Job kündigt“." },
-    { fr: "Janice a dit « j'ai du recul maintenant ». Tu n'aimes pas cette phrase.", en: "Janice said 'I have perspective now'. You don't like that phrase.", es: "Janice dijo 'ahora tengo perspectiva'. No te gusta esa frase.", zh: "贾妮丝说「我现在有了距离感」。你不喜欢这句话。", ru: "Дженис сказала «теперь у меня есть перспектива». Вам не нравится эта фраза.", it: "Janice ha detto «ora ho prospettiva». Non ti piace quella frase.", de: "Janice sagte „ich habe jetzt Abstand“. Du magst diesen Satz nicht." },
-    { fr: "Janice envoie ses livrables. Strictement ses livrables.", en: "Janice delivers her work. Strictly her work.", es: "Janice entrega sus entregables. Estrictamente sus entregables.", zh: "贾妮丝交她的活。严格只是她的活。", ru: "Дженис сдаёт работу. Строго свою работу.", it: "Janice consegna il suo lavoro. Strettamente il suo lavoro.", de: "Janice liefert ihre Arbeit. Streng ihre Arbeit." },
-    { fr: "Janice a parlé à un chasseur de tête à la machine à café.", en: "Janice talked to a headhunter by the coffee machine.", es: "Janice habló con un cazatalentos junto a la cafetera.", zh: "贾妮丝在咖啡机旁和一个猎头说话。", ru: "Дженис говорила с хедхантером у кофемашины.", it: "Janice ha parlato con un cacciatore di teste alla macchinetta del caffè.", de: "Janice sprach an der Kaffeemaschine mit einem Headhunter." },
-    { fr: "Janice n'a plus mis de citation inspirante en signature mail.", en: "Janice removed the inspirational quote from her email signature.", es: "Janice quitó la cita inspiradora de su firma de correo.", zh: "贾妮丝把邮件签名里的励志名言删了。", ru: "Дженис убрала вдохновляющую цитату из подписи в имейле.", it: "Janice ha tolto la citazione ispirazionale dalla firma email.", de: "Janice entfernte das inspirierende Zitat aus ihrer E-Mail-Signatur." },
-    { fr: "Janice a dit « on en reparle » trois fois. Sur le même sujet.", en: "Janice said 'let's revisit' three times. Same topic.", es: "Janice dijo 'lo retomamos' tres veces. Mismo tema.", zh: "贾妮丝说了三次「我们回头再看」。同一个话题。", ru: "Дженис сказала «вернёмся к этому» трижды. Та же тема.", it: "Janice ha detto «ne riparliamo» tre volte. Stesso argomento.", de: "Janice sagte dreimal „kommen wir später drauf zurück“. Gleiches Thema." },
-    { fr: "Janice a effacé ton nom de ses notes. Tu l'as vu.", en: "Janice deleted your name from her notes. You saw it.", es: "Janice borró tu nombre de sus notas. Lo viste.", zh: "贾妮丝把你的名字从笔记里删了。你看见了。", ru: "Дженис удалила ваше имя из заметок. Вы это видели.", it: "Janice ha cancellato il tuo nome dai suoi appunti. L'hai visto.", de: "Janice löschte deinen Namen aus ihren Notizen. Du hast es gesehen." },
-    { fr: "Janice arrête de proposer. Elle attend tes consignes.", en: "Janice stopped suggesting things. She waits for orders.", es: "Janice dejó de proponer. Espera tus instrucciones.", zh: "贾妮丝不再提建议。她等指令。", ru: "Дженис перестала предлагать. Ждёт приказов.", it: "Janice ha smesso di proporre cose. Aspetta gli ordini.", de: "Janice schlägt nichts mehr vor. Sie wartet auf Anweisungen." },
-    { fr: "Janice rit poliment. C'est nouveau.", en: "Janice laughs politely. That's new.", es: "Janice se ríe educadamente. Eso es nuevo.", zh: "贾妮丝礼貌地笑。这是新鲜事。", ru: "Дженис вежливо смеётся. Это новость.", it: "Janice ride per cortesia. È una novità.", de: "Janice lacht höflich. Das ist neu." },
-    { fr: "Janice a refait son CV en cinq heures un dimanche.", en: "Janice rewrote her resume in five hours on a Sunday.", es: "Janice rehízo su CV en cinco horas un domingo.", zh: "贾妮丝周日花五小时重写了简历。", ru: "Дженис переписала резюме за пять часов в воскресенье.", it: "Janice ha riscritto il CV in cinque ore di domenica.", de: "Janice schrieb ihren Lebenslauf an einem Sonntag in fünf Stunden neu." },
-    { fr: "Janice a oublié de partager le link Notion. Pas son genre.", en: "Janice forgot to share the Notion link. Not like her.", es: "Janice olvidó compartir el enlace de Notion. Impropio de ella.", zh: "贾妮丝忘了分享Notion链接。不像她。", ru: "Дженис забыла поделиться ссылкой Notion. Не в её духе.", it: "Janice ha dimenticato di condividere il link Notion. Non da lei.", de: "Janice vergaß den Notion-Link zu teilen. Nicht ihre Art." },
-    { fr: "Janice a souri à un appel masqué. Suspect.", en: "Janice smiled at a hidden number call. Suspicious.", es: "Janice sonrió a una llamada de número oculto. Sospechoso.", zh: "贾妮丝对一个隐藏号码来电笑了。可疑。", ru: "Дженис улыбнулась звонку со скрытого номера. Подозрительно.", it: "Janice ha sorriso a una chiamata con numero nascosto. Sospetto.", de: "Janice lächelte bei einem Anruf mit unterdrückter Nummer. Verdächtig." },
-    { fr: "Janice répond à tes messages avec « OK ». Et un point.", en: "Janice replies with 'OK'. And a period.", es: "Janice responde con 'OK'. Y un punto.", zh: "贾妮丝回「OK」。带句号。", ru: "Дженис отвечает «ОК». И точка.", it: "Janice risponde con «OK». E un punto.", de: "Janice antwortet mit „OK“. Und einem Punkt." },
-  ],
   lenny: [
     { fr: "Lenny a regardé sa fiche de paie un peu trop longtemps.", en: "Lenny stared at his pay slip a bit too long.", es: "Lenny miró su nómina un poco demasiado tiempo.", zh: "莱尼盯着工资条看得有点太久。", ru: "Ленни пялился на зарплатную ведомость чуть слишком долго.", it: "Lenny ha fissato la busta paga un po' troppo a lungo.", de: "Lenny starrte etwas zu lange auf seine Gehaltsabrechnung." },
     { fr: "Lenny a évoqué « un ancien qui a son propre camion ».", en: "Lenny mentioned 'an old buddy who owns his own truck'.", es: "Lenny mencionó 'un antiguo compañero que tiene su propio camión'.", zh: "莱尼提到「一个有自己卡车的老伙计」。", ru: "Ленни упомянул «старого приятеля с собственным грузовиком».", it: "Lenny ha menzionato «un vecchio amico che ha il camion suo».", de: "Lenny erwähnte „einen alten Kumpel mit eigenem LKW“." },
@@ -3091,13 +3022,6 @@ const DEV_PREVIEW_MESSAGES = {
       "Patron, je prends mon mardi prochain. Mon chat passe une IRM. Pas négociable.",
       "Le café de la machine est dégueulasse. Investis dans une vraie, ça motive plus que ton sourire.",
       "T'es là depuis ce matin sans pause. Va faire un tour, je gère.",
-    ],
-  },
-  janice: {
-    celebration: [
-      "Notre dernier post a fait 12 000 likes ! On commence à exister sur le créneau.",
-      "J'ai vu deux concurrents copier notre charte graphique cette semaine. Bon signe.",
-      "On vient d'être cité dans Glace Magazine. Ça pète.",
     ],
   },
   lenny: {
@@ -3293,7 +3217,7 @@ const UPGRADE_THANKS = {
     de: "Direktionsassistentin. Wir lassen den Kleinkram hinter uns und betreten den Raum, in dem Leute laut sprechen mit dünnen Akten. Premium-Verträge offen, Marge +5 %. Ich möchte vor den brillanten Ideen konsultiert werden." },
 
   // JANICE — marketing
-  janice_senior: { speaker: 'Janice',
+  janice_senior: { speaker: 'Agence marketing',
     fr: "Senior. Excellent. Mes campagnes prennent ×1,3 et les deals retail deviennent sérieux. On commence à exister dans des réunions où des gens hochent la tête devant des graphiques parfaitement vides.",
     en: "Senior. Excellent. My campaigns hit ×1.3 and retail deals turn serious. We're starting to exist in meetings where people nod in front of perfectly empty charts.",
     es: "Sénior. Excelente. Mis campañas suben a ×1,3 y los deals retail se vuelven serios. Empezamos a existir en reuniones donde la gente asiente delante de gráficos perfectamente vacíos.",
@@ -3301,7 +3225,7 @@ const UPGRADE_THANKS = {
     ru: "Сеньор. Отлично. Мои кампании выходят на ×1,3, ритейл-сделки становятся серьёзными. Мы начинаем существовать на встречах, где люди кивают перед безупречно пустыми графиками.",
     it: "Senior. Eccellente. Le mie campagne salgono a ×1,3 e i deal retail diventano seri. Cominciamo a esistere in riunioni dove la gente annuisce davanti a grafici perfettamente vuoti.",
     de: "Senior. Hervorragend. Meine Kampagnen erreichen ×1,3 und die Retail-Deals werden ernst. Wir fangen an, in Meetings zu existieren, in denen Leute vor perfekt leeren Diagrammen nicken." },
-  janice_dir: { speaker: 'Janice',
+  janice_dir: { speaker: 'Agence marketing',
     fr: "Directrice Marketing. Très bien. Campagnes ×1,6, accès aux géants nationaux. À partir de maintenant, on ne vend plus seulement du froid. On vend une évidence avec un logo.",
     en: "Marketing Director. Very well. Campaigns ×1.6, access to national giants. From now on, we don't just sell cold. We sell an obvious truth with a logo.",
     es: "Directora de Marketing. Muy bien. Campañas ×1,6, acceso a los gigantes nacionales. A partir de ahora ya no vendemos solo frío. Vendemos una evidencia con un logo.",
@@ -3846,7 +3770,7 @@ const LOAN_DURATION_SEMESTERS = 24; // 24 mois (= ancien 4 semestres)
 const LOAN_OVERDUE_REP_LOSS = 20;
 function getLoanTotalDue(loan) { return Math.round(loan.amount * (1 + loan.rate)); }
 
-function getCampaignMultipliers(activeCampaign, gameTime, marketingMult, janiceGrumpy, janiceMoral) {
+function getCampaignMultipliers(activeCampaign, gameTime, marketingMult, janiceGrumpy) {
   const out = { spotMult: 1, retailMult: 1, allMult: 1 };
   if (!activeCampaign) return out;
   if (gameTime > activeCampaign.endsAt) return out;
@@ -4046,7 +3970,7 @@ const STATUS_POOLS = {
   // === PHASE 3 — Notoriété, marque, presse ===
   p3_early: [
     { fr: "Les médias spécialisés commencent à te citer.", en: "Trade press is starting to quote you.", es: "La prensa especializada empieza a citarte.", zh: "行业媒体开始引用你。", ru: "Отраслевая пресса начинает тебя цитировать.", it: "La stampa di settore inizia a citarti.", de: "Die Fachpresse beginnt dich zu zitieren." },
-    { fr: "Janice te briefe sur ton positionnement.", en: "Janice is briefing you on positioning.", es: "Janice te informa sobre tu posicionamiento.", zh: "贾妮丝在为你做定位简报。", ru: "Дженис проводит брифинг по позиционированию.", it: "Janice ti fa un briefing sul posizionamento.", de: "Janice brieft dich zur Positionierung." },
+    { fr: "L'agence te briefe sur ton positionnement.", en: "The agency is briefing you on positioning.", es: "La agencia te informa sobre tu posicionamiento.", zh: "代理机构在为你做定位简报。", ru: "Агентство проводит брифинг по позиционированию.", it: "L'agenzia ti fa un briefing sul posizionamento.", de: "Die Agentur brieft dich zur Positionierung." },
     { fr: "Tu hésites entre image éco et image premium.", en: "You hesitate between eco and premium image.", es: "Dudas entre imagen eco e imagen premium.", zh: "你在环保和高端形象之间犹豫。", ru: "Ты колеблешься между эко- и премиум-имиджем.", it: "Esiti tra immagine eco e premium.", de: "Du schwankst zwischen Öko- und Premium-Image." },
     { fr: "Le marketing devient une vraie discipline.", en: "Marketing becomes a real discipline.", es: "El marketing se vuelve una verdadera disciplina.", zh: "营销成为一门真正的学问。", ru: "Маркетинг становится настоящей дисциплиной.", it: "Il marketing diventa una vera disciplina.", de: "Marketing wird zu einer echten Disziplin." },
   ],
@@ -4055,12 +3979,12 @@ const STATUS_POOLS = {
     { fr: "Les retailers t'appellent pour référencer.", en: "Retailers call to list your products.", es: "Los retailers llaman para referenciarte.", zh: "零售商来电要上架你的产品。", ru: "Ритейлеры звонят, чтобы взять твои продукты в листинг.", it: "I retailer chiamano per mettere a listino i tuoi prodotti.", de: "Händler rufen an, um deine Produkte zu listen." },
     { fr: "Une agence de comm te démarche pour un partenariat.", en: "A comms agency reaches out for a partnership.", es: "Una agencia de comunicación contacta para asociarse.", zh: "一家传播机构来谈合作。", ru: "Коммуникационное агентство выходит на партнёрство.", it: "Un'agenzia di comunicazione ti contatta per una partnership.", de: "Eine Kommunikationsagentur meldet sich für eine Partnerschaft." },
     { fr: "Tu reçois des invitations à des salons B2B.", en: "You're getting B2B trade fair invitations.", es: "Recibes invitaciones a ferias B2B.", zh: "你收到B2B展会的邀请。", ru: "Тебе приходят приглашения на B2B-выставки.", it: "Ricevi inviti a fiere B2B.", de: "Du bekommst Einladungen zu B2B-Messen." },
-    { fr: "Janice te montre les courbes : ça monte.", en: "Janice shows you the curves: it's climbing.", es: "Janice te muestra las curvas: están subiendo.", zh: "贾妮丝给你看曲线：在攀升。", ru: "Дженис показывает кривые: они растут.", it: "Janice ti mostra le curve: stanno salendo.", de: "Janice zeigt dir die Kurven: Es steigt." },
+    { fr: "L'agence te montre les courbes : ça monte.", en: "The agency shows you the curves: it's climbing.", es: "La agencia te muestra las curvas: están subiendo.", zh: "代理机构给你看曲线：在攀升。", ru: "Агентство показывает кривые: они растут.", it: "L'agenzia ti mostra le curve: stanno salendo.", de: "Die Agentur zeigt dir die Kurven: Es steigt." },
   ],
   p3_late: [
     { fr: "On parle de toi dans la presse économique nationale.", en: "Business press nationwide is talking about you.", es: "La prensa económica nacional habla de ti.", zh: "全国商业媒体在谈论你。", ru: "Деловая пресса по всей стране говорит о тебе.", it: "La stampa economica nazionale parla di te.", de: "Die Wirtschaftspresse spricht landesweit über dich." },
     { fr: "Les concurrents copient ton positionnement.", en: "Competitors copy your positioning.", es: "Los competidores copian tu posicionamiento.", zh: "竞争对手抄你的定位。", ru: "Конкуренты копируют твоё позиционирование.", it: "I concorrenti copiano il tuo posizionamento.", de: "Konkurrenten kopieren deine Positionierung." },
-    { fr: "Janice te dit que tu es devenu une vraie marque.", en: "Janice tells you you've become a real brand.", es: "Janice te dice que te has convertido en una marca real.", zh: "贾妮丝说你已经成为真正的品牌。", ru: "Дженис говорит, что вы стали настоящим брендом.", it: "Janice ti dice che sei diventato un vero marchio.", de: "Janice sagt dir, du bist zu einer echten Marke geworden." },
+    { fr: "L'agence te confirme : tu es devenu une vraie marque.", en: "The agency confirms: you've become a real brand.", es: "La agencia te confirma que te has convertido en una marca real.", zh: "代理机构确认：你已成为真正的品牌。", ru: "Агентство подтверждает: вы стали настоящим брендом.", it: "L'agenzia conferma: sei diventato un vero marchio.", de: "Die Agentur bestätigt: Du bist zu einer echten Marke geworden." },
     { fr: "On commence à te citer en exemple dans les écoles de commerce.", en: "Business schools are starting to cite you as an example.", es: "Las escuelas de negocio empiezan a citarte como ejemplo.", zh: "商学院开始把你当案例引用。", ru: "Бизнес-школы начинают приводить тебя в пример.", it: "Le business school iniziano a citarti come esempio.", de: "Business Schools beginnen, dich als Beispiel zu nennen." },
     { fr: "Tu tiens ton avance, mois après mois.", en: "You hold your lead, month after month.", es: "Mantienes tu ventaja, mes tras mes.", zh: "你的领先优势月复一月地保持着。", ru: "Ты держишь лидерство месяц за месяцем.", it: "Mantieni il tuo vantaggio, mese dopo mese.", de: "Du hältst deinen Vorsprung, Monat für Monat." },
   ],
@@ -4181,61 +4105,41 @@ const INCIDENT_VARIANTS = {
       fr: "Engueulade en cuisine entre Fred et Lenny ce matin. Fred reproche à Lenny d'arriver en retard pour charger ses palettes, Lenny l'accuse de mal préparer les commandes. L'ambiance est glaciale.",
       en: "Fred and Lenny had a shouting match this morning. Fred says Lenny shows up late to load pallets, Lenny says Fred's orders are sloppy. Ice cold atmosphere.",
       es: "Bronca entre Fred y Lenny esta mañana. Fred reprocha a Lenny llegar tarde a cargar palets, Lenny acusa a Fred de preparar mal los pedidos. Ambiente helado.", zh: "弗雷德和莱尼今早大吵了一架。弗雷德说莱尼装托盘来得晚，莱尼说弗雷德的指令乱七八糟。气氛冰冷。", ru: "Фред и Ленни поругались сегодня утром. Фред говорит, что Ленни опаздывает грузить паллеты, Ленни говорит, что распоряжения Фреда небрежны. Ледяная атмосфера.", it: "Fred e Lenny hanno avuto una sfuriata stamattina. Fred dice che Lenny arriva tardi a caricare i pallet, Lenny dice che gli ordini di Fred sono sciatti. Atmosfera gelida.", de: "Fred und Lenny hatten heute früh einen Schreikampf. Fred sagt, Lenny kommt zu spät zum Palettenladen, Lenny sagt, Freds Anweisungen sind schlampig. Eiskalte Stimmung." },
-      moralImpact: { fred: -15, lenny: -15, brigitte: -5, janice: -5 } },
-    { victims: ['brigitte', 'janice'], text: {
-      fr: "Tension froide entre Brigitte et Janice depuis ce midi. Brigitte trouve les campagnes marketing trop chères, Janice trouve la compta trop tatillonne. Personne ne se parle plus.",
-      en: "Cold tension between Brigitte and Janice since lunch. Brigitte thinks the marketing campaigns are too pricey, Janice thinks accounting is too nitpicky. Silent treatment.",
-      es: "Tensión gélida entre Brigitte y Janice desde mediodía. Brigitte ve las campañas demasiado caras, Janice ve la contabilidad demasiado quisquillosa. Nadie se habla.", zh: "布丽吉特和贾妮丝从午饭起就冷战。布丽吉特觉得营销活动太贵，贾妮丝觉得会计太吹毛求疵。互相冷处理。", ru: "Холодное напряжение между Брижит и Дженис с обеда. Брижит считает маркетинговые кампании слишком дорогими, Дженис считает бухгалтерию слишком придирчивой. Молчаливая война.", it: "Tensione fredda tra Brigitte e Janice dal pranzo. Brigitte pensa che le campagne marketing siano troppo care, Janice che la contabilità sia troppo pignola. Si fanno la guerra del silenzio.", de: "Kalte Spannung zwischen Brigitte und Janice seit dem Mittagessen. Brigitte findet die Marketingkampagnen zu teuer, Janice findet die Buchhaltung zu kleinlich. Schweigen im Walde." },
-      moralImpact: { brigitte: -15, janice: -15, fred: -5, lenny: -5 } },
+      moralImpact: { fred: -15, lenny: -15, brigitte: -5 } },
     { victims: ['fred', 'brigitte'], text: {
       fr: "Fred et Brigitte se sont accrochés sur les commandes fournisseurs. Fred veut plus de stock matière, Brigitte refuse pour préserver la trésorerie. Ça hurle dans l'open space.",
       en: "Fred and Brigitte clashed over supplier orders. Fred wants more raw stock, Brigitte refuses to protect cash flow. They're yelling in the office.",
       es: "Fred y Brigitte chocaron por los pedidos a proveedores. Fred quiere más stock, Brigitte se niega para cuidar la caja. Gritos en la oficina.", zh: "弗雷德和布丽吉特因供应商订单起了冲突。弗雷德想要更多原料，布丽吉特为保护现金流拒绝。他们在办公室里吵。", ru: "Фред и Брижит столкнулись из-за заказов поставщикам. Фред хочет больше сырья, Брижит отказывает, защищая денежный поток. Они орут в офисе.", it: "Fred e Brigitte si sono scontrati sugli ordini ai fornitori. Fred vuole più materia prima, Brigitte rifiuta per proteggere la liquidità. Stanno urlando in ufficio.", de: "Fred und Brigitte sind über Lieferantenbestellungen aneinandergeraten. Fred will mehr Rohbestand, Brigitte weigert sich, um den Cashflow zu schützen. Sie brüllen sich im Büro an." },
-      moralImpact: { fred: -15, brigitte: -15, janice: -5, lenny: -5 } },
-    { victims: ['janice', 'lenny'], text: {
-      fr: "Janice a balancé devant tout le monde que Lenny « ferait mieux d'être à l'heure plutôt que de râler sur les tournées ». Lenny est sorti claquer la porte.",
-      en: "Janice told the whole room Lenny « should focus on being on time instead of complaining about routes ». Lenny slammed the door on his way out.",
-      es: "Janice soltó delante de todos que Lenny « debería llegar a tiempo en lugar de quejarse de las rutas ». Lenny salió dando un portazo.", zh: "贾妮丝当着全屋的面说莱尼「应该专心准时而不是抱怨路线」。莱尼摔门而出。", ru: "Дженис заявила всей комнате, что Ленни «следует сосредоточиться на пунктуальности вместо жалоб на маршруты». Ленни хлопнул дверью, уходя.", it: "Janice ha detto a tutta la stanza che Lenny «dovrebbe concentrarsi sull'essere puntuale invece di lamentarsi delle tratte». Lenny ha sbattuto la porta uscendo.", de: "Janice hat vor dem ganzen Raum gesagt, Lenny „solle sich aufs Pünktlichsein konzentrieren, statt über Routen zu jammern“. Lenny hat beim Rausgehen die Tür zugeknallt." },
-      moralImpact: { janice: -15, lenny: -15, fred: -5, brigitte: -5 } },
+      moralImpact: { fred: -15, brigitte: -15, lenny: -5 } },
   ],
   accident: [
     { victim: 'fred', text: {
       fr: "Fred s'est entaillé la main en nettoyant un congélateur. Pas grave, trois points de suture aux urgences, mais il est rentré tôt. L'équipe est secouée.",
       en: "Fred cut his hand cleaning a freezer. Not serious, three stitches at the ER, but he went home early. The team's shaken.",
       es: "Fred se ha cortado la mano limpiando un congelador. No grave, tres puntos en urgencias, pero se fue pronto. El equipo está afectado.", zh: "弗雷德清洗冷冻柜时割伤了手。不严重，急诊缝了三针，但他提早回家了。团队震动。", ru: "Фред порезал руку, чистя морозильник. Не серьёзно, три шва в скорой, но он ушёл домой раньше. Команда потрясена.", it: "Fred si è tagliato la mano pulendo un congelatore. Niente di grave, tre punti al pronto soccorso, ma è andato a casa prima. Il team è scosso.", de: "Fred hat sich beim Reinigen einer Gefriertruhe die Hand geschnitten. Nicht schlimm, drei Stiche in der Notaufnahme, aber er ist früher heimgegangen. Das Team ist erschüttert." },
-      moralImpact: { fred: -20, brigitte: -8, janice: -8, lenny: -8 } },
+      moralImpact: { fred: -20, brigitte: -8, lenny: -8 } },
     { victim: 'lenny', text: {
       fr: "Petit accrochage de Lenny avec un autre véhicule sur le parking d'un client. Pas blessé, mais commotionné. Le camion repart demain seulement.",
       en: "Lenny had a small fender-bender with another vehicle in a client's parking lot. Not hurt but shaken. The truck won't leave until tomorrow.",
       es: "Pequeño choque de Lenny con otro vehículo en el parking de un cliente. No herido pero conmocionado. El camión no sale hasta mañana.", zh: "莱尼在客户停车场和另一辆车小擦碰。没受伤但受惊。卡车明天才能出发。", ru: "У Ленни мелкое столкновение с другим авто на парковке клиента. Не пострадал, но потрясён. Грузовик не выедет до завтра.", it: "Lenny ha avuto un piccolo tamponamento con un altro veicolo nel parcheggio di un cliente. Illeso ma scosso. Il camion non parte fino a domani.", de: "Lenny hatte einen kleinen Blechschaden mit einem anderen Fahrzeug auf dem Parkplatz eines Kunden. Unverletzt, aber durchgeschüttelt. Der LKW fährt erst morgen wieder." },
-      moralImpact: { lenny: -20, fred: -8, brigitte: -8, janice: -8 } },
+      moralImpact: { lenny: -20, fred: -8, brigitte: -8 } },
     { victim: 'brigitte', text: {
       fr: "Brigitte s'est tordu la cheville en descendant les escaliers du bureau. Elle finira la semaine en télétravail, mais elle a mal pris la chute.",
       en: "Brigitte twisted her ankle going down the office stairs. She'll finish the week working from home, but she's upset about the fall.",
       es: "Brigitte se ha torcido el tobillo bajando las escaleras de la oficina. Termina la semana teletrabajando, pero le ha sentado mal.", zh: "布丽吉特下办公室楼梯时崴了脚。她这周剩下时间在家办公，但对这一摔很沮丧。", ru: "Брижит подвернула лодыжку на офисной лестнице. Доработает неделю из дома, но расстроена из-за падения.", it: "Brigitte si è storta la caviglia scendendo le scale dell'ufficio. Finirà la settimana lavorando da casa, ma è amareggiata per la caduta.", de: "Brigitte hat sich auf der Bürotreppe den Knöchel verdreht. Sie arbeitet die Woche von zu Hause fertig, ärgert sich aber über den Sturz." },
-      moralImpact: { brigitte: -20, fred: -8, janice: -8, lenny: -8 } },
-    { victim: 'janice', text: {
-      fr: "Janice a fait un malaise après une réunion client tendue. Rien de grave selon le médecin, mais elle prend deux jours pour souffler. L'équipe s'inquiète.",
-      en: "Janice fainted after a tense client meeting. Doctor says nothing serious, but she's taking two days to decompress. Team's worried.",
-      es: "Janice se desmayó tras una reunión cliente tensa. El médico dice que no es grave, pero se toma dos días. El equipo está preocupado.", zh: "贾妮丝在一场紧张的客户会议后晕倒了。医生说没大碍，但她要两天减压。团队担心。", ru: "Дженис упала в обморок после напряжённой встречи с клиентом. Врач говорит, ничего серьёзного, но она берёт два дня на восстановление. Команда волнуется.", it: "Janice è svenuta dopo una riunione tesa con un cliente. Il medico dice niente di grave, ma si prende due giorni per decomprimere. Il team è preoccupato.", de: "Janice ist nach einem angespannten Kundentermin ohnmächtig geworden. Der Arzt sagt, nichts Ernstes, aber sie nimmt zwei Tage zum Durchatmen. Das Team ist besorgt." },
-      moralImpact: { janice: -20, fred: -8, brigitte: -8, lenny: -8 } },
+      moralImpact: { brigitte: -20, fred: -8, lenny: -8 } },
   ],
   conflit_client: [
     { victim: 'brigitte', text: {
       fr: "Un client B2B a hurlé sur Brigitte au téléphone à propos d'une facture. Elle a tenu bon, mais elle est sortie de la salle en larmes.",
       en: "A B2B client screamed at Brigitte over the phone about an invoice. She held firm, but left the room in tears.",
       es: "Un cliente B2B le gritó a Brigitte por teléfono por una factura. Aguantó, pero salió de la sala llorando.", zh: "一个B2B客户为一张发票在电话里冲布丽吉特吼。她坚持立场，但流着泪离开了房间。", ru: "B2B-клиент орал на Брижит по телефону из-за счёта. Она держалась твёрдо, но вышла из комнаты в слезах.", it: "Un cliente B2B ha urlato a Brigitte al telefono per una fattura. Ha tenuto duro, ma è uscita dalla stanza in lacrime.", de: "Ein B2B-Kunde hat Brigitte am Telefon wegen einer Rechnung angeschrien. Sie blieb standhaft, verließ den Raum aber in Tränen." },
-      moralImpact: { brigitte: -15, fred: -3, janice: -3, lenny: -3 } },
-    { victim: 'janice', text: {
-      fr: "Un client a publiquement critiqué une campagne de Janice sur les réseaux. Elle prend ça personnellement, même si la critique n'est pas méchante.",
-      en: "A client publicly trashed one of Janice's campaigns on social media. She's taking it personally, even though the criticism wasn't harsh.",
-      es: "Un cliente criticó públicamente una campaña de Janice en redes. Se lo toma personalmente, aunque la crítica no era dura.", zh: "一个客户在社媒上公开痛批贾妮丝的一个活动。她很在意，尽管批评并不刻薄。", ru: "Клиент публично разнёс одну из кампаний Дженис в соцсетях. Она принимает это близко к сердцу, хотя критика была не резкой.", it: "Un cliente ha demolito pubblicamente una campagna di Janice sui social. La prende sul personale, anche se la critica non era dura.", de: "Ein Kunde hat eine von Janices Kampagnen öffentlich in den sozialen Medien zerrissen. Sie nimmt es persönlich, obwohl die Kritik nicht hart war." },
-      moralImpact: { janice: -15, fred: -3, brigitte: -3, lenny: -3 } },
+      moralImpact: { brigitte: -15, fred: -3, lenny: -3 } },
     { victim: 'lenny', text: {
       fr: "Un client a refusé une livraison de Lenny en l'accusant de retard. Lenny était dans les temps, mais il rumine encore l'humiliation.",
       en: "A client refused Lenny's delivery, blaming him for being late. Lenny was on time but he's still seething from the humiliation.",
       es: "Un cliente rechazó una entrega de Lenny acusándolo de llegar tarde. Lenny iba a tiempo, pero todavía rumia la humillación.", zh: "一个客户拒收莱尼的配送，怪他迟到。莱尼是准时的，但他仍因这羞辱而怒火中烧。", ru: "Клиент отказался от доставки Ленни, обвинив его в опоздании. Ленни был вовремя, но всё ещё кипит от унижения.", it: "Un cliente ha rifiutato la consegna di Lenny, accusandolo di essere in ritardo. Lenny era puntuale ma è ancora furioso per l'umiliazione.", de: "Ein Kunde hat Lennys Lieferung abgelehnt und ihm Verspätung vorgeworfen. Lenny war pünktlich, kocht aber noch vor Demütigung." },
-      moralImpact: { lenny: -15, fred: -3, brigitte: -3, janice: -3 } },
+      moralImpact: { lenny: -15, fred: -3, brigitte: -3 } },
   ],
 };
 
@@ -4756,7 +4660,6 @@ export default function App() {
   const [infoUpgrade, setInfoUpgrade] = useState(null);
   const [fredSalaryLevel, setFredSalaryLevel] = useState('bas');
   const [brigitteSalaryLevel, setBrigitteSalaryLevel] = useState('bas');
-  const [janiceSalaryLevel, setJaniceSalaryLevel] = useState('bas');
   const [lennySalaryLevel, setLennySalaryLevel] = useState('bas');
   const [karenSalaryLevel, setKarenSalaryLevel] = useState('bas');
   const [markSalaryLevel, setMarkSalaryLevel] = useState('bas');
@@ -4770,7 +4673,6 @@ export default function App() {
   const [sabineGrumpy, setSabineGrumpy] = useState(false);
   const [fredMoral, setFredMoral] = useState(70);
   const [brigitteMoral, setBrigitteMoral] = useState(70);
-  const [janiceMoral, setJaniceMoral] = useState(70);
   const [lennyMoral, setLennyMoral] = useState(70);
   const [karenMoral, setKarenMoral] = useState(70);
   const [markMoral, setMarkMoral] = useState(70);
@@ -4778,7 +4680,6 @@ export default function App() {
   // Phase 2+ — Stress per employee (0-100). Boost actions add stress, time decays it.
   const [fredStress, setFredStress] = useState(0);
   const [brigitteStress, setBrigitteStress] = useState(0);
-  const [janiceStress, setJaniceStress] = useState(0);
   const [lennyStress, setLennyStress] = useState(0);
   const [karenStress, setKarenStress] = useState(0);
   // Boost Lenny temporaire (vitesse trajet +50%) — expire après 10s de game time
@@ -4789,9 +4690,7 @@ export default function App() {
   const FRED_BOOST_MULT = 1.5;
   // Cooldown des autres boosts (Brigitte/Janice) : même mécanique visuelle que Fred (bouton grisé)
   const [brigitteBoostUntil, setBrigitteBoostUntil] = useState(0);
-  const [janiceBoostUntil, setJaniceBoostUntil] = useState(0);
   const BRIGITTE_BOOST_DURATION = 8;
-  const JANICE_BOOST_DURATION = 8;
   const LENNY_BOOST_DURATION = 10; // déjà existant via lennyBoostUntil
   // Karen team-building : prod global +25% pendant 60s, cooldown 240s (120s DRH)
   const [karenTeamBuildUntil, setKarenTeamBuildUntil] = useState(0);
@@ -4897,7 +4796,6 @@ export default function App() {
   // jusqu'à ce que son stress redescende complètement à 0
   const [fredBurnedLock, setFredBurnedLock] = useState(false);
   const [brigitteBurnedLock, setBrigitteBurnedLock] = useState(false);
-  const [janiceBurnedLock, setJaniceBurnedLock] = useState(false);
   const [lennyBurnedLock, setLennyBurnedLock] = useState(false);
   const [karenBurnedLock, setKarenBurnedLock] = useState(false);
   // Événements (Phase B) : un seul actif à la fois pour le MVP
@@ -5186,8 +5084,8 @@ export default function App() {
   const lennyBoostUntilRef = useRef(0);
   const fredBoostUntilRef = useRef(0);
   // Tracking pour les avertissements stress : timestamp du dernier boost + du dernier warning par employé
-  const lastBoostTsRef = useRef({ fred: -999, brigitte: -999, janice: -999, lenny: -999 });
-  const lastStressWarningTsRef = useRef({ fred: -999, brigitte: -999, janice: -999, lenny: -999 });
+  const lastBoostTsRef = useRef({ fred: -999, brigitte: -999, lenny: -999 });
+  const lastStressWarningTsRef = useRef({ fred: -999, brigitte: -999, lenny: -999 });
   // Compteur de boosts consécutifs (< 30s entre chaque). Reset après pause.
   const boostCountInRowRef = useRef({ fred: 0, brigitte: 0, janice: 0, lenny: 0 });
   const activeEventRef = useRef(null);
@@ -5221,7 +5119,6 @@ export default function App() {
   const [lastUtilBill, setLastUtilBill] = useState(0);
   const fredSalaryLevelRef = useRef('bas');
   const brigitteSalaryLevelRef = useRef('bas');
-  const janiceSalaryLevelRef = useRef('bas');
   const lennySalaryLevelRef = useRef('bas');
   const karenSalaryLevelRef = useRef('bas');
   const markSalaryLevelRef = useRef('bas');
@@ -5235,7 +5132,6 @@ export default function App() {
   const sabineGrumpyRef = useRef(false);
   const fredMoralRef = useRef(70);
   const brigitteMoralRef = useRef(70);
-  const janiceMoralRef = useRef(70);
   const lennyMoralRef = useRef(70);
   const karenMoralRef = useRef(70);
   const markMoralRef = useRef(70);
@@ -5352,7 +5248,6 @@ export default function App() {
   useEffect(() => { moneyRef.current = money; }, [money]);
   useEffect(() => { fredSalaryLevelRef.current = fredSalaryLevel; }, [fredSalaryLevel]);
   useEffect(() => { brigitteSalaryLevelRef.current = brigitteSalaryLevel; }, [brigitteSalaryLevel]);
-  useEffect(() => { janiceSalaryLevelRef.current = janiceSalaryLevel; }, [janiceSalaryLevel]);
   useEffect(() => { lennySalaryLevelRef.current = lennySalaryLevel; }, [lennySalaryLevel]);
   useEffect(() => { karenSalaryLevelRef.current = karenSalaryLevel; }, [karenSalaryLevel]);
   useEffect(() => { markSalaryLevelRef.current = markSalaryLevel; }, [markSalaryLevel]);
@@ -5360,7 +5255,6 @@ export default function App() {
   useEffect(() => { fredGrumpyRef.current = fredGrumpy; }, [fredGrumpy]);
   useEffect(() => { fredMoralRef.current = fredMoral; }, [fredMoral]);
   useEffect(() => { brigitteMoralRef.current = brigitteMoral; }, [brigitteMoral]);
-  useEffect(() => { janiceMoralRef.current = janiceMoral; }, [janiceMoral]);
   useEffect(() => { lennyMoralRef.current = lennyMoral; }, [lennyMoral]);
   useEffect(() => { karenMoralRef.current = karenMoral; }, [karenMoral]);
   useEffect(() => { markMoralRef.current = markMoral; }, [markMoral]);
@@ -5860,7 +5754,6 @@ export default function App() {
       const decay = (phaseRef.current >= 3 ? 2 : 3) * getPrestigeCalmBonus();
       setFredStress(s => Math.max(0, s - decay));
       setBrigitteStress(s => Math.max(0, s - decay));
-      setJaniceStress(s => Math.max(0, s - decay));
       setLennyStress(s => Math.max(0, s - decay));
       setKarenStress(s => Math.max(0, s - decay));
     };
@@ -5869,7 +5762,7 @@ export default function App() {
   }, [loaded, screen]);
 
   // === Moral warnings : check toutes les 30s, popup narrator si moral < 40 (debounce 60s)
-  const lastMoralWarningTsRef = useRef({ fred: -999, brigitte: -999, janice: -999, lenny: -999 });
+  const lastMoralWarningTsRef = useRef({ fred: -999, brigitte: -999, lenny: -999 });
   useEffect(() => {
     if (!loaded || screen !== 'game') return;
     const tick = () => {
@@ -5879,11 +5772,9 @@ export default function App() {
       const candidates = [];
       const hasFredAny = !!(ownedRef.current['fred_stage'] || ownedRef.current['fred'] || ownedRef.current['fred_perma'] || ownedRef.current['fred_chef'] || ownedRef.current['fred_dir']);
       const hasBrigAny = !!(ownedRef.current['autosell'] || ownedRef.current['brigitte_compta'] || ownedRef.current['brigitte_ad']);
-      const hasJanAny  = !!(ownedRef.current['janice_jr'] || ownedRef.current['janice_senior'] || ownedRef.current['janice_dir']);
       const hasLenAny  = ['camion_1','camion_2','camion_3'].some(id => ownedRef.current[id]);
       if (hasFredAny && fredMoral < 40)     candidates.push({ key: 'fred',     moral: fredMoral });
       if (hasBrigAny && brigitteMoral < 40) candidates.push({ key: 'brigitte', moral: brigitteMoral });
-      if (hasJanAny  && janiceMoral < 40)   candidates.push({ key: 'janice',   moral: janiceMoral });
       if (hasLenAny  && lennyMoral < 40)    candidates.push({ key: 'lenny',    moral: lennyMoral });
       if (candidates.length === 0) return;
       const eligible = candidates.filter(c => (nowG - lastMoralWarningTsRef.current[c.key]) >= 60);
@@ -5899,7 +5790,7 @@ export default function App() {
     };
     const id = setInterval(tick, 30000); // check toutes les 30s real-time
     return () => clearInterval(id);
-  }, [loaded, screen, language, popupMessage, fredMoral, brigitteMoral, janiceMoral, lennyMoral]);
+  }, [loaded, screen, language, popupMessage, fredMoral, brigitteMoral, lennyMoral]);
 
   // === Verrouillage du boost (burned-lock) : se déclenche à 100% stress,
   //     se libère uniquement quand le stress retombe à 0
@@ -5912,10 +5803,6 @@ export default function App() {
     if (brigitteStress >= 100 && !brigitteBurnedLock) { setBrigitteBurnedLock(true); adjustMoralFor('brigitte', -20); }
     else if (brigitteStress <= 0 && brigitteBurnedLock) setBrigitteBurnedLock(false);
   }, [brigitteStress]);
-  useEffect(() => {
-    if (janiceStress >= 100 && !janiceBurnedLock) { setJaniceBurnedLock(true);   adjustMoralFor('janice',   -20); }
-    else if (janiceStress <= 0 && janiceBurnedLock) setJaniceBurnedLock(false);
-  }, [janiceStress]);
   useEffect(() => {
     if (lennyStress >= 100 && !lennyBurnedLock)   { setLennyBurnedLock(true);    adjustMoralFor('lenny',    -20); }
     else if (lennyStress <= 0 && lennyBurnedLock) setLennyBurnedLock(false);
@@ -5999,7 +5886,6 @@ export default function App() {
           const others = {
             fred: fredSalaryLevelRef.current,
             brigitte: brigitteSalaryLevelRef.current,
-            janice: janiceSalaryLevelRef.current,
             lenny: lennySalaryLevelRef.current,
           };
           const anyHigh = Object.entries(others).some(([k, v]) => k !== emp && v === 'haut');
@@ -6099,7 +5985,6 @@ export default function App() {
           if (qualityRiskSinceRef.current == null) qualityRiskSinceRef.current = now;
           else if (now - qualityRiskSinceRef.current >= 60 && !janiceGrumpyRef.current && !wageArrearsRef.current) {
             setJaniceGrumpy(true);
-            setJaniceMoral(m => Math.max(0, m - 10));
             qualityRiskSinceRef.current = null;
             if (!popupMessageRef.current) {
               queuePopup({ type: 'character', speaker: t('agency.speaker'), text: t('agency.warn_quality') });
@@ -6220,7 +6105,7 @@ export default function App() {
       // 0. ANNIVERSAIRES — détection (le plus prioritaire)
       if (!birthdayEvent && !rhEvent) {
         const bd = birthdaysRef.current;
-        const empMap = { fred: 'Fred', brigitte: 'Brigitte', janice: 'Janice', lenny: 'Lenny' };
+        const empMap = { fred: 'Fred', brigitte: 'Brigitte', janice: 'Agence', lenny: 'Lenny' };
         for (const emp of ['fred', 'brigitte', 'janice', 'lenny']) {
           if (bd[emp] && curT >= bd[emp]) {
             // Vérifie que l'employé existe encore
@@ -6385,7 +6270,7 @@ export default function App() {
               ]
             };
             const pool = victoires[lang] || victoires.fr;
-            if (tryRandomPopup('Janice', pickUnseen(pool))) {
+            if (tryRandomPopup(t('agency.speaker'), pickUnseen(pool))) {
               lastJaniceCelebrationRef.current = curT;
               return;
             }
@@ -6989,12 +6874,10 @@ export default function App() {
           && (curT - lastKarenAmbRef.current) > 200) {
         const hasFredAny = !!(ownedSnap['fred_stage'] || ownedSnap['fred'] || ownedSnap['fred_perma'] || ownedSnap['fred_chef'] || ownedSnap['fred_dir']);
         const hasBrigAny = !!(ownedSnap['autosell'] || ownedSnap['brigitte_compta'] || ownedSnap['brigitte_ad']);
-        const hasJanAny  = !!(ownedSnap['janice_jr'] || ownedSnap['janice_senior'] || ownedSnap['janice_dir']);
         const hasLennyAny = !!(ownedSnap['camion_1'] || ownedSnap['camion_2'] || ownedSnap['camion_3'] || ownedSnap['camion_4'] || ownedSnap['camion_5'] || ownedSnap['camion_6']);
         const moralsArr = [];
         if (hasFredAny) moralsArr.push(fredMoralRef.current);
         if (hasBrigAny) moralsArr.push(brigitteMoralRef.current);
-        if (hasJanAny) moralsArr.push(janiceMoralRef.current);
         if (hasLennyAny) moralsArr.push(lennyMoralRef.current);
         const moralAvg = moralsArr.length > 0 ? moralsArr.reduce((a,b)=>a+b,0) / moralsArr.length : 100;
         const moralMin = moralsArr.length > 0 ? Math.min(...moralsArr) : 100;
@@ -7174,7 +7057,7 @@ export default function App() {
     const prev = prevGrumpyRef.current;
     const cur = { fred: fredGrumpy, brigitte: brigitteGrumpy, janice: janiceGrumpy, lenny: lennyGrumpy };
     const newStrikers = [];
-    for (const k of ['fred', 'brigitte', 'janice', 'lenny']) {
+    for (const k of ['fred', 'brigitte', 'lenny']) {
       if (!prev[k] && cur[k]) newStrikers.push(k);
     }
     if (newStrikers.length > 0) {
@@ -7182,10 +7065,9 @@ export default function App() {
         if (cur[target]) return; // ne contagionne pas un déjà-en-grève
         if (target === 'fred') setFredMoral(m => Math.max(0, m - 10 * newStrikers.length));
         else if (target === 'brigitte') setBrigitteMoral(m => Math.max(0, m - 10 * newStrikers.length));
-        else if (target === 'janice') setJaniceMoral(m => Math.max(0, m - 10 * newStrikers.length));
         else if (target === 'lenny') setLennyMoral(m => Math.max(0, m - 10 * newStrikers.length));
       };
-      for (const target of ['fred', 'brigitte', 'janice', 'lenny']) {
+      for (const target of ['fred', 'brigitte', 'lenny']) {
         if (!newStrikers.includes(target)) apply(target);
       }
     }
@@ -7255,7 +7137,7 @@ export default function App() {
   const getDisplayedRevenue = (c) => {
     if (!c) return 0;
     const bb = getBrigitteEffectiveBonus(owned, brigitteSalaryLevel, brigitteGrumpy);
-    const camp = getCampaignMultipliers(activeCampaign, gameTime, stats.marketingMult, janiceGrumpy, janiceMoral);
+    const camp = getCampaignMultipliers(activeCampaign, gameTime, stats.marketingMult, janiceGrumpy);
     let priceMult = (1 + bb) * camp.allMult;
     if (c.archetype === 'RETAIL') priceMult *= camp.retailMult;
     priceMult *= getPremiumWaterMult(owned);
@@ -7291,7 +7173,6 @@ export default function App() {
       const morals = [];
       if (owned['fred_stage'] || owned['fred'] || owned['fred_perma'] || owned['fred_chef'] || owned['fred_dir']) morals.push(fredMoral);
       if (owned['autosell'] || owned['brigitte_compta'] || owned['brigitte_dir']) morals.push(brigitteMoral);
-      if (owned['janice_jr'] || owned['janice_senior'] || owned['janice_dir']) morals.push(janiceMoral);
       if (['camion_1','camion_2','lenny_chef'].some(id => owned[id])) morals.push(lennyMoral);
       if (owned['karen_junior'] || owned['karen_senior'] || owned['karen_drh']) morals.push(karenMoral);
       const goodCount = morals.filter(m => m >= 80).length;
@@ -7313,7 +7194,7 @@ export default function App() {
     if (notoriety >= 100) unlockAchievement('cult_brand');
     // 18. EMPIRE STABLE — 50 saisons jouées
     if (gameTime >= 50 * SEASON_DURATION) unlockAchievement('stable_empire');
-  }, [money, notoriety, stock, maxCap, totals, owned, fredMoral, brigitteMoral, janiceMoral, lennyMoral, karenMoral, gameTime, lines]);
+  }, [money, notoriety, stock, maxCap, totals, owned, fredMoral, brigitteMoral, lennyMoral, karenMoral, gameTime, lines]);
 
   // === Détection "stock insuffisant pour l'appel courant" ===
   // EXACTEMENT le même calcul que `canAccept` utilisé dans le rendu du
@@ -7379,7 +7260,7 @@ export default function App() {
     };
     const def = commentaries[trans];
     if (!def || !def.has()) return;
-    const speakerMap = { fred: 'Fred', brigitte: 'Brigitte', janice: 'Janice', lenny: 'Lenny' };
+    const speakerMap = { fred: 'Fred', brigitte: 'Brigitte', janice: 'Agence', lenny: 'Lenny' };
     const pool = def.msg[lang] || def.msg.fr;
     tryRandomPopup(speakerMap[def.who], pickUnseen(pool));
     // Mémorise que CETTE transition a été commentée → la prochaine
@@ -7477,7 +7358,6 @@ export default function App() {
   // Karen a un PLANCHER à 0.70 même très démotivée — filet anti-spirale infernale.
   const lennyEfficiency    = (m) => m >= 80 ? 1.00 : m >= 50 ? 0.95 : m >= 30 ? 0.85 : 0.70;
   const brigitteEfficiency = (m) => m >= 80 ? 1.00 : m >= 50 ? 0.90 : m >= 30 ? 0.75 : 0.60;
-  const janiceEfficiency   = (m) => m >= 80 ? 1.00 : m >= 50 ? 0.90 : m >= 30 ? 0.75 : 0.60;
   const karenEfficiency    = (m) => m >= 80 ? 1.00 : m >= 50 ? 0.90 : m >= 30 ? 0.80 : 0.70;
   // Label de pénalité moral (à afficher au-dessus de la barre de moral). 
   // Retourne null si moral ≥80 (pas de pénalité visible).
@@ -7487,7 +7367,6 @@ export default function App() {
     const effMap = {
       fred:     moralFor(moralValue),
       brigitte: brigitteEfficiency(moralValue),
-      janice:   janiceEfficiency(moralValue),
       lenny:    lennyEfficiency(moralValue),
       karen:    karenEfficiency(moralValue),
       mark:     moralValue >= 50 ? 1.0 : moralValue >= 30 ? 0.85 : 0.65,
@@ -7551,7 +7430,7 @@ export default function App() {
   const upFredSalary = currentFredUpgrade ? currentFredUpgrade.salary[fredSalaryLevel] : 0;
   const upBrigitteSalary = hasBrigitte ? currentBrigitteUpgrade.salary[brigitteSalaryLevel] : 0;
   // L'agence marketing est un déblocage payant unique, pas un·e salarié·e : aucun salaire mensuel.
-  const upJaniceSalary = (hasJanice && currentJaniceUpgrade && currentJaniceUpgrade.salary) ? currentJaniceUpgrade.salary[janiceSalaryLevel] : 0;
+  const upJaniceSalary = 0;
   const upLennySalary = hasLenny ? lennyGrade.salary[lennySalaryLevel] : 0;
   const upSalaryRaw = upFredSalary + upBrigitteSalary + upJaniceSalary + upLennySalary;
   // 6 PREMIERS MOIS offerts (équivalent ancien 1er semestre).
@@ -7888,7 +7767,7 @@ export default function App() {
     (BASE_MELT + stock * STOCK_MELT_FACTOR) *
     dynamicMelt * heatMeltMult * stats.meltMult * phaseMeltMult;
   const dynamicDemand = getDynamicDemandMult(gameTime);
-  const campaignBonuses = getCampaignMultipliers(activeCampaign, gameTime, stats.marketingMult, janiceGrumpy, janiceMoral);
+  const campaignBonuses = getCampaignMultipliers(activeCampaign, gameTime, stats.marketingMult, janiceGrumpy);
   // Multiplicateur Janice : perma (sponsoring sport) + temp (boosts de pubs)
   const janiceTempActive = gameTime < janiceTempSellBoost.until;
   const janiceTempMult = janiceTempActive ? janiceTempSellBoost.factor : 1.0;
@@ -8030,7 +7909,6 @@ export default function App() {
           }
           if (s.fredSalaryLevel) setFredSalaryLevel(s.fredSalaryLevel);
           if (s.brigitteSalaryLevel) setBrigitteSalaryLevel(s.brigitteSalaryLevel);
-          if (s.janiceSalaryLevel) setJaniceSalaryLevel(s.janiceSalaryLevel);
           if (s.lennySalaryLevel) setLennySalaryLevel(s.lennySalaryLevel);
           if (s.karenSalaryLevel) setKarenSalaryLevel(s.karenSalaryLevel);
           if (s.fredGrumpy) setFredGrumpy(true);
@@ -8042,7 +7920,6 @@ export default function App() {
           if (s.sabineGrumpy) setSabineGrumpy(true);
           if (typeof s.fredMoral === 'number') setFredMoral(s.fredMoral);
           if (typeof s.brigitteMoral === 'number') setBrigitteMoral(s.brigitteMoral);
-          if (typeof s.janiceMoral === 'number') setJaniceMoral(s.janiceMoral);
           if (typeof s.lennyMoral === 'number') setLennyMoral(s.lennyMoral);
           if (typeof s.karenMoral === 'number') setKarenMoral(s.karenMoral);
           if (typeof s.markMoral === 'number') setMarkMoral(s.markMoral);
@@ -8051,7 +7928,6 @@ export default function App() {
           if (typeof s.sabineSalaryLevel === 'string') setSabineSalaryLevel(s.sabineSalaryLevel);
           if (typeof s.fredStress === 'number') setFredStress(s.fredStress);
           if (typeof s.brigitteStress === 'number') setBrigitteStress(s.brigitteStress);
-          if (typeof s.janiceStress === 'number') setJaniceStress(s.janiceStress);
           if (typeof s.lennyStress === 'number') setLennyStress(s.lennyStress);
           if (typeof s.karenStress === 'number') setKarenStress(s.karenStress);
           if (typeof s.notoriety === 'number') setNotoriety(s.notoriety);
@@ -8270,10 +8146,10 @@ export default function App() {
       stock, money, owned, gameTime, phase, reputation, lines, marketplace, freezingLeft, freezingTotal, fredCycleLeft, fredCycleTotal,
       fredCycleAccum: fredCycleAccumRef.current,
       totals, lastInsuranceCancel, completedCalls, nextCallAt, meltTutorialShown,
-      fredSalaryLevel, brigitteSalaryLevel, janiceSalaryLevel, lennySalaryLevel, karenSalaryLevel, markSalaryLevel, sabineSalaryLevel,
+      fredSalaryLevel, brigitteSalaryLevel, lennySalaryLevel, karenSalaryLevel, markSalaryLevel, sabineSalaryLevel,
       fredGrumpy, brigitteGrumpy, janiceGrumpy, lennyGrumpy, karenGrumpy, markGrumpy, sabineGrumpy,
-      fredMoral, brigitteMoral, janiceMoral, lennyMoral, karenMoral, markMoral, sabineMoral,
-      fredStress, brigitteStress, janiceStress, lennyStress, karenStress,
+      fredMoral, brigitteMoral, lennyMoral, karenMoral, markMoral, sabineMoral,
+      fredStress, brigitteStress, lennyStress, karenStress,
       notoriety, glacierBeats, phase3TriggerStage, phase3Semesters, exoIntroShown, securityIntroShown,
       sickUntil,
       monthlyV2: true, // refonte mensuelle : marqueur de migration
@@ -8462,8 +8338,6 @@ export default function App() {
           || ownedRef.current['fred_perma'] || ownedRef.current['fred_chef'] || ownedRef.current['fred_dir']);
         const hasBrigittePresent = !!(ownedRef.current['autosell'] || ownedRef.current['brigitte_compta']
           || ownedRef.current['brigitte_ad']);
-        const hasJanicePresent = !!(ownedRef.current['janice_jr'] || ownedRef.current['janice_senior']
-          || ownedRef.current['janice_dir']);
         const hasLennyPresent = !!(ownedRef.current['camion_1'] || ownedRef.current['camion_2']
           || ownedRef.current['camion_3'] || ownedRef.current['camion_4']
           || ownedRef.current['camion_5'] || ownedRef.current['camion_6']);
@@ -8471,7 +8345,6 @@ export default function App() {
           || ownedRef.current['karen_drh']);
         if (hasFredPresent)     setFredMoral(m => Math.max(0, m + moralDelta));
         if (hasBrigittePresent) setBrigitteMoral(m => Math.max(0, m + moralDelta));
-        if (hasJanicePresent)   setJaniceMoral(m => Math.max(0, m + moralDelta));
         if (hasLennyPresent)    setLennyMoral(m => Math.max(0, m + moralDelta));
         if (hasKarenPresent)    setKarenMoral(m => Math.max(0, m + moralDelta));
       }
@@ -8812,7 +8685,6 @@ export default function App() {
             setFredMoral(m => Math.max(0, Math.min(100, m + d)));
             setBrigitteMoral(m => Math.max(0, Math.min(100, m + d)));
             setLennyMoral(m => Math.max(0, Math.min(100, m + d)));
-            setJaniceMoral(m => Math.max(0, Math.min(100, m + d)));
             setKarenMoral(m => Math.max(0, Math.min(100, m + d)));
             setMarkMoral(m => Math.max(0, Math.min(100, m + d)));
             setSabineMoral(m => Math.max(0, Math.min(100, m + d)));
@@ -9381,7 +9253,6 @@ export default function App() {
               // le moral est divisé par 2 (le retour au travail laisse une trace).
               if (fredGrumpyRef.current)     setFredMoral(m => Math.max(0, Math.floor(m / 2)));
               if (brigitteGrumpyRef.current) setBrigitteMoral(m => Math.max(0, Math.floor(m / 2)));
-              if (janiceGrumpyRef.current)   setJaniceMoral(m => Math.max(0, Math.floor(m / 2)));
               if (lennyGrumpyRef.current)    setLennyMoral(m => Math.max(0, Math.floor(m / 2)));
               if (karenGrumpyRef.current)    setKarenMoral(m => Math.max(0, Math.floor(m / 2)));
               setFredGrumpy(false);
@@ -9461,7 +9332,7 @@ export default function App() {
               const strikingNames = [];
               if (sb.fred > 0)     { setFredGrumpy(true);     strikingNames.push('Fred'); }
               if (sb.brigitte > 0) { setBrigitteGrumpy(true); strikingNames.push('Brigitte'); }
-              if (sb.janice > 0)   { setJaniceGrumpy(true);   strikingNames.push('Janice'); }
+              if (sb.janice > 0)   { setJaniceGrumpy(true);   strikingNames.push('Agence marketing'); }
               if (sb.lenny > 0)    { setLennyGrumpy(true);    strikingNames.push('Lenny'); }
               if (sb.karen > 0)    { setKarenGrumpy(true);    strikingNames.push('Karen'); }
               setWageArrears({ ...arr, struckMonth: _mNum });
@@ -9476,7 +9347,7 @@ export default function App() {
               const sb = arr.salariesByEmp || {};
               if (sb.fred > 0)     { setFredGrumpy(false);     setFredMoral(m => Math.max(0, m - 50)); }
               if (sb.brigitte > 0) { setBrigitteGrumpy(false); setBrigitteMoral(m => Math.max(0, m - 50)); }
-              if (sb.janice > 0)   { setJaniceGrumpy(false);   setJaniceMoral(m => Math.max(0, m - 50)); }
+              if (sb.janice > 0)   { setJaniceGrumpy(false); }
               if (sb.lenny > 0)    { setLennyGrumpy(false);    setLennyMoral(m => Math.max(0, m - 50)); }
               if (sb.karen > 0)    { setKarenGrumpy(false);    setKarenMoral(m => Math.max(0, m - 50)); }
               // L'employé est revenu mais exige son dû avant la fin de
@@ -9741,7 +9612,7 @@ export default function App() {
               const deliveredQty = effectiveQty * (1 - meltPct);
               const curBrigitteBonus = getBrigitteEffectiveBonus(ownedRef.current, brigitteSalaryLevelRef.current, brigitteGrumpyRef.current);
               // Campagnes marketing : multiplicateurs prix
-              const camp = getCampaignMultipliers(activeCampaignRef.current, gameTimeRef.current, stats.marketingMult, janiceGrumpyRef.current, janiceMoralRef.current);
+              const camp = getCampaignMultipliers(activeCampaignRef.current, gameTimeRef.current, stats.marketingMult, janiceGrumpyRef.current);
               // Saisonnalité : prix +25% mi-été, -25% mi-hiver
               const seasonContractMult = getDynamicContractMult(gameTimeRef.current);
               // Les upgrades de qualité/marque (sellMult) profitent AUSSI aux contrats B2B —
@@ -10375,7 +10246,6 @@ export default function App() {
     setLennyMoral(m => Math.max(0, m - 15));
     setFredMoral(m => Math.max(0, m - 5));
     setBrigitteMoral(m => Math.max(0, m - 5));
-    setJaniceMoral(m => Math.max(0, m - 5));
     lastSabotageAtRef.current = gameTimeRef.current;
     // Lot 3 — un sabotage sur deux est désormais attribué à Glacier Frères (rival incarné,
     // pas un simple RNG anonyme). Renforce la rivalité ressentie quand la noto monte.
@@ -10402,7 +10272,6 @@ export default function App() {
     // Faux avis = attaque DIRECTE sur l'image : la notoriété encaisse vraiment.
     setNotoriety(n => Math.max(0, n - 10));
     setEventNotif(t('notif.fake_reviews'));
-    setJaniceMoral(m => Math.max(0, m - 15));
     setFredMoral(m => Math.max(0, m - 5));
     setBrigitteMoral(m => Math.max(0, m - 5));
     setLennyMoral(m => Math.max(0, m - 5));
@@ -10425,7 +10294,6 @@ export default function App() {
     setNotoriety(n => Math.max(0, n - 5)); // incident rendu public : la marque encaisse
     setBrigitteMoral(m => Math.max(0, m - 15));
     setFredMoral(m => Math.max(0, m - 8));
-    setJaniceMoral(m => Math.max(0, m - 8));
     setLennyMoral(m => Math.max(0, m - 8));
     lastSabotageAtRef.current = gameTimeRef.current;
     const msg = {
@@ -10452,7 +10320,6 @@ export default function App() {
     lastSabotageAtRef.current = gameTimeRef.current;
     setFredMoral(m => Math.max(0, m - 20));
     setBrigitteMoral(m => Math.max(0, m - 10));
-    setJaniceMoral(m => Math.max(0, m - 10));
     setLennyMoral(m => Math.max(0, m - 10));
     // === RISQUE DE PANNE CHAÎNE DE PRODUCTION ===
     // 40% de risque que la chaîne s'arrête (production figée) suite au sabotage.
@@ -10487,7 +10354,6 @@ export default function App() {
     const reduceImpact = (val) => typeof val === 'number' ? val * mitigationFactor : val;
     if (typeof impact.fred === 'number')     setFredMoral(m => Math.max(0, m + reduceImpact(impact.fred)));
     if (typeof impact.brigitte === 'number') setBrigitteMoral(m => Math.max(0, m + reduceImpact(impact.brigitte)));
-    if (typeof impact.janice === 'number')   setJaniceMoral(m => Math.max(0, m + reduceImpact(impact.janice)));
     if (typeof impact.lenny === 'number')    setLennyMoral(m => Math.max(0, m + reduceImpact(impact.lenny)));
     if (hasKarenDrh) {
       setEventNotif(t('notif.karen_defused'));
@@ -10676,21 +10542,19 @@ export default function App() {
     if (!req) return;
     if (req.employee === 'fred') setFredSalaryLevel('haut');
     else if (req.employee === 'brigitte') setBrigitteSalaryLevel('haut');
-    else if (req.employee === 'janice') setJaniceSalaryLevel('haut');
     else if (req.employee === 'lenny') setLennySalaryLevel('haut');
     // Moral: alignment = full reset to 100
     if (req.employee === 'fred') setFredMoral(100);
     else if (req.employee === 'brigitte') setBrigitteMoral(100);
-    else if (req.employee === 'janice') setJaniceMoral(100);
     else if (req.employee === 'lenny') setLennyMoral(100);
-    const empName = { fred: 'FRED', brigitte: 'BRIGITTE', janice: 'JANICE', lenny: 'LENNY' }[req.employee];
+    const empName = { fred: 'FRED', brigitte: 'BRIGITTE', janice: 'AGENCE', lenny: 'LENNY' }[req.employee];
     setEventNotif(`${empName} ${t('notif.emp_stays_matched')}`);
     setPoachingRequest(null);
   };
   const handlePoachingRefuse = () => {
     const req = poachingRequest;
     if (!req) return;
-    const empName = { fred: 'FRED', brigitte: 'BRIGITTE', janice: 'JANICE', lenny: 'LENNY' }[req.employee];
+    const empName = { fred: 'FRED', brigitte: 'BRIGITTE', janice: 'AGENCE', lenny: 'LENNY' }[req.employee];
     if (Math.random() < 0.6) {
       if (req.employee === 'fred') setFredGrumpy(true);
       else if (req.employee === 'brigitte') setBrigitteGrumpy(true);
@@ -10748,9 +10612,8 @@ export default function App() {
     if (!req) return;
     if (req.employee === 'fred') setFredSalaryLevel(req.toLevel);
     else if (req.employee === 'brigitte') setBrigitteSalaryLevel(req.toLevel);
-    else if (req.employee === 'janice') setJaniceSalaryLevel(req.toLevel);
     else if (req.employee === 'lenny') setLennySalaryLevel(req.toLevel);
-    const empName = { fred: 'FRED', brigitte: 'BRIGITTE', janice: 'JANICE', lenny: 'LENNY' }[req.employee];
+    const empName = { fred: 'FRED', brigitte: 'BRIGITTE', janice: 'AGENCE', lenny: 'LENNY' }[req.employee];
     setEventNotif(`${empName} ${t('notif.emp_promoted')} · ${req.toLevel.toUpperCase()}`);
     adjustMoralFor(req.employee, 25);
     setLastRaiseDecision(prev => ({ ...prev, [req.employee]: gameTime }));
@@ -10759,7 +10622,7 @@ export default function App() {
   const handleRaiseDecline = () => {
     const req = raiseRequest;
     if (!req) return;
-    const empName = { fred: 'FRED', brigitte: 'BRIGITTE', janice: 'JANICE', lenny: 'LENNY' }[req.employee];
+    const empName = { fred: 'FRED', brigitte: 'BRIGITTE', janice: 'AGENCE', lenny: 'LENNY' }[req.employee];
     if (Math.random() < 0.5) {
       // Strike!
       if (req.employee === 'fred') setFredGrumpy(true);
@@ -11214,7 +11077,7 @@ export default function App() {
     if (!def) { setPendingTensionEvent(null); return; }
 
     // Helper : une crise génère du stress chez le membre d'équipe concerné.
-    const STRESS_SETTERS = { fred: setFredStress, brigitte: setBrigitteStress, janice: setJaniceStress, lenny: setLennyStress, karen: setKarenStress };
+    const STRESS_SETTERS = { fred: setFredStress, brigitte: setBrigitteStress, lenny: setLennyStress, karen: setKarenStress };
     const bumpStress = (staff, amount) => {
       const setter = STRESS_SETTERS[staff];
       if (setter && amount > 0) setter(s => Math.min(100, s + amount));
@@ -11331,7 +11194,6 @@ export default function App() {
         const morals = [];
         if (owned['fred_stage'] || owned['fred'] || owned['fred_perma'] || owned['fred_chef'] || owned['fred_dir']) morals.push(fredMoral);
         if (owned['autosell'] || owned['brigitte_compta'] || owned['brigitte_dir']) morals.push(brigitteMoral);
-        if (owned['janice_jr'] || owned['janice_senior'] || owned['janice_dir']) morals.push(janiceMoral);
         if (['camion_1','camion_2','lenny_chef'].some(id => owned[id])) morals.push(lennyMoral);
         const avgMoral = morals.length > 0 ? morals.reduce((a, b) => a + b, 0) / morals.length : 50;
         if (avgMoral >= 70) {
@@ -11819,7 +11681,6 @@ export default function App() {
     const clamp = m => Math.max(0, Math.min(100, m + delta));
     if (emp === 'fred') setFredMoral(clamp);
     else if (emp === 'brigitte') setBrigitteMoral(clamp);
-    else if (emp === 'janice') setJaniceMoral(clamp);
     else if (emp === 'lenny') setLennyMoral(clamp);
     else if (emp === 'karen') setKarenMoral(clamp);
     else if (emp === 'mark') setMarkMoral(clamp);
@@ -11914,7 +11775,7 @@ export default function App() {
       setJaniceLegendeUnlocked(true);
     }
     // Popup narrative de Janice
-    queuePopup({ type: 'character', speaker: 'Janice',
+    queuePopup({ type: 'character', speaker: 'Agence marketing',
       text: `${localizeField(action.title, language)} lancée. ${localizeField(action.fx, language)}.` });
     return true;
   };
@@ -11977,7 +11838,6 @@ export default function App() {
       const eff = Math.round(delta);
       if (!fredGrumpyRef.current) setFredMoral(m => Math.min(100, m + eff));
       if (!brigitteGrumpyRef.current) setBrigitteMoral(m => Math.min(100, m + eff));
-      if (!janiceGrumpyRef.current) setJaniceMoral(m => Math.min(100, m + eff));
       if (!lennyGrumpyRef.current) setLennyMoral(m => Math.min(100, m + eff));
     };
     if (kind === 'breakfast') {
@@ -11995,11 +11855,9 @@ export default function App() {
       const moralValues = [];
       const hasFredE = !!(ownedRef.current['fred_stage'] || ownedRef.current['fred'] || ownedRef.current['fred_perma'] || ownedRef.current['fred_chef'] || ownedRef.current['fred_dir']);
       const hasBrigE = !!(ownedRef.current['autosell'] || ownedRef.current['brigitte_compta'] || ownedRef.current['brigitte_ad']);
-      const hasJanE  = !!(ownedRef.current['janice_jr'] || ownedRef.current['janice_senior'] || ownedRef.current['janice_dir']);
       const hasLenE  = TRUCK_IDS.some(id => ownedRef.current[id]);
       if (hasFredE && !fredGrumpyRef.current) moralValues.push({ k: 'fred', v: fredMoralRef.current });
       if (hasBrigE && !brigitteGrumpyRef.current) moralValues.push({ k: 'brigitte', v: brigitteMoralRef.current });
-      if (hasJanE  && !janiceGrumpyRef.current) moralValues.push({ k: 'janice', v: janiceMoralRef.current });
       if (hasLenE  && !lennyGrumpyRef.current) moralValues.push({ k: 'lenny', v: lennyMoralRef.current });
       if (moralValues.length > 0) {
         moralValues.sort((a, b) => a.v - b.v);
@@ -12007,7 +11865,6 @@ export default function App() {
         const indivDelta = 35;
         if (target === 'fred') setFredMoral(m => Math.min(100, m + indivDelta));
         else if (target === 'brigitte') setBrigitteMoral(m => Math.min(100, m + indivDelta));
-        else if (target === 'janice') setJaniceMoral(m => Math.min(100, m + indivDelta));
         else if (target === 'lenny') setLennyMoral(m => Math.min(100, m + indivDelta));
       }
       setEventNotif(t('rh.individual_done'));
@@ -12097,7 +11954,6 @@ export default function App() {
     const moralBefore =
       emp === 'fred' ? fredMoral :
       emp === 'brigitte' ? brigitteMoral :
-      emp === 'janice' ? janiceMoral :
       emp === 'karen' ? karenMoral :
       emp === 'mark' ? markMoral :
       emp === 'sabine' ? sabineMoral :
@@ -12118,7 +11974,6 @@ export default function App() {
     const clamp = m => Math.max(0, Math.min(100, m + delta));
     setFredMoral(clamp);
     setBrigitteMoral(clamp);
-    setJaniceMoral(clamp);
     setLennyMoral(clamp);
   };
   // Helper: apply segment impact (object like { famille: +5, luxe: -3 })
@@ -12169,11 +12024,11 @@ export default function App() {
   // Plus le moral est bas, plus le gain est élevé (effet "à fleur de peau").
   // Si stress >= 100, le boost est refusé (bouton désactivé jusqu'à ce que stress revienne à 0).
   const triggerBoost = (emp) => {
-    const stressMap = { fred: fredStress, brigitte: brigitteStress, janice: janiceStress, lenny: lennyStress };
-    const moralMap  = { fred: fredMoral,  brigitte: brigitteMoral,  janice: janiceMoral,  lenny: lennyMoral  };
-    const setMap    = { fred: setFredStress, brigitte: setBrigitteStress, janice: setJaniceStress, lenny: setLennyStress };
-    const lockMap   = { fred: fredBurnedLock, brigitte: brigitteBurnedLock, janice: janiceBurnedLock, lenny: lennyBurnedLock };
-    const setLockMap = { fred: setFredBurnedLock, brigitte: setBrigitteBurnedLock, janice: setJaniceBurnedLock, lenny: setLennyBurnedLock };
+    const stressMap = { fred: fredStress, brigitte: brigitteStress, lenny: lennyStress };
+    const moralMap  = { fred: fredMoral,  brigitte: brigitteMoral,  lenny: lennyMoral  };
+    const setMap    = { fred: setFredStress, brigitte: setBrigitteStress, lenny: setLennyStress };
+    const lockMap   = { fred: fredBurnedLock, brigitte: brigitteBurnedLock, lenny: lennyBurnedLock };
+    const setLockMap = { fred: setFredBurnedLock, brigitte: setBrigitteBurnedLock, lenny: setLennyBurnedLock };
     const cur = stressMap[emp];
     const mor = moralMap[emp];
     const setS = setMap[emp];
@@ -12327,7 +12182,6 @@ export default function App() {
     setMeltTutorialShown(false);
     setFredSalaryLevel('bas');
     setBrigitteSalaryLevel('bas');
-    setJaniceSalaryLevel('bas');
     setLennySalaryLevel('bas');
     setKarenSalaryLevel('bas');
     setFredGrumpy(false);
@@ -12337,10 +12191,9 @@ export default function App() {
     setKarenGrumpy(false);
     setFredMoral(70);
     setBrigitteMoral(70);
-    setJaniceMoral(70);
     setLennyMoral(70);
     setKarenMoral(70);
-    setFredStress(0); setBrigitteStress(0); setJaniceStress(0); setLennyStress(0); setKarenStress(0);
+    setFredStress(0); setBrigitteStress(0); setLennyStress(0); setKarenStress(0);
     setNotoriety(0);
     setSegFamille(30); setSegJeunesse(30); setSegPro(30); setSegLuxe(30); setSegEco(30);
     setBrandPositioning(null); setPositioningModalOpen(false);
@@ -12379,7 +12232,6 @@ export default function App() {
     setLennyBoostUntil(0);
     setFredBurnedLock(false);
     setBrigitteBurnedLock(false);
-    setJaniceBurnedLock(false);
     setLennyBurnedLock(false);
     setPhase3Semesters(0);
     setExoIntroShown(false);
@@ -12430,9 +12282,9 @@ export default function App() {
     setSeasonNotif(null);
     setEventNotif(null);
     setPopupMessage(null);
-    lastMoralWarningTsRef.current = { fred: -999, brigitte: -999, janice: -999, lenny: -999 };
-    lastStressWarningTsRef.current = { fred: -999, brigitte: -999, janice: -999, lenny: -999 };
-    lastBoostTsRef.current = { fred: -999, brigitte: -999, janice: -999, lenny: -999 };
+    lastMoralWarningTsRef.current = { fred: -999, brigitte: -999, lenny: -999 };
+    lastStressWarningTsRef.current = { fred: -999, brigitte: -999, lenny: -999 };
+    lastBoostTsRef.current = { fred: -999, brigitte: -999, lenny: -999 };
     setStatusMsg('');
     setPops([]);
     setLinePopups({});
@@ -12461,7 +12313,7 @@ export default function App() {
     // Karen dont l'échéance vaut (gameTime + durée) survit au reset : gameTime
     // repart à 0 mais l'échéance reste élevée → effet/cooldown fantôme actif.
     setChainBroken(null); chainBrokenRef.current = null;
-    setBrigitteBoostUntil(0); setJaniceBoostUntil(0);
+    setBrigitteBoostUntil(0);
     setKarenTeamBuildUntil(0); karenTeamBuildUntilRef.current = 0;
     setKarenTeamBuildCooldownUntil(0); karenTeamBuildCooldownUntilRef.current = 0;
     setTutCooldownUntil(0);
@@ -12980,13 +12832,12 @@ export default function App() {
     const marketBadge = canContracts ? feasibleMarketCount : 0;
     const hasFreeSlot = canContracts && lines.some(l => !l.contractId);
     const contractsRinging = canContracts && hasFreeSlot && feasibleMarketCount > 0;
-    const anyStressed = fredStress >= 60 || brigitteStress >= 60 || janiceStress >= 60 || lennyStress >= 60;
+    const anyStressed = fredStress >= 60 || brigitteStress >= 60 || lennyStress >= 60;
     // === ALERTE MORAL : indique au joueur que des actions RH sont nécessaires ===
     // Conditions : moral moyen équipe < 50 OU au moins un employé avec moral < 30
     const moralLowList = [];
     if (hasFred) moralLowList.push(fredMoral);
     if (hasBrigitte) moralLowList.push(brigitteMoral);
-    if (hasJanice) moralLowList.push(janiceMoral);
     if (hasLenny) moralLowList.push(lennyMoral);
     const moralAvg = moralLowList.length > 0 ? moralLowList.reduce((a,b)=>a+b,0) / moralLowList.length : 100;
     const moralLow = moralLowList.length > 0 && (moralAvg < 50 || Math.min(...moralLowList) < 30);
@@ -13098,13 +12949,12 @@ export default function App() {
     const marketBadge = canContracts ? feasibleMarketCount : 0;
     const hasFreeSlot = canContracts && lines.some(l => !l.contractId);
     const contractsRinging = canContracts && hasFreeSlot && feasibleMarketCount > 0;
-    const anyStressed = fredStress >= 60 || brigitteStress >= 60 || janiceStress >= 60 || lennyStress >= 60;
+    const anyStressed = fredStress >= 60 || brigitteStress >= 60 || lennyStress >= 60;
     // === ALERTE MORAL : indique au joueur que des actions RH sont nécessaires ===
     // Conditions : moral moyen équipe < 50 OU au moins un employé avec moral < 30
     const moralLowList = [];
     if (hasFred) moralLowList.push(fredMoral);
     if (hasBrigitte) moralLowList.push(brigitteMoral);
-    if (hasJanice) moralLowList.push(janiceMoral);
     if (hasLenny) moralLowList.push(lennyMoral);
     const moralAvg = moralLowList.length > 0 ? moralLowList.reduce((a,b)=>a+b,0) / moralLowList.length : 100;
     const moralLow = moralLowList.length > 0 && (moralAvg < 50 || Math.min(...moralLowList) < 30);
@@ -18388,8 +18238,8 @@ export default function App() {
                         <button className="dev-btn" onClick={() => { if (activeLoan) { setActiveLoan(null); setEventNotif('PRÊT REMBOURSÉ'); } else { setEventNotif('PAS DE PRÊT'); } }}>RESET PRÊT</button>
                         <button className="dev-btn" onClick={() => {
                           // Réinitialise complètement les charges et états employés
-                          setFredStress(0); setBrigitteStress(0); setJaniceStress(0); setLennyStress(0);
-                          setFredMoral(100); setBrigitteMoral(100); setJaniceMoral(100); setLennyMoral(100);
+                          setFredStress(0); setBrigitteStress(0); setLennyStress(0);
+                          setFredMoral(100); setBrigitteMoral(100); setLennyMoral(100);
                           setFredGrumpy(false); setBrigitteGrumpy(false); setJaniceGrumpy(false); setLennyGrumpy(false);
                           setEventNotif('ÉQUIPE RÉINITIALISÉE');
                         }}>RESET ÉQUIPE</button>
@@ -18493,7 +18343,6 @@ export default function App() {
                                 setFredMoral(m => Math.max(0, Math.min(100, m + d)));
                                 setBrigitteMoral(m => Math.max(0, Math.min(100, m + d)));
                                 setLennyMoral(m => Math.max(0, Math.min(100, m + d)));
-                                setJaniceMoral(m => Math.max(0, Math.min(100, m + d)));
                                 setKarenMoral(m => Math.max(0, Math.min(100, m + d)));
                                 setMarkMoral(m => Math.max(0, Math.min(100, m + d)));
                                 setSabineMoral(m => Math.max(0, Math.min(100, m + d)));
@@ -18581,25 +18430,23 @@ export default function App() {
                       <div className="dev-grid">
                         <button className="dev-btn" onClick={() => setFredMoral(20)}>FRED 20</button>
                         <button className="dev-btn" onClick={() => setBrigitteMoral(20)}>BRIG. 20</button>
-                        <button className="dev-btn" onClick={() => setJaniceMoral(20)}>JANICE 20</button>
                         <button className="dev-btn" onClick={() => setLennyMoral(20)}>LENNY 20</button>
-                        <button className="dev-btn" onClick={() => { setFredMoral(100); setBrigitteMoral(100); setJaniceMoral(100); setLennyMoral(100); }}>RESET 100</button>
-                        <button className="dev-btn" onClick={() => { setFredMoral(0); setBrigitteMoral(0); setJaniceMoral(0); setLennyMoral(0); }}>ALL 0</button>
+                        <button className="dev-btn" onClick={() => { setFredMoral(100); setBrigitteMoral(100); setLennyMoral(100); }}>RESET 100</button>
+                        <button className="dev-btn" onClick={() => { setFredMoral(0); setBrigitteMoral(0); setLennyMoral(0); }}>ALL 0</button>
                       </div>
                       <div className="dev-section-subtitle">STRESS</div>
                       <div className="dev-grid">
                         <button className="dev-btn" onClick={() => setFredStress(85)}>FRED 85%</button>
                         <button className="dev-btn" onClick={() => setBrigitteStress(85)}>BRIG. 85%</button>
-                        <button className="dev-btn" onClick={() => setJaniceStress(85)}>JANICE 85%</button>
                         <button className="dev-btn" onClick={() => setLennyStress(85)}>LENNY 85%</button>
                         <button className="dev-btn" onClick={() => setFredStress(100)}>BURNOUT FRED</button>
-                        <button className="dev-btn" onClick={() => { setFredStress(0); setBrigitteStress(0); setJaniceStress(0); setLennyStress(0); setFredBurnedLock(false); setBrigitteBurnedLock(false); setJaniceBurnedLock(false); setLennyBurnedLock(false); }}>RESET</button>
+                        <button className="dev-btn" onClick={() => { setFredStress(0); setBrigitteStress(0); setLennyStress(0); setFredBurnedLock(false); setBrigitteBurnedLock(false); setLennyBurnedLock(false); }}>RESET</button>
                       </div>
                       <div className="dev-section-subtitle">GRÈVE</div>
                       <div className="dev-grid">
                         <button className="dev-btn" onClick={() => setFredGrumpy(true)}>FRED</button>
                         <button className="dev-btn" onClick={() => setBrigitteGrumpy(true)}>BRIG.</button>
-                        <button className="dev-btn" onClick={() => setJaniceGrumpy(true)}>JANICE</button>
+                        <button className="dev-btn" onClick={() => setJaniceGrumpy(true)}>AGENCE</button>
                         <button className="dev-btn" onClick={() => setLennyGrumpy(true)}>LENNY</button>
                         <button className="dev-btn" onClick={() => { setFredGrumpy(false); setBrigitteGrumpy(false); setJaniceGrumpy(false); setLennyGrumpy(false); setKarenGrumpy(false); }}>STOP GRÈVES</button>
                       </div>
@@ -18633,7 +18480,7 @@ export default function App() {
                         }}>🎲 MESSAGE ALÉATOIRE</button>
                       </div>
                       {Object.entries(DEV_PREVIEW_MESSAGES).map(([emp, categories]) => {
-                        const speakerMap = { fred: 'Fred', brigitte: 'Brigitte', janice: 'Janice', lenny: 'Lenny' };
+                        const speakerMap = { fred: 'Fred', brigitte: 'Brigitte', janice: 'Agence', lenny: 'Lenny' };
                         const catLabels = {
                           saturation: 'Saturation (P1→2)',
                           export: 'Export hint (P1→2)',
@@ -20566,7 +20413,7 @@ export default function App() {
 
         {poachingRequest && (() => {
           const req = poachingRequest;
-          const empName = { fred: 'Fred', brigitte: 'Brigitte', janice: 'Janice', lenny: 'Lenny' }[req.employee];
+          const empName = { fred: 'Fred', brigitte: 'Brigitte', janice: 'Agence', lenny: 'Lenny' }[req.employee];
           return (
             <div className="modal-backdrop" onClick={handlePoachingRefuse}>
               <div className="modal" onClick={e => e.stopPropagation()}>
@@ -20604,7 +20451,7 @@ export default function App() {
           const empData = {
             fred: { name: 'Fred', narrative: { fr: "Patron, ça fait deux ans que je donne tout pour la production. Je veux passer en", en: "Boss, two years giving everything to production. I want to move up to", es: "Jefe, llevo dos años dándolo todo por la producción. Quiero pasar a", zh: "老板，两年把一切都给了生产。我想升到", ru: "Босс, два года отдаю всё производству. Хочу подняться до", it: "Capo, due anni a dare tutto alla produzione. Voglio salire a", de: "Chef, zwei Jahre alles für die Produktion gegeben. Ich will aufsteigen zu" }, strikeImpact: { fr: "production stoppée", en: "production halted", es: "producción detenida", zh: "生产停止", ru: "производство остановлено", it: "produzione ferma", de: "Produktion gestoppt" } },
             brigitte: { name: 'Brigitte', narrative: { fr: "Bonjour. Cela fait quelques années que je suis ici et je pense mériter une revalorisation à", en: "Hello. I've been here for a few years and I think I deserve an upgrade to", es: "Hola. Llevo unos años aquí y creo que merezco una revalorización a", zh: "你好。我在这儿几年了，我觉得我配得上升到", ru: "Здравствуйте. Я здесь уже несколько лет и думаю, что заслуживаю повышения до", it: "Salve. Sono qui da qualche anno e credo di meritare un avanzamento a", de: "Hallo. Ich bin seit ein paar Jahren hier und finde, ich habe einen Aufstieg verdient zu" }, strikeImpact: { fr: "auto-vente coupée + contrats plafonnés", en: "auto-sell cut + contracts capped", es: "auto-venta cortada + contratos limitados", zh: "自动销售削减 + 合同受限", ru: "автопродажа урезана + контракты ограничены", it: "vendita auto tagliata + contratti limitati", de: "Auto-Verkauf gestoppt + Verträge gedeckelt" } },
-            janice: { name: 'Janice', narrative: { fr: "Bon, on en parle ? J'ai construit cette marque. Je veux passer en", en: "OK, can we talk? I built this brand. I want to move up to", es: "Bueno, ¿hablamos? Yo construí esta marca. Quiero pasar a", zh: "好，能谈谈吗？这个品牌是我建的。我想升到", ru: "Ладно, можем поговорить? Я построила этот бренд. Хочу подняться до", it: "OK, possiamo parlare? Ho costruito questo marchio. Voglio salire a", de: "OK, können wir reden? Ich habe diese Marke aufgebaut. Ich will aufsteigen zu" }, strikeImpact: { fr: "notoriété figée", en: "notoriety frozen", es: "notoriedad congelada", zh: "知名度冻结", ru: "известность заморожена", it: "notorietà congelata", de: "Bekanntheit eingefroren" } },
+            janice: { name: 'Agence marketing', narrative: { fr: "Bon, on en parle ? J'ai construit cette marque. Je veux passer en", en: "OK, can we talk? I built this brand. I want to move up to", es: "Bueno, ¿hablamos? Yo construí esta marca. Quiero pasar a", zh: "好，能谈谈吗？这个品牌是我建的。我想升到", ru: "Ладно, можем поговорить? Я построила этот бренд. Хочу подняться до", it: "OK, possiamo parlare? Ho costruito questo marchio. Voglio salire a", de: "OK, können wir reden? Ich habe diese Marke aufgebaut. Ich will aufsteigen zu" }, strikeImpact: { fr: "notoriété figée", en: "notoriety frozen", es: "notoriedad congelada", zh: "知名度冻结", ru: "известность заморожена", it: "notorietà congelata", de: "Bekanntheit eingefroren" } },
             lenny: { name: 'Lenny', narrative: { fr: "Hé, le patron ! J'fais les trajets jour et nuit. Tu me passes en", en: "Hey, boss! I drive day and night. Move me up to", es: "¡Eh, jefe! Hago los viajes día y noche. Me pasas a", zh: "嘿，老板！我日夜开车。把我升到", ru: "Эй, босс! Я вожу день и ночь. Подними меня до", it: "Ehi, capo! Guido giorno e notte. Fammi salire a", de: "Hey, Chef! Ich fahre Tag und Nacht. Befördere mich zu" }, strikeImpact: { fr: "camions à l'arrêt", en: "trucks stopped", es: "camiones parados", zh: "卡车停摆", ru: "грузовики стоят", it: "camion fermi", de: "LKW gestoppt" } },
           }[req.employee];
           // Compute new salary from current grade
@@ -20706,7 +20553,7 @@ export default function App() {
           const v = pendingIncident.variant;
           const text = localizeField(v.text, language);
           const impact = v.moralImpact || {};
-          const empNameFr = { fred: 'Fred', brigitte: 'Brigitte', janice: 'Janice', lenny: 'Lenny' };
+          const empNameFr = { fred: 'Fred', brigitte: 'Brigitte', janice: 'Agence', lenny: 'Lenny' };
           // Liste lisible des impacts
           const impactItems = Object.entries(impact).map(([k, n]) => ({ name: empNameFr[k] || k, n })).sort((a, b) => a.n - b.n);
           const kindLabel = pendingIncident.kind === 'tension' ? t('incident.tension')
@@ -21273,7 +21120,6 @@ export default function App() {
                     const morals = [];
                     if (hasFred) morals.push(fredMoral);
                     if (hasBrigitte) morals.push(brigitteMoral);
-                    if (hasJanice) morals.push(janiceMoral);
                     if (hasLenny) morals.push(lennyMoral);
                     if (!!(owned['karen_junior'] || owned['karen_senior'] || owned['karen_drh'])) morals.push(karenMoral);
                     if (!!(owned['mark_jr'] || owned['mark_resp'] || owned['mark_dir'])) morals.push(markMoral);
