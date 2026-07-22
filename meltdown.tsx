@@ -1635,8 +1635,6 @@ const ACHIEVEMENTS = [
     desc: { fr: 'Avoir 4 employés avec moral ≥80', en: 'Have 4 employees with morale ≥80' } },
   { id: 'mentor', cat: 'team', name: { fr: 'MENTOR', en: 'MENTOR' },
     desc: { fr: 'Promouvoir un employé jusqu\'au tier Directeur', en: 'Promote an employee to Director tier' } },
-  { id: 'no_firing', cat: 'team', name: { fr: 'AUCUN LICENCIEMENT', en: 'NO FIRING' },
-    desc: { fr: 'Finir le jeu sans avoir licencié personne', en: 'Finish the game without firing anyone' } },
   { id: 'fred_director', cat: 'team', name: { fr: 'FRED DIRECTEUR', en: 'FRED DIRECTOR' },
     desc: { fr: 'Promouvoir Fred jusqu\'au tier max', en: 'Promote Fred to max tier' } },
   // --- Crises & résilience ---
@@ -1646,13 +1644,7 @@ const ACHIEVEMENTS = [
     desc: { fr: 'Gagner un procès en défendant', en: 'Win a lawsuit by defending' } },
   { id: 'survivor', cat: 'crisis', name: { fr: 'SURVIVANT', en: 'SURVIVOR' },
     desc: { fr: 'Survivre à 3 canicules', en: 'Survive 3 heatwaves' } },
-  { id: 'invincible', cat: 'crisis', name: { fr: 'INVINCIBLE', en: 'INVINCIBLE' },
-    desc: { fr: 'Refuser 3 offres d\'acquéreurs', en: 'Refuse 3 acquirer offers' } },
   // --- Style de jeu / fins ---
-  { id: 'sold_patrice', cat: 'style', name: { fr: 'VENTE PATRICE', en: 'SOLD TO PATRICE' },
-    desc: { fr: 'Vendre à Patrice Glacier (fin chaleureuse)', en: 'Sell to Patrice Glacier (warm ending)' } },
-  { id: 'sold_silverlion', cat: 'style', name: { fr: 'VENTE SILVERLION', en: 'SOLD TO SILVERLION' },
-    desc: { fr: 'Vendre à SilverLion (fin sombre)', en: 'Sell to SilverLion (dark ending)' } },
   { id: 'cult_brand', cat: 'style', name: { fr: 'MARQUE CULTE', en: 'CULT BRAND' },
     desc: { fr: 'Atteindre 100 de notoriété', en: 'Reach 100 notoriety' } },
   { id: 'stable_empire', cat: 'style', name: { fr: 'EMPIRE STABLE', en: 'STABLE EMPIRE' },
@@ -2538,102 +2530,6 @@ const PHONE_CALLS = [
     narrative: { fr: "Bonjour, je suis la coordinatrice du Salon International de l'Alimentaire. Nous avons un emplacement libre pour un stand fournisseur de glace premium. 1200 GL de démonstration, visibilité internationale garantie. Inscription gratuite si tu réponds vite.", en: "Hi, I coordinate the International Food Trade Fair. We have a free spot for a premium ice supplier booth. 1200 IC for demonstration, guaranteed international visibility. Free registration if you respond fast.", es: "Hola, coordino el Salón Internacional Alimentario. Tenemos un sitio libre para stand proveedor de hielo premium. 1200 CB de demostración, visibilidad internacional garantizada. Inscripción gratis si respondes rápido.", zh: "嗨，我协调国际食品贸易博览会。我们有个免费位置给高端供冰商展位。1200冰块做演示，保证国际曝光。回复快就免注册费。", ru: "Привет, координирую Международную Продовольственную Ярмарку. У нас есть свободное место для стенда премиум-поставщика льда. 1200 К для демонстрации, гарантированная международная видимость. Бесплатная регистрация, если ответите быстро.", it: "Ciao, coordino la Fiera Internazionale dell'Alimentare. Abbiamo uno stand libero per un fornitore di ghiaccio premium. 1200 CB per dimostrazione, visibilità internazionale garantita. Iscrizione gratuita se rispondi in fretta.", de: "Hi, ich koordiniere die Internationale Food-Messe. Wir haben einen freien Platz für einen Premium-Eislieferanten-Stand. 1200 EW zur Vorführung, garantierte internationale Sichtbarkeit. Gratis-Anmeldung bei schneller Antwort." } },
 
   // ============================================================
-  // === PHASE 4 — APPELS STRATÉGIQUES (dilemmes pour la valorisation)
-  // ============================================================
-  { id: 'fonds_speculatif', minRevenue: 0, product: 'popice', ethic: 'shady', title: { fr: "Fonds spéculatif anonyme, POP ICE", en: "Anonymous speculative fund, POP ICE", es: "Fondo especulativo anónimo, POP ICE", zh: "匿名投机基金, POP ICE", ru: "Анонимный спекулятивный фонд, POP ICE", it: "Fondo speculativo anonimo, POP ICE", de: "Anonymer Spekulationsfonds, POP ICE" }, minPhase: 4, minLevel: 21, decisionTime: 30, needStock: 5000,
-    rewardAccept: { money: 8000, rep: -12, noto: -5, segEco: -8 }, rewardDecline: { money: 0, rep: 2 },
-    narrative: { fr: "Bonsoir. Cash facile. On t'achète 5000 tubes de POP ICE à 3× le prix marché. La caisse vient discrètement, par valise. Pas de facture, pas de questions, pas de traçabilité. Tu touches 8000€ ce soir. Le marché parallèle paye bien, mais on jase.", en: "Evening. Easy cash. We buy 5000 tubes of POP ICE at 3× market price. Cash comes discreetly, in a briefcase. No invoice, no questions, no traceability. You get €8000 tonight. The parallel market pays well, but tongues wag.", es: "Buenas. Cash fácil. Te compramos 5000 tubos de POP ICE a 3× precio mercado. La pasta viene discretamente, en maletín. Sin factura, sin preguntas, sin trazabilidad. Cobras 8000€ esta noche. El mercado paralelo paga bien, pero se rumorea.", zh: "晚上好。轻松的钱。我们以3倍市价买5000管POP ICE。现金低调送来，装在公文包里。无发票，无问题，无可追溯。今晚你拿到€8000。平行市场出手大方，但人会嚼舌根。", ru: "Добрый вечер. Лёгкие деньги. Покупаем 5000 тюбиков POP ICE по 3× рыночной цены. Наличные приходят незаметно, в чемоданчике. Без счёта, без вопросов, без отслеживания. Получаете €8000 сегодня. Параллельный рынок хорошо платит, но языки чешутся.", it: "Buonasera. Soldi facili. Compriamo 5000 tubi di POP ICE a 3× il prezzo di mercato. Il contante arriva con discrezione, in una valigetta. Niente fattura, niente domande, niente tracciabilità. Ottieni 8000€ stasera. Il mercato parallelo paga bene, ma le lingue si sciolgono.", de: "Abend. Leichtes Geld. Wir kaufen 5000 Tuben POP ICE zum 3-fachen Marktpreis. Bargeld diskret, im Koffer. Keine Rechnung, keine Fragen, keine Rückverfolgbarkeit. 8000€ heute Abend. Der Schwarzmarkt zahlt gut, aber man redet." } },
-  { id: 'chaine_tv_engagement', minRevenue: 2000000, ethic: 'good', title: { fr: "Chaîne TV, docu engagement RSE", en: "TV channel, CSR engagement doc", es: "Cadena TV, documental RSE", zh: "电视台, 企业社会责任纪录片", ru: "ТВ-канал, док о КСО-вовлечённости", it: "Canale TV, doc impegno CSR", de: "TV-Sender, CSR-Doku" }, minPhase: 4, minLevel: 22, decisionTime: 30, needStock: 0,
-    rewardAccept: { money: -5000, rep: 8, noto: 15, segEco: 10 }, rewardDecline: { money: 0, rep: 0, noto: -1 },
-    narrative: { fr: "Bonjour. Chaîne nationale, on prépare un docu prime time sur les entreprises engagées. Tu serais le héros principal, suivi pendant une saison entière. Engagement : 5000€ pour la production du tournage. Visibilité énorme, image impeccable.", en: "Hello. National TV, we're prepping a prime-time doc on engaged companies. You'd be the main hero, followed for an entire season. Commitment: €5000 for the production. Huge visibility, flawless image.", es: "Hola. Cadena nacional, preparamos un documental prime time sobre empresas comprometidas. Serías el héroe principal, seguido durante una estación entera. Compromiso: 5000€ para la producción. Visibilidad enorme, imagen impecable.", zh: "你好。国家电视台，我们在筹备一部黄金时段关于有担当企业的纪录片。你会是主角，跟拍整整一季。承诺：制作费€5000。巨大曝光，完美形象。", ru: "Здравствуйте. Национальное ТВ, готовим док в прайм-тайм о социально ответственных компаниях. Вы были бы главным героем, за вами следят целый сезон. Обязательство: €5000 на производство. Огромная видимость, безупречный имидж.", it: "Salve. TV nazionale, prepariamo un documentario in prime-time sulle aziende impegnate. Saresti l'eroe principale, seguito per un'intera stagione. Impegno: 5000€ per la produzione. Visibilità enorme, immagine impeccabile.", de: "Hallo. Nationales TV, wir bereiten eine Prime-Time-Doku über engagierte Unternehmen vor. Du wärst der Hauptheld, eine ganze Staffel begleitet. Beitrag: 5000€ für die Produktion. Riesige Sichtbarkeit, makelloses Image." } },
-  { id: 'lobbying_pharma', minRevenue: 2000000, ethic: 'shady', title: { fr: "Lobbying pharma, MEDIPACK exclusif", en: "Pharma lobbying, MEDIPACK exclusive", es: "Lobby farma, MEDIPACK exclusivo", zh: "医药游说, MEDIPACK独家", ru: "Фарма-лоббирование, эксклюзив MEDIPACK", it: "Lobby farmaceutica, esclusiva MEDIPACK", de: "Pharma-Lobbying, MEDIPACK exklusiv" }, minPhase: 4, minLevel: 22, decisionTime: 30, needStock: 0,
-    rewardAccept: { money: 15000, rep: -8, noto: 8, segEco: -10 }, rewardDecline: { money: 0, rep: 0 },
-    narrative: { fr: "Bonjour. Représentant d'un consortium pharmaceutique. On finance ta R&D MEDIPACK à hauteur de 15000€ contre une exclusivité absolue de deux ans pour notre groupe. Tu refuses tous les autres labos. C'est ferme, c'est gros, c'est rentable.", en: "Hello. Representative of a pharma consortium. We fund your MEDIPACK R&D for €15000 against a strict 2-year exclusivity for our group. You refuse all other labs. Firm, big, lucrative.", es: "Hola. Representante de un consorcio farmacéutico. Financiamos tu I+D MEDIPACK con 15000€ a cambio de exclusividad estricta de 2 años para nuestro grupo. Rechazas todos los demás labos. Firme, grande, rentable.", zh: "你好。一个医药财团的代表。我们出资€15000资助你的MEDIPACK研发，换取对我们集团严格的2年独家。你拒绝所有其他实验室。坚定、巨大、有利可图。", ru: "Здравствуйте. Представитель фарма-консорциума. Финансируем вашу R&D MEDIPACK за €15000 против строгой 2-летней эксклюзивности для нашей группы. Вы отказываете всем другим лабораториям. Твёрдо, крупно, прибыльно.", it: "Salve. Rappresentante di un consorzio farmaceutico. Finanziamo la tua R&S MEDIPACK per 15000€ contro un'esclusiva rigorosa di 2 anni per il nostro gruppo. Rifiuti tutti gli altri laboratori. Solido, grande, lucrativo.", de: "Hallo. Vertreter eines Pharmakonsortiums. Wir finanzieren deine MEDIPACK-F&E mit 15000€ gegen strikte 2-Jahres-Exklusivität für unsere Gruppe. Du lehnst alle anderen Labore ab. Fest, groß, lukrativ." } },
-  { id: 'greenwashing_offer', minRevenue: 4000000, ethic: 'shady', title: { fr: "Agence greenwashing, image éco", en: "Greenwashing agency, eco image", es: "Agencia greenwashing, imagen eco", zh: "漂绿机构, 环保形象", ru: "Агентство гринвошинга, эко-имидж", it: "Agenzia greenwashing, immagine eco", de: "Greenwashing-Agentur, Öko-Image" }, minPhase: 4, minLevel: 23, decisionTime: 30, needStock: 0,
-    rewardAccept: { money: -6000, rep: 0, noto: 5, segEco: 10, greenwashRisk: true }, rewardDecline: { money: 0, rep: 3 },
-    narrative: { fr: "Bonjour. Agence spécialisée. On te bâtit une image écolo impeccable sans rien changer à ta prod. Storytelling, certifications de complaisance, photos d'ouvriers en vert. 6000€ et c'est plié. Risque ? Si un journaliste creuse, l'addition est salée.", en: "Hello. Specialized agency. We build you a flawless green image without changing your production. Storytelling, complacent certifications, photos of workers in green. €6000 and it's done. Risk? If a journalist digs, the bill is steep.", es: "Hola. Agencia especializada. Te construimos una imagen ecológica impecable sin cambiar nada de tu producción. Storytelling, certificaciones de complacencia, fotos de obreros en verde. 6000€ y listo. ¿Riesgo? Si un periodista escarba, la factura es salada.", zh: "你好。专业机构。我们为你打造完美绿色形象，不改变你的生产。叙事、纵容性认证、穿绿衣工人的照片。€6000搞定。风险？要是有记者深挖，账单很贵。", ru: "Здравствуйте. Специализированное агентство. Строим вам безупречный зелёный имидж без изменения производства. Сторителлинг, угодливые сертификации, фото рабочих в зелёном. €6000, и готово. Риск? Если журналист копнёт, счёт крутой.", it: "Salve. Agenzia specializzata. Ti costruiamo un'immagine green impeccabile senza cambiare la produzione. Storytelling, certificazioni compiacenti, foto di operai in verde. 6000€ ed è fatta. Rischio? Se un giornalista scava, il conto è salato.", de: "Hallo. Spezialagentur. Wir bauen dir ein makelloses grünes Image, ohne deine Produktion zu ändern. Storytelling, gefällige Zertifikate, Fotos von Arbeitern in Grün. 6000€ und es ist erledigt. Risiko? Gräbt ein Journalist nach, wird die Rechnung happig." } },
-  { id: 'partenariat_humanitaire', minRevenue: 4000000, product: 'frozio', ethic: 'good', title: { fr: "ONG, urgence climatique mondiale", en: "NGO, global climate emergency", es: "ONG, emergencia climática mundial", zh: "NGO, 全球气候紧急", ru: "НКО, глобальная климатическая ЧС", it: "ONG, emergenza climatica globale", de: "NGO, globaler Klimanotstand" }, minPhase: 4, minLevel: 23, decisionTime: 30, needStock: 800,
-    rewardAccept: { money: -3000, rep: 12, noto: 8, segEco: 15, segFamille: 5 }, rewardDecline: { money: 0, rep: -6 },
-    narrative: { fr: "Bonsoir. ONG ClimateAid. Catastrophe climatique majeure au Sud, urgence vitale. On a besoin de 800 packs FROZIO et MEDIPACK pour les zones sinistrées. On paye 30% du prix marché, mais la presse couvre. Refuser, c'est public aussi.", en: "Evening. ClimateAid NGO. Major climate disaster in the South, life-threatening urgency. We need 800 packs of FROZIO and MEDIPACK for disaster zones. We pay 30% of market price, but press covers it. Declining is also public.", es: "Buenas. ONG ClimateAid. Catástrofe climática mayor en el Sur, urgencia vital. Necesitamos 800 packs de FROZIO y MEDIPACK para zonas siniestradas. Pagamos 30% del precio mercado, pero la prensa cubre. Negarse también es público.", zh: "晚上好。ClimateAid NGO。南方重大气候灾难，危及生命的紧急。我们需要800包FROZIO和MEDIPACK给灾区。我们付市价30%，但媒体会报道。拒绝同样是公开的。", ru: "Добрый вечер. НКО ClimateAid. Крупная климатическая катастрофа на Юге, угроза жизни. Нам нужно 800 упаковок FROZIO и MEDIPACK для зон бедствия. Платим 30% рыночной цены, но пресса это освещает. Отказ тоже публичен.", it: "Buonasera. ONG ClimateAid. Grave disastro climatico nel Sud, urgenza vitale. Ci servono 800 pack di FROZIO e MEDIPACK per le zone disastrate. Paghiamo il 30% del prezzo di mercato, ma la stampa lo copre. Rifiutare è anch'esso pubblico.", de: "Abend. NGO ClimateAid. Große Klimakatastrophe im Süden, lebensbedrohliche Dringlichkeit. Wir brauchen 800 Packs FROZIO und MEDIPACK für die Katastrophengebiete. Wir zahlen 30% des Marktpreises, aber die Presse berichtet. Ablehnen ist ebenfalls öffentlich." } },
-  { id: 'sabotage_concurrent', minRevenue: 7000000, ethic: 'shady', title: { fr: "Informateur, plans concurrent", en: "Informant, competitor plans", es: "Informador, planes competidor", zh: "线人, 竞争对手计划", ru: "Информатор, планы конкурента", it: "Informatore, piani del concorrente", de: "Informant, Konkurrenzpläne" }, minPhase: 4, minLevel: 24, decisionTime: 30, needStock: 0,
-    rewardAccept: { money: -4000, rep: -15, noto: 15, inspectionRisk: true }, rewardDecline: { money: 0, rep: 5 },
-    narrative: { fr: "Allô. Vieux contact dans la profession. J'ai les plans de production de Cristal Royal. Avec ça tu peux saboter leur prochaine campagne, bloquer leur prod une saison. 4000€ et c'est à toi. Discrétion absolue. Risque : leur sécurité fouille parfois.", en: "Hello. Old contact in the trade. I have Cristal Royal's production plans. With this you can sabotage their next campaign, block their production for a season. €4000 and it's yours. Absolute discretion. Risk: their security sometimes digs.", es: "Aló. Viejo contacto del sector. Tengo los planes de producción de Cristal Royal. Con eso puedes sabotear su próxima campaña, bloquear su producción una temporada. 4000€ y es tuyo. Discreción absoluta. Riesgo: a veces su seguridad escarba.", zh: "你好。行业里的老关系。我有Cristal Royal的生产计划。有了它你能破坏他们的下一个活动，封锁他们一个季度的生产。€4000就归你。绝对保密。风险：他们的安保有时会深挖。", ru: "Здравствуйте. Старый контакт в отрасли. У меня производственные планы Cristal Royal. С этим вы можете саботировать их следующую кампанию, заблокировать их производство на сезон. €4000, и они ваши. Абсолютная конфиденциальность. Риск: их безопасность иногда копает.", it: "Salve. Vecchio contatto nel settore. Ho i piani di produzione di Cristal Royal. Con questi puoi sabotare la loro prossima campagna, bloccare la loro produzione per una stagione. 4000€ ed è tuo. Discrezione assoluta. Rischio: la loro sicurezza a volte indaga.", de: "Hallo. Alter Kontakt aus der Branche. Ich habe Cristal Royals Produktionspläne. Damit kannst du ihre nächste Kampagne sabotieren, ihre Produktion eine Saison blockieren. 4000€ und es gehört dir. Absolute Diskretion. Risiko: Ihre Sicherheit gräbt manchmal nach." } },
-  { id: 'whistleblower', minRevenue: 7000000, ethic: 'shady', title: { fr: "Ex-cadre concurrent, infos sensibles", en: "Ex-competitor exec, sensitive info", es: "Ex-ejecutivo competidor, info sensible", zh: "前竞争对手高管, 敏感信息", ru: "Экс-руководитель конкурента, чувствительная инфо", it: "Ex dirigente concorrente, info sensibili", de: "Ex-Konkurrenzmanager, sensible Infos" }, minPhase: 4, minLevel: 24, decisionTime: 30, needStock: 0,
-    rewardAccept: { money: -3000, rep: -10, noto: 10 }, rewardDecline: { money: 0, rep: 4 },
-    narrative: { fr: "Bonjour. J'étais cadre senior chez Glacier Frères jusqu'à la semaine dernière. J'ai des infos qui peuvent les couler, failles fiscales, fournisseurs douteux. Je veux 3000€ et un poste chez toi. Tu deviens le seul à savoir.", en: "Hello. I was senior exec at Glacier Frères until last week. I have info that can sink them, tax loopholes, dodgy suppliers. I want €3000 and a position with you. You become the only one to know.", es: "Hola. Era ejecutivo senior en Glacier Frères hasta la semana pasada. Tengo información que puede hundirlos, vacíos fiscales, proveedores dudosos. Quiero 3000€ y un puesto contigo. Te conviertes en el único que sabe.", zh: "你好。我上周之前是格拉西耶兄弟的高管。我有能把他们搞垮的信息,,税务漏洞、可疑供应商。我要€3000和你这儿一个职位。你成为唯一知情者。", ru: "Здравствуйте. Я был топ-менеджером в Glacier Frères до прошлой недели. У меня инфо, которая может их потопить, налоговые лазейки, мутные поставщики. Хочу €3000 и должность у вас. Вы становитесь единственным, кто знает.", it: "Salve. Ero dirigente senior da Glacier Frères fino alla settimana scorsa. Ho info che possono affondarli, scappatoie fiscali, fornitori loschi. Voglio 3000€ e un posto da te. Diventi l'unico a sapere.", de: "Hallo. Ich war bis letzte Woche leitender Manager bei Glacier Frères. Ich habe Infos, die sie versenken können, Steuerschlupflöcher, zwielichtige Lieferanten. Ich will 3000€ und eine Stelle bei dir. Du wirst der Einzige, der es weiß." } },
-  { id: 'mediation_finale', minRevenue: 11000000, title: { fr: "Médiateur, premières offres d'acquisition", en: "Mediator, first acquisition offers", es: "Mediador, primeras ofertas de adquisición", zh: "中介, 首批收购报价", ru: "Медиатор, первые предложения о поглощении", it: "Mediatore, prime offerte di acquisizione", de: "Vermittler, erste Übernahmeangebote" }, minPhase: 4, minLevel: 25, decisionTime: 30, needStock: 0, narrativeOnly: true, offerOnly: true,
-    rewardAccept: { money: 0, rep: 0 },
-    narrative: { fr: "Bonjour. Je suis Médiateur de Transactions Industrielles. Trois acquéreurs majeurs sont désormais sérieux dans leurs intentions de te racheter. Ils veulent rencontrer ton équipe et examiner tes livres. C'est le début de la phase finale. Tu te prépares ?", en: "Hello. I'm an Industrial Transactions Mediator. Three major acquirers are now serious in their intentions to buy you out. They want to meet your team and examine your books. This is the start of the final phase. Are you ready?", es: "Hola. Soy Mediador de Transacciones Industriales. Tres compradores mayores ya están serios en su intención de adquirirte. Quieren conocer a tu equipo y examinar tus libros. Es el inicio de la fase final. ¿Te preparas?", zh: "你好。我是工业交易中介。三家大型收购方现在认真有意收购你。他们想见你的团队、查你的账本。这是最终阶段的开始。你准备好了吗？", ru: "Здравствуйте. Я Медиатор Промышленных Сделок. Три крупных покупателя теперь серьёзны в намерениях вас выкупить. Они хотят встретиться с вашей командой и изучить ваши книги. Это начало финальной фазы. Вы готовы?", it: "Salve. Sono un Mediatore di Transazioni Industriali. Tre grandi acquirenti sono ora seri nelle loro intenzioni di rilevarti. Vogliono incontrare il tuo team ed esaminare i tuoi libri contabili. È l'inizio della fase finale. Sei pronto?", de: "Hallo. Ich bin Vermittler für Industrietransaktionen. Drei große Käufer meinen es jetzt ernst mit der Übernahme. Sie wollen dein Team treffen und deine Bücher prüfen. Das ist der Beginn der finalen Phase. Bist du bereit?" } },
-
-  // ============================================================
-  // === PHASE 4 — APPELS ONE-SHOT BÉNÉF (gros gains, peu de risque)
-  // ============================================================
-  { id: 'tournage_pub_popice', minRevenue: 0, product: 'popice', title: { fr: "Tournage pub nationale POP ICE", en: "POP ICE national ad shoot", es: "Rodaje anuncio nacional POP ICE", zh: "POP ICE全国广告拍摄", ru: "Съёмки нац. рекламы POP ICE", it: "Riprese spot nazionale POP ICE", de: "POP ICE nationaler Werbedreh" }, minPhase: 4, minLevel: 21, decisionTime: 30, needStock: 400, rewardAccept: { money: 3500, rep: 2, noto: 3 },
-    narrative: { fr: "Bonjour. Agence de pub, tournage spot national POP ICE demain. On a besoin de 400 tubes pour les prises et les figurants. Paiement immédiat à la livraison. Pas de négociation, juste de la qualité.", en: "Hello. Ad agency, national POP ICE commercial shoot tomorrow. We need 400 tubes for takes and extras. Payment on delivery. No negotiation, just quality.", es: "Hola. Agencia de publicidad, rodaje anuncio nacional POP ICE mañana. Necesitamos 400 tubos para las tomas y figurantes. Pago a la entrega. Sin negociación, solo calidad.", zh: "你好。广告公司，明天拍POP ICE全国广告。我们需要400管用于拍摄和替补。交付付款。不谈判，只要质量。", ru: "Здравствуйте. Рекламное агентство, завтра съёмки национальной рекламы POP ICE. Нам нужно 400 тюбиков для дублей и массовки. Оплата при доставке. Без переговоров, только качество.", it: "Salve. Agenzia pubblicitaria, riprese spot nazionale POP ICE domani. Ci servono 400 tubi per ciak e comparse. Pagamento alla consegna. Niente trattative, solo qualità.", de: "Hallo. Werbeagentur, nationaler POP-ICE-Werbedreh morgen. Wir brauchen 400 Tuben für Takes und Statisten. Zahlung bei Lieferung. Keine Verhandlung, nur Qualität." } },
-  { id: 'expedition_arctique_frozio', minRevenue: 2000000, product: 'frozio', ethic: 'good', title: { fr: "Mission scientifique arctique, FROZIO", en: "Arctic scientific mission, FROZIO", es: "Misión científica ártica, FROZIO", zh: "北极科考任务, FROZIO", ru: "Арктическая научная миссия, FROZIO", it: "Missione scientifica artica, FROZIO", de: "Arktis-Forschungsmission, FROZIO" }, minPhase: 4, minLevel: 22, decisionTime: 30, needStock: 800, rewardAccept: { money: 5500, rep: 3, noto: 2, segEco: 3 },
-    narrative: { fr: "Bonjour. Institut polaire. Mission scientifique en Arctique le mois prochain. On a besoin de 800 packs de neige artificielle FROZIO pour tester les équipements à -20°C avant le départ. Trajet long, mais bien payé.", en: "Hello. Polar Institute. Arctic scientific mission next month. We need 800 packs of FROZIO artificial snow to test equipment at -20°C before departure. Long trip, but well paid.", es: "Hola. Instituto polar. Misión científica en el Ártico el mes próximo. Necesitamos 800 packs de nieve artificial FROZIO para probar equipos a -20°C antes de salir. Trayecto largo, pero bien pagado.", zh: "你好。极地研究所。下个月北极科考任务。我们需要800包FROZIO人造雪，在出发前于-20°C测试设备。行程长，但报酬好。", ru: "Здравствуйте. Полярный институт. Арктическая научная миссия в следующем месяце. Нам нужно 800 упаковок искусственного снега FROZIO для тестирования оборудования при -20°C перед отправлением. Долгая поездка, но хорошо оплачивается.", it: "Salve. Istituto Polare. Missione scientifica artica il mese prossimo. Ci servono 800 pack di neve artificiale FROZIO per testare l'attrezzatura a -20°C prima della partenza. Viaggio lungo, ma ben pagato.", de: "Hallo. Polarinstitut. Arktis-Forschungsmission nächsten Monat. Wir brauchen 800 Packs FROZIO-Kunstschnee, um Ausrüstung bei -20°C vor Abreise zu testen. Lange Fahrt, aber gut bezahlt." } },
-  { id: 'hopital_urgence_medipack', minRevenue: 2000000, product: 'medipack', ethic: 'good', title: { fr: "Hôpital public, commande d'urgence", en: "Public hospital, emergency order", es: "Hospital público, pedido urgente", zh: "公立医院, 紧急订单", ru: "Государственная больница, экстренный заказ", it: "Ospedale pubblico, ordine d'emergenza", de: "Öffentliches Krankenhaus, Notbestellung" }, minPhase: 4, minLevel: 22, decisionTime: 30, needStock: 600, rewardAccept: { money: 4800, rep: 4, noto: 2 },
-    narrative: { fr: "Allô. CHU. Stock épuisé après une vague d'accidents de la route ce week-end. Besoin de 600 MEDIPACK ce soir. Prix marché, pas de marchandage. C'est pour sauver des vies, pas pour négocier.", en: "Hello. University Hospital. Stock depleted after a wave of road accidents this weekend. Need 600 MEDIPACK tonight. Market price, no haggling. It's to save lives, not to negotiate.", es: "Aló. Hospital universitario. Stock agotado tras una ola de accidentes de tráfico el fin de semana. Necesitamos 600 MEDIPACK esta noche. Precio mercado, sin regateos. Es para salvar vidas, no para negociar.", zh: "你好。大学医院。这周末一波交通事故后库存耗尽。今晚需要600 MEDIPACK。市场价，不还价。这是救命，不是谈判。", ru: "Здравствуйте. Университетская больница. Запас исчерпан после волны ДТП в эти выходные. Нужно 600 MEDIPACK сегодня. Рыночная цена, без торга. Это чтобы спасать жизни, не для переговоров.", it: "Salve. Ospedale Universitario. Scorta esaurita dopo un'ondata di incidenti stradali questo weekend. Ci servono 600 MEDIPACK stasera. Prezzo di mercato, niente trattative. È per salvare vite, non per negoziare.", de: "Hallo. Universitätsklinik. Bestand erschöpft nach einer Welle von Verkehrsunfällen am Wochenende. Brauchen 600 MEDIPACK heute Abend. Marktpreis, kein Feilschen. Es geht um Leben, nicht ums Verhandeln." } },
-  { id: 'salon_innovation', minRevenue: 4000000, title: { fr: "Salon européen, Innovation alimentaire", en: "European fair, Food Innovation", es: "Salón europeo, Innovación alimentaria", zh: "欧洲博览会, 食品创新", ru: "Европейская ярмарка, Food Innovation", it: "Fiera europea, Food Innovation", de: "Europäische Messe, Food Innovation" }, minPhase: 4, minLevel: 23, decisionTime: 30, needStock: 0, rewardAccept: { money: -2000, rep: 5, noto: 8, segPro: 5, segLuxe: 5 },
-    narrative: { fr: "Bonjour. Salon européen de l'innovation alimentaire. On t'invite à présenter ta gamme sur un stand prestige. Pas de stock à livrer, juste de la présence. Inscription : 2000€, mais l'impact image est massif.", en: "Hello. European food innovation fair. We invite you to showcase your range at a prestige booth. No stock to deliver, just attendance. Registration: €2000, but the image impact is massive.", es: "Hola. Salón europeo de innovación alimentaria. Te invitamos a presentar tu gama en un stand de prestigio. Sin stock que entregar, solo presencia. Inscripción: 2000€, pero el impacto de imagen es masivo.", zh: "你好。欧洲食品创新博览会。我们邀请你在一个高端展位展示你的产品系列。无需送货，只需出席。注册费：€2000,,但形象效应巨大。", ru: "Здравствуйте. Европейская ярмарка продовольственных инноваций. Приглашаем вас представить вашу линейку на престижном стенде. Запаса доставлять не нужно, только присутствие. Регистрация: €2000, но имиджевый эффект колоссальный.", it: "Salve. Fiera europea dell'innovazione alimentare. Ti invitiamo a esporre la tua gamma in uno stand di prestigio. Nessuna scorta da consegnare, solo presenza. Iscrizione: 2000€, ma l'impatto d'immagine è enorme.", de: "Hallo. Europäische Food-Innovationsmesse. Wir laden dich ein, deine Palette an einem Prestige-Stand zu zeigen. Kein Bestand zu liefern, nur Anwesenheit. Anmeldung: 2000€, aber die Image-Wirkung ist enorm." } },
-  { id: 'commande_militaire_medipack', minRevenue: 4000000, product: 'medipack', title: { fr: "Marché militaire, MEDIPACK", en: "Military contract, MEDIPACK", es: "Mercado militar, MEDIPACK", zh: "军方合同, MEDIPACK", ru: "Военный контракт, MEDIPACK", it: "Contratto militare, MEDIPACK", de: "Militärvertrag, MEDIPACK" }, minPhase: 4, minLevel: 23, decisionTime: 30, needStock: 1000, rewardAccept: { money: 7500, rep: 2, noto: 3 },
-    narrative: { fr: "Bonjour. Direction logistique armée. Contrat ferme : 1000 MEDIPACK livrés sous escorte au camp d'entraînement régional. Délai serré, paiement gros, et engagement long terme si tu tiens.", en: "Hello. Army logistics direction. Firm contract: 1000 MEDIPACK delivered under escort to the regional training camp. Tight deadline, big payment, long-term engagement if you deliver.", es: "Hola. Dirección logística del ejército. Contrato firme: 1000 MEDIPACK entregados con escolta al campo de entrenamiento regional. Plazo apretado, pago grande, compromiso largo plazo si cumples.", zh: "你好。军队物流局。坚定合同：1000 MEDIPACK押运送到地区训练营。期限紧，付款大，交付则长期合作。", ru: "Здравствуйте. Дирекция армейской логистики. Твёрдый контракт: 1000 MEDIPACK доставить под охраной в региональный учебный лагерь. Жёсткий срок, большая оплата, долгосрочное обязательство, если доставите.", it: "Salve. Direzione logistica dell'esercito. Contratto fermo: 1000 MEDIPACK consegnati sotto scorta al campo di addestramento regionale. Scadenza serrata, grande pagamento, impegno a lungo termine se consegni.", de: "Hallo. Heereslogistik-Direktion. Fester Vertrag: 1000 MEDIPACK unter Eskorte zum regionalen Übungslager geliefert. Knappe Frist, große Zahlung, langfristige Bindung bei Lieferung." } },
-  { id: 'festival_winter_frozio', minRevenue: 7000000, product: 'frozio', title: { fr: "Festival hiver, neige artificielle", en: "Winter festival, artificial snow", es: "Festival de invierno, nieve artificial", zh: "冬季节庆, 人造雪", ru: "Зимний фестиваль, искусственный снег", it: "Festival invernale, neve artificiale", de: "Winterfestival, Kunstschnee" }, minPhase: 4, minLevel: 24, decisionTime: 30, needStock: 1500, rewardAccept: { money: 11000, rep: 3, noto: 5, segFamille: 2 },
-    narrative: { fr: "Bonjour. Festival d'hiver de la région, 30 000 visiteurs attendus. On a besoin de 1500 packs FROZIO pour décorer la place centrale et créer une piste de glissade. Trois jours de livraison étalée, paiement à la fin. Le cachet pèse.", en: "Hello. Regional winter festival, 30,000 visitors expected. We need 1500 packs of FROZIO to decorate the central square and build a sliding track. Three-day staggered delivery, payment at the end. Big fee.", es: "Hola. Festival de invierno regional, 30 000 visitantes esperados. Necesitamos 1500 packs de FROZIO para decorar la plaza central y crear una pista deslizante. Entrega escalonada tres días, pago al final. Buen cachet.", zh: "你好。地区冬季节庆,,预计30000名访客。我们需要1500包FROZIO装饰中央广场并搭一条滑道。三天分批送，结束时付款。大笔报酬。", ru: "Здравствуйте. Региональный зимний фестиваль, ожидается 30 000 посетителей. Нам нужно 1500 упаковок FROZIO для украшения центральной площади и постройки горки. Поэтапная доставка за три дня, оплата в конце. Большой гонорар.", it: "Salve. Festival invernale regionale, 30.000 visitatori previsti. Ci servono 1500 pack di FROZIO per decorare la piazza centrale e costruire una pista di slittino. Consegna scaglionata su tre giorni, pagamento alla fine. Grande compenso.", de: "Hallo. Regionales Winterfestival, 30.000 Besucher erwartet. Wir brauchen 1500 Packs FROZIO, um den zentralen Platz zu schmücken und eine Rutschbahn zu bauen. Lieferung über drei Tage gestaffelt, Zahlung am Ende. Hohe Gebühr." } },
-  { id: 'commande_compagnie_aerienne', minRevenue: 7000000, product: 'popice', title: { fr: "Compagnie aérienne premium, POP ICE", en: "Premium airline, POP ICE", es: "Aerolínea premium, POP ICE", zh: "高端航空公司, POP ICE", ru: "Премиум авиакомпания, POP ICE", it: "Compagnia aerea premium, POP ICE", de: "Premium-Airline, POP ICE" }, minPhase: 4, minLevel: 24, decisionTime: 30, needStock: 1200, rewardAccept: { money: 9000, rep: 2, noto: 5, segLuxe: 3 },
-    narrative: { fr: "Bonjour. Direction achats compagnie aérienne premium. On veut tes POP ICE servis en première classe sur 30 vols longs-courriers. Test 3 mois, exclusivité partielle. Paiement upfront. Si ça marche, on renouvelle gros.", en: "Hello. Premium airline procurement. We want your POP ICE served first class on 30 long-haul flights. 3-month test, partial exclusivity. Upfront payment. If it works, we renew big.", es: "Hola. Compras aerolínea premium. Queremos tus POP ICE servidos en primera clase en 30 vuelos largos. Test 3 meses, exclusividad parcial. Pago upfront. Si funciona, renovamos grande.", zh: "你好。高端航空公司采购。我们想在30个长途航班的头等舱供应你的POP ICE。3个月试用，部分独家。预付。如果有效，我们大规模续约。", ru: "Здравствуйте. Снабжение премиум-авиакомпании. Хотим ваш POP ICE в первом классе на 30 дальнемагистральных рейсах. 3-месячный тест, частичная эксклюзивность. Предоплата. Если сработает, продлеваем по-крупному.", it: "Salve. Approvvigionamenti di una compagnia aerea premium. Vogliamo il tuo POP ICE servito in prima classe su 30 voli a lungo raggio. Test di 3 mesi, esclusiva parziale. Pagamento anticipato. Se funziona, rinnoviamo in grande.", de: "Hallo. Einkauf einer Premium-Airline. Wir wollen dein POP ICE in der First Class auf 30 Langstreckenflügen. 3-Monats-Test, Teilexklusivität. Vorauszahlung. Wenn es läuft, verlängern wir groß." } },
-  { id: 'gros_evenement_3produits', minRevenue: 11000000, product: 'popice', title: { fr: "Grands Jeux régionaux, gamme complète", en: "Regional Games, full range", es: "Juegos regionales, gama completa", zh: "地区运动会, 全系列", ru: "Региональные Игры, вся линейка", it: "Giochi regionali, gamma completa", de: "Regionale Spiele, volle Bandbreite" }, minPhase: 4, minLevel: 25, decisionTime: 30, needStock: 2500, rewardAccept: { money: 18000, rep: 6, noto: 8, segFamille: 3, segPro: 3 },
-    narrative: { fr: "Bonjour. Comité d'organisation des Grands Jeux régionaux. Événement de l'année, 50 000 spectateurs, presse nationale. On veut TOUTE ta gamme : POP ICE pour les enfants, FROZIO pour la patinoire éphémère, MEDIPACK pour le service médical. Le plus gros contrat de ta vie.", en: "Hello. Regional Games organizing committee. Event of the year, 50,000 spectators, national press. We want your FULL range: POP ICE for kids, FROZIO for the temporary rink, MEDIPACK for medical service. Biggest contract of your life.", es: "Hola. Comité organizador de los Juegos regionales. Evento del año, 50 000 espectadores, prensa nacional. Queremos TODA tu gama: POP ICE para los niños, FROZIO para la pista efímera, MEDIPACK para servicio médico. El contrato más grande de tu vida.", zh: "你好。地区运动会组委会。年度盛事,,50000名观众，全国媒体。我们想要你的全系列：POP ICE给孩子，FROZIO给临时溜冰场，MEDIPACK给医疗服务。你一生最大的合同。", ru: "Здравствуйте. Оргкомитет Региональных Игр. Событие года, 50 000 зрителей, национальная пресса. Хотим вашу ПОЛНУЮ линейку: POP ICE для детей, FROZIO для временного катка, MEDIPACK для медслужбы. Крупнейший контракт вашей жизни.", it: "Salve. Comitato organizzatore dei Giochi regionali. Evento dell'anno, 50.000 spettatori, stampa nazionale. Vogliamo la tua gamma COMPLETA: POP ICE per i bambini, FROZIO per la pista temporanea, MEDIPACK per il servizio medico. Il più grande contratto della tua vita.", de: "Hallo. Organisationskomitee der Regionalen Spiele. Event des Jahres, 50.000 Zuschauer, nationale Presse. Wir wollen deine GESAMTE Palette: POP ICE für Kinder, FROZIO für die temporäre Eisbahn, MEDIPACK für den Sanitätsdienst. Größter Vertrag deines Lebens." } },
-
-  // ============================================================
-  // === PHASE 4 — PETITS CONTRATS PRODUITS (dynamisent, écoulent le stock)
-  // POP ICE / FROZIO / MEDIPACK — jamais de glaçons. Niveaux 21-26.
-  // ============================================================
-  // --- POP ICE (7) ---
-  { id: 'p4_pop_anniv', minRevenue: 0, product: 'popice', title: { fr: "Goûter d'anniversaire débordé", en: "Overrun birthday party", es: "Cumpleaños desbordado", zh: "失控的生日派对", ru: "Вышедший из-под контроля день рождения", it: "Festa di compleanno fuori controllo", de: "Ausgeuferte Geburtstagsfeier" }, minPhase: 4, minLevel: 21, decisionTime: 30, needStock: 40, rewardAccept: { money: 350, rep: 1, noto: 1 },
-    narrative: { fr: "Allô ! J'ai loué un château gonflable et invité 30 gamins surexcités. J'avais oublié les boissons. 40 POP ICE tout de suite ou c'est l'émeute chez les 6 ans. Je paye, je paye, pitié.", en: "Hello! I rented a bouncy castle and invited 30 hyper kids. I forgot the drinks. 40 POP ICE right now or it's a riot among 6-year-olds. I'll pay, I'll pay, please.", es: "¡Hola! Alquilé un castillo hinchable e invité a 30 niños hiperactivos. Olvidé las bebidas. 40 POP ICE ya o es un motín de niños de 6 años. Pago, pago, por favor.", zh: "你好！我租了个充气城堡，邀请了30个过度兴奋的孩子。我忘了买饮料。现在就要40 POP ICE，否则6岁孩子要暴动了。我付钱，我付钱，求你了。", ru: "Здравствуйте! Я арендовал батут и пригласил 30 гиперактивных детей. Забыл напитки. 40 POP ICE прямо сейчас, иначе бунт среди 6-леток. Я заплачу, заплачу, пожалуйста.", it: "Salve! Ho noleggiato un gonfiabile e invitato 30 bambini scatenati. Ho dimenticato le bibite. 40 POP ICE subito o è una rivolta tra bambini di 6 anni. Pago, pago, ti prego.", de: "Hallo! Ich hab eine Hüpfburg gemietet und 30 hyperaktive Kinder eingeladen. Die Getränke hab ich vergessen. 40 POP ICE sofort oder es gibt einen Aufstand unter 6-Jährigen. Ich zahl, ich zahl, bitte." } },
-  { id: 'p4_pop_cine', minRevenue: 2000000, product: 'popice', title: { fr: "Plateau ciné en surchauffe", en: "Overheating film set", es: "Rodaje sobrecalentado", zh: "过热的拍摄片场", ru: "Перегревающаяся киноплощадка", it: "Set cinematografico surriscaldato", de: "Überhitztes Filmset" }, minPhase: 4, minLevel: 22, decisionTime: 30, needStock: 80, rewardAccept: { money: 600, rep: 1, noto: 2 },
-    narrative: { fr: "Tournage en plein cagnard, l'équipe technique fond littéralement. Le régisseur menace de tout arrêter. 80 POP ICE livrés sur le plateau, je sors la caisse prod direct.", en: "Shoot in blazing heat, the crew is literally melting. The location manager threatens to shut it all down. 80 POP ICE on set, I'll open the production cash right away.", es: "Rodaje bajo un sol abrasador, el equipo técnico se derrite literalmente. El regidor amenaza con parar todo. 80 POP ICE en el set, abro la caja de producción ya.", zh: "烈日下拍摄，剧组真的在融化。场地经理威胁要全停。80 POP ICE送片场，我马上开制作金库。", ru: "Съёмки в палящей жаре, группа буквально плавится. Локейшн-менеджер грозит всё остановить. 80 POP ICE на площадку, я сразу открою кассу производства.", it: "Riprese sotto un caldo torrido, la troupe si scioglie letteralmente. Il location manager minaccia di fermare tutto. 80 POP ICE sul set, apro subito la cassa della produzione.", de: "Dreh in glühender Hitze, die Crew schmilzt buchstäblich. Der Location-Manager droht, alles abzubrechen. 80 POP ICE ans Set, ich öffne sofort die Produktionskasse." } },
-  { id: 'p4_pop_gym', minRevenue: 2000000, product: 'popice', title: { fr: "Salle de sport sans clim", en: "Gym with no AC", es: "Gimnasio sin aire", zh: "没空调的健身房", ru: "Спортзал без кондиционера", it: "Palestra senza aria condizionata", de: "Fitnessstudio ohne Klima" }, minPhase: 4, minLevel: 22, decisionTime: 30, needStock: 60, rewardAccept: { money: 500, rep: 1, noto: 1 },
-    narrative: { fr: "La clim a lâché en plein cours de RPM, j'ai douze cyclistes au bord du malaise. 60 POP ICE pour les ranimer avant qu'ils ne me fassent un procès. Urgent.", en: "AC died mid spin class, I have twelve cyclists on the verge of fainting. 60 POP ICE to revive them before they sue me. Urgent.", es: "El aire petó en plena clase de RPM, tengo doce ciclistas a punto de desmayarse. 60 POP ICE para reanimarlos antes de que me demanden. Urgente.", zh: "动感单车课中途空调死了，我有十二个骑手快晕了。60 POP ICE在他们告我之前救活他们。急。", ru: "Кондиционер сдох посреди спин-класса, у меня двенадцать велосипедистов на грани обморока. 60 POP ICE, чтобы их оживить, пока они на меня не подали в суд. Срочно.", it: "L'aria condizionata è morta a metà corso di spinning, ho dodici ciclisti sul punto di svenire. 60 POP ICE per rianimarli prima che mi facciano causa. Urgente.", de: "Klima mitten im Spinning-Kurs ausgefallen, ich hab zwölf Radler kurz vor der Ohnmacht. 60 POP ICE, um sie wiederzubeleben, bevor sie mich verklagen. Dringend." } },
-  { id: 'p4_pop_fraise', minRevenue: 4000000, product: 'popice', title: { fr: "Festival de la fraise", en: "Strawberry festival", es: "Festival de la fresa", zh: "草莓节", ru: "Клубничный фестиваль", it: "Festival della fragola", de: "Erdbeerfest" }, minPhase: 4, minLevel: 23, decisionTime: 30, needStock: 120, rewardAccept: { money: 1100, rep: 2, noto: 2 },
-    narrative: { fr: "Bonjour, Comité de la Fête de la Fraise. Notre stand 'smoothies givrés' cartonne, on est en rupture. 120 POP ICE pour tenir le week-end. La reine de la fraise compte sur vous.", en: "Hello, Strawberry Festival Committee. Our 'frozen smoothies' stand is a hit, we're out of stock. 120 POP ICE to last the weekend. The strawberry queen is counting on you.", es: "Hola, Comité de la Fiesta de la Fresa. Nuestro puesto de 'smoothies helados' arrasa, estamos sin stock. 120 POP ICE para aguantar el fin de semana. La reina de la fresa cuenta con vosotros.", zh: "你好，草莓节委员会。我们的「冰冻思慕雪」摊位很火，缺货了。120 POP ICE撑过周末。草莓女王指望你了。", ru: "Здравствуйте, Комитет Клубничного Фестиваля. Наш стенд «замороженных смузи», хит, у нас кончился запас. 120 POP ICE, чтобы продержаться выходные. Клубничная королева на вас рассчитывает.", it: "Salve, Comitato del Festival della Fragola. Il nostro stand di «smoothie ghiacciati» è un successo, siamo a corto. 120 POP ICE per reggere il weekend. La regina della fragola conta su di te.", de: "Hallo, Erdbeerfest-Komitee. Unser „Frozen-Smoothies“-Stand läuft top, wir sind ausverkauft. 120 POP ICE für das Wochenende. Die Erdbeerkönigin zählt auf dich." } },
-  { id: 'p4_pop_marathon', minRevenue: 7000000, product: 'popice', title: { fr: "Marathon caritatif", en: "Charity marathon", es: "Maratón solidario", zh: "慈善马拉松", ru: "Благотворительный марафон", it: "Maratona benefica", de: "Wohltätigkeitsmarathon" }, minPhase: 4, minLevel: 24, decisionTime: 30, needStock: 150, rewardAccept: { money: 1500, rep: 3, noto: 2 },
-    narrative: { fr: "Course solidaire de 5000 coureurs sous 35°C. Le ravitaillement officiel a coulé. 150 POP ICE pour éviter l'évanouissement collectif. C'est pour la bonne cause, et c'est filmé.", en: "Charity race, 5000 runners under 35°C. The official refreshment sank. 150 POP ICE to avoid mass fainting. It's for a good cause, and it's filmed.", es: "Carrera solidaria de 5000 corredores a 35°C. El avituallamiento oficial se hundió. 150 POP ICE para evitar el desmayo colectivo. Es por buena causa, y está filmado.", zh: "慈善赛跑，5000名跑者35°C下。官方补给沉了。150 POP ICE避免大规模晕倒。这是为了好事，而且有拍摄。", ru: "Благотворительный забег, 5000 бегунов при 35°C. Официальное питание потонуло. 150 POP ICE во избежание массовых обмороков. Это для доброго дела, и это снимают.", it: "Corsa benefica, 5000 runner sotto i 35°C. Il ristoro ufficiale è affondato. 150 POP ICE per evitare svenimenti di massa. È per una buona causa, ed è filmato.", de: "Wohltätigkeitslauf, 5000 Läufer bei 35°C. Die offizielle Erfrischung ist abgesoffen. 150 POP ICE, um Massen-Ohnmacht zu vermeiden. Es ist für einen guten Zweck, und es wird gefilmt." } },
-  { id: 'p4_pop_tv', minRevenue: 11000000, product: 'popice', title: { fr: "Plateau télé jeunesse", en: "Kids' TV show", es: "Programa infantil TV", zh: "儿童电视节目", ru: "Детское ТВ-шоу", it: "Programma TV per bambini", de: "Kinder-TV-Show" }, minPhase: 4, minLevel: 25, decisionTime: 30, needStock: 100, rewardAccept: { money: 1300, rep: 2, noto: 4 },
-    narrative: { fr: "Émission jeunesse en direct, on offre des POP ICE à tout le public enfant. Le sponsor habituel s'est désisté ce matin. 100 tubes avant 17h, plateau national, beau cachet.", en: "Live kids' show, we hand out POP ICE to the whole child audience. The usual sponsor pulled out this morning. 100 tubes before 5 PM, national stage, good fee.", es: "Programa infantil en directo, regalamos POP ICE a todo el público infantil. El patrocinador habitual se retiró esta mañana. 100 tubos antes de las 17h, plató nacional, buen caché.", zh: "现场儿童节目，我们给全场儿童观众发POP ICE。常用赞助商今早撤了。下午5点前要100管，全国舞台，报酬不错。", ru: "Прямое детское шоу, раздаём POP ICE всей детской аудитории. Обычный спонсор отказался утром. 100 тюбиков до 17:00, национальная сцена, хороший гонорар.", it: "Show per bambini in diretta, distribuiamo POP ICE a tutto il pubblico di piccoli. Il solito sponsor si è ritirato stamattina. 100 tubi prima delle 17, palco nazionale, buon compenso.", de: "Live-Kindershow, wir verteilen POP ICE ans ganze Kinderpublikum. Der übliche Sponsor ist heute früh abgesprungen. 100 Tuben vor 17 Uhr, nationale Bühne, gute Gage." } },
-  { id: 'p4_pop_parc', minRevenue: 16000000, product: 'popice', title: { fr: "Parc d'attractions en feu", en: "Theme park on fire", es: "Parque de atracciones a tope", zh: "着火的主题公园", ru: "Тематический парк в огне", it: "Parco a tema in fiamme", de: "Freizeitpark in Flammen" }, minPhase: 4, minLevel: 26, decisionTime: 30, needStock: 200, rewardAccept: { money: 2400, rep: 3, noto: 5 },
-    narrative: { fr: "Le parc explose de monde pour les vacances, nos distributeurs sont vides depuis ce matin, les files s'énervent. 200 POP ICE en livraison express. Le directeur signe les yeux fermés.", en: "The park is packed for the holidays, our dispensers have been empty since morning, queues are getting angry. 200 POP ICE express delivery. The director signs blindly.", es: "El parque revienta de gente por las vacaciones, nuestras máquinas están vacías desde la mañana, las colas se enfadan. 200 POP ICE entrega exprés. El director firma con los ojos cerrados.", zh: "公园假期爆满，我们的分发机从早上就空了，排队的人越来越火。200 POP ICE快递。主管闭眼签字。", ru: "Парк забит на каникулах, наши диспенсеры пусты с утра, очереди злятся. 200 POP ICE экспресс-доставка. Директор подписывает вслепую.", it: "Il parco è pieno per le vacanze, i nostri dispenser sono vuoti da stamattina, le code si arrabbiano. 200 POP ICE consegna express. Il direttore firma a occhi chiusi.", de: "Der Park ist in den Ferien rappelvoll, unsere Automaten sind seit dem Morgen leer, die Schlangen werden wütend. 200 POP ICE Express-Lieferung. Der Direktor unterschreibt blind." } },
-  // --- FROZIO (7) ---
-  { id: 'p4_fro_demande', minRevenue: 0, product: 'frozio', title: { fr: "Demande en mariage givrée", en: "Frosty proposal", es: "Pedida de mano helada", zh: "冰雪求婚", ru: "Морозное предложение руки", it: "Proposta gelida", de: "Frostiger Heiratsantrag" }, minPhase: 4, minLevel: 21, decisionTime: 30, needStock: 50, rewardAccept: { money: 450, rep: 1, noto: 1 },
-    narrative: { fr: "Je veux faire ma demande sous la neige. En juillet. Oui je sais. Il me faut 50 FROZIO pour recouvrir le balcon avant 20h. Elle dit toujours qu'elle veut 'un truc magique', alors là...", en: "I want to propose in the snow. In July. Yes I know. I need 50 FROZIO to cover the balcony before 8 PM. She always says she wants 'something magical', so here goes...", es: "Quiero pedir matrimonio bajo la nieve. En julio. Sí, lo sé. Necesito 50 FROZIO para cubrir el balcón antes de las 20h. Siempre dice que quiere 'algo mágico', así que...", zh: "我想在雪中求婚。在七月。是的我知道。我需要50 FROZIO在晚8点前铺满阳台。她总说想要「有魔法的东西」，那就来吧……", ru: "Хочу сделать предложение в снегу. В июле. Да, знаю. Мне нужно 50 FROZIO, чтобы покрыть балкон до 20:00. Она всегда говорит, что хочет «чего-то волшебного», так что вот...", it: "Voglio fare la proposta nella neve. A luglio. Sì lo so. Mi servono 50 FROZIO per coprire il balcone prima delle 20. Dice sempre che vuole «qualcosa di magico», quindi ci provo...", de: "Ich will im Schnee einen Heiratsantrag machen. Im Juli. Ja, ich weiß. Ich brauche 50 FROZIO, um den Balkon vor 20 Uhr zu bedecken. Sie sagt immer, sie will „etwas Magisches“, also los…" } },
-  { id: 'p4_fro_clip', minRevenue: 2000000, product: 'frozio', title: { fr: "Clip de rap hivernal", en: "Winter rap video", es: "Videoclip de rap invernal", zh: "冬季说唱MV", ru: "Зимний рэп-клип", it: "Video rap invernale", de: "Winter-Rap-Video" }, minPhase: 4, minLevel: 22, decisionTime: 30, needStock: 90, rewardAccept: { money: 750, rep: 1, noto: 3 },
-    narrative: { fr: "Yo, on tourne un clip ambiance Noël gangsta en plein août. Le rappeur veut de la 'vraie fausse neige' partout. 90 FROZIO sur le parking, on paye cash, faut que ça brille.", en: "Yo, we're shooting a gangsta Christmas vibe video in mid-August. The rapper wants 'real fake snow' everywhere. 90 FROZIO in the parking lot, we pay cash, it's gotta shine.", es: "Yo, rodamos un videoclip ambiente Navidad gangsta en pleno agosto. El rapero quiere 'nieve falsa de verdad' por todas partes. 90 FROZIO en el parking, pagamos cash, tiene que brillar.", zh: "哟，我们在八月中拍一个匪帮圣诞氛围的MV。说唱歌手要到处都是「真正的假雪」。停车场来90 FROZIO，现金付，得闪亮。", ru: "Йо, снимаем гангста-рождественский клип в середине августа. Рэпер хочет «настоящий ненастоящий снег» повсюду. 90 FROZIO на парковку, платим наличными, должно блестеть.", it: "Yo, giriamo un video natalizio in stile gangsta a metà agosto. Il rapper vuole «vera neve finta» ovunque. 90 FROZIO nel parcheggio, paghiamo contanti, deve brillare.", de: "Yo, wir drehen Mitte August ein Gangsta-Weihnachts-Video. Der Rapper will überall „echten Fake-Schnee“. 90 FROZIO auf dem Parkplatz, wir zahlen bar, das muss glänzen." } },
-  { id: 'p4_fro_vitrine', minRevenue: 2000000, product: 'frozio', title: { fr: "Vitrine de Noël en retard", en: "Late Christmas window", es: "Escaparate navideño atrasado", zh: "迟到的圣诞橱窗", ru: "Запоздалая рождественская витрина", it: "Vetrina di Natale in ritardo", de: "Späte Weihnachtsauslage" }, minPhase: 4, minLevel: 22, decisionTime: 30, needStock: 70, rewardAccept: { money: 650, rep: 1, noto: 2 },
-    narrative: { fr: "Grand magasin, notre déco de Noël est bloquée à la douane. On a besoin de 70 FROZIO pour habiller la vitrine principale ce soir, sinon c'est la honte sur l'avenue.", en: "Department store, our Christmas decor is stuck at customs. We need 70 FROZIO to dress the main window tonight, otherwise it's a disgrace on the avenue.", es: "Grandes almacenes, nuestra decoración navideña está bloqueada en aduana. Necesitamos 70 FROZIO para vestir el escaparate principal esta noche, si no es la vergüenza de la avenida.", zh: "百货公司，我们的圣诞装饰卡在海关。今晚需要70 FROZIO布置主橱窗，否则就是大街上的耻辱。", ru: "Универмаг, наш рождественский декор застрял на таможне. Нам нужно 70 FROZIO, чтобы оформить главную витрину сегодня, иначе позор на проспекте.", it: "Grande magazzino, le decorazioni natalizie sono bloccate in dogana. Ci servono 70 FROZIO per allestire la vetrina principale stasera, altrimenti è una vergogna sul viale.", de: "Kaufhaus, unsere Weihnachtsdeko hängt im Zoll fest. Wir brauchen 70 FROZIO, um heute Abend das Hauptschaufenster zu schmücken, sonst ist es eine Blamage auf der Avenue." } },
-  { id: 'p4_fro_ski', minRevenue: 4000000, product: 'frozio', title: { fr: "Compétition de ski indoor", en: "Indoor ski competition", es: "Competición de esquí indoor", zh: "室内滑雪比赛", ru: "Соревнования по закрытому лыжному спуску", it: "Gara di sci indoor", de: "Indoor-Ski-Wettkampf" }, minPhase: 4, minLevel: 23, decisionTime: 30, needStock: 130, rewardAccept: { money: 1200, rep: 2, noto: 2 },
-    narrative: { fr: "La piste de ski couverte a une zone qui a fondu, compétition régionale dans deux jours. 130 FROZIO pour reconstituer le bas de piste. Fédération honorifique, paiement solide.", en: "The covered ski slope has a melted zone, regional competition in two days. 130 FROZIO to rebuild the bottom of the slope. Honorary federation, solid payment.", es: "La pista de esquí cubierta tiene una zona derretida, competición regional en dos días. 130 FROZIO para reconstruir la parte baja. Federación honorífica, pago sólido.", zh: "室内滑雪道有一块融了，两天后地区比赛。130 FROZIO重建滑道底部。荣誉联合会，付款扎实。", ru: "На крытом лыжном спуске растаявшая зона, региональные соревнования через два дня. 130 FROZIO, чтобы восстановить низ спуска. Почётная федерация, солидная оплата.", it: "La pista da sci coperta ha una zona sciolta, gara regionale tra due giorni. 130 FROZIO per ricostruire il fondo della pista. Federazione onoraria, pagamento solido.", de: "Die überdachte Skipiste hat eine geschmolzene Zone, Regionalwettkampf in zwei Tagen. 130 FROZIO, um das untere Pistenstück neu zu bauen. Ehrenwerter Verband, solide Zahlung." } },
-  { id: 'p4_fro_marche', minRevenue: 7000000, product: 'frozio', title: { fr: "Marché de Noël en canicule", en: "Christmas market in a heatwave", es: "Mercado navideño en ola de calor", zh: "热浪中的圣诞市集", ru: "Рождественский рынок в жару", it: "Mercatino di Natale in piena calura", de: "Weihnachtsmarkt bei Hitze" }, minPhase: 4, minLevel: 24, decisionTime: 30, needStock: 160, rewardAccept: { money: 1600, rep: 2, noto: 3 },
-    narrative: { fr: "Marché de Noël avancé en septembre (ne demandez pas pourquoi, c'est politique). On veut une ambiance hivernale crédible. 160 FROZIO sur toute la place. Subvention municipale à la clé.", en: "Christmas market moved to September (don't ask why, it's political). We want a credible winter vibe. 160 FROZIO across the whole square. Municipal subsidy at stake.", es: "Mercado navideño adelantado a septiembre (no preguntes por qué, es político). Queremos un ambiente invernal creíble. 160 FROZIO por toda la plaza. Subvención municipal en juego.", zh: "圣诞市集挪到了九月（别问为什么，是政治）。我们想要逼真的冬季氛围。整个广场160 FROZIO。市政补贴悬而未决。", ru: "Рождественский рынок перенесли на сентябрь (не спрашивайте почему, это политика). Хотим правдоподобную зимнюю атмосферу. 160 FROZIO по всей площади. На кону муниципальная субсидия.", it: "Mercatino di Natale spostato a settembre (non chiedere perché, è politico). Vogliamo un'atmosfera invernale credibile. 160 FROZIO su tutta la piazza. In ballo c'è un sussidio comunale.", de: "Weihnachtsmarkt auf September verschoben (frag nicht warum, das ist politisch). Wir wollen ein glaubhaftes Winter-Feeling. 160 FROZIO über den ganzen Platz. Kommunaler Zuschuss steht auf dem Spiel." } },
-  { id: 'p4_fro_reveillon', minRevenue: 11000000, product: 'frozio', title: { fr: "Réveillon d'entreprise déguisé", en: "Themed company party", es: "Fiesta de empresa temática", zh: "主题公司派对", ru: "Тематическая корпоративная вечеринка", it: "Festa aziendale a tema", de: "Themen-Firmenparty" }, minPhase: 4, minLevel: 25, decisionTime: 30, needStock: 110, rewardAccept: { money: 1400, rep: 2, noto: 3 },
-    narrative: { fr: "Soirée d'entreprise thème 'Pôle Nord', 300 invités, le boss veut épater. Le décorateur a disparu avec l'acompte. 110 FROZIO pour sauver la soirée, comité d'entreprise généreux.", en: "Company party 'North Pole' theme, 300 guests, the boss wants to impress. The decorator vanished with the deposit. 110 FROZIO to save the night, generous works council.", es: "Fiesta de empresa tema 'Polo Norte', 300 invitados, el jefe quiere impresionar. El decorador desapareció con el anticipo. 110 FROZIO para salvar la noche, comité de empresa generoso.", zh: "公司派对「北极」主题，300名宾客，老板想惊艳全场。装饰师卷着定金跑了。110 FROZIO救这一夜，工会出手大方。", ru: "Корпоратив в теме «Северный полюс», 300 гостей, босс хочет впечатлить. Декоратор исчез с задатком. 110 FROZIO, чтобы спасти вечер, щедрый профсоюз.", it: "Festa aziendale tema «Polo Nord», 300 ospiti, il capo vuole stupire. Il decoratore è sparito con l'acconto. 110 FROZIO per salvare la serata, comitato aziendale generoso.", de: "Firmenparty Thema „Nordpol“, 300 Gäste, der Chef will beeindrucken. Der Dekorateur ist mit der Anzahlung verschwunden. 110 FROZIO, um den Abend zu retten, großzügiger Betriebsrat." } },
-  { id: 'p4_fro_film', minRevenue: 16000000, product: 'frozio', title: { fr: "Film de Noël hollywoodien", en: "Hollywood Christmas movie", es: "Película navideña de Hollywood", zh: "好莱坞圣诞电影", ru: "Голливудский рождественский фильм", it: "Film di Natale hollywoodiano", de: "Hollywood-Weihnachtsfilm" }, minPhase: 4, minLevel: 26, decisionTime: 30, needStock: 220, rewardAccept: { money: 2600, rep: 3, noto: 5 },
-    narrative: { fr: "Production internationale, scène de tempête de neige finale, budget colossal mais effets numériques refusés par le réalisateur. 220 FROZIO sur le plateau demain. Crédit au générique.", en: "International production, final snowstorm scene, colossal budget but the director refuses CGI. 220 FROZIO on set tomorrow. Credit in the titles.", es: "Producción internacional, escena de tormenta de nieve final, presupuesto colosal pero el director rechaza CGI. 220 FROZIO en el set mañana. Crédito en los títulos.", zh: "国际制作，最后的暴风雪场景，预算庞大但导演拒绝CGI。明天220 FROZIO送片场。署名上字幕。", ru: "Международное производство, финальная сцена снежной бури, колоссальный бюджет, но режиссёр отказывается от CGI. 220 FROZIO на площадку завтра. Упоминание в титрах.", it: "Produzione internazionale, scena finale della tempesta di neve, budget colossale ma il regista rifiuta la CGI. 220 FROZIO sul set domani. Citazione nei titoli.", de: "Internationale Produktion, finale Schneesturm-Szene, kolossales Budget, aber der Regisseur lehnt CGI ab. 220 FROZIO morgen ans Set. Nennung im Abspann." } },
-  // --- MEDIPACK (7) ---
-  { id: 'p4_med_foot', minRevenue: 0, product: 'medipack', title: { fr: "Tournoi de foot amateur", en: "Amateur football tournament", es: "Torneo de fútbol amateur", zh: "业余足球赛", ru: "Любительский футбольный турнир", it: "Torneo di calcio amatoriale", de: "Amateur-Fußballturnier" }, minPhase: 4, minLevel: 21, decisionTime: 30, needStock: 45, rewardAccept: { money: 400, rep: 1, noto: 1 },
-    narrative: { fr: "Tournoi du dimanche, 16 équipes, déjà 4 entorses et un nez cassé. Le kiné est à court de poches de froid. 45 MEDIPACK au bord du terrain, on se cotise, ça urge.", en: "Sunday tournament, 16 teams, already 4 sprains and a broken nose. The physio is out of cold packs. 45 MEDIPACK pitchside, we're pooling cash, it's urgent.", es: "Torneo del domingo, 16 equipos, ya 4 esguinces y una nariz rota. El fisio se quedó sin bolsas de frío. 45 MEDIPACK junto al campo, nos cotizamos, urge.", zh: "周日联赛，16支队，已经4个扭伤一个鼻梁断了。理疗师的冷敷包用光了。场边45 MEDIPACK，我们凑钱，急。", ru: "Воскресный турнир, 16 команд, уже 4 растяжения и сломанный нос. У физиотерапевта кончились холодовые пакеты. 45 MEDIPACK у поля, скидываемся, срочно.", it: "Torneo domenicale, 16 squadre, già 4 distorsioni e un naso rotto. Il fisioterapista è senza pack freddi. 45 MEDIPACK a bordo campo, facciamo una colletta, è urgente.", de: "Sonntagsturnier, 16 Teams, schon 4 Verstauchungen und eine gebrochene Nase. Dem Physio gehen die Kühlpacks aus. 45 MEDIPACK an den Spielfeldrand, wir legen zusammen, es ist dringend." } },
-  { id: 'p4_med_cascade', minRevenue: 2000000, product: 'medipack', title: { fr: "Cascadeurs en formation", en: "Stunt trainees", es: "Especialistas en formación", zh: "特技学员", ru: "Стажёры-каскадёры", it: "Allievi stuntman", de: "Stunt-Azubis" }, minPhase: 4, minLevel: 22, decisionTime: 30, needStock: 85, rewardAccept: { money: 700, rep: 1, noto: 2 },
-    narrative: { fr: "École de cascade, journée chutes contrôlées. Beaucoup de bleus, peu de glace. 85 MEDIPACK pour la fin de journée, sinon les stagiaires ne tiennent pas la semaine.", en: "Stunt school, controlled falls day. Lots of bruises, little ice. 85 MEDIPACK for the end of the day, otherwise the trainees won't last the week.", es: "Escuela de especialistas, día de caídas controladas. Muchos moratones, poco hielo. 85 MEDIPACK para el final del día, si no los becarios no aguantan la semana.", zh: "特技学校，受控跌落日。瘀伤多，冰少。85 MEDIPACK撑到一天结束，否则学员撑不过这周。", ru: "Школа каскадёров, день контролируемых падений. Много синяков, мало льда. 85 MEDIPACK на конец дня, иначе стажёры не продержатся неделю.", it: "Scuola di stunt, giornata di cadute controllate. Tanti lividi, poco ghiaccio. 85 MEDIPACK per fine giornata, altrimenti gli allievi non reggono la settimana.", de: "Stuntschule, Tag der kontrollierten Stürze. Viele Prellungen, wenig Eis. 85 MEDIPACK für das Tagesende, sonst halten die Azubis die Woche nicht durch." } },
-  { id: 'p4_med_urgences', minRevenue: 2000000, product: 'medipack', title: { fr: "Cabinet médical débordé", en: "Overwhelmed medical office", es: "Consultorio médico desbordado", zh: "忙不过来的诊所", ru: "Заваленный медкабинет", it: "Ambulatorio medico sommerso", de: "Überlaufene Arztpraxis" }, minPhase: 4, minLevel: 22, decisionTime: 30, needStock: 65, rewardAccept: { money: 600, rep: 2, noto: 1 },
-    narrative: { fr: "Cabinet médical de quartier, vague de chaleur, on enchaîne les coups de chaud. Stock de froid épuisé. 65 MEDIPACK ce soir. Prix juste, on ne marchande pas la santé.", en: "Neighborhood medical office, heatwave, back-to-back heat strokes. Cold stock depleted. 65 MEDIPACK tonight. Fair price, we don't haggle over health.", es: "Consultorio médico de barrio, ola de calor, golpes de calor sin parar. Stock de frío agotado. 65 MEDIPACK esta noche. Precio justo, no se regatea la salud.", zh: "街区诊所，热浪，中暑一个接一个。冷库耗尽。今晚65 MEDIPACK。公道价，健康的事不还价。", ru: "Районный медкабинет, жара, тепловые удары один за другим. Холодный запас исчерпан. 65 MEDIPACK сегодня. Справедливая цена, на здоровье не торгуемся.", it: "Ambulatorio di quartiere, ondata di caldo, colpi di calore a raffica. Scorta di freddo esaurita. 65 MEDIPACK stasera. Prezzo giusto, sulla salute non si tira.", de: "Arztpraxis im Viertel, Hitzewelle, Hitzschlag um Hitzschlag. Kältevorrat erschöpft. 65 MEDIPACK heute Abend. Fairer Preis, über Gesundheit feilschen wir nicht." } },
-  { id: 'p4_med_boxe', minRevenue: 4000000, product: 'medipack', title: { fr: "Gala de boxe", en: "Boxing gala", es: "Velada de boxeo", zh: "拳击晚会", ru: "Боксёрский гала", it: "Gala di boxe", de: "Box-Gala" }, minPhase: 4, minLevel: 23, decisionTime: 30, needStock: 125, rewardAccept: { money: 1300, rep: 2, noto: 2 },
-    narrative: { fr: "Gala de boxe ce week-end, douze combats programmés. Le médecin du ring veut du stock d'avance, ça va saigner. 125 MEDIPACK en coulisses. Organisation sérieuse, paiement net.", en: "Boxing gala this weekend, twelve fights scheduled. The ring doctor wants stock in advance, it's gonna bleed. 125 MEDIPACK backstage. Serious organization, clean payment.", es: "Velada de boxeo este fin de semana, doce combates programados. El médico del ring quiere stock por adelantado, va a sangrar. 125 MEDIPACK entre bastidores. Organización seria, pago limpio.", zh: "这周末拳击晚会，十二场比赛在排程。台医想提前备货，会流血的。后台125 MEDIPACK。组织正规，付款干净。", ru: "Боксёрский гала в эти выходные, двенадцать боёв в программе. Врач ринга хочет запас заранее, будет кровь. 125 MEDIPACK за кулисами. Серьёзная организация, чистая оплата.", it: "Gala di boxe questo weekend, dodici incontri in programma. Il medico del ring vuole la scorta in anticipo, ci sarà sangue. 125 MEDIPACK dietro le quinte. Organizzazione seria, pagamento pulito.", de: "Box-Gala dieses Wochenende, zwölf Kämpfe angesetzt. Der Ringarzt will Vorrat im Voraus, das wird bluten. 125 MEDIPACK hinter die Bühne. Seriöse Organisation, saubere Zahlung." } },
-  { id: 'p4_med_scolaire', minRevenue: 7000000, product: 'medipack', title: { fr: "Festival sportif scolaire", en: "School sports festival", es: "Festival deportivo escolar", zh: "校园体育节", ru: "Школьный спортивный праздник", it: "Festa sportiva scolastica", de: "Schulsportfest" }, minPhase: 4, minLevel: 24, decisionTime: 30, needStock: 155, rewardAccept: { money: 1700, rep: 3, noto: 2 },
-    narrative: { fr: "Jeux inter-collèges, 2000 ados, on prévoit large côté bobos. L'infirmerie réclame du renfort froid. 155 MEDIPACK pour la journée. Éducation nationale, paiement garanti.", en: "Inter-school games, 2000 teens, we plan big on the boo-boo side. The infirmary wants cold reinforcement. 155 MEDIPACK for the day. State education, guaranteed payment.", es: "Juegos entre institutos, 2000 adolescentes, prevemos de sobra en heridas. La enfermería pide refuerzo de frío. 155 MEDIPACK para la jornada. Educación nacional, pago garantizado.", zh: "校际运动会，2000名青少年，磕碰方面我们准备得很足。医务室想要冷敷增援。当天155 MEDIPACK。国家教育，付款保证。", ru: "Межшкольные игры, 2000 подростков, планируем по-крупному по части ушибов. Медпункт хочет холодовое подкрепление. 155 MEDIPACK на день. Гособразование, гарантированная оплата.", it: "Giochi inter-scolastici, 2000 ragazzi, prevediamo grosso sul fronte bua. L'infermeria vuole rinforzo di freddo. 155 MEDIPACK per la giornata. Pubblica istruzione, pagamento garantito.", de: "Schulübergreifende Spiele, 2000 Jugendliche, wir planen groß auf der Wehwehchen-Seite. Die Krankenstation will Kälte-Verstärkung. 155 MEDIPACK für den Tag. Staatliche Bildung, garantierte Zahlung." } },
-  { id: 'p4_med_studio', minRevenue: 11000000, product: 'medipack', title: { fr: "Tournage cascade dangereuse", en: "Dangerous stunt shoot", es: "Rodaje de acrobacia peligrosa", zh: "危险特技拍摄", ru: "Опасные каскадёрские съёмки", it: "Riprese stunt pericolose", de: "Gefährlicher Stunt-Dreh" }, minPhase: 4, minLevel: 25, decisionTime: 30, needStock: 105, rewardAccept: { money: 1500, rep: 2, noto: 3 },
-    narrative: { fr: "Film d'action, semaine de cascades à haut risque, l'assurance exige un stock médical conséquent sur place. 105 MEDIPACK livrés au studio. Production solide, paiement immédiat.", en: "Action film, high-risk stunt week, insurance demands substantial medical stock on site. 105 MEDIPACK delivered to the studio. Solid production, immediate payment.", es: "Película de acción, semana de acrobacias de alto riesgo, el seguro exige stock médico considerable in situ. 105 MEDIPACK entregados al estudio. Producción sólida, pago inmediato.", zh: "动作片，高危特技周，保险要求现场有大量医疗储备。105 MEDIPACK送片场。制作扎实，立即付款。", ru: "Боевик, неделя высокорисковых трюков, страховка требует существенный медзапас на месте. 105 MEDIPACK доставить в студию. Солидное производство, немедленная оплата.", it: "Film d'azione, settimana di stunt ad alto rischio, l'assicurazione esige una scorta medica consistente in loco. 105 MEDIPACK consegnati allo studio. Produzione solida, pagamento immediato.", de: "Actionfilm, Hochrisiko-Stuntwoche, die Versicherung verlangt erheblichen Sanitätsvorrat vor Ort. 105 MEDIPACK ins Studio geliefert. Solide Produktion, sofortige Zahlung." } },
-  { id: 'p4_med_marathon', minRevenue: 16000000, product: 'medipack', title: { fr: "Marathon international", en: "International marathon", es: "Maratón internacional", zh: "国际马拉松", ru: "Международный марафон", it: "Maratona internazionale", de: "Internationaler Marathon" }, minPhase: 4, minLevel: 26, decisionTime: 30, needStock: 210, rewardAccept: { money: 2800, rep: 3, noto: 5 },
-    narrative: { fr: "Marathon international, 20 000 coureurs, dispositif médical massif imposé par la fédération. Notre fournisseur a fait défaut. 210 MEDIPACK répartis sur le parcours. Visibilité mondiale.", en: "International marathon, 20,000 runners, massive medical setup required by the federation. Our supplier defaulted. 210 MEDIPACK along the course. Global visibility.", es: "Maratón internacional, 20 000 corredores, dispositivo médico masivo impuesto por la federación. Nuestro proveedor falló. 210 MEDIPACK repartidos por el recorrido. Visibilidad mundial.", zh: "国际马拉松，20000名跑者，联合会要求大规模医疗配置。我们的供应商违约了。沿途210 MEDIPACK。全球曝光。", ru: "Международный марафон, 20 000 бегунов, массивное медоснащение по требованию федерации. Наш поставщик подвёл. 210 MEDIPACK вдоль трассы. Глобальная видимость.", it: "Maratona internazionale, 20.000 runner, dispositivo medico massiccio richiesto dalla federazione. Il nostro fornitore è inadempiente. 210 MEDIPACK lungo il percorso. Visibilità globale.", de: "Internationaler Marathon, 20.000 Läufer, massives Sanitätsaufgebot vom Verband gefordert. Unser Lieferant ist ausgefallen. 210 MEDIPACK entlang der Strecke. Weltweite Sichtbarkeit." } },
   // === PHASE 2 — niveaux 11-20 (industrie locale, demandes moyennes) ===
   { id: 'restaurant_groupe', minCap: 1500, title: { fr: "Groupe de restos régional", en: "Regional restaurant group", es: "Grupo de restos regional", zh: "区域餐饮集团", ru: "Региональная сеть ресторанов", it: "Gruppo ristoranti regionale", de: "Regionale Restaurantgruppe" }, minPhase: 2, minLevel: 11, decisionTime: 30, needStock: 1200, rewardAccept: { money: 2400, rep: 2 },
     narrative: { fr: "Bonjour, je dirige les achats pour un groupe de 12 restaurants dans la région. Notre fournisseur habituel a déposé le bilan. Il nous faut 1200 glaçons livrés ce soir, sinon les services sont morts. 2400€, on a un compte ouvert si ça passe.", en: "Hello, I head purchasing for a 12-restaurant regional group. Our usual supplier went bankrupt. We need 1200 ice cubes delivered tonight or service is dead. 2400€, we'll open an account if it works.", es: "Hola, dirijo las compras de un grupo de 12 restaurantes en la región. Nuestro proveedor habitual quebró. Necesitamos 1200 cubitos entregados esta noche o se acaba el servicio. 2400€, abrimos cuenta si funciona.", zh: "你好，我管理一家区域12家餐厅的采购。常用供应商破产了。今晚需要1200块冰，否则服务垮了。2400€，可以的话开账户。", ru: "Здравствуйте, я закупщик для региональной группы из 12 ресторанов. Наш постоянный поставщик обанкротился. Нужно 1200 кубиков сегодня вечером, иначе обслуживание мертво. 2400€, откроем счёт если получится.", it: "Salve, dirigo gli acquisti per un gruppo regionale di 12 ristoranti. Il nostro fornitore abituale è fallito. Servono 1200 cubetti stasera o salta il servizio. 2400€, apriamo un conto se va bene.", de: "Hallo, ich leite den Einkauf für eine regionale 12-Restaurant-Gruppe. Unser üblicher Lieferant ist pleite. Wir brauchen heute Abend 1200 Eiswürfel, sonst ist der Service tot. 2400€, wir eröffnen ein Konto wenn's klappt." } },
@@ -3171,11 +3067,6 @@ const DEV_PREVIEW_MESSAGES = {
       "L'ambiance est bonne en ce moment. J'ai envie de venir bosser le matin.",
       "Je vais te dire, on est en train de construire quelque chose ici. Ça se sent.",
     ],
-    phase4: [
-      "Et si on faisait pas que des glaçons ? Genre... d'autres produits congelés ?",
-      "J'ai bossé sur un prototype POP ICE. Ça déchire. Tu veux voir ?",
-      "Le proto est validé. Reste plus qu'à décider si on lance la prod.",
-    ],
   },
   brigitte: {
     quotidien: [
@@ -3198,11 +3089,6 @@ const DEV_PREVIEW_MESSAGES = {
       "Le café de la machine est dégueulasse. Investis dans une vraie, ça motive plus que ton sourire.",
       "T'es là depuis ce matin sans pause. Va faire un tour, je gère.",
     ],
-    phase4: [
-      "Tu sais que tes glaçons se vendent mal l'hiver ? Faut diversifier la gamme.",
-      "Si on faisait du saisonnier en plus du glaçon ? L'été c'est pop ice, l'hiver c'est frozio.",
-      "On a fini la consolidation des chiffres. T'as cinq acquéreurs potentiels sur la table.",
-    ],
   },
   janice: {
     celebration: [
@@ -3210,22 +3096,12 @@ const DEV_PREVIEW_MESSAGES = {
       "J'ai vu deux concurrents copier notre charte graphique cette semaine. Bon signe.",
       "On vient d'être cité dans Glace Magazine. Ça pète.",
     ],
-    phase4: [
-      "On a fait le tour de notre marché. On a fait grimper la notoriété. Maintenant faut diversifier.",
-      "Les acquéreurs potentiels arrivent à la table. À toi de décider quand on appuie.",
-      "J'ai préparé un dossier. Cinq investisseurs, cinq trajectoires. Tu choisis.",
-    ],
   },
   lenny: {
     anecdote: [
       "Le quai de [client] est mieux équipé que le nôtre. Faudrait peut-être investir.",
       "Petit pépin moteur sur le retour, j'ai bricolé sur l'autoroute. Livraison sauvée.",
       "Le responsable de [client] m'a demandé mon prénom aujourd'hui. Bon signe.",
-    ],
-    phase4: [
-      "Patron, j'ai eu une idée chelou hier soir. On vend que des glaçons. Mais si on faisait genre... pop ice ?",
-      "J'ai vu un manège glaces à l'italienne hier. Imagine si on faisait pareil avec nos cubes.",
-      "On pourrait diversifier. T'en penses quoi ? Je dis ça comme ça.",
     ],
   },
 };
@@ -3792,9 +3668,6 @@ const PRESS_TEMPLATES = [
   { source: 'capital_hebdo', tone: 'positive', notoRange: [50, 100], tags: ['luxe'],
     title: { fr: "Glace premium : Meltdown entre dans la cour des grands", en: "Premium ice: Meltdown joins the big leagues", es: "Hielo premium: Meltdown entra en la liga mayor", zh: "高端冰：Meltdown加入大联盟", ru: "Премиум-лёд: Meltdown входит в высшую лигу", it: "Ghiaccio premium: Meltdown entra nei pezzi grossi", de: "Premium-Eis: Meltdown spielt jetzt oben mit" },
     excerpt: { fr: "Distribution sélective, montée en gamme assumée : la marque vise le segment haut.", en: "Selective distribution, deliberate upscaling: the brand targets the high end.", es: "Distribución selectiva, premiumización asumida: la marca apunta a la gama alta.", zh: "选择性分销、有意提升档次：品牌瞄准高端。", ru: "Селективная дистрибуция, намеренное повышение класса: бренд целится в высокий сегмент.", it: "Distribuzione selettiva, upgrade deliberato: il marchio punta alla fascia alta.", de: "Selektiver Vertrieb, gezieltes Aufrücken: Die Marke zielt aufs obere Segment." } },
-  { source: 'capital_hebdo', tone: 'positive', notoRange: [65, 100], tags: ['luxe', 'pro'],
-    title: { fr: "Valorisation : Meltdown attire l'attention des fonds", en: "Valuation: Meltdown catches funds' attention", es: "Valoración: Meltdown llama la atención de los fondos", zh: "估值：Meltdown引起基金注意", ru: "Оценка: Meltdown привлекает внимание фондов", it: "Valutazione: Meltdown attira l'attenzione dei fondi", de: "Bewertung: Meltdown weckt das Interesse der Fonds" },
-    excerpt: { fr: "Plusieurs acquéreurs potentiels seraient en discussion avec la direction.", en: "Several potential acquirers reportedly in talks with management.", es: "Varios posibles compradores estarían en conversaciones con la dirección.", zh: "据称多家潜在收购方正与管理层洽谈。", ru: "Несколько потенциальных покупателей якобы в переговорах с руководством.", it: "Diversi potenziali acquirenti sarebbero in trattativa con la direzione.", de: "Mehrere potenzielle Käufer angeblich in Gesprächen mit dem Management." } },
 
   // === NEUTRES ===
   { source: 'echo_frais', tone: 'neutral', notoRange: [5, 100], tags: [],
@@ -4188,21 +4061,6 @@ const STATUS_POOLS = {
     { fr: "On commence à te citer en exemple dans les écoles de commerce.", en: "Business schools are starting to cite you as an example.", es: "Las escuelas de negocio empiezan a citarte como ejemplo.", zh: "商学院开始把你当案例引用。", ru: "Бизнес-школы начинают приводить тебя в пример.", it: "Le business school iniziano a citarti come esempio.", de: "Business Schools beginnen, dich als Beispiel zu nennen." },
     { fr: "Tu tiens ton avance, mois après mois.", en: "You hold your lead, month after month.", es: "Mantienes tu ventaja, mes tras mes.", zh: "你的领先优势月复一月地保持着。", ru: "Ты держишь лидерство месяц за месяцем.", it: "Mantieni il tuo vantaggio, mese dopo mese.", de: "Du hältst deinen Vorsprung, Monat für Monat." },
   ],
-  // === PHASE 4 — Diversification, valorisation, acquisition ===
-  p4_early: [
-    { fr: "Les trois lignes tournent en parallèle, ça grogne.", en: "Three lines running in parallel, it rumbles.", es: "Tres líneas funcionando en paralelo, retumba.", zh: "三条线并行运转，轰隆作响。", ru: "Три линии работают параллельно, гудит.", it: "Tre linee in parallelo, rumoreggia.", de: "Drei Linien laufen parallel, es rumort." },
-    { fr: "POP ICE, FROZIO, MEDIPACK : trois ADN à gérer.", en: "POP ICE, FROZIO, MEDIPACK: three DNAs to manage.", es: "POP ICE, FROZIO, MEDIPACK: tres ADNs que gestionar.", zh: "POP ICE、FROZIO、MEDIPACK：三种基因要管理。", ru: "POP ICE, FROZIO, MEDIPACK: три ДНК для управления.", it: "POP ICE, FROZIO, MEDIPACK: tre DNA da gestire.", de: "POP ICE, FROZIO, MEDIPACK: drei DNAs zu managen." },
-    { fr: "Janice te montre la valorisation entreprise.", en: "Janice shows you the company valuation.", es: "Janice te muestra la valoración empresa.", zh: "贾妮丝给你看公司估值。", ru: "Дженис показывает оценку компании.", it: "Janice ti mostra la valutazione dell'azienda.", de: "Janice zeigt dir die Unternehmensbewertung." },
-    { fr: "Les premiers acquéreurs commencent à se manifester.", en: "First acquirers are starting to surface.", es: "Los primeros compradores empiezan a manifestarse.", zh: "首批收购方开始浮现。", ru: "Первые покупатели начинают всплывать.", it: "I primi acquirenti iniziano a farsi vivi.", de: "Erste Käufer tauchen langsam auf." },
-    { fr: "Le tableau de bord est devenu un cockpit.", en: "The dashboard has become a cockpit.", es: "El tablero se ha vuelto una cabina.", zh: "仪表盘变成了驾驶舱。", ru: "Панель управления стала кокпитом.", it: "La dashboard è diventata un cockpit.", de: "Das Dashboard ist zum Cockpit geworden." },
-  ],
-  p4_mid: [
-    { fr: "Un fonds d'investissement t'envoie un dossier.", en: "An investment fund sends you a file.", es: "Un fondo de inversión te envía un dossier.", zh: "一家投资基金给你寄来一份档案。", ru: "Инвестфонд присылает тебе досье.", it: "Un fondo di investimento ti manda un dossier.", de: "Ein Investmentfonds schickt dir eine Akte." },
-    { fr: "Les acquéreurs comparent ta marge à celle des concurrents.", en: "Acquirers compare your margin to competitors'.", es: "Los compradores comparan tu margen con la competencia.", zh: "收购方把你的利润率和竞争对手比。", ru: "Покупатели сравнивают твою маржу с конкурентами.", it: "Gli acquirenti confrontano il tuo margine con quello dei concorrenti.", de: "Käufer vergleichen deine Marge mit der der Konkurrenz." },
-    { fr: "Chaque choix sculpte ta valeur de sortie.", en: "Each choice sculpts your exit value.", es: "Cada elección esculpe tu valor de salida.", zh: "每个选择都在雕琢你的退出价值。", ru: "Каждый выбор лепит твою цену выхода.", it: "Ogni scelta scolpisce il tuo valore d'uscita.", de: "Jede Entscheidung formt deinen Ausstiegswert." },
-    { fr: "Tu comprends que le jeu se joue maintenant.", en: "You realize the game is being played now.", es: "Comprendes que el juego se juega ahora.", zh: "你意识到游戏现在就在进行。", ru: "Ты понимаешь, что игра разыгрывается сейчас.", it: "Capisci che la partita si gioca adesso.", de: "Dir wird klar, dass das Spiel jetzt gespielt wird." },
-    { fr: "La presse économique nationale couvre tes mouvements.", en: "National business press covers your moves.", es: "La prensa económica nacional cubre tus movimientos.", zh: "全国商业媒体报道你的动作。", ru: "Национальная деловая пресса освещает твои ходы.", it: "La stampa economica nazionale segue le tue mosse.", de: "Die nationale Wirtschaftspresse berichtet über deine Schritte." },
-  ],
 };
 
 function pickStatusMessage(ctx) {
@@ -4233,14 +4091,10 @@ function pickStatusMessage(ctx) {
     if (ctx.level <= 22) return r(STATUS_POOLS.p2_mid);
     if (ctx.level <= 24) return r(STATUS_POOLS.p2_late);
     return r(STATUS_POOLS.p2_top);
-  } else if (ctx.phase === 3) {
+  } else {
     if (ctx.level <= 30) return r(STATUS_POOLS.p3_early);
     if (ctx.level <= 34) return r(STATUS_POOLS.p3_mid);
     return r(STATUS_POOLS.p3_late);
-  } else {
-    // Phase 4
-    if (ctx.level <= 44) return r(STATUS_POOLS.p4_early);
-    return r(STATUS_POOLS.p4_mid);
   }
 }
 
@@ -4302,74 +4156,6 @@ function niceThird(maxCap) {
 }
 
 const TRUCK_IDS = ['camion_1', 'camion_2', 'camion_3', 'camion_4', 'camion_5', 'camion_6'];
-
-// === CAPACITÉ DE CONTRATS SIMULTANÉS PHASE 4 ===
-// = max(3, nb camions possédés) + bonus des paliers d'extension P4.
-// Plancher 3 : sécurité si arrivée en P4 avec peu de camions (dev/test).
-const P4_CAP_EXTENSIONS = {
-  p4_depot_regional: 3,     // Dépôt régional → +3 slots
-  p4_plateforme_log: 5,     // Plateforme logistique → +5 slots
-  p4_hub_national: 7,       // Hub national → +7 slots
-  // Total : 6 camions + 15 = 21 slots — couvre le pic estival (21 contrats
-  // simultanés possibles), pour que TOUS les contrats puissent tourner.
-};
-// Charges récurrentes semestrielles ajoutées à la charge logistique B
-// par les paliers d'infrastructure possédés (familles A et B).
-// La famille C (ouverture marchés) n'alourdit PAS B → absente d'ici.
-const P4_INFRA_UPKEEP = {
-  // Famille A — Extensions de capacité
-  p4_depot_regional: 1500,
-  p4_plateforme_log: 3000,
-  p4_hub_national: 5000,
-  // Famille B — Améliorations flotte
-  p4_flotte_refrig: 1200,
-  p4_optim_tournees: 1500,
-  p4_telematique: 2000,
-};
-
-// =========================================================================
-// === PALIERS D'INFRASTRUCTURE PHASE 4 ===
-// 3 familles. famA = extensions de capacité (slots +B). famB = flotte
-// (qualitatif +B). famC = ouverture marchés (gros coût, PAS de +B).
-// requires : id du palier prérequis (chaîne), ou null.
-// =========================================================================
-const P4_INFRA = {
-  famA: {
-    label: { fr: 'CAPACITÉ', en: 'CAPACITY', es: 'CAPACIDAD', zh: "容量", ru: "ЁМКОСТЬ", it: "CAPACITÀ", de: "KAPAZITÄT" },
-    tiers: [
-],
-  },
-  famB: {
-    label: { fr: 'FLOTTE', en: 'FLEET', es: 'FLOTA', zh: "车队", ru: "ПАРК", it: "FLOTTA", de: "FLOTTE" },
-    tiers: [
-],
-  },
-};
-const P4_INFRA_FAMS = ['famA', 'famB'];
-function computeP4MaxLines(owned) {
-  const trucks = TRUCK_IDS.filter(id => owned[id]).length;
-  let bonus = 0;
-  for (const id in P4_CAP_EXTENSIONS) {
-    if (owned[id]) bonus += P4_CAP_EXTENSIONS[id];
-  }
-  return Math.max(3, trucks) + bonus;
-}
-
-// === Effets famB (flotte) — branchés sur la mécanique P4 ===
-// Multiplicateur de vitesse des camions selon les paliers possédés.
-// optim_tournees : −20% temps cycle → ×1.25 vitesse.
-// telematique    : −30% temps cycle → ×1.43 vitesse (remplace, pas cumul,
-//   car telematique requiert optim_tournees dans la chaîne).
-function p4FleetSpeedMult(owned) {
-  if (!owned) return 1;
-  if (owned['p4_telematique']) return 1 / 0.70;   // −30%
-  if (owned['p4_optim_tournees']) return 1 / 0.80; // −20%
-  return 1;
-}
-// Facteur de risque incident chauffeur/panne (flotte réfrigérée premium).
-function p4FleetIncidentMult(owned) {
-  return (owned && owned['p4_flotte_refrig']) ? 0.5 : 1;
-}
 
 function getLennyGrade(owned) {
   const count = TRUCK_IDS.filter(id => owned[id]).length;
@@ -4959,9 +4745,6 @@ export default function App() {
   });
   const [showMarket, setShowMarket] = useState(false);
   const [contractDetailId, setContractDetailId] = useState(null);
-  const [p4ContractDetailId, setP4ContractDetailId] = useState(null);
-  // Pop-up de réparation : id du contrat dont le camion est en panne.
-  const [p4RepairPopup, setP4RepairPopup] = useState(null);
   const [lineStatusIdx, setLineStatusIdx] = useState(null); // index de ligne pour popup status
   const [statsOpen, setStatsOpen] = useState(false);
   const [personnelOpen, setPersonnelOpen] = useState(false);
@@ -5124,7 +4907,6 @@ export default function App() {
   const phase3SemestersRef = useRef(0);
   useEffect(() => { phase3SemestersRef.current = phase3Semesters; }, [phase3Semesters]);
   const [missionOpen, setMissionOpen] = useState(false);
-  const [phase4ReadyCallDone, setPhase4ReadyCallDone] = useState(false); // l'appel de Janice a déjà été déclenché
   const [exoIntroShown, setExoIntroShown] = useState(false); // message unique d'exonération 1ère année déjà affiché
   const exoIntroShownRef = useRef(false);
   useEffect(() => { exoIntroShownRef.current = exoIntroShown; }, [exoIntroShown]);
@@ -5195,196 +4977,9 @@ export default function App() {
   const [phase3TriggerStage, setPhase3TriggerStage] = useState(0); // 0=not yet, 1=Glacier call done, 2=centrale call done, 3=unlock visible
   // Délai minimal entre étapes Phase 3 (en gameTime, pour éviter le spam de messages)
   const [phase3LastStageAt, setPhase3LastStageAt] = useState(0);
-  // === Phase 4 — Diversification produit (POP ICE / FROZIO / MEDIPACK)
-  const [phase4TriggerStage, setPhase4TriggerStage] = useState(0); // 0..6 ; 6 = Phase 4 active
-  const [phase4LastStageAt, setPhase4LastStageAt] = useState(0);
-  const [phase4ModalOpen, setPhase4ModalOpen] = useState(false);
-  const [phase4SceneStep, setPhase4SceneStep] = useState(0);
-  const [phase4MeetingOpen, setPhase4MeetingOpen] = useState(false);
-  const [phase4MeetingStep, setPhase4MeetingStep] = useState(0);
-  // Stocks Phase 4 (3 produits séparés)
-  const [popIceStock, setPopIceStock] = useState(0);
-  const [frozioStock, setFrozioStock] = useState(0);
-  const [medipackStock, setMedipackStock] = useState(0);
-  // Capacité de production Phase 4 — calibrée au départ pile sur le plus gros
-  // contrat initial (centrale pharma = 200u). Augmentable via upgrades P4.
-  const [p4MaxCap, setP4MaxCap] = useState(80);
-  const p4MaxCapRef = useRef(200);
-  useEffect(() => { p4MaxCapRef.current = p4MaxCap; }, [p4MaxCap]);
-  // Objectifs de production Phase 4 : nombre d'unités/cycle voulu par
-  // produit (curseur dédié). La somme des (unités × coût W) ne peut
-  // dépasser le budget usine p4MaxCap (blocage net côté UI).
-  // Valeurs de départ modestes, dans le budget initial (200 W).
-  // Cibles de départ calées sur le budget initial de 10 W (HOMELAND).
-  // Coûts W : popice ×1, frozio ×3, medipack ×6.
-  const [p4TargetPop, setP4TargetPop] = useState(2);   // 2×1 = 2 W
-  const [p4TargetFro, setP4TargetFro] = useState(1);   // 1×3 = 3 W
-  const [p4TargetMed, setP4TargetMed] = useState(0);   // 0×6 = 0 W (à activer au besoin) → 5 W / 10
-  const p4TargetPopRef = useRef(60);
-  const p4TargetFroRef = useRef(20);
-  const p4TargetMedRef = useRef(13);
-  useEffect(() => { p4TargetPopRef.current = p4TargetPop; }, [p4TargetPop]);
-  useEffect(() => { p4TargetFroRef.current = p4TargetFro; }, [p4TargetFro]);
-  useEffect(() => { p4TargetMedRef.current = p4TargetMed; }, [p4TargetMed]);
-  // Accumulateur W consommés sur le semestre → facture énergie
-  const p4EnergyAccumRef = useRef({ sum: 0, ticks: 0 });
-  // Prix joueur (slidables)
-  const [popIcePrice, setPopIcePrice] = useState(2.40);
-  const [frozioPrice, setFrozioPrice] = useState(18.00);
-  const [medipackPrice, setMedipackPrice] = useState(45.00);
-  // CA Phase 4 cumulé (pour valorisation)
-  const [phase4Revenue, setPhase4Revenue] = useState(0);
-  const [valuationTooltipOpen, setValuationTooltipOpen] = useState(false);
-  // Produit Phase 4 actuellement focus dans la card swipeable (popice / frozio / medipack)
-  const [activeProduct, setActiveProduct] = useState('popice');
-  // Drag state pour le swipe (touch + souris)
-  const swipeStartRef = useRef({ x: 0, active: false, delta: 0 });
-  const [swipeDelta, setSwipeDelta] = useState(0);
-  const focusCardRef = useRef(null);
-  // Refs pour le tick Phase 4 (stocks 3 produits)
-  const popIceStockRef = useRef(0);
-  const frozioStockRef = useRef(0);
-  const medipackStockRef = useRef(0);
-  useEffect(() => { popIceStockRef.current = popIceStock; }, [popIceStock]);
-  useEffect(() => { frozioStockRef.current = frozioStock; }, [frozioStock]);
-  useEffect(() => { medipackStockRef.current = medipackStock; }, [medipackStock]);
-  // Refs des prix joueur (utilisées dans le tick de vente automatique Phase 4)
-  const popIcePriceRef = useRef(2.40);
-  const frozioPriceRef = useRef(18.00);
-  const medipackPriceRef = useRef(45.00);
-  useEffect(() => { popIcePriceRef.current = popIcePrice; }, [popIcePrice]);
-  useEffect(() => { frozioPriceRef.current = frozioPrice; }, [frozioPrice]);
-  useEffect(() => { medipackPriceRef.current = medipackPrice; }, [medipackPrice]);
-  // === INCIDENTS CIBLÉS PHASE 4 ===
-  // Chaque produit a sa propre vulnérabilité :
-  // - POP ICE : fonte ×2 en canicule (passive, gérée dans le tick)
-  // - FROZIO : panne cryogénique (durée 30-60s, bloque sa production)
-  // - MEDIPACK : inspection sanitaire (instantanée, détruit 25-40% du stock)
-  const [frozioLineDown, setFrozioLineDown] = useState(0); // durée restante en secondes
-  const frozioLineDownRef = useRef(0);
-  useEffect(() => { frozioLineDownRef.current = frozioLineDown; }, [frozioLineDown]);
-  const [lastFrozioPanneAt, setLastFrozioPanneAt] = useState(-9999);
-  const lastFrozioPanneAtRef = useRef(-9999);
-  useEffect(() => { lastFrozioPanneAtRef.current = lastFrozioPanneAt; }, [lastFrozioPanneAt]);
-  const [lastMedipackInspectionAt, setLastMedipackInspectionAt] = useState(-9999);
-  const lastMedipackInspectionAtRef = useRef(-9999);
-  useEffect(() => { lastMedipackInspectionAtRef.current = lastMedipackInspectionAt; }, [lastMedipackInspectionAt]);
-
-  // === CONTRATS B2B PHASE 4 ===
-  // linesP4 = camions actifs (chaque entrée représente un contrat en cours de livraison)
-  // { contractId, product, truckPhase: 'loading'|'going'|'returning', truckPos: 0-1,
-  //   deliveriesDone, deliveriesTarget, contractExpiresAt, revenueAccum }
-  const [linesP4, setLinesP4] = useState([]);
-  const linesP4Ref = useRef([]);
-  useEffect(() => { linesP4Ref.current = linesP4; }, [linesP4]);
-  // Marketplace P4 : un seul tableau, filtré par produit dans l'UI
-  // { contractId, product, expiresAt, generatedAt }
-  const [marketplaceP4, setMarketplaceP4] = useState([]);
-  const marketplaceP4Ref = useRef([]);
-  useEffect(() => { marketplaceP4Ref.current = marketplaceP4; }, [marketplaceP4]);
-  // Déblocage progressif des produits Phase 4 : au démarrage, seul MEDIPACK
-  // (Dr. Vandenberg tient son engagement). POP ICE et FROZIO se débloquent
-  // ensuite via narratif (popups séquencés).
-  const [p4UnlockedProducts, setP4UnlockedProducts] = useState(['medipack']);
-  const p4UnlockedProductsRef = useRef(['medipack']);
-  useEffect(() => { p4UnlockedProductsRef.current = p4UnlockedProducts; }, [p4UnlockedProducts]);
-  // Étapes du narratif de déblocage produit P4 : 0 = rien encore, 1 = popice débloqué, 2 = frozio débloqué
-  const [p4UnlockStage, setP4UnlockStage] = useState(0);
-  const p4UnlockStageRef = useRef(0);
-  useEffect(() => { p4UnlockStageRef.current = p4UnlockStage; }, [p4UnlockStage]);
-  // === CARTE LOGISTIQUE P4 : marchés ouverts ===
-  // Tableau de clés "PAYS:produit". HOMELAND est ouvert d'office pour les 3
-  // produits dès l'entrée en Phase 4 (l'usine y est implantée). Les autres
-  // pays s'ouvrent via appels narratifs (étape 2).
-  const P4_HOME_MARKETS = ['HOMELAND:popice', 'HOMELAND:frozio', 'HOMELAND:medipack'];
-  const [p4OpenMarkets, setP4OpenMarkets] = useState(P4_HOME_MARKETS);
-  const p4OpenMarketsRef = useRef(P4_HOME_MARKETS);
-  useEffect(() => { p4OpenMarketsRef.current = p4OpenMarkets; }, [p4OpenMarkets]);
-  // === SYSTÈME D'OUVERTURE DES PAYS (design validé 17 mai) ===
-  // Pays ouverts (HOMELAND d'office). p4UnlockedContracts = contrats
-  // individuellement débloqués (entrée via appel + suivants via Brigitte) :
-  // SEULS ces contrats peuvent apparaître en marketplace.
-  const P4_HOME_CONTRACTS = ['pm_pop_epicerie', 'pm_pop_cabane', 'pm_fro_decors', 'pm_fro_comptoir', 'pm_med_clinique', 'pm_med_biolab'];
-  const [p4OpenCountries, setP4OpenCountries] = useState(['HOMELAND']);
-  const p4OpenCountriesRef = useRef(['HOMELAND']);
-  useEffect(() => { p4OpenCountriesRef.current = p4OpenCountries; }, [p4OpenCountries]);
-  const [p4UnlockedContracts, setP4UnlockedContracts] = useState(P4_HOME_CONTRACTS);
-  const p4UnlockedContractsRef = useRef(P4_HOME_CONTRACTS);
-  useEffect(() => { p4UnlockedContractsRef.current = p4UnlockedContracts; }, [p4UnlockedContracts]);
-  // Cumul persistant des livraisons par contractId (survit au dé-signage).
-  const p4ContractDeliveriesRef = useRef({});
-  // Seuils aléatoires MÉMORISÉS : N (3-5) pour ouvrir le pays suivant,
-  // M (2-4) pour la prochaine relance Brigitte. Tirés une fois, figés.
-  const p4NextCountryThresholdRef = useRef(3 + Math.floor(Math.random() * 3)); // 3..5
-  const p4NextBrigitteThresholdRef = useRef(2 + Math.floor(Math.random() * 3)); // 2..4
-  // Anti-rejeu : appel d'ouverture déjà déclenché pour un pays (en attente
-  // d'acceptation), et index Brigitte courant par pays.
-  const p4PendingCountryCallRef = useRef(null);
-  const p4BrigitteIdxRef = useRef({}); // pays -> nb de contrats Brigitte déjà débloqués
-  // Fil d'avis clients (système fournisseurs) : avis signés par les contrats
-  // de la carte, alimenté régulièrement et discrètement. Max ~20 récents.
-  const [p4Reviews, setP4Reviews] = useState([]);
-  const p4ReviewsRef = useRef([]);
-  useEffect(() => { p4ReviewsRef.current = p4Reviews; }, [p4Reviews]);
-  // Event bandeau P4 actif : { id, startedAt, expiresAt } ou null.
-  const [p4ActiveEvent, setP4ActiveEvent] = useState(null);
-  const p4ActiveEventRef = useRef(null);
-  useEffect(() => { p4ActiveEventRef.current = p4ActiveEvent; }, [p4ActiveEvent]);
-  const p4LastEventAtRef = useRef(-9999);
-  const p4NextEventAtRef = useRef(180); // 1er event P4 pas avant 3 min
-  // Cadence des pop-ups personnages P4 (observations) : anti-spam.
-  const p4LastPopupAtRef = useRef(-9999);
-  const p4PopupSeasonCountRef = useRef(0);
-  const p4PopupSeasonRef = useRef(-1);
-  const p4PrevRepBandRef = useRef(null); // pour détecter chute de réputation
-  const p4PrevPaysCountRef = useRef(0);  // pour détecter ouverture de pays
-  // Anti-doublon : textes narratifs P4 déjà affichés (chaque texte une seule fois).
-  const p4SeenPopupTextsRef = useRef(new Set());
-  // Charge logistique B : volume livré au début du semestre courant (snapshot).
-  const p4VolumeSemStartRef = useRef(0);
-  const p4LastLogisticsSemRef = useRef(-1); // dernier semestre facturé (anti-doublon)
-  const p4LastEnergySemRef = useRef(-1); // dernier semestre facturé énergie (anti-doublon)
   // Mensualisation : dernier mois où les charges ont été prélevées
   // (anti-doublon). Un seul prélèvement groupé par mois, toutes phases.
   const lastChargeMonthRef = useRef(-1);
-  const [p4SuppliersModalOpen, setP4SuppliersModalOpen] = useState(false);
-  const [p4InfraModalOpen, setP4InfraModalOpen] = useState(false);
-  const [p4ActivatedAt, setP4ActivatedAt] = useState(0);
-  const p4ActivatedAtRef = useRef(0);
-  useEffect(() => { p4ActivatedAtRef.current = p4ActivatedAt; }, [p4ActivatedAt]);
-
-  // === ACQUÉREURS PHASE 4 ===
-  // acquirerOffers : tableau d'offres actives
-  // { id, amount, receivedAt, expiresAt, hasNegotiated }
-  const [acquirerOffers, setAcquirerOffers] = useState([]);
-  const acquirerOffersRef = useRef([]);
-  useEffect(() => { acquirerOffersRef.current = acquirerOffers; }, [acquirerOffers]);
-  // acquirerRefusals : IDs déjà refusés/retirés (ne reviennent plus)
-  const [acquirerRefusals, setAcquirerRefusals] = useState([]);
-  const acquirerRefusalsRef = useRef([]);
-  useEffect(() => { acquirerRefusalsRef.current = acquirerRefusals; }, [acquirerRefusals]);
-  // acquirerModalOpen : ouvre la modale liste des offres
-  const [acquirerModalOpen, setAcquirerModalOpen] = useState(false);
-  // Tracking des timestamps d'acceptation d'appels (pour retrait conditionnel d'offres)
-  const [callAcceptTimes, setCallAcceptTimes] = useState({});
-  const callAcceptTimesRef = useRef({});
-  useEffect(() => { callAcceptTimesRef.current = callAcceptTimes; }, [callAcceptTimes]);
-  // État final : si une offre a été acceptée → endgame
-  const [acquisitionFinalized, setAcquisitionFinalized] = useState(null); // { acquirerId, amount, finalizedAt }
-  const [endgameEpilogueStage, setEndgameEpilogueStage] = useState(0); // 0=closed, 1-3 = épilogue, 4=score
-  // Seuils Brigitte : stock minimum à garder en réserve avant de vendre en marché de masse
-  // Logique : la vente auto ne se déclenche que si stock > seuil (le surplus est vendu)
-  // À 0 (défaut), Brigitte vend tout. Plus c'est haut, plus on garde de stock pour gros contrats.
-  const [sellMinPopIce, setSellMinPopIce] = useState(0);
-  const [sellMinFrozio, setSellMinFrozio] = useState(0);
-  const [sellMinMedipack, setSellMinMedipack] = useState(0);
-  const sellMinPopIceRef = useRef(0);
-  const sellMinFrozioRef = useRef(0);
-  const sellMinMedipackRef = useRef(0);
-  useEffect(() => { sellMinPopIceRef.current = sellMinPopIce; }, [sellMinPopIce]);
-  useEffect(() => { sellMinFrozioRef.current = sellMinFrozio; }, [sellMinFrozio]);
-  useEffect(() => { sellMinMedipackRef.current = sellMinMedipack; }, [sellMinMedipack]);
-
   const [sellThreshold, setSellThreshold] = useState(0.30);
   const [thresholdOpen, setThresholdOpen] = useState(false);
   const [tutorialDismissed, setTutorialDismissed] = useState({});
@@ -5690,19 +5285,6 @@ export default function App() {
   const revenueBufferRef = useRef([]);
   // Lot 2 — snapshot du CA cumulé au dernier prélèvement mensuel (pour les charges indexées CA).
   const lastBilledMoneyEarnedRef = useRef(0);
-  // Buffer parallèle pour le monitoring P4 : { t, gross, mat } sur 60s.
-  const p4GrossBufferRef = useRef([]);
-  // Snapshot figé de la rentabilité/coûts : moyenne glissante sur les
-  // 60 dernières secondes, rafraîchie toutes les 10 s. Évite que les
-  // chiffres sautent à vue d'œil entre deux livraisons ponctuelles.
-  const [p4MonSnapshot, setP4MonSnapshot] = useState(null);
-  const P4_MON_WINDOW = 60;  // fenêtre de moyenne (secondes)
-  const P4_MON_REFRESH = 10; // intervalle de rafraîchissement (secondes)
-  // Panne camion P4 : dette de réputation accumulée par les retards
-  // (consommée et appliquée périodiquement), et id du contrat qui vient
-  // de tomber en panne (pour la notification).
-  const p4BrokenRepDebtRef = useRef(0);
-  const p4JustBrokeRef = useRef(null);
   const birthdaysRef = useRef({});
   const hireDatesRef = useRef({});
   const lastRaiseDecisionRef = useRef({});
@@ -5727,8 +5309,6 @@ export default function App() {
   const competitorsRef = useRef(COMPETITORS.map(c => ({ key: c.key, part: c.basePart, trend: 0 })));
   const phase3TriggerStageRef = useRef(0);
   const phase3LastStageAtRef = useRef(0);
-  const phase4TriggerStageRef = useRef(0);
-  const phase4LastStageAtRef = useRef(0);
   const hdrRef = useRef(null);
   const totalsRef = useRef({
     produced: 0, sold: 0, delivered: 0, melted: 0,
@@ -6717,84 +6297,6 @@ export default function App() {
 
       // [Les blocs Robert call 1 et call 2 sont gérés dans le tick dédié plus haut]
 
-      // === [DÉSACTIVÉ palier 11] CASCADE PHASE 3 → 4 ===
-      // L'ancienne cascade Vandenberg / diversification a été supprimée :
-      // P3 = fin de jeu. La modale victoire (5 missions validées) s'occupe
-      // de tout. Le bloc ci-dessous est conservé pour rétro-compat mais
-      // ne se déclenche plus jamais.
-      const vandenbergAllMax = VANDENBERG_REQUIRED.every(id => ownedSnap[id]);
-      const vandenbergMoneyOk = moneyRef.current >= VANDENBERG_MONEY;
-      // Vérification des 5 missions Phase 4 (version "ref" pour le tick)
-      const RETAIL_IDS_M = ['hyper_sud', 'distri_national', 'maxi_hyper', 'carre_dor', 'profresh', 'bio_marche'];
-      const signedRetailersM = new Set();
-      linesRef.current.forEach(l => { if (l && l.contractId && RETAIL_IDS_M.includes(l.contractId)) signedRetailersM.add(l.contractId); });
-      const mVisibility = notorietyRef.current >= 60;
-      const mTrust = reputationRef.current >= 70;
-      const mDistribution = signedRetailersM.size >= 4;
-      const mPlayerPart = Math.min(45, 3 + (notorietyRef.current / 100) * 12);
-      const mCompetition = competitorsRef.current.filter(c => mPlayerPart > c.part).length >= competitorsRef.current.length;
-      const mPerennity = phase3SemestersRef.current >= 15;
-      const allMissionsDone = mVisibility && mTrust && mDistribution && mCompetition && mPerennity;
-      const cascadeStarted = phase4TriggerStageRef.current >= 1;
-      const cascadeStartConditionsOk = allMissionsDone && vandenbergAllMax && vandenbergMoneyOk;
-      if (false /* palier 11: P4 désactivée */ && phaseRef.current === 3 && phase4TriggerStage < 6 && !popupMessageRef.current && !currentCallRef.current
-          && cyberLockoutRef.current <= 0
-          && !cascadeStarted && cascadeStartConditionsOk) {
-        const hasLenny = !!(ownedSnap['camion_1'] || ownedSnap['camion_2'] || ownedSnap['camion_3'] || ownedSnap['camion_4'] || ownedSnap['camion_5'] || ownedSnap['camion_6']);
-        if (hasLenny && hasF && hasB && hasJ) {
-          // Conditions remplies → on ouvre LA modale "Réunion stratégique".
-          // Le joueur fait défiler les interventions à son rythme (bouton Suivant).
-          setPhase4TriggerStage(1);
-          setPhase4MeetingOpen(true);
-          setPhase4MeetingStep(0);
-          return;
-        }
-      }
-
-      // === DÉBLOCAGE PROGRESSIF DES PRODUITS PHASE 4 ===
-      // En P4, MEDIPACK est déjà actif (Vandenberg). Après un délai, Lenny
-      // puis Fred proposent d'ouvrir POP ICE puis FROZIO. Popups séquencés,
-      // chacun débloque un produit dans la marketplace.
-      if (phaseRef.current === 4 && !popupMessageRef.current && !currentCallRef.current
-          && cyberLockoutRef.current <= 0 && p4ActivatedAtRef.current > 0) {
-        const sinceP4 = curT - p4ActivatedAtRef.current;
-        const stage = p4UnlockStageRef.current;
-        if (stage === 0 && sinceP4 >= 45) {
-          // Lenny : ouvre POP ICE (grand public)
-          const msg = {
-            fr: "Patron, le contrat pharma tourne, le camion MEDIPACK livre nickel. On a la marge pour ouvrir le deuxième front : je relance mes contacts en grande surface pour POP ICE. Le rayon glace nous attend.",
-            en: "Boss, the pharma contract is running, the MEDIPACK truck delivers flawlessly. We've got the margin to open the second front: I'm calling my supermarket contacts back for POP ICE. The ice aisle is waiting for us.",
-            es: "Jefe, el contrato farma funciona, el camión MEDIPACK entrega impecable. Tenemos margen para abrir el segundo frente: retomo mis contactos en grandes superficies para POP ICE. El pasillo de helados nos espera.", zh: "老板，医药合同在运转，MEDIPACK卡车配送无可挑剔。我们有利润开第二条战线：我在重新联系超市的关系做POP ICE。冰品货架在等我们。", ru: "Босс, фарма-контракт работает, грузовик MEDIPACK доставляет безупречно. У нас есть маржа открыть второй фронт: перезваниваю контактам из супермаркетов по POP ICE. Ледовый ряд нас ждёт.", it: "Capo, il contratto pharma è in corso, il camion MEDIPACK consegna alla perfezione. Abbiamo il margine per aprire il secondo fronte: richiamo i miei contatti dei supermercati per POP ICE. Il reparto ghiaccio ci aspetta.", de: "Chef, der Pharma-Vertrag läuft, der MEDIPACK-LKW liefert tadellos. Wir haben die Marge, um die zweite Front zu öffnen: Ich rufe meine Supermarktkontakte für POP ICE zurück. Der Eisgang wartet auf uns."
-          };
-          queuePopup({ type: 'character', speaker: 'Lenny', text: msg[lang] || msg.fr });
-          setP4UnlockedProducts(prev => prev.includes('popice') ? prev : [...prev, 'popice']);
-          p4UnlockedProductsRef.current = [...new Set([...p4UnlockedProductsRef.current, 'popice'])];
-          setP4UnlockStage(1);
-          p4UnlockStageRef.current = 1;
-          return;
-        }
-        if (stage === 1 && sinceP4 >= 120) {
-          // Fred : ouvre FROZIO (neige artificielle B2B)
-          const msg = {
-            fr: "Les deux lignes tiennent la charge. J'ai fini de calibrer le module neige : FROZIO est prêt pour la production. Les stations de ski et les studios attendent déjà des devis. On ouvre le troisième marché ?",
-            en: "Both lines hold the load. I've finished calibrating the snow module: FROZIO is ready for production. Ski resorts and studios are already waiting for quotes. Do we open the third market?",
-            es: "Las dos líneas aguantan la carga. He terminado de calibrar el módulo nieve: FROZIO está listo para producción. Las estaciones de esquí y los estudios ya esperan presupuestos. ¿Abrimos el tercer mercado?", zh: "两条线都扛住了负荷。我把雪模块校准完了：FROZIO可以投产了。滑雪度假村和片厂已经在等报价。我们开第三个市场吗？", ru: "Обе линии держат нагрузку. Я закончил калибровку снежного модуля: FROZIO готов к производству. Горнолыжные курорты и студии уже ждут смет. Открываем третий рынок?", it: "Entrambe le linee reggono il carico. Ho finito di calibrare il modulo neve: FROZIO è pronto per la produzione. Le stazioni sciistiche e gli studi aspettano già i preventivi. Apriamo il terzo mercato?", de: "Beide Linien halten die Last. Ich habe das Schneemodul fertig kalibriert: FROZIO ist produktionsbereit. Skigebiete und Studios warten schon auf Angebote. Öffnen wir den dritten Markt?"
-          };
-          queuePopup({ type: 'character', speaker: 'Fred', text: msg[lang] || msg.fr });
-          setP4UnlockedProducts(prev => prev.includes('frozio') ? prev : [...prev, 'frozio']);
-          p4UnlockedProductsRef.current = [...new Set([...p4UnlockedProductsRef.current, 'frozio'])];
-          setP4UnlockStage(2);
-          p4UnlockStageRef.current = 2;
-          return;
-        }
-      }
-
-      // PHASE 4 : table rase. Le bloc de déblocage produits P4 ci-dessus
-      // est conservé (pop-ups Lenny/Fred voulus). Tout le reste de ce tick
-      // (micro-événements narratifs P1-3 : observations, lettres de fan,
-      // cadeaux anonymes, célébrations Janice...) est coupé en P4.
-      if (phaseRef.current >= 4) return;
-
       // Agence marketing : plus de célébrations narratives façon Janice (personnage retiré).
       if (false && hasJ && !janiceGrumpyRef.current && phaseRef.current >= 3
           && (curT - lastJaniceCelebrationRef.current) > 240 && Math.random() < 0.50) {
@@ -7706,8 +7208,6 @@ export default function App() {
   useEffect(() => { competitorsRef.current = competitors; }, [competitors]);
   useEffect(() => { phase3TriggerStageRef.current = phase3TriggerStage; }, [phase3TriggerStage]);
   useEffect(() => { phase3LastStageAtRef.current = phase3LastStageAt; }, [phase3LastStageAt]);
-  useEffect(() => { phase4TriggerStageRef.current = phase4TriggerStage; }, [phase4TriggerStage]);
-  useEffect(() => { phase4LastStageAtRef.current = phase4LastStageAt; }, [phase4LastStageAt]);
 
   // Mesure dynamique de la position du trait sous le header pour ancrer les notifications
   useEffect(() => {
@@ -7806,18 +7306,11 @@ export default function App() {
     if (totals.lawsuitsWon >= 1) unlockAchievement('lawsuit_won');
     // 13. SURVIVANT — 3 canicules
     if (totals.heatwavesSurvived >= 3) unlockAchievement('survivor');
-    // 14. INVINCIBLE — 3 refus
-    if (totals.refusalsCount >= 3) unlockAchievement('invincible');
-    // 15-16. Ventes par acquéreur
-    if (acquisitionFinalized) {
-      if (acquisitionFinalized.acquirerId === 'patrice_glacier') unlockAchievement('sold_patrice');
-      if (acquisitionFinalized.acquirerId === 'silverlion') unlockAchievement('sold_silverlion');
-    }
     // 17. MARQUE CULTE
     if (notoriety >= 100) unlockAchievement('cult_brand');
     // 18. EMPIRE STABLE — 50 saisons jouées
     if (gameTime >= 50 * SEASON_DURATION) unlockAchievement('stable_empire');
-  }, [money, notoriety, stock, maxCap, totals, owned, fredMoral, brigitteMoral, janiceMoral, lennyMoral, karenMoral, acquisitionFinalized, gameTime, lines]);
+  }, [money, notoriety, stock, maxCap, totals, owned, fredMoral, brigitteMoral, janiceMoral, lennyMoral, karenMoral, gameTime, lines]);
 
   // === Détection "stock insuffisant pour l'appel courant" ===
   // EXACTEMENT le même calcul que `canAccept` utilisé dans le rendu du
@@ -7828,11 +7321,8 @@ export default function App() {
     if (!callModalOpen || !currentCall) return false;
     const _c = PHONE_CALLS_BY_ID[currentCall.id];
     if (!_c || _c.narrativeOnly || !_c.needStock) return false;
-    if (_c.id === 'robert_warehouse' || _c.id === 'robert_office' || _c.id === 'phase4_vandenberg') return false;
-    const _rel = _c.product === 'popice' ? Math.ceil(popIceStock)
-      : _c.product === 'frozio' ? Math.ceil(frozioStock)
-      : _c.product === 'medipack' ? Math.ceil(medipackStock)
-      : displayStock;
+    if (_c.id === 'robert_warehouse' || _c.id === 'robert_office') return false;
+    const _rel = displayStock;
     return !(_c.needStock === 0 || _rel >= _c.needStock);
   })();
 
@@ -8593,7 +8083,6 @@ export default function App() {
           if (typeof s.exoIntroShown === 'boolean') setExoIntroShown(s.exoIntroShown);
           if (s.sickUntil && typeof s.sickUntil === 'object') setSickUntil(s.sickUntil);
           if (typeof s.securityIntroShown === 'boolean') setSecurityIntroShown(s.securityIntroShown);
-          if (s.callAcceptTimes && typeof s.callAcceptTimes === 'object') setCallAcceptTimes(s.callAcceptTimes);
           if (Array.isArray(s.achievementsUnlocked)) {
             setAchievementsUnlocked(s.achievementsUnlocked);
             achievementsUnlockedRef.current = s.achievementsUnlocked;
@@ -8782,21 +8271,9 @@ export default function App() {
       fredGrumpy, brigitteGrumpy, janiceGrumpy, lennyGrumpy, karenGrumpy, markGrumpy, sabineGrumpy,
       fredMoral, brigitteMoral, janiceMoral, lennyMoral, karenMoral, markMoral, sabineMoral,
       fredStress, brigitteStress, janiceStress, lennyStress, karenStress,
-      notoriety, glacierBeats, phase3TriggerStage, phase3Semesters, phase4ReadyCallDone, exoIntroShown, securityIntroShown, phase4TriggerStage, phase4LastStageAt, phase4Revenue,
+      notoriety, glacierBeats, phase3TriggerStage, phase3Semesters, exoIntroShown, securityIntroShown,
       sickUntil,
-      popIceStock, frozioStock, medipackStock, p4MaxCap,
-      p4TargetPop, p4TargetFro, p4TargetMed,
-      popIcePrice, frozioPrice, medipackPrice,
-      sellMinPopIce, sellMinFrozio, sellMinMedipack,
-      frozioLineDown, lastFrozioPanneAt, lastMedipackInspectionAt,
-      linesP4, marketplaceP4,
-      p4UnlockedProducts, p4UnlockStage, p4ActivatedAt, p4OpenMarkets, p4Reviews, p4ActiveEvent,
-      p4OpenCountries, p4UnlockedContracts,
-      p4VolumeSemStart: p4VolumeSemStartRef.current,
-      p4LastLogisticsSem: p4LastLogisticsSemRef.current,
       monthlyV2: true, // refonte mensuelle : marqueur de migration
-      acquirerOffers, acquirerRefusals, callAcceptTimes,
-      acquisitionFinalized, endgameEpilogueStage,
       achievementsUnlocked,
       contractRejections,
       clientLoyalty,
@@ -8864,12 +8341,12 @@ export default function App() {
     prevPhaseRef.current = phase;
   }, [phase, loaded, screen]);
 
-  // Save bonus : à chaque achat d'upgrade majeur (bail, agence, diversification, premier camion, premier Fred)
+  // Save bonus : à chaque achat d'upgrade majeur (bail, agence, premier camion, premier Fred)
   const prevOwnedKeyRef = useRef('');
   useEffect(() => {
     if (!loaded) return;
     if (screen !== 'game') return;
-    const keyUpgrades = ['rent_warehouse', 'agence_marketing', 'diversification', 'camion_1', 'fred_stage'];
+    const keyUpgrades = ['rent_warehouse', 'agence_marketing', 'camion_1', 'fred_stage'];
     const ownedKey = keyUpgrades.map(id => owned[id] ? 1 : 0).join('');
     if (ownedKey !== prevOwnedKeyRef.current && prevOwnedKeyRef.current !== '') {
       saveNowRef.current();
@@ -9785,16 +9262,10 @@ export default function App() {
         for (const pd of pendingDeliveriesRef.current) {
           // Stock pertinent selon le produit du contrat (P4) ou stock
           // glaçon (P1-3 : pd.product absent).
-          const stockNow = pd.product === 'popice' ? popIceStockRef.current
-            : pd.product === 'frozio' ? frozioStockRef.current
-            : pd.product === 'medipack' ? medipackStockRef.current
-            : stockRef.current;
+          const stockNow = stockRef.current;
           if (stockNow >= pd.needStock) {
-            // Livré ! → on retire du bon stock.
-            if (pd.product === 'popice') setPopIceStock(s => Math.max(0, s - pd.needStock));
-            else if (pd.product === 'frozio') setFrozioStock(s => Math.max(0, s - pd.needStock));
-            else if (pd.product === 'medipack') setMedipackStock(s => Math.max(0, s - pd.needStock));
-            else setStock(s => Math.max(0, s - pd.needStock));
+            // Livré ! → on retire du stock.
+            setStock(s => Math.max(0, s - pd.needStock));
             totalsRef.current.sold += pd.needStock;
             if (pd.reward) {
               if (pd.reward.money) {
@@ -9855,13 +9326,6 @@ export default function App() {
         // On vide les accumulateurs P4 chaque mois même en exonération
         // pour que la 2ᵉ année reparte sur des bases propres (pas de
         // volume/conso cumulés des 12 premiers mois).
-        if (_firstYearExo && phaseRef.current >= 4) {
-          const volNow = totalsRef.current.p4VolumeTotal || 0;
-          p4VolumeSemStartRef.current = volNow;
-          p4EnergyAccumRef.current = { sum: 0, ticks: 0 };
-          p4LastLogisticsSemRef.current = prevSemester;
-          p4LastEnergySemRef.current = prevSemester;
-        }
         // 1ère année : rien n'est dû. On purge la facture utilities en
         // attente pour que la 2ᵉ année reparte propre (pas de cumul).
         if (_firstYearExo) pendingUtilityBillRef.current = 0;
@@ -10292,11 +9756,6 @@ export default function App() {
               // Accumule le revenu pour le bonus de complétion
               line.revenueAccum = (line.revenueAccum || 0) + revenue;
               line.deliveriesDone = (line.deliveriesDone || 0) + 1;
-              // Cumul persistant par contrat (pour le système d'ouverture pays)
-              {
-                const _cid = line.contractId;
-                if (_cid) p4ContractDeliveriesRef.current[_cid] = (p4ContractDeliveriesRef.current[_cid] || 0) + 1;
-              }
               const popText = meltPctInt > 0 ? `+${fmt2(revenue)}€ · −${meltPctInt}%` : `+${fmt2(revenue)}€`;
               popsToAdd.push({ id: Date.now() + Math.random() + idx * 0.01, text: popText });
               newLinePopups[idx] = { text: popText, ts: Date.now() };
@@ -11363,8 +10822,7 @@ export default function App() {
       production: ['rent_warehouse', 'cap_warehouse_50', 'cap_warehouse_100', 'cap_warehouse_200',
                    'cap_warehouse_500', 'cap_warehouse_1000', 'cap_warehouse_2000',
                    'freezer_speed_1', 'freezer_speed_2', 'freezer_speed_3', 'freezer_speed_4',
-                   'production_line_1', 'production_line_2', 'production_line_3',
-                   'diversification'],
+                   'production_line_1', 'production_line_2', 'production_line_3'],
       logistics: ['truck_std', 'truck_premium', 'truck_xl', 'fleet_4_trucks', 'fleet_5_trucks'],
     };
     if (INDUSTRIAL_UPGRADES_BY_CATEGORY.production.includes(u.id)) {
@@ -11466,104 +10924,6 @@ export default function App() {
     }, 12000);
   };
 
-  const confirmDiversification = () => {
-    const u = UPGRADES.find(x => x.id === 'diversification');
-    if (!u) { setPhase4ModalOpen(false); return; }
-    if (owned[u.id]) { setPhase4ModalOpen(false); return; }
-    // === LIQUIDATION INDUSTRIELLE ===
-    // La diversification n'est plus un achat : c'est un choix narratif assumé.
-    // 1. Le stock glaçon existant est vendu à perte (50% du prix marché de l'instant)
-    //    = "liquidation forcée pour libérer l'usine et lancer les 3 nouvelles lignes"
-    // 2. Tous les contrats B2B en cours sont arrêtés sans dédommagement
-    // 3. La marketplace glaçon est vidée
-    // 4. Les 3 stocks Phase 4 sont initialisés à 0
-    // 5. Aucune production ne démarre : le joueur lance tout lui-même.
-    const liquidationPrice = BASE_SELL_PRICE * 0.5; // 50% du prix de base = liquidation
-    const liquidationCash = Math.floor(stock * liquidationPrice);
-    setMoney(m => m + liquidationCash);
-    setPhase4ModalOpen(false);
-    setPhaseTransitionText({ dur: t('transition.dur_two_months'), later: t('transition.later_line'), main: t('transition.two_weeks_later'), sub: t('transition.diversification_done') });
-    setPhase3Transition(true);
-    // À mi-parcours, application Phase 4 + reset propre
-    setTimeout(() => {
-      setOwned(o => ({ ...o, [u.id]: true }));
-      setPhase4TriggerStage(6);
-      // Liquidation : vide stock, contrats, marketplace
-      setStock(0);
-      setLines([]);
-      setMarketplace([]);
-      // Initialise les 3 stocks Phase 4 à zéro (le joueur produira pour les remplir)
-      setPopIceStock(0);
-      setFrozioStock(0);
-      setMedipackStock(0);
-      // Budget Watts de départ P4 = 13 W. Volontairement insuffisant pour
-      // servir tout HOMELAND (~28 W au pire) : le joueur est bloqué dès
-      // Budget Watts de départ P4 = 24 W. Le curseur a déjà plusieurs
-      // crans utilisables par produit (medipack ~4). La tension de fin de
-      // jeu vient du cumul de la demande à mesure que les pays s'ouvrent
-      // (paliers 46 / 54 / 62 / 72 W via les 4 extensions). Capacité de
-      // départ généreuse : plusieurs contrats du même produit (ex. les 2
-      // medipack HOMELAND) tournent en parallèle sans étrangler la prod.
-      setP4MaxCap(80);
-      p4MaxCapRef.current = 80;
-      // Production à ZÉRO : aucune production ne démarre automatiquement.
-      // Le joueur doit consciemment régler les curseurs pour lancer l'usine.
-      setP4TargetPop(0); p4TargetPopRef.current = 0;
-      setP4TargetFro(0); p4TargetFroRef.current = 0;
-      setP4TargetMed(0); p4TargetMedRef.current = 0;
-      // Seuils Brigitte : à 0 par défaut, Brigitte vend tout
-      setSellMinPopIce(0);
-      setSellMinFrozio(0);
-      setSellMinMedipack(0);
-      // Dr. Vandenberg tient son engagement, mais son contrat n'est PAS lancé
-      // tout seul : il attend dans la marketplace MEDIPACK que le joueur le
-      // signe lui-même, en plus de deux autres contrats médicaux.
-      setLinesP4([]);
-      // Le Dr. Vandenberg propose un vrai contrat-carte HOMELAND/MEDIPACK
-      // pour les premiers essais : BIOLAB LOCAL (80u). CLINIQUE DU PARC
-      // (30u) est aussi disponible d'emblée — les 2 contrats HOMELAND
-      // MEDIPACK designés pour la carte.
-      setMarketplaceP4([
-        { contractId: 'pm_med_biolab', product: 'medipack', expiresAt: gameTimeRef.current + 900, generatedAt: gameTimeRef.current },
-        { contractId: 'pm_med_clinique', product: 'medipack', expiresAt: gameTimeRef.current + 600, generatedAt: gameTimeRef.current },
-      ]);
-      // Au démarrage, seul MEDIPACK est débloqué. POP ICE / FROZIO suivront.
-      setP4UnlockedProducts(['medipack']);
-      p4UnlockedProductsRef.current = ['medipack'];
-      setP4OpenMarkets(P4_HOME_MARKETS);
-      p4OpenMarketsRef.current = P4_HOME_MARKETS;
-      setP4Reviews([]);
-      p4ReviewsRef.current = [];
-      setP4ActiveEvent(null);
-      p4ActiveEventRef.current = null;
-      p4LastEventAtRef.current = -9999;
-      p4NextEventAtRef.current = 180;
-      p4VolumeSemStartRef.current = 0;
-      p4LastLogisticsSemRef.current = -1;
-      if (totalsRef.current) totalsRef.current.p4VolumeTotal = 0;
-      setP4UnlockStage(0);
-      p4UnlockStageRef.current = 0;
-      setP4ActivatedAt(gameTimeRef.current);
-      p4ActivatedAtRef.current = gameTimeRef.current;
-      // Nettoyage sabotage : aucun sabotage ne persiste en Phase 4
-      setCyberLockout(0); cyberLockoutRef.current = 0;
-      setStockBurnFlash(0);
-      setFakeReviewTicker(0);
-      lastSabotageAtRef.current = -9999;
-      // Reset acquéreurs (au cas où on rentrerait Phase 4 plusieurs fois via dev)
-      setAcquirerOffers([]);
-      setAcquirerRefusals([]);
-      setAcquisitionFinalized(null);
-      setEndgameEpilogueStage(0);
-      if (u.phaseUnlock) setPhase(u.phaseUnlock);
-    }, 1200);
-    setTimeout(() => {
-      setPhase3Transition(false);
-      if (u.phaseUnlock) {
-        setEventNotif(`PHASE 0${u.phaseUnlock} · LIQUIDATION +${fmtInt(liquidationCash)}€ · NOUVELLES LIGNES OUVERTES`);
-      }
-    }, 12000);
-  };
 
   const confirmAgenceMarketing = () => {
     // Achat narratif du nouveau siège : bascule P2 → P3, +500 cap, débloque familles Janice/Mark/Sabine
@@ -11645,17 +11005,6 @@ export default function App() {
         reputation: 65,
         notifText: null, // outil dev : pas de message visible joueur
       },
-      // P04 : conditions pour la cascade Vandenberg (joueur reste en P3)
-      4: {
-        phase: 3,
-        ownedSet: buildOwnedList([...ROBERT1_REQUIRED, ...ROBERT2_REQUIRED, ...VANDENBERG_REQUIRED]),
-        money: VANDENBERG_MONEY + 1000,
-        notoriety: 95, // > 90 (Cristal Royal) → bat TOUS les concurrents (n°1)
-        reputation: 78, // ≥ 70 (confiance)
-        brandPositioning: 'pro',
-        autoCompleteMissions: true, // crée 4 retailers + 5 semestres
-        notifText: null, // pas de notif visible pour le joueur (outil dev)
-      },
     };
     const plan = plans[targetPhase];
     if (!plan) return;
@@ -11665,8 +11014,6 @@ export default function App() {
     // - camion_1 minimum : pour que Lenny existe (cascade Vandenberg étape 1)
     if (targetPhase >= 3) plan.ownedSet.add('rent_warehouse');
     if (targetPhase >= 3) ['camion_1'].forEach(id => plan.ownedSet.add(id));
-    if (targetPhase >= 4) plan.ownedSet.add('agence_marketing'); // Siège acheté (cascade)
-    if (targetPhase >= 4) plan.ownedSet.add('janice_jr'); // Janice active (cascade)
 
     // Construction du nouveau owned depuis le Set généré
     const newOwned = {};
@@ -11738,16 +11085,8 @@ export default function App() {
       setRobertCall2Triggered(true);
       robertCall2TriggeredRef.current = true;
       setRobertCall2Heard(true);
-      setPhase4ReadyCallDone(false);
       setExoIntroShown(false);
       setSecurityIntroShown(false);
-      setPhase4TriggerStage(0);
-      phase4TriggerStageRef.current = 0;
-      setPhase4LastStageAt(0);
-      phase4LastStageAtRef.current = 0;
-      setPhase4MeetingOpen(false);
-      setPhase4MeetingStep(0);
-      setPhase4SceneStep(0);
     }
 
     // Set hireDates pour que les employés comptent comme embauchés depuis un moment
@@ -11808,28 +11147,6 @@ export default function App() {
         triggerLabel: { fr: 'PHASE 03', en: 'PHASE 03', es: 'FASE 03', zh: "第03阶段", ru: "ФАЗА 03", it: "FASE 03", de: "PHASE 03" },
         subLabel: { fr: 'NOTORIÉTÉ · CAMPAGNES · RETAIL', en: 'AWARENESS · CAMPAIGNS · RETAIL', es: 'NOTORIEDAD · CAMPAÑAS · RETAIL', zh: "知名度 · 活动 · 零售", ru: "ИЗВЕСТНОСТЬ · КАМПАНИИ · РОЗНИЦА", it: "NOTORIETÀ · CAMPAGNE · RETAIL", de: "BEKANNTHEIT · KAMPAGNEN · EINZELHANDEL" },
       },
-      4: {
-        money: 80000,
-        owned: ['silicone', 'mini_freezer', 'fred_stage', 'flyers', 'caisson_isotherme',
-                'cold_turbine', 'cold_water', 'conveyor_belt', 'fred', 'plateau_xl',
-                'doseur_auto', 'cuve_cryo', 'cold_tunnel', 'pro_freezer', 'autosell',
-                'preventive', 'joint_renforce', 'cold_insurance', 'machine_cafe', 'salle_repos',
-                'salle_sport', 'fred_perma', 'rent_warehouse',
-                'camion_1', 'camion_2', 'camion_3', 'camion_4', 'fast_truck', 'truck_iso', 'truck_frigo',
-                'reinforce', 'force_cadence', 'fred_chef', 'fred_dir',
-                'brigitte_compta', 'brigitte_ad',
-                'agence_marketing', 'janice_jr', 'janice_senior',
-                'karen_junior', 'karen_senior', 'plan_formation',
-                'security_camera', 'cyber_security'],
-        totals: { produced: 60000, sold: 58000, delivered: 3000, melted: 1500, moneyEarned: 180000, contractsCompleted: 80, destructions: 2, vehicleBreakdowns: 4 },
-        notoriety: 65,
-        reputation: 78,
-        brandPositioning: 'pro',
-        phaseStage: 5,
-        phase4Stage: 0,
-        triggerLabel: { fr: 'PHASE 04', en: 'PHASE 04', es: 'FASE 04', zh: "第04阶段", ru: "ФАЗА 04", it: "FASE 04", de: "PHASE 04" },
-        subLabel: { fr: 'DIVERSIFICATION · 3 PRODUITS', en: 'DIVERSIFICATION · 3 PRODUCTS', es: 'DIVERSIFICACIÓN · 3 PRODUCTOS', zh: "多元化 · 3种产品", ru: "ДИВЕРСИФИКАЦИЯ · 3 ПРОДУКТА", it: "DIVERSIFICAZIONE · 3 PRODOTTI", de: "DIVERSIFIKATION · 3 PRODUKTE" },
-      },
     };
     const plan = plans[targetPhase];
     if (!plan) return;
@@ -11856,7 +11173,6 @@ export default function App() {
       totalsRef.current = { ...plan.totals };
       setPhase(targetPhase);
       setPhase3TriggerStage(plan.phaseStage || 0);
-      if (typeof plan.phase4Stage === 'number') setPhase4TriggerStage(plan.phase4Stage);
       // Set hireDates pour que les employés "comptent" comme embauchés
       const hd = {};
       if (newOwned['fred_stage'] || newOwned['fred'] || newOwned['fred_perma'] || newOwned['fred_chef'] || newOwned['fred_dir']) hd.fred = Math.max(0, gameTimeRef.current - 240);
@@ -11870,54 +11186,6 @@ export default function App() {
       // Reset modales / events temporaires
       setLines([]);
       // Phase 4 : initialise les 3 stocks séparés à zéro pour test
-      if (targetPhase >= 4) {
-        setPopIceStock(0);
-        setFrozioStock(0);
-        setMedipackStock(0);
-        setP4MaxCap(80);
-        p4MaxCapRef.current = 80;
-        setP4TargetPop(0); p4TargetPopRef.current = 0;
-        setP4TargetFro(0); p4TargetFroRef.current = 0;
-        setP4TargetMed(0); p4TargetMedRef.current = 0;
-        setSellMinPopIce(0);
-        setSellMinFrozio(0);
-        setSellMinMedipack(0);
-        setLinesP4([]);
-        // Mêmes contrats initiaux que le vrai passage P4 (bloc diversification) :
-        // le contrat du Dr. Vandenberg + 2 autres médicaux attendent dans la
-        // marketplace MEDIPACK pour les premiers essais. Sans ça, le joueur
-        // arrive en P4 sans aucun contrat à signer (bug saut dev).
-        setMarketplaceP4([
-          { contractId: 'pm_med_biolab', product: 'medipack', expiresAt: gameTimeRef.current + 900, generatedAt: gameTimeRef.current },
-          { contractId: 'pm_med_clinique', product: 'medipack', expiresAt: gameTimeRef.current + 600, generatedAt: gameTimeRef.current },
-        ]);
-        setP4UnlockedProducts(['medipack']);
-        p4UnlockedProductsRef.current = ['medipack'];
-        setP4OpenMarkets(P4_HOME_MARKETS);
-        p4OpenMarketsRef.current = P4_HOME_MARKETS;
-        setP4Reviews([]);
-        p4ReviewsRef.current = [];
-        setP4ActiveEvent(null);
-        p4ActiveEventRef.current = null;
-        p4LastEventAtRef.current = -9999;
-        p4NextEventAtRef.current = 180;
-        p4VolumeSemStartRef.current = 0;
-        p4LastLogisticsSemRef.current = -1;
-        p4LastEnergySemRef.current = -1;
-        if (totalsRef.current) totalsRef.current.p4VolumeTotal = 0;
-        setP4UnlockStage(0);
-        p4UnlockStageRef.current = 0;
-        setP4ActivatedAt(gameTimeRef.current);
-        p4ActivatedAtRef.current = gameTimeRef.current;
-        setCyberLockout(0); cyberLockoutRef.current = 0;
-        setStockBurnFlash(0);
-        setFakeReviewTicker(0);
-        lastSabotageAtRef.current = -9999;
-        setAcquirerOffers([]);
-        setAcquirerRefusals([]);
-        setAcquisitionFinalized(null);
-        setEndgameEpilogueStage(0);
-      }
       setSalaryDebt(null);
       setWageArrears(null);
       salaryMissMonthsRef.current = [];
@@ -11927,69 +11195,12 @@ export default function App() {
       // Marque les appels narratifs Phase 1→2 et 2→3 comme déjà effectués si on saute
       if (targetPhase >= 2) setRobertCall1Triggered(true);
       if (targetPhase >= 3) { setRobertCall2Triggered(true); setRobertCall2Heard(true); }
-      if (targetPhase >= 4) setPhase4ReadyCallDone(true);
     }, 1200);
     // Fin de l'animation
     setTimeout(() => {
       setPhase3Transition(false);
       setEventNotif('SIMULATION ' + (plan.triggerLabel.fr || plan.triggerLabel) + ' · DEV');
     }, 12000);
-  };
-
-  // === Signature d'un contrat Phase 4 ===
-  // Le contrat passe de la marketplace vers linesP4, démarre en 'loading'
-  // Premier chargement = dès que le stock du produit est suffisant pour la 1ère livraison
-  // === Handlers acquéreurs Phase 4 ===
-  // Accepter une offre = déclencher l'épilogue + fin de partie
-  const handleAcceptOffer = (acquirerId) => {
-    const offer = acquirerOffersRef.current.find(o => o.id === acquirerId);
-    if (!offer) return;
-    const acq = ACQUIRERS_BY_ID[acquirerId];
-    if (!acq) return;
-    // Finalise l'acquisition
-    setAcquisitionFinalized({
-      acquirerId,
-      amount: offer.amount,
-      finalizedAt: gameTime,
-    });
-    // Crédite le cash immédiatement (le chèque tombe)
-    setMoney(m => m + offer.amount);
-    totalsRef.current.moneyEarned += offer.amount;
-    // Ferme la modale liste
-    setAcquirerModalOpen(false);
-    // Démarre l'épilogue narratif (3 étapes)
-    setEndgameEpilogueStage(1);
-    // Achievement : AUCUN LICENCIEMENT — vérifié à la fin
-    if ((totalsRef.current.firedCount || 0) === 0) {
-      unlockAchievement('no_firing');
-    }
-    setEventNotif(`${t('notif.acquisition_done')} · +${fmtInt(offer.amount)}€`);
-  };
-  // Refuser une offre = la fait disparaître définitivement
-  const handleRefuseOffer = (acquirerId) => {
-    const acq = ACQUIRERS_BY_ID[acquirerId];
-    setAcquirerOffers(prev => prev.filter(o => o.id !== acquirerId));
-    setAcquirerRefusals(prev => prev.includes(acquirerId) ? prev : [...prev, acquirerId]);
-    // Achievement counter
-    totalsRef.current = { ...totalsRef.current, refusalsCount: (totalsRef.current.refusalsCount || 0) + 1 };
-    setTotals(t => ({ ...t, refusalsCount: (t.refusalsCount || 0) + 1 }));
-    if (acq) {
-      setEventNotif(`${localizeField(acq.company, language).toUpperCase()} · OFFRE REFUSÉE`);
-    }
-  };
-  // Négocier = +10% une seule fois, possible 60s après réception
-  const handleNegotiateOffer = (acquirerId) => {
-    const offer = acquirerOffersRef.current.find(o => o.id === acquirerId);
-    if (!offer || offer.hasNegotiated) return;
-    if (gameTime - offer.receivedAt < 60) return;
-    const newAmount = Math.round(offer.amount * 1.10);
-    setAcquirerOffers(prev => prev.map(o =>
-      o.id === acquirerId ? { ...o, amount: newAmount, hasNegotiated: true } : o
-    ));
-    const acq = ACQUIRERS_BY_ID[acquirerId];
-    if (acq) {
-      setEventNotif(`${localizeField(acq.company, language).toUpperCase()} · OFFRE RÉÉVALUÉE +10%`);
-    }
   };
 
   // === RÉSOLUTION DES ÉVÉNEMENTS DE TENSION P3 ===
@@ -12556,8 +11767,6 @@ export default function App() {
       setNotoriety(n => Math.max(0, Math.min(100, n + totalNotoDelta)));
     }
     setCompletedCalls(c => [...c, currentCall.id]);
-    // Track timestamp pour les acquéreurs Phase 4 qui peuvent se retirer
-    setCallAcceptTimes(prev => ({ ...prev, [currentCall.id]: gameTime }));
     setCurrentCall(null);
     setCallModalOpen(false);
     setNextCallAt(gameTime + CALL_MIN_INTERVAL + Math.random() * (CALL_MAX_INTERVAL - CALL_MIN_INTERVAL));
@@ -12622,10 +11831,6 @@ export default function App() {
     buf.push({ t, amt });
     // Nettoie les entrées plus vieilles que 60s
     while (buf.length > 0 && buf[0].t < t - 60) buf.shift();
-    // CA Phase 4 cumulé : alimente la valorisation entreprise
-    if (phaseRef.current >= 4) {
-      setPhase4Revenue(p => p + amt);
-    }
   };
 
   // === KAREN TEAM-BUILDING ===
@@ -13102,7 +12307,7 @@ export default function App() {
     setStock(0); setMoney(START_CASH + ngPlusCash); setOwned({});
     lastBilledMoneyEarnedRef.current = 0;
     // Réinitialise l'état de victoire/narratif pour permettre de re-gagner (et rejouer l'histoire).
-    setVictoryAchieved(false); setVictoryModalOpen(false); setVictoryTimestamp(null); setEndgameEpilogueStage(0);
+    setVictoryAchieved(false); setVictoryModalOpen(false); setVictoryTimestamp(null);
     setGlacierBeats({}); glacierFiredRef.current = {};
     setClientLoyalty({}); clientLoyaltyRef.current = {};
     contractSuccessStreakRef.current = 0;
@@ -13110,9 +12315,6 @@ export default function App() {
     setGameTime(0); setHeatwaveLeft(0); setDroughtLeft(0); setOutageLeft(0);
     setTempJitter(0);
     setPhase(1); setReputation(50); setLines([]); setMarketplace([]); setFreezingLeft(0); setFreezingTotal(0);
-    setP4MaxCap(80); p4MaxCapRef.current = 80;
-    setPopIceStock(0); setFrozioStock(0); setMedipackStock(0);
-    setP4TargetPop(0); p4TargetPopRef.current = 0; setP4TargetFro(0); p4TargetFroRef.current = 0; setP4TargetMed(0); p4TargetMedRef.current = 0;
     setFredCycleLeft(0); setFredCycleTotal(0);
     fredCycleAccumRef.current = 0;
     fredCycleLeftRef.current = 0;
@@ -13177,32 +12379,8 @@ export default function App() {
     setJaniceBurnedLock(false);
     setLennyBurnedLock(false);
     setPhase3Semesters(0);
-    setPhase4ReadyCallDone(false);
     setExoIntroShown(false);
     setSecurityIntroShown(false);
-    setPhase4TriggerStage(0);
-    setPhase4LastStageAt(0);
-    setPhase4ModalOpen(false);
-    setPhase4SceneStep(0);
-    setPhase4MeetingOpen(false);
-    setPhase4MeetingStep(0);
-    setP4UnlockedProducts(['medipack']);
-    p4UnlockedProductsRef.current = ['medipack'];
-    setP4OpenMarkets(P4_HOME_MARKETS);
-    p4OpenMarketsRef.current = P4_HOME_MARKETS;
-    setP4Reviews([]);
-    p4ReviewsRef.current = [];
-    setP4ActiveEvent(null);
-    p4ActiveEventRef.current = null;
-    p4LastEventAtRef.current = -9999;
-    p4NextEventAtRef.current = 180;
-    p4VolumeSemStartRef.current = 0;
-    p4LastLogisticsSemRef.current = -1;
-    if (totalsRef.current) totalsRef.current.p4VolumeTotal = 0;
-    setP4UnlockStage(0);
-    p4UnlockStageRef.current = 0;
-    setP4ActivatedAt(0);
-    p4ActivatedAtRef.current = 0;
     setMissionOpen(false);
     setActiveCampaign(null);
     setCampaignsOpen(false);
@@ -13792,16 +12970,13 @@ export default function App() {
 
   const renderMenuBar = () => {
     const hasAnyEmp = hasFred || hasBrigitte || hasJanice || hasLenny;
-    const canContracts = phase >= 4 ? true : (phase >= 2 && rawStats.linesBonus >= 1);
+    const canContracts = phase >= 2 && rawStats.linesBonus >= 1;
     const canBank = phase >= 2;
     const canMarketing = hasJanice;
     const hasCall = !!currentCall;
-    const marketBadge = phase >= 4 ? marketplaceP4.length : (canContracts ? feasibleMarketCount : 0);
-    const _p4MaxLines = phase >= 4 ? computeP4MaxLines(owned) : 0;
-    const hasFreeSlot = phase >= 4 ? (linesP4.length < _p4MaxLines) : (canContracts && lines.some(l => !l.contractId));
-    const contractsRinging = phase >= 4
-      ? (linesP4.length < _p4MaxLines && marketplaceP4.length > 0)
-      : (canContracts && hasFreeSlot && feasibleMarketCount > 0);
+    const marketBadge = canContracts ? feasibleMarketCount : 0;
+    const hasFreeSlot = canContracts && lines.some(l => !l.contractId);
+    const contractsRinging = canContracts && hasFreeSlot && feasibleMarketCount > 0;
     const anyStressed = fredStress >= 60 || brigitteStress >= 60 || janiceStress >= 60 || lennyStress >= 60;
     // === ALERTE MORAL : indique au joueur que des actions RH sont nécessaires ===
     // Conditions : moral moyen équipe < 50 OU au moins un employé avec moral < 30
@@ -16179,18 +15354,6 @@ export default function App() {
           from { opacity: 0; transform: translateY(6px); }
           to { opacity: 1; transform: translateY(0); }
         }
-        .phase4-liq-recap {
-          margin-top: 16px;
-          padding: 14px 16px;
-          border: 1px solid var(--fg);
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-          font-size: 11px;
-          line-height: 1.5;
-          animation: meetingTextIn 0.3s ease-out;
-        }
-        .phase4-liq-recap .agence-list-item { color: var(--fg); }
         .meeting-next {
           margin: 0 22px 22px;
           padding: 14px;
@@ -18479,1385 +17642,6 @@ export default function App() {
         .cash-mini.is-negative {
           animation: cashNegPulse 1s ease-in-out infinite;
         }
-        /* === Valorisation entreprise (Phase 4) === */
-        .valuation-band {
-          margin: 2px 0 4px;
-          padding: 3px 12px;
-          background: transparent;
-          color: var(--m1);
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          letter-spacing: 1px;
-          font-weight: 700;
-          font-size: 8.5px;
-          cursor: pointer;
-          flex: 1;
-          opacity: 0.7;
-        }
-        .valuation-band .valuation-band-val {
-          font-size: 10px;
-          color: var(--fg);
-        }
-        .valuation-band-wrap {
-          display: flex;
-          gap: 6px;
-          align-items: stretch;
-          margin: 2px 0 4px;
-        }
-        .valuation-band-wrap .valuation-band {
-          margin: 0;
-        }
-        .acquirer-floating-btn {
-          background: var(--bg);
-          color: var(--fg);
-          border: 2px solid var(--fg);
-          font-family: 'JetBrains Mono', monospace;
-          padding: 8px 12px;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-weight: 800;
-          animation: acquirerPulse 2s ease-in-out infinite;
-        }
-        .acquirer-floating-btn:hover {
-          background: var(--fg);
-          color: var(--bg);
-        }
-        .acquirer-floating-icon {
-          font-size: 14px;
-        }
-        .acquirer-floating-count {
-          font-size: 13px;
-          font-weight: 900;
-        }
-        @keyframes acquirerPulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); }
-          50%      { box-shadow: 0 0 0 4px rgba(0,0,0,0.08); }
-        }
-        /* === Modale offres d'acquisition === */
-        .acquirer-modal {
-          max-width: 92vw;
-          max-height: 85vh;
-          overflow-y: auto;
-        }
-        /* === Épilogue endgame === */
-        .endgame-overlay {
-          position: fixed;
-          inset: 0;
-          background: var(--bg);
-          z-index: 9999;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 20px;
-          animation: endgameFadeIn 0.8s ease-out;
-        }
-        @keyframes endgameFadeIn {
-          0% { opacity: 0; }
-          100% { opacity: 1; }
-        }
-        .endgame-content {
-          max-width: 480px;
-          width: 100%;
-          color: var(--fg);
-        }
-        .endgame-title {
-          font-size: 24px;
-          font-weight: 900;
-          letter-spacing: 3px;
-          margin-bottom: 28px;
-          padding-bottom: 14px;
-          border-bottom: 2px solid var(--fg);
-          text-align: center;
-        }
-        .endgame-body {
-          font-size: 14px;
-          line-height: 1.7;
-          margin-bottom: 32px;
-          text-align: justify;
-          font-style: italic;
-        }
-        .endgame-char-epilogue {
-          margin-bottom: 28px;
-          display: flex;
-          flex-direction: column;
-          gap: 18px;
-        }
-        .endgame-char-row {
-          border-left: 2px solid var(--fg);
-          padding-left: 14px;
-        }
-        .endgame-char-name {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px;
-          font-weight: 900;
-          letter-spacing: 2px;
-          margin-bottom: 6px;
-          color: var(--fg);
-        }
-        .endgame-char-text {
-          font-size: 13px;
-          line-height: 1.6;
-          font-style: italic;
-          color: var(--m1);
-        }
-        .endgame-credits {
-          margin-bottom: 32px;
-          text-align: center;
-        }
-        .endgame-credits-line {
-          font-size: 11px;
-          font-style: italic;
-          color: var(--m1);
-          margin-bottom: 24px;
-        }
-        .endgame-credits-spacer {
-          font-size: 14px;
-          color: var(--m1);
-          margin: 22px 0;
-          opacity: 0.5;
-        }
-        .endgame-credits-section {
-          margin-bottom: 20px;
-        }
-        .endgame-credits-label {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 9px;
-          font-weight: 700;
-          letter-spacing: 3px;
-          color: var(--m1);
-          margin-bottom: 6px;
-        }
-        .endgame-credits-value {
-          font-size: 13px;
-          font-weight: 700;
-          letter-spacing: 1px;
-          margin: 3px 0;
-        }
-        .endgame-credits-quote {
-          font-size: 13px;
-          font-style: italic;
-          line-height: 1.6;
-          color: var(--m1);
-          margin: 24px 16px 0;
-          padding-top: 18px;
-          border-top: 1px solid var(--line);
-        }
-        .endgame-btn {
-          display: block;
-          width: 100%;
-          padding: 14px;
-          background: var(--bg);
-          color: var(--fg);
-          border: 2px solid var(--fg);
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 12px;
-          font-weight: 900;
-          letter-spacing: 2px;
-          cursor: pointer;
-          margin-top: 8px;
-        }
-        .endgame-btn:hover { background: var(--fg); color: var(--bg); }
-        .endgame-btn-primary {
-          background: var(--fg);
-          color: var(--bg);
-        }
-        .endgame-btn-primary:hover { opacity: 0.85; }
-        .endgame-score {
-          margin-bottom: 28px;
-        }
-        .endgame-score-row {
-          display: flex;
-          justify-content: space-between;
-          padding: 8px 0;
-          border-bottom: 1px dashed var(--line);
-          font-size: 12px;
-        }
-        .endgame-score-row:last-child { border-bottom: none; }
-        .endgame-score-lbl {
-          color: var(--m1);
-          letter-spacing: 0.5px;
-        }
-        .endgame-score-val {
-          font-weight: 800;
-          font-variant-numeric: tabular-nums;
-        }
-        .endgame-score-big {
-          font-size: 16px;
-          padding: 12px 0;
-          margin: 8px 0;
-          border-top: 2px solid var(--fg);
-          border-bottom: 2px solid var(--fg);
-        }
-        .endgame-score-big .endgame-score-val { font-size: 20px; }
-        .endgame-final-actions {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 10px;
-        }
-        .endgame-final-actions .endgame-btn { margin-top: 0; }
-
-        .acquirer-empty {
-          padding: 30px;
-          text-align: center;
-          color: var(--m1);
-          letter-spacing: 1px;
-        }
-        .acquirer-card {
-          border: 1px solid var(--fg);
-          padding: 14px;
-          margin-bottom: 12px;
-        }
-        .acquirer-card-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          gap: 8px;
-          margin-bottom: 8px;
-        }
-        .acquirer-card-portrait {
-          position: static;
-          top: auto;
-          left: auto;
-          width: 52px;
-          height: 52px;
-          flex: 0 0 52px;
-          box-shadow: none;
-          object-fit: contain;
-          object-position: top center;
-        }
-        .acquirer-card-titles {
-          flex: 1;
-          min-width: 0;
-        }
-        .acquirer-card-company {
-          font-size: 13px;
-          font-weight: 800;
-          letter-spacing: 0.6px;
-        }
-        .acquirer-card-name {
-          font-size: 10px;
-          color: var(--m1);
-          margin-top: 2px;
-          letter-spacing: 0.4px;
-        }
-        .acquirer-card-archetype {
-          font-size: 8.5px;
-          letter-spacing: 1.4px;
-          font-weight: 700;
-          padding: 3px 6px;
-          background: var(--fg);
-          color: var(--bg);
-          white-space: nowrap;
-        }
-        .acquirer-card-pitch {
-          font-size: 11px;
-          font-style: italic;
-          color: var(--m1);
-          margin: 10px 0;
-          line-height: 1.5;
-          padding-left: 8px;
-          border-left: 2px solid var(--line);
-        }
-        .acquirer-card-money-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-end;
-          margin: 12px 0 6px;
-        }
-        .acquirer-card-money-val {
-          font-size: 22px;
-          font-weight: 900;
-          letter-spacing: 0.5px;
-          font-variant-numeric: tabular-nums;
-        }
-        .acquirer-card-money-vs {
-          display: block;
-          font-size: 9px;
-          color: var(--m1);
-          letter-spacing: 0.6px;
-          margin-top: 2px;
-        }
-        .acquirer-card-timer {
-          font-size: 9px;
-          color: var(--m1);
-          letter-spacing: 0.6px;
-        }
-        .acquirer-card-bonus {
-          font-size: 9.5px;
-          color: var(--fg);
-          font-weight: 700;
-          letter-spacing: 0.5px;
-          margin-bottom: 8px;
-        }
-        .acquirer-card-actions {
-          display: grid;
-          grid-template-columns: 1fr 1fr 1fr;
-          gap: 6px;
-          margin-top: 12px;
-        }
-        .acquirer-btn {
-          padding: 9px 8px;
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 10px;
-          font-weight: 800;
-          letter-spacing: 1.2px;
-          cursor: pointer;
-          border: 1px solid var(--fg);
-          background: var(--bg);
-          color: var(--fg);
-        }
-        .acquirer-btn:hover:not(:disabled) {
-          background: var(--fg);
-          color: var(--bg);
-        }
-        .acquirer-btn:disabled {
-          opacity: 0.3;
-          cursor: not-allowed;
-        }
-        .acquirer-btn-accept {
-          background: var(--fg);
-          color: var(--bg);
-        }
-        .acquirer-btn-accept:hover {
-          opacity: 0.85;
-        }
-        .acquirer-btn-refuse {
-          opacity: 0.7;
-        }
-        .valuation-band-label {
-          font-size: 8.5px;
-          letter-spacing: 1.8px;
-          font-weight: 700;
-          opacity: 0.75;
-        }
-        .valuation-band-val {
-          font-size: 17px;
-          font-weight: 800;
-          font-variant-numeric: tabular-nums;
-          letter-spacing: 0.5px;
-        }
-        .valuation-band-tooltip {
-          position: absolute;
-          background: var(--fg);
-          color: var(--bg);
-          border: 1px solid var(--bg);
-          padding: 10px 12px;
-          font-size: 10px;
-          line-height: 1.6;
-          letter-spacing: 0.4px;
-          z-index: 50;
-          min-width: 220px;
-          right: 12px;
-          margin-top: 4px;
-          box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-        }
-        .valuation-band-tooltip-row { display: flex; justify-content: space-between; gap: 12px; }
-        .valuation-band-tooltip-row.is-total { border-top: 1px dashed var(--bg); padding-top: 4px; margin-top: 4px; font-weight: 800; }
-        .valuation-band-tooltip-lbl { opacity: 0.7; }
-        .valuation-band-tooltip-val { font-variant-numeric: tabular-nums; font-weight: 700; }
-        /* === 3 mini-jauges des produits Phase 4 === */
-        .product-gauges {
-          margin: 6px 12px 0;
-          display: grid;
-          grid-template-columns: 1fr 1fr 1fr;
-          gap: 6px;
-        }
-        .product-gauge {
-          padding: 6px 8px;
-          background: var(--bg);
-          border: 1px solid var(--line);
-          cursor: pointer;
-          font-family: 'JetBrains Mono', monospace;
-          transition: border-color 0.15s;
-        }
-        .product-gauge:hover { border-color: var(--fg); }
-        .product-gauge.is-active { border-color: var(--fg); border-width: 1.5px; }
-        .product-gauge-head {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 4px;
-          margin-bottom: 4px;
-        }
-        .product-gauge-name {
-          font-size: 8.5px;
-          letter-spacing: 1.2px;
-          font-weight: 800;
-          color: var(--fg);
-        }
-        .product-gauge-emoji { font-size: 10px; }
-        .product-gauge-bar {
-          height: 4px;
-          background: var(--line);
-          position: relative;
-          overflow: hidden;
-        }
-        .product-gauge-fill {
-          position: absolute;
-          left: 0; top: 0; bottom: 0;
-          background: var(--fg);
-          transition: width 0.3s ease-out;
-        }
-        .product-gauge-vals {
-          display: flex;
-          justify-content: space-between;
-          align-items: baseline;
-          margin-top: 3px;
-          font-variant-numeric: tabular-nums;
-        }
-        .product-gauge-cur {
-          font-size: 11px;
-          font-weight: 700;
-          color: var(--fg);
-        }
-        .product-gauge-max {
-          font-size: 8.5px;
-          color: var(--m1);
-        }
-        /* Variante saison favorable : un point coloré */
-        .product-gauge.is-favorable .product-gauge-name::after {
-          content: ' ●';
-          color: var(--fg);
-          opacity: 0.6;
-        }
-        /* Incident en cours : pulsation + bordure marquée */
-        .product-gauge.is-incident {
-          border-color: var(--fg);
-          border-width: 1.5px;
-          animation: incidentPulse 1.4s ease-in-out infinite;
-        }
-        .product-gauge.is-incident .product-gauge-name::before {
-          content: '[!] ';
-          font-weight: 900;
-        }
-        @keyframes incidentPulse {
-          0%, 100% { opacity: 1; }
-          50%      { opacity: 0.7; }
-        }
-        /* === CARTE LOGISTIQUE PHASE 4 === */
-        .p4map-wrap {
-          margin: 6px 12px 0;
-        }
-        .p4map-mapblock {
-          border: 1.5px solid var(--fg); border-radius: 0;
-          overflow: hidden; margin-bottom: 4px;
-        }
-        .p4map-prodbar {
-          display: flex; align-items: center; justify-content: space-between;
-          padding: 8px 12px; background: var(--fg); color: var(--bg);
-        }
-        .p4map-nav {
-          background: none; border: none; color: var(--bg);
-          font-family: inherit; font-size: 16px; font-weight: 900;
-          cursor: pointer; padding: 2px 12px; opacity: 0.65;
-        }
-        .p4map-nav:hover { opacity: 1; }
-        .p4map-prodcenter { text-align: center; flex: 1; }
-        .p4map-prodname { font-size: 13px; font-weight: 900; letter-spacing: 3px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
-        .p4map-prodicon { display: inline-flex; align-items: center; }
-        .p4map-prodrate { font-size: 8px; letter-spacing: 1.5px; opacity: 0.75; margin-top: 2px; }
-        .p4map-monitor {
-          display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
-          background: var(--line); border: 1px solid var(--line);
-          margin: 0 0 8px 0;
-        }
-        .p4map-mon-cell {
-          display: flex; flex-direction: column; align-items: center; gap: 2px;
-          background: var(--bg); padding: 6px 2px;
-        }
-        .p4map-mon-lbl { font-size: 7px; letter-spacing: 0.5px; opacity: 0.6; text-align: center; }
-        .p4map-mon-val { font-size: 11px; }
-        .p4map-mon-thin { font-weight: 400; }
-        .p4map-mon-strong { font-weight: 900; font-size: 12px; }
-        .p4map-mon-loss { opacity: 0.85; }
-        .p4map-mon-cost { opacity: 0.65; }
-        .p4map-proddots { display: flex; gap: 5px; justify-content: center; margin-top: 5px; }
-        .p4map-pd { width: 5px; height: 5px; border: 1px solid var(--bg); }
-        .p4map-pd.on { background: var(--bg); }
-        .p4map-canvas {
-          position: relative; width: 100%; aspect-ratio: 1 / 1.04;
-          background: var(--bg); overflow: hidden;
-        }
-        .p4map-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-        .p4map-continent {
-          fill: rgba(0,0,0,0.022); stroke: var(--fg);
-          stroke-width: 1.6; stroke-linejoin: round;
-        }
-        .p4map-border {
-          fill: none; stroke: #dcdcdc; stroke-width: 1.1;
-          stroke-linejoin: round; stroke-linecap: round;
-        }
-        .p4map-locked { fill: url(#p4hatch); stroke: var(--fg); stroke-width: 1; opacity: 0.85; }
-        .p4map-country {
-          font-size: 7.5px; letter-spacing: 1.5px; fill: var(--m1);
-          font-family: inherit; font-weight: 700; opacity: 0.55; pointer-events: none;
-        }
-        .p4map-sea {
-          font-size: 11px; letter-spacing: 4px; fill: var(--m1);
-          font-family: inherit; font-weight: 800; opacity: 0.7; pointer-events: none;
-        }
-        .p4map-route {
-          fill: none; stroke: var(--fg); stroke-width: 1.2;
-          stroke-dasharray: 2 4; opacity: 0.45;
-        }
-        .p4map-route.active { opacity: 0.8; }
-        .p4map-truck { fill: var(--fg); }
-        /* Vide au retour : contour noir, intérieur blanc. Rayon réduit
-           (2.8) pour que le diamètre EXTÉRIEUR (2.8*2 + stroke 1.6 = 7.2)
-           soit identique au point plein chargé (r 3.6 → diam 7.2). */
-        .p4map-truck.is-empty {
-          fill: var(--bg); stroke: var(--fg); stroke-width: 1.6;
-          r: 2.8;
-        }
-        /* En attente de stock au dépôt : pulsation douce */
-        @keyframes p4mapTruckWait {
-          0%,100% { opacity: 1; transform-box: fill-box; transform-origin: center; transform: scale(1); }
-          50% { opacity: 0.45; transform-box: fill-box; transform-origin: center; transform: scale(1.35); }
-        }
-        .p4map-truck.is-waiting {
-          animation: p4mapTruckWait 1.2s ease-in-out infinite;
-        }
-        /* En panne : point + double anneau qui pulse autour */
-        .p4map-truck-brkdot { fill: var(--fg); }
-        .p4map-truck-brkring {
-          fill: none; stroke: var(--fg); stroke-width: 1.4;
-          transform-box: fill-box; transform-origin: center;
-        }
-        @keyframes p4mapBrkRing {
-          0% { opacity: 0.85; transform: scale(0.55); }
-          70% { opacity: 0; transform: scale(1.5); }
-          100% { opacity: 0; transform: scale(1.5); }
-        }
-        .p4map-truck-brkring { animation: p4mapBrkRing 1.3s ease-out infinite; }
-        .p4map-truck-brkring2 { animation-delay: 0.65s; }
-        .p4map-repbox {
-          fill: var(--fg); stroke: var(--bg); stroke-width: 0.6;
-          animation: p4mapRepPulse 1.4s ease-in-out infinite;
-        }
-        @keyframes p4mapRepPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.72; } }
-        .p4map-reptxt-t {
-          fill: var(--bg); font-size: 5.4px; font-weight: 800;
-          letter-spacing: 0.6px; pointer-events: none;
-        }
-        .p4map-reptxt-v {
-          fill: var(--bg); font-size: 6.4px; font-weight: 900;
-          letter-spacing: 0.3px; pointer-events: none;
-        }
-        .p4map-dot { fill: var(--bg); stroke: var(--fg); stroke-width: 1.5; }
-        .p4map-dot.prio { fill: var(--fg); }
-        .p4map-ring {
-          fill: none; stroke: var(--fg); stroke-width: 1; opacity: 0;
-          animation: p4ping 2.8s ease-out infinite;
-        }
-        @keyframes p4ping { 0% { r: 6; opacity: 0.45; } 70% { r: 14; opacity: 0; } 100% { opacity: 0; } }
-        /* Lieux de livraison = CARRÉS (distincts des camions ronds) */
-        .p4map-dot-sq { fill: var(--bg); stroke: var(--fg); stroke-width: 1.5; }
-        .p4map-dot-sq.prio { fill: var(--fg); }
-        /* Hors saison : carré inactif — atténué, contour pointillé,
-           tiret central, fond toujours vide (jamais "plein"). */
-        .p4map-dot-sq.off {
-          fill: var(--bg); stroke: var(--m1); stroke-width: 1.2;
-          stroke-dasharray: 1.6 1.4; opacity: 0.55;
-        }
-        .p4map-sq-offmark {
-          stroke: var(--m1); stroke-width: 1.4; stroke-linecap: round;
-          opacity: 0.7;
-        }
-        .p4map-clbl {
-          font-size: 7px; letter-spacing: 0.5px; fill: var(--fg);
-          font-family: inherit; font-weight: 700; pointer-events: none;
-          paint-order: stroke; stroke: var(--bg); stroke-width: 2.6px;
-        }
-        .p4map-clbl.off { fill: var(--m1); opacity: 0.6; }
-        .p4map-csub {
-          font-size: 5.5px; fill: var(--m1); font-family: inherit; pointer-events: none;
-          paint-order: stroke; stroke: var(--bg); stroke-width: 2.4px;
-        }
-        .p4map-csub.off { opacity: 0.6; font-style: italic; }
-        .p4map-cartbox { fill: var(--bg); stroke: var(--fg); stroke-width: 1.2; }
-        .p4map-cartprod {
-          font-size: 7px; letter-spacing: 1.5px; fill: var(--fg);
-          font-weight: 900; font-family: inherit; pointer-events: none;
-        }
-        .p4map-cartstock {
-          font-size: 6.5px; letter-spacing: 0.5px; fill: var(--m1);
-          font-weight: 700; font-family: inherit; pointer-events: none;
-          font-variant-numeric: tabular-nums;
-        }
-        .p4map-carttrack { fill: rgba(0,0,0,0.06); }
-        .p4map-cartfill { fill: var(--fg); transition: width 0.4s linear; }
-        .p4map-cartsep { stroke: var(--fg); stroke-width: 0.7; opacity: 0.4; }
-        .p4map-settings {
-          display: flex; flex-direction: column; gap: 6px;
-          margin: 10px 12px 0;
-          padding: 0;
-        }
-        .p4map-set-row {
-          display: flex; align-items: center; gap: 10px;
-        }
-        .p4map-set-lbl {
-          font-size: 8px; letter-spacing: 1.2px; color: var(--m1);
-          font-weight: 700; min-width: 64px;
-        }
-        .p4map-set-slider {
-          flex: 1; margin: 0; height: 12px;
-          accent-color: var(--m1); opacity: 0.55;
-          transition: opacity 0.15s ease;
-        }
-        .p4map-set-slider:hover,
-        .p4map-set-slider:active,
-        .p4map-set-slider:focus { opacity: 1; accent-color: var(--fg); }
-        .p4map-prod-row .p4map-set-slider {
-          width: 100%; display: block; opacity: 0.7; margin: 2px 0;
-        }
-        .p4map-set-val {
-          font-size: 9px; font-weight: 800; color: var(--fg);
-          font-variant-numeric: tabular-nums; min-width: 38px; text-align: right;
-        }
-        .p4map-statsbox {
-          margin: 3px 0 6px; border: 1.5px solid var(--fg);
-        }
-        .p4map-statsbox .p4map-wbudget {
-          margin: 0; border: 0; border-bottom: 1px solid var(--line);
-          border-radius: 0; padding: 9px 12px 10px;
-        }
-        .p4map-pstats {
-          display: grid; grid-template-columns: 1fr 1fr 1fr;
-        }
-        .p4map-pcol {
-          padding: 6px 6px 5px; display: flex; flex-direction: column;
-          align-items: center;
-        }
-        .p4map-pcol + .p4map-pcol { border-left: 1px solid var(--line); }
-        .p4map-pname {
-          font-size: 8px; font-weight: 800; letter-spacing: 0.5px;
-          margin-bottom: 4px; text-align: center;
-        }
-        .p4map-vbar-zone {
-          width: auto; height: 124px; position: relative;
-          display: flex; flex-direction: row; align-items: flex-end;
-          justify-content: center; gap: 8px;
-        }
-        .p4map-vbar-wrap { width: 44px; height: 104px; }
-        .p4map-vslider {
-          -webkit-appearance: slider-vertical;
-          appearance: slider-vertical;
-          writing-mode: vertical-lr;
-          direction: rtl;
-          width: 22px; height: 110px; margin: 0; padding: 0;
-          accent-color: var(--fg); cursor: pointer;
-          opacity: 0.85;
-        }
-        .p4map-vslider:hover, .p4map-vslider:active, .p4map-vslider:focus {
-          opacity: 1;
-        }
-        .p4map-vbar {
-          width: 100%; height: 100%; border: 1.5px solid var(--fg);
-          background: var(--bg); position: relative; overflow: hidden;
-        }
-        .p4map-vbar-fill {
-          position: absolute; left: 0; right: 0; bottom: 0;
-          background: var(--fg);
-        }
-        .p4map-vbar-val {
-          margin-top: 4px; font-size: 11px; font-weight: 800;
-          letter-spacing: 0.3px;
-        }
-        .p4map-vbar-cap { font-size: 8px; opacity: 0.45; font-weight: 600; }
-        .p4map-pmeta {
-          margin-top: 3px; font-size: 8px; opacity: 0.42; font-weight: 600;
-        }
-        .p4map-pmeta-throt {
-          opacity: 0.7; text-decoration: line-through;
-        }
-        .p4map-penergy {
-          margin-top: 2px; font-size: 9px; font-weight: 700;
-          opacity: 0.55; text-align: center; letter-spacing: 0.2px;
-        }
-        @keyframes p4mapBarVibe {
-          0%,100% { transform: translate(0,0); }
-          25% { transform: translate(-0.6px,0.4px); }
-          50% { transform: translate(0.6px,-0.4px); }
-          75% { transform: translate(-0.4px,0.5px); }
-        }
-        .p4map-vbar-wrap.full {
-          animation: p4mapBarVibe 0.26s linear infinite;
-        }
-        .p4map-rays {
-          position: absolute; top: 0; left: 0; right: 0; height: 20px;
-          pointer-events: none;
-        }
-        .p4map-ray {
-          position: absolute; bottom: 0; width: 2px; height: 7px;
-          background: var(--fg); opacity: 0;
-        }
-        @keyframes p4mapEvap {
-          0% { opacity: 0; transform: translateY(3px) scaleY(0.4); }
-          35% { opacity: 0.75; }
-          70% { opacity: 0.35; }
-          100% { opacity: 0; transform: translateY(-11px) scaleY(1); }
-        }
-        .p4map-ray1 { left: 11px; animation: p4mapEvap 1.2s ease-out infinite; animation-delay: 0s; }
-        .p4map-ray2 { left: 22px; height: 9px; animation: p4mapEvap 1.0s ease-out infinite; animation-delay: 0.45s; }
-        .p4map-ray3 { left: 32px; animation: p4mapEvap 1.35s ease-out infinite; animation-delay: 0.8s; }
-        .p4map-loss-tag {
-          margin-top: 4px; font-size: 8px; font-weight: 800;
-          letter-spacing: 1px;
-        }
-        .p4map-loss-tag.hidden { visibility: hidden; }
-        .p4map-wbudget {
-          margin: 4px 0 14px; padding: 12px 12px 13px;
-          border: 1.5px solid var(--fg); border-radius: 0;
-        }
-        /* >90 % : tremblement léger de la barre de remplissage */
-        @keyframes p4mapShake90 {
-          0%,100% { transform: translate(0,0); }
-          25% { transform: translate(-1px,0.5px); }
-          50% { transform: translate(1px,-0.5px); }
-          75% { transform: translate(-0.5px,1px); }
-        }
-        /* 100 % : surcharge énergétique — secousses amples + grésillement
-           néon (la barre claque blanc/noir par à-coups brutaux). */
-        @keyframes p4mapEnergyOverload {
-          0%   { transform: translate(0,0);      background: var(--fg); }
-          5%   { transform: translate(-3px,1px); background: var(--bg); }
-          7%   { background: var(--fg); }
-          9%   { transform: translate(2px,-2px); background: var(--bg); }
-          11%  { background: var(--fg); }
-          13%  { transform: translate(-2px,2px); }
-          20%  { transform: translate(3px,-1px); background: var(--fg); }
-          24%  { background: var(--bg); }
-          26%  { background: var(--fg); }
-          34%  { transform: translate(-3px,-1px); }
-          40%  { background: var(--fg); }
-          42%  { background: var(--bg); }
-          44%  { background: var(--fg); }
-          46%  { transform: translate(2px,2px); }
-          55%  { transform: translate(-2px,1px); background: var(--fg); }
-          60%  { background: var(--bg); }
-          62%  { background: var(--fg); }
-          70%  { transform: translate(3px,-2px); }
-          77%  { background: var(--fg); }
-          79%  { background: var(--bg); }
-          81%  { background: var(--fg); }
-          88%  { transform: translate(-3px,1px); }
-          100% { transform: translate(0,0);      background: var(--fg); }
-        }
-        @keyframes p4mapOverloadGlow {
-          0%,100% { box-shadow: 0 0 0 0 rgba(17,17,17,0); }
-          50%     { box-shadow: 0 0 0 2px rgba(17,17,17,0.55); }
-        }
-        @keyframes p4mapBlinkHard {
-          0%,49% { opacity: 1; }
-          50%,100% { opacity: 0.15; }
-        }
-        .p4map-wbud-fill.hot90 {
-          animation: p4mapShake90 0.45s linear infinite;
-        }
-        .p4map-wbud-fill.hot100 {
-          animation: p4mapEnergyOverload 0.5s steps(1,end) infinite;
-        }
-        .p4map-wbud-bar.hot100 {
-          animation: p4mapOverloadGlow 0.5s ease-in-out infinite;
-        }
-        .p4map-wbud-free.sat {
-          animation: p4mapBlinkHard 0.4s steps(1) infinite;
-          font-weight: 800;
-        }
-        .p4map-wbud-head {
-          display: flex; justify-content: space-between; align-items: baseline;
-        }
-        .p4map-wbud-lbl {
-          font-size: 8px; letter-spacing: 1.2px; color: var(--m1); font-weight: 700;
-        }
-        .p4map-wbud-val {
-          font-size: 11px; font-weight: 800; color: var(--fg);
-          font-variant-numeric: tabular-nums;
-        }
-        .p4map-wbud-bar {
-          margin: 6px 0 4px; height: 6px; border-radius: 3px;
-          background: var(--m3, #e8e8e8); overflow: hidden;
-        }
-        .p4map-wbud-fill {
-          height: 100%; background: var(--fg); transition: width 0.2s ease;
-        }
-        .p4map-wbud-free {
-          font-size: 8px; color: var(--m1); font-weight: 700;
-          text-align: right; margin-bottom: 8px;
-        }
-        .p4map-prod-row {
-          display: flex; align-items: center; gap: 8px;
-          margin-top: 7px;
-        }
-        .p4map-prod-row:first-of-type { margin-top: 9px; }
-        .p4map-prod-name {
-          font-size: 9px; letter-spacing: 0.4px; color: var(--fg);
-          font-weight: 800; min-width: 56px;
-        }
-        .p4map-prod-row .p4map-set-slider {
-          flex: 1; min-width: 0; opacity: 0.7; margin: 0;
-        }
-        .p4map-prod-meta {
-          font-size: 9px; color: var(--fg); font-weight: 800;
-          font-variant-numeric: tabular-nums;
-          min-width: 58px; text-align: right;
-        }
-        .p4map-prod-sub {
-          font-size: 8px; color: var(--m1); font-weight: 700;
-          font-variant-numeric: tabular-nums;
-          min-width: 30px; text-align: right;
-        }
-        .p4map-suppliers-btn {
-          width: 100%; margin: 4px 0 9px; padding: 11px 12px;
-          background: var(--fg); border: 1.5px solid var(--fg);
-          color: var(--bg); font-family: inherit; font-size: 10.5px;
-          font-weight: 800; letter-spacing: 1.2px; cursor: pointer;
-          border-radius: 3px; transition: opacity 0.15s;
-          display: flex; align-items: center; justify-content: center;
-          gap: 9px;
-        }
-        .p4map-suppliers-btn:hover { opacity: 0.82; }
-        .p4map-suppliers-btn:active { opacity: 0.7; }
-        .p4map-sup-ico, .p4map-sup-ico2 { flex-shrink: 0; }
-        .p4map-sup-txt { line-height: 1; }
-        /* === Modale FOURNISSEURS === */
-        .suppliers-modal { max-width: 560px; }
-        .suppliers-body {
-          display: flex; flex-direction: column; gap: 16px;
-          padding: 16px; overflow-y: auto; max-height: 70vh;
-        }
-        .infra-cap-line {
-          font-size: 11px; letter-spacing: 0.5px; color: var(--fg);
-          padding: 8px 10px; border: 1px solid var(--fg);
-          text-align: center;
-        }
-        .infra-cap-line b { font-size: 13px; }
-        .infra-fam { display: flex; flex-direction: column; gap: 8px; }
-        .infra-fam-label {
-          font-size: 10px; letter-spacing: 1.5px; color: var(--m1);
-          border-bottom: 1px solid var(--m2); padding-bottom: 4px;
-        }
-        .infra-tier {
-          border: 1px solid var(--m2); padding: 10px;
-          display: flex; flex-direction: column; gap: 6px;
-        }
-        .infra-tier.infra-owned { opacity: 0.5; }
-        .infra-tier-main {
-          display: flex; justify-content: space-between; align-items: baseline;
-          font-size: 12px; color: var(--fg);
-        }
-        .infra-tier-name { font-weight: 600; letter-spacing: 0.3px; }
-        .infra-tier-cost { font-size: 11px; letter-spacing: 0.5px; }
-        .infra-tier-desc { font-size: 10px; color: var(--m1); line-height: 1.5; }
-        .infra-buy-btn {
-          margin-top: 4px; padding: 7px; font-size: 10px;
-          letter-spacing: 1px; background: var(--fg); color: var(--bg);
-          border: none; cursor: pointer; font-family: inherit;
-        }
-        .infra-buy-btn:disabled {
-          background: transparent; color: var(--m2);
-          border: 1px solid var(--m2); cursor: not-allowed;
-        }
-        .suppliers-empty, .reviews-empty {
-          text-align: center; color: var(--m1); font-size: 11px;
-          padding: 18px; letter-spacing: 0.5px;
-        }
-        .suppliers-list { display: flex; flex-direction: column; gap: 14px; }
-        .supplier-card {
-          border: 1px solid var(--line); border-radius: 4px;
-          padding: 12px; display: flex; flex-direction: column; gap: 8px;
-        }
-        .supplier-card-head {
-          display: flex; justify-content: space-between; align-items: center;
-        }
-        .supplier-card-name {
-          font-size: 12px; font-weight: 900; letter-spacing: 1px; color: var(--fg);
-        }
-        .supplier-card-profile {
-          font-size: 9px; font-weight: 800; letter-spacing: 1px;
-          padding: 3px 8px; border: 1px solid var(--fg); border-radius: 2px;
-        }
-        .prof-luxe { background: var(--fg); color: var(--bg); }
-        .prof-volume { color: var(--m1); border-color: var(--m1); }
-        .prof-standard { color: var(--fg); }
-        .supplier-card-sub {
-          font-size: 9px; color: var(--m1); letter-spacing: 0.8px;
-        }
-        .supplier-tier-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-        .supplier-tier {
-          background: var(--bg); border: 1px solid var(--line);
-          padding: 7px 4px; cursor: pointer; border-radius: 3px;
-          display: flex; flex-direction: column; gap: 3px; align-items: center;
-          font-family: inherit; transition: border-color 0.15s, background 0.15s;
-        }
-        .supplier-tier:hover { border-color: var(--fg); }
-        .supplier-tier.is-active { background: var(--fg); border-color: var(--fg); }
-        .supplier-tier.is-active .supplier-tier-name,
-        .supplier-tier.is-active .supplier-tier-meta { color: var(--bg); }
-        .supplier-tier-name { font-size: 8.5px; font-weight: 800; color: var(--fg); text-align: center; letter-spacing: 0.3px; }
-        .supplier-tier-meta { font-size: 8px; color: var(--m1); font-variant-numeric: tabular-nums; }
-        .supplier-finish {
-          font-size: 9.5px; color: var(--m1); font-style: italic;
-          line-height: 1.4; padding: 2px 0;
-        }
-        .supplier-price-row { display: flex; align-items: center; gap: 10px; }
-        .supplier-price-lbl { font-size: 8px; letter-spacing: 1px; color: var(--m1); font-weight: 700; min-width: 92px; }
-        .supplier-price-slider { flex: 1; accent-color: var(--fg); height: 14px; }
-        .supplier-price-val { font-size: 11px; font-weight: 800; color: var(--fg); min-width: 46px; text-align: right; font-variant-numeric: tabular-nums; }
-        .supplier-ratio {
-          font-size: 9px; font-weight: 800; letter-spacing: 1px;
-          text-align: center; padding: 5px; border-radius: 2px;
-        }
-        .ratio-ok { color: var(--fg); border: 1px solid var(--line); }
-        .ratio-warn { color: var(--fg); border: 1px solid var(--fg); }
-        .ratio-bad { background: var(--fg); color: var(--bg); }
-        .reviews-section {
-          border-top: 1px solid var(--line); padding-top: 14px;
-          display: flex; flex-direction: column; gap: 8px;
-        }
-        .reviews-title {
-          font-size: 10px; font-weight: 900; letter-spacing: 2px; color: var(--fg);
-        }
-        .reviews-list { display: flex; flex-direction: column; gap: 8px; }
-        .review-item {
-          border-left: 2px solid var(--line); padding: 5px 0 5px 10px;
-        }
-        .review-item.tone-pos { border-left-color: var(--fg); }
-        .review-item.tone-neg { border-left-color: var(--m1); }
-        .review-from {
-          font-size: 9px; font-weight: 800; letter-spacing: 0.8px;
-          color: var(--fg); margin-bottom: 2px;
-        }
-        .review-text {
-          font-size: 10px; color: var(--m1); font-style: italic; line-height: 1.4;
-        }
-        .p4map-contracts {
-          display: flex; flex-direction: column; gap: 7px;
-          margin-bottom: 4px; padding-bottom: 8px;
-          border-bottom: 1px solid var(--line);
-        }
-        .p4map-contracts-hd {
-          display: flex; justify-content: space-between;
-          font-size: 8px; letter-spacing: 1.4px; color: var(--m1);
-          font-weight: 700;
-        }
-        .p4map-contracts-empty {
-          font-size: 9px; color: var(--m1); font-style: italic;
-          text-align: center; padding: 6px 0;
-        }
-        .p4map-cline {
-          border: 1px solid var(--line); padding: 6px 8px;
-          display: flex; flex-direction: column; gap: 4px;
-        }
-        .p4map-cline-top {
-          display: flex; justify-content: space-between; align-items: baseline;
-        }
-        .p4map-cline-name {
-          font-size: 9.5px; font-weight: 800; color: var(--fg);
-          letter-spacing: 0.4px;
-        }
-        .p4map-cline-ca {
-          font-size: 10px; font-weight: 900; color: var(--fg);
-          font-variant-numeric: tabular-nums;
-        }
-        .p4map-cline-mid, .p4map-cline-foot {
-          display: flex; justify-content: space-between;
-          font-size: 8px; color: var(--m1); letter-spacing: 0.3px;
-          font-variant-numeric: tabular-nums;
-        }
-        .p4map-prof-hi { color: var(--fg); font-weight: 800; }
-        .p4map-prof-mid { color: var(--m1); }
-        .p4map-prof-lo { color: var(--m1); font-style: italic; }
-        .p4map-cline-bar {
-          height: 4px; background: rgba(0,0,0,0.08); border-radius: 1px;
-          overflow: hidden;
-        }
-        .p4map-cline-fill {
-          height: 100%; background: var(--fg);
-          transition: width 0.4s linear;
-        }
-        .p4map-cline-urgent { color: var(--fg); font-weight: 800; }
-        .p4map-cline-susp { border: 1.5px solid var(--fg); background: rgba(0,0,0,0.04); }
-        .p4map-cline-off { opacity: 0.55; border-style: dashed; }
-        .p4map-reneg-btn {
-          width: 100%; margin-top: 6px; padding: 7px 8px;
-          background: var(--fg); color: var(--bg);
-          border: none; border-radius: 0;
-          font-family: inherit; font-size: 10px; font-weight: 800;
-          letter-spacing: 0.06em; cursor: pointer;
-        }
-        .p4map-reneg-btn:active { opacity: 0.7; }
-        /* === Card swipeable Phase 4 (détail produit actif) === */
-        .product-card-container {
-          margin: 6px 12px 0;
-          position: relative;
-          overflow: hidden;
-        }
-        .product-card-swiper {
-          display: flex;
-          transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
-          touch-action: pan-y;
-        }
-        .product-card {
-          flex: 0 0 100%;
-          padding: 10px 12px;
-          background: var(--bg);
-          border: 1px solid var(--line);
-          font-family: 'JetBrains Mono', monospace;
-          box-sizing: border-box;
-        }
-        .product-card-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 8px;
-          padding-bottom: 6px;
-          border-bottom: 1px dashed var(--line);
-          margin-bottom: 8px;
-        }
-        .product-card-title {
-          display: flex;
-          align-items: baseline;
-          gap: 7px;
-        }
-        .product-card-emoji { font-size: 15px; }
-        .product-card-name {
-          font-size: 12px;
-          font-weight: 800;
-          letter-spacing: 1.2px;
-          color: var(--fg);
-        }
-        .product-card-desc {
-          font-size: 8.5px;
-          color: var(--m1);
-          letter-spacing: 0.5px;
-        }
-        .product-card-season-badge {
-          font-size: 7.5px;
-          letter-spacing: 1px;
-          padding: 3px 6px;
-          border: 1px solid var(--fg);
-          font-weight: 700;
-          white-space: nowrap;
-        }
-        .product-card-season-badge.is-favorable {
-          background: var(--fg);
-          color: var(--bg);
-        }
-        .product-card-season-badge.is-unfavorable {
-          opacity: 0.5;
-        }
-        .product-card-incident-banner {
-          margin: 8px 0 10px;
-          padding: 6px 10px;
-          background: var(--fg);
-          color: var(--bg);
-          font-size: 9.5px;
-          letter-spacing: 1.2px;
-          font-weight: 700;
-          display: flex;
-          align-items: center;
-          animation: incidentPulse 1.4s ease-in-out infinite;
-        }
-        .product-card-stock-row {
-          display: flex;
-          align-items: baseline;
-          justify-content: space-between;
-          gap: 12px;
-          margin-bottom: 8px;
-        }
-        .product-card-stock-big {
-          font-size: 20px;
-          font-weight: 800;
-          font-variant-numeric: tabular-nums;
-          line-height: 1;
-        }
-        .product-card-stock-unit {
-          font-size: 9px;
-          color: var(--m1);
-          letter-spacing: 1px;
-          margin-left: 4px;
-        }
-        .product-card-cap {
-          font-size: 8.5px;
-          color: var(--m1);
-        }
-        .product-card-cap-bar {
-          height: 3px;
-          background: var(--line);
-          position: relative;
-          overflow: hidden;
-          margin-bottom: 12px;
-        }
-        .product-card-cap-fill {
-          position: absolute;
-          left: 0; top: 0; bottom: 0;
-          background: var(--fg);
-        }
-        .product-card-section {
-          margin-top: 10px;
-          padding-top: 8px;
-          border-top: 1px dashed var(--line);
-        }
-        .product-card-section-label {
-          font-size: 7.5px;
-          letter-spacing: 1.1px;
-          color: var(--m1);
-          font-weight: 700;
-          margin-bottom: 5px;
-          display: flex;
-          justify-content: space-between;
-        }
-        .product-card-section-val {
-          color: var(--fg);
-          font-variant-numeric: tabular-nums;
-        }
-        .product-card-slider {
-          width: 100%;
-          margin: 0;
-          accent-color: var(--m1);
-          height: 12px;
-          opacity: 0.6;
-          transition: opacity 0.15s ease;
-        }
-        .product-card-slider:hover,
-        .product-card-slider:active,
-        .product-card-slider:focus {
-          opacity: 1;
-          accent-color: var(--fg);
-        }
-        /* === 3 stats clés === */
-        .product-card-keystats {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 6px;
-          margin-top: 10px;
-        }
-        .product-card-keystat {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 2px;
-          padding: 7px 3px;
-          border: 1px solid var(--line);
-        }
-        .product-card-keystat-val {
-          font-size: 12px;
-          font-weight: 900;
-          color: var(--fg);
-          font-variant-numeric: tabular-nums;
-        }
-        .product-card-keystat-lbl {
-          font-size: 7px;
-          letter-spacing: 1.2px;
-          text-transform: uppercase;
-          color: var(--m1);
-        }
-        /* === Ligne de livraison (1 camion / contrat) === */
-        .delivery-line-wrap { position: relative; }
-        .delivery-line {
-          position: relative;
-          height: 56px;
-          margin-top: 4px;
-        }
-        .delivery-line-road {
-          position: absolute;
-          left: 6%; right: 6%;
-          bottom: 10px;
-          height: 2px;
-          background: var(--fg);
-          opacity: 0.35;
-        }
-        .delivery-line-road::after {
-          content: '';
-          position: absolute;
-          left: 0; right: 0; top: 0;
-          border-top: 2px dashed var(--fg);
-          opacity: 0.5;
-        }
-        .delivery-line-depot, .delivery-line-dest {
-          position: absolute;
-          bottom: 6px;
-          color: var(--fg);
-          background: var(--bg);
-          padding: 1px;
-        }
-        .delivery-line-depot { left: 0; }
-        .delivery-line-dest { right: 0; }
-        .delivery-truck {
-          position: absolute;
-          transform: translateX(-50%);
-          background: none;
-          border: none;
-          padding: 4px;
-          cursor: pointer;
-          color: var(--fg);
-          transition: left 0.5s linear, bottom 0.3s ease;
-          line-height: 0;
-        }
-        .delivery-truck.is-return { opacity: 0.5; transform: translateX(-50%) scaleX(-1); }
-        .delivery-truck.is-sel { color: var(--fg); }
-        .delivery-truck.is-sel svg rect,
-        .delivery-truck.is-sel svg path { fill: var(--fg); }
-        .delivery-truck.is-sel svg circle { fill: var(--bg); }
-        .delivery-line-empty {
-          font-size: 10px;
-          color: var(--m1);
-          text-align: center;
-          padding: 18px 0;
-          font-style: italic;
-        }
-        .delivery-line-overflow {
-          font-size: 8.5px;
-          color: var(--m1);
-          letter-spacing: 1px;
-          text-align: right;
-          margin-top: 2px;
-        }
-        .delivery-bubble {
-          margin-top: 8px;
-          padding: 8px 11px;
-          background: var(--fg);
-          color: var(--bg);
-          animation: deliveryBubbleIn 0.18s ease-out;
-        }
-        @keyframes deliveryBubbleIn {
-          from { opacity: 0; transform: translateY(-4px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .delivery-bubble-name {
-          font-size: 11px;
-          font-weight: 900;
-          letter-spacing: 0.5px;
-        }
-        .delivery-bubble-meta {
-          font-size: 9.5px;
-          opacity: 0.85;
-          margin-top: 2px;
-          font-variant-numeric: tabular-nums;
-        }
-        .delivery-bubble-state {
-          font-size: 9px;
-          opacity: 0.7;
-          margin-top: 3px;
-          letter-spacing: 0.5px;
-          font-variant-numeric: tabular-nums;
-        }
-        .product-card-stats {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 6px 12px;
-          margin-top: 4px;
-        }
-        .product-card-stat-row {
-          display: flex;
-          justify-content: space-between;
-          font-size: 9.5px;
-        }
-        .product-card-stat-lbl { color: var(--m1); letter-spacing: 0.4px; }
-        .product-card-stat-val { color: var(--fg); font-variant-numeric: tabular-nums; font-weight: 700; }
-        .product-card-dots {
-          display: flex;
-          justify-content: center;
-          gap: 6px;
-          padding: 8px 0 0;
-        }
-        .product-card-dot {
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          background: var(--line);
-          transition: background 0.2s;
-          cursor: pointer;
-        }
-        .product-card-dot.is-active { background: var(--fg); }
-        /* === Contrats actifs et marketplace par produit === */
-        .product-card-contract-row {
-          display: grid;
-          grid-template-columns: 1fr 60px 18px;
-          gap: 8px;
-          align-items: center;
-          padding: 6px 0;
-          border-bottom: 1px dashed var(--line);
-        }
-        .product-card-contract-row:last-child { border-bottom: none; }
-        .product-card-contract-info {
-          min-width: 0;
-        }
-        .product-card-contract-name {
-          font-size: 10px;
-          font-weight: 700;
-          color: var(--fg);
-          letter-spacing: 0.6px;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-        .product-card-contract-meta {
-          font-size: 8.5px;
-          color: var(--m1);
-          margin-top: 2px;
-          letter-spacing: 0.3px;
-        }
-        .product-card-contract-bar {
-          height: 3px;
-          background: var(--line);
-          position: relative;
-          overflow: hidden;
-        }
-        .product-card-contract-bar-fill {
-          position: absolute;
-          left: 0; top: 0; bottom: 0;
-          background: var(--fg);
-          transition: width 0.4s ease-out;
-        }
-        .product-card-contract-cancel {
-          width: 18px;
-          height: 18px;
-          background: transparent;
-          border: 1px solid var(--line);
-          color: var(--m1);
-          font-size: 11px;
-          font-weight: 700;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 0;
-        }
-        .product-card-contract-cancel:hover { border-color: var(--fg); color: var(--fg); }
-        .product-card-market-row {
-          display: grid;
-          grid-template-columns: 1fr auto;
-          gap: 8px;
-          align-items: center;
-          padding: 6px 0;
-          border-bottom: 1px dashed var(--line);
-        }
-        .product-card-market-row:last-child { border-bottom: none; }
-        .product-card-market-sign {
-          background: var(--fg);
-          color: var(--bg);
-          border: 1px solid var(--fg);
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 9px;
-          font-weight: 800;
-          letter-spacing: 1.2px;
-          padding: 5px 10px;
-          cursor: pointer;
-          white-space: nowrap;
-        }
-        .product-card-market-sign:hover { opacity: 0.85; }
-        .product-card-empty {
-          font-size: 9.5px;
-          color: var(--m1);
-          font-style: italic;
-          padding: 6px 0;
-          letter-spacing: 0.4px;
-        }
         /* Pause menu */
         .pause-menu-modal { max-width: 320px; }
         .pause-menu-actions { display: flex; flex-direction: column; gap: 0; padding: 0; }
@@ -20086,8 +17870,6 @@ export default function App() {
           .modal-btn-cancel:hover:not(:active),
           .menu-btn:hover:not(:active),
           .modal-close:hover:not(:active),
-          .acquirer-btn-refuse:hover:not(:active),
-          .acquirer-btn-negotiate:hover:not(:disabled):not(:active),
           .endgame-btn:hover:not(:active),
           .pause-menu-btn:hover:not(:active),
           .agence-decline:hover:not(:active),
@@ -20162,7 +17944,7 @@ export default function App() {
                       let hint = '';
                       if (nextLevel === 15) hint = 'Entreprise mature, fin de Phase 1';
                       else if (nextLevel === 25) hint = "Acteur établi, l'envergure Phase 3";
-                      else if (nextLevel === 38) hint = 'Groupe reconnu, vers la diversification';
+                      else if (nextLevel === 38) hint = 'Groupe reconnu, référence nationale';
                       else if (nextLevel === 50) hint = 'Empire industriel, niveau maximum';
                       return base + ` · ${toNext} pour Nv${nextLevel}${hint ? '\n→ ' + hint : ''}`;
                     })()}
@@ -20837,7 +18619,7 @@ export default function App() {
                           const speaker = speakers[Math.floor(Math.random() * speakers.length)];
                           const cats = DEV_PREVIEW_MESSAGES[speaker];
                           if (!cats) return;
-                          const catKeys = Object.keys(cats).filter(k => k !== 'phase4');
+                          const catKeys = Object.keys(cats);
                           if (catKeys.length === 0) return;
                           const cat = catKeys[Math.floor(Math.random() * catKeys.length)];
                           const msgs = cats[cat];
@@ -20864,7 +18646,7 @@ export default function App() {
                         return (
                           <div key={emp} style={{ marginBottom: 10 }}>
                             <div className="dev-section-subtitle">{speakerMap[emp].toUpperCase()}</div>
-                            {Object.entries(categories).filter(([cat]) => cat !== 'phase4').map(([cat, msgs]) => (
+                            {Object.entries(categories).map(([cat, msgs]) => (
                               <div key={cat} style={{ marginBottom: 6 }}>
                                 <div style={{ fontSize: 8, color: 'var(--m1)', letterSpacing: 1, marginBottom: 2 }}>{catLabels[cat] || cat}</div>
                                 {msgs.map((msg, i) => (
@@ -24081,8 +21863,6 @@ export default function App() {
               // La carte "Bail nouveaux locaux" n'apparaît qu'APRÈS que le joueur
               // ait écouté l'appel Robert 2 (pas juste qu'il ait sonné).
               if (f.requireUnlock === 'robertCall2') return robertCall2Heard;
-              // L'upgrade diversification n'apparaît qu'après la cascade Vandenberg (stage >= 5)
-              if (f.requireUnlock === 'vandenberg') return phase4TriggerStage >= 5;
               // La filière MINÉRAUX n'apparaît qu'une fois l'eau sourcée
               // (on enrichit une eau déjà premium, pas l'eau du robinet).
               if (f.requireUnlock === 'eauSourced') return !!(owned['eau_source_filtree'] || owned['eau_source_montagne'] || owned['eau_volcanique']);
@@ -24301,10 +22081,7 @@ export default function App() {
           const call = PHONE_CALLS_BY_ID[currentCall.id];
           if (!call) return null;
           const remaining = Math.max(0, call.decisionTime - (gameTime - currentCall.startedAt));
-          const _relStockModal = call.product === 'popice' ? Math.ceil(popIceStock)
-            : call.product === 'frozio' ? Math.ceil(frozioStock)
-            : call.product === 'medipack' ? Math.ceil(medipackStock)
-            : displayStock;
+          const _relStockModal = displayStock;
           const canAccept = call.needStock === 0 || _relStockModal >= call.needStock;
           const acceptReward = call.rewardAccept || {};
           const declineReward = call.rewardDecline;
@@ -24343,10 +22120,7 @@ export default function App() {
                 {!call.narrativeOnly && (
                   <div className="modal-grid">
                     {call.needStock > 0 && (() => {
-                      const _unitModal = call.product === 'popice' ? t('unit.popice')
-                        : call.product === 'frozio' ? t('unit.frozio')
-                        : call.product === 'medipack' ? t('unit.medipack')
-                        : 'GL';
+                      const _unitModal = 'GL';
                       return (
                       <div className="modal-row">
                         <span className="modal-lbl">{t('call.demand')}</span>
@@ -24381,7 +22155,7 @@ export default function App() {
                     <button className="modal-btn modal-btn-accept" onClick={handleCallAccept} style={{ gridColumn: '1 / -1' }}>
                       OK
                     </button>
-                  ) : (call.id === 'robert_warehouse' || call.id === 'robert_office' || call.id === 'phase4_vandenberg') ? (
+                  ) : (call.id === 'robert_warehouse' || call.id === 'robert_office') ? (
                     <>
                       <button className="modal-btn modal-btn-accept" onClick={handleCallAccept}>
                         {t('call.see_offer_btn')}
