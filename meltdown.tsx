@@ -131,15 +131,6 @@ const AUTUMN_RUSH_MAX = 40;
 const AUTUMN_RUSH_MULT = 1.5;
 const BREAKDOWN_CHANCE_HEAT = 0.0002;
 const BREAKDOWN_CHANCE_BASE = 0.00004;
-// Panne camion Phase 4 : faible chance par tick quand le camion roule
-// (going/returning). Similaire à P2-3. Le contrat reste actif mais le
-// camion est immobilisé → retards → érosion de réputation jusqu'à
-// réparation payante (pop-up au clic sur le camion).
-const P4_TRUCK_BREAK_CHANCE = 0.00005;
-const P4_TRUCK_REPAIR_MIN = 1000;
-const P4_TRUCK_REPAIR_MAX = 3000;
-// Réputation perdue par seconde tant qu'un camion est en panne (retard).
-const P4_BROKEN_REP_EROSION = 0.04;
 
 const BASE_LINES = 0;
 const TRUCK_REBUY_COST = 9000; // racheter un camion volé (plus cher que la rançon : payer tout de suite vaut mieux)
@@ -343,147 +334,6 @@ function xpFromTotals(t, callsCount, owned) {
     + (callsCount || 0) * 150
     + upgradeCount * 4000
   );
-}
-
-// === VALORISATION ENTREPRISE — Phase 4 ===
-// Formule pédagogique : chaque axe contribue de manière lisible.
-// Le joueur voit clairement comment ses choix (rép, noto, segments) impactent sa valeur de sortie.
-function computeCompanyValuation(args) {
-  const {
-    cash = 0,
-    notoriety = 0,
-    reputation = 0,
-    segLuxe = 0, segPro = 0, segEco = 0,
-    phase4Revenue = 0,
-  } = args || {};
-  const base = 50000;
-  const cashContrib = Math.max(0, cash) * 0.4;
-  const notoContrib = notoriety * 5000;
-  const repContrib = reputation * 7000;
-  const premiumContrib = (segLuxe + segPro + segEco) * 2500;
-  const revenueContrib = phase4Revenue * 1.2;
-  return {
-    total: Math.floor(base + cashContrib + notoContrib + repContrib + premiumContrib + revenueContrib),
-    breakdown: {
-      base,
-      cash: Math.floor(cashContrib),
-      noto: Math.floor(notoContrib),
-      rep: Math.floor(repContrib),
-      premium: Math.floor(premiumContrib),
-      revenue: Math.floor(revenueContrib),
-    },
-  };
-}
-// Formatter intelligent : 1 234 567 → "1.23 M€", 80 000 → "80 K€"
-function fmtValuation(v) {
-  if (v >= 1000000) return (v / 1000000).toFixed(2).replace('.', ',') + ' M€';
-  if (v >= 1000) return Math.round(v / 1000) + ' K€';
-  return Math.floor(v) + '€';
-}
-
-// === CAPACITÉS PAR PRODUIT PHASE 4 ===
-// Chaque produit a sa propre capacité de stockage relative au maxCap général.
-// POP ICE : consommable rapide, stockage facile → ×1.5
-// FROZIO : neige artificielle volumineuse → ×1.0
-// MEDIPACK : qualité critique, espace dédié → ×0.6
-function getProductCaps(baseCap) {
-  // PLAFONDS DE STOCK — découplés du budget Watts. Le budget W est
-  // désormais un pur régulateur de DÉBIT de production (cadence des
-  // curseurs) ; il ne plafonne plus le stock. Les plafonds ci-dessous
-  // sont dimensionnés pour contenir ~4 fois le plus gros lot de chaque
-  // produit (POP ICE max 200u, FROZIO 140u, MEDIPACK 110u) : le joueur
-  // peut produire en avance et alimenter plusieurs camions du même
-  // produit en parallèle (jusqu'à 21 contrats simultanés).
-  return {
-    popice: 800,
-    frozio: 600,
-    medipack: 450,
-  };
-}
-
-// === SYSTÈME BUDGET CAPACITÉ USINE PHASE 4 ===
-// L'usine a un budget de production (en W) = p4MaxCap. Chaque produit
-// coûte un nombre de W par unité produite. Le joueur règle, via un
-// curseur par produit, le nombre d'unités/cycle voulu. La somme des
-// (unités × coût W) ne peut dépasser le budget usine (blocage net).
-// Calé sur la valeur : le produit qui rapporte le plus coûte le plus.
-const P4_PROD_W_COST = {
-  popice: 1,   // 2,40€ — bon marché à produire, gros volumes
-  frozio: 3,   // 18,00€ — coût/valeur moyens
-  medipack: 6, // 45,00€ — cher à produire, haute valeur
-};
-// Prix de l'énergie en Phase 4 : € par Watt et par seconde. Sert à
-// afficher le coût énergétique de chaque produit en €/s (Watts du
-// produit × ce prix). Tarif unique partagé partout (estimation des
-// charges à provisionner, monitoring temps réel, prélèvement réel au
-// semestre) pour une parfaite cohérence des montants énergie.
-const P4_EUR_PER_W = 0.06;
-// W consommés par un set d'objectifs {popice, frozio, medipack} (unités)
-function p4WattsUsed(targets) {
-  return (targets.popice || 0) * P4_PROD_W_COST.popice
-       + (targets.frozio || 0) * P4_PROD_W_COST.frozio
-       + (targets.medipack || 0) * P4_PROD_W_COST.medipack;
-}
-
-// === PROFIL DES 3 PRODUITS PHASE 4 ===
-// Source de vérité pour les noms, emojis, saisons favorables, prix de base
-const PRODUCT_PROFILES = {
-  popice: {
-    name: { fr: 'POP ICE', en: 'POP ICE', es: 'POP ICE', zh: "POP ICE", ru: "POP ICE", it: "POP ICE", de: "POP ICE" },
-    desc: { fr: 'Jus glacé en tube', en: 'Frozen juice tube', es: 'Tubo de zumo helado', zh: "冷冻果汁管", ru: "Тюбик замороженного сока", it: "Tubo di succo ghiacciato", de: "Gefrorene Saft-Tube" },
-    favorableSeasons: ['summer', 'spring'],
-    unfavorableSeasons: ['winter'],
-    basePrice: 2.40,
-    capMult: 1.5,
-  },
-  frozio: {
-    name: { fr: 'FROZIO', en: 'FROZIO', es: 'FROZIO', zh: "FROZIO", ru: "FROZIO", it: "FROZIO", de: "FROZIO" },
-    desc: { fr: 'Neige artificielle', en: 'Artificial snow', es: 'Nieve artificial', zh: "人造雪", ru: "Искусственный снег", it: "Neve artificiale", de: "Kunstschnee" },
-    favorableSeasons: ['winter', 'autumn'],
-    unfavorableSeasons: ['summer'],
-    basePrice: 18.00,
-    capMult: 1.0,
-  },
-  medipack: {
-    name: { fr: 'MEDIPACK', en: 'MEDIPACK', es: 'MEDIPACK', zh: "MEDIPACK", ru: "MEDIPACK", it: "MEDIPACK", de: "MEDIPACK" },
-    desc: { fr: 'Gels packs médicaux', en: 'Medical cold packs', es: 'Packs fríos médicos', zh: "医用冷敷包", ru: "Медицинские холодовые пакеты", it: "Pack freddi medicali", de: "Medizinische Kühlpacks" },
-    favorableSeasons: [],
-    unfavorableSeasons: [],
-    basePrice: 45.00,
-    capMult: 0.6,
-  },
-};
-// Ordre des produits dans la card swipeable (= ordre des jauges du haut)
-const PRODUCT_ORDER = ['popice', 'frozio', 'medipack'];
-
-// === DEMANDE EFFECTIVE PAR PRODUIT PHASE 4 ===
-// Calcule combien d'unités par seconde se vendent automatiquement sur le marché de masse.
-// Formule : baseDemand × seasonMult × priceElasticity × notorietyBoost
-// - baseDemand : taux de vente naturel d'un produit (different par produit)
-// - seasonMult : saison favorable ×1.5, défavorable ×0.4, neutre ×1.0
-// - priceElasticity : prix bas écoule plus vite, prix haut écoule plus lentement
-//                    formule : 2 - (price/basePrice)  → 0.5x à 1.5x de basePrice = 1.5x à 0.5x demande
-// - notorietyBoost : 1 + (notoriety/100) × 0.5 → max 1.5× à notoriety 100
-function computeProductDemand(productKey, season, playerPrice, notoriety) {
-  const prof = PRODUCT_PROFILES[productKey];
-  // Taux de vente de base (unités par seconde)
-  const BASE_DEMAND = {
-    popice: 0.85,    // produit de masse, écoulement rapide naturel
-    frozio: 0.45,    // produit moyen volume
-    medipack: 0.20,  // produit premium, écoulement lent
-  };
-  const baseDemand = BASE_DEMAND[productKey] || 0.5;
-  // Multiplicateur saisonnier
-  let seasonMult = 1.0;
-  if (prof.favorableSeasons.includes(season)) seasonMult = 1.5;
-  else if (prof.unfavorableSeasons.includes(season)) seasonMult = 0.4;
-  // Élasticité-prix : ratio price/basePrice
-  const priceRatio = playerPrice / prof.basePrice;
-  // 0.5x basePrice → 1.5x demand ; 1.0x → 1.0x ; 1.5x → 0.5x
-  const priceElasticity = Math.max(0.2, 2 - priceRatio);
-  // Boost notoriété
-  const notorietyBoost = 1 + (notoriety / 100) * 0.5;
-  return baseDemand * seasonMult * priceElasticity * notorietyBoost;
 }
 
 const VEHICLE_BREAK_GOING = 0.00015;
@@ -1785,8 +1635,6 @@ const ACHIEVEMENTS = [
     desc: { fr: 'Avoir 4 employés avec moral ≥80', en: 'Have 4 employees with morale ≥80' } },
   { id: 'mentor', cat: 'team', name: { fr: 'MENTOR', en: 'MENTOR' },
     desc: { fr: 'Promouvoir un employé jusqu\'au tier Directeur', en: 'Promote an employee to Director tier' } },
-  { id: 'no_firing', cat: 'team', name: { fr: 'AUCUN LICENCIEMENT', en: 'NO FIRING' },
-    desc: { fr: 'Finir le jeu sans avoir licencié personne', en: 'Finish the game without firing anyone' } },
   { id: 'fred_director', cat: 'team', name: { fr: 'FRED DIRECTEUR', en: 'FRED DIRECTOR' },
     desc: { fr: 'Promouvoir Fred jusqu\'au tier max', en: 'Promote Fred to max tier' } },
   // --- Crises & résilience ---
@@ -1796,13 +1644,7 @@ const ACHIEVEMENTS = [
     desc: { fr: 'Gagner un procès en défendant', en: 'Win a lawsuit by defending' } },
   { id: 'survivor', cat: 'crisis', name: { fr: 'SURVIVANT', en: 'SURVIVOR' },
     desc: { fr: 'Survivre à 3 canicules', en: 'Survive 3 heatwaves' } },
-  { id: 'invincible', cat: 'crisis', name: { fr: 'INVINCIBLE', en: 'INVINCIBLE' },
-    desc: { fr: 'Refuser 3 offres d\'acquéreurs', en: 'Refuse 3 acquirer offers' } },
   // --- Style de jeu / fins ---
-  { id: 'sold_patrice', cat: 'style', name: { fr: 'VENTE PATRICE', en: 'SOLD TO PATRICE' },
-    desc: { fr: 'Vendre à Patrice Glacier (fin chaleureuse)', en: 'Sell to Patrice Glacier (warm ending)' } },
-  { id: 'sold_silverlion', cat: 'style', name: { fr: 'VENTE SILVERLION', en: 'SOLD TO SILVERLION' },
-    desc: { fr: 'Vendre à SilverLion (fin sombre)', en: 'Sell to SilverLion (dark ending)' } },
   { id: 'cult_brand', cat: 'style', name: { fr: 'MARQUE CULTE', en: 'CULT BRAND' },
     desc: { fr: 'Atteindre 100 de notoriété', en: 'Reach 100 notoriety' } },
   { id: 'stable_empire', cat: 'style', name: { fr: 'EMPIRE STABLE', en: 'STABLE EMPIRE' },
@@ -2023,18 +1865,6 @@ const UPGRADES = [
   { id: 'janice_jr',       Icon: Megaphone, count: 1, destructible: false, phase: 3, name: { fr: 'Engager une agence marketing', en: 'Hire a marketing agency', es: 'Contratar una agencia de marketing', zh: "聘请营销代理公司", ru: "Нанять маркетинговое агентство", it: "Ingaggia un'agenzia marketing", de: "Marketingagentur engagieren" }, desc: { fr: 'Débloque les campagnes · risque de bourde', en: 'Unlocks campaigns · misfire risk', es: 'Desbloquea campañas · riesgo de error', zh: "解锁营销活动 · 有翻车风险", ru: "Открывает кампании · риск провала", it: "Sblocca le campagne · rischio errore", de: "Schaltet Kampagnen frei · Patzer-Risiko" }, cost: 60000,
     longDesc: { fr: "Tu signes avec une agence de communication coûteuse. Elle pilote tes campagnes marketing et fait monter ta notoriété — mais elle facture cher et, de temps en temps, sort une pub à côté de la plaque qui fait CHUTER ta notoriété. Aucun visage, aucun bureau : juste une facture et des résultats en dents de scie.", en: "You sign with a pricey communications agency. It runs your marketing campaigns and grows your awareness — but it bills steeply and, every now and then, ships an off-target ad that DROPS your awareness. No face, no office: just an invoice and uneven results.", es: "Firmas con una agencia de comunicación cara. Dirige tus campañas de marketing y aumenta tu notoriedad, pero factura caro y, de vez en cuando, saca un anuncio fuera de lugar que HACE CAER tu notoriedad. Sin cara, sin oficina: solo una factura y resultados irregulares.", zh: "你签下一家昂贵的传播代理公司。它操盘你的营销活动、提升知名度——但收费高昂，而且时不时推出一则离谱的广告，让你的知名度不升反降。没有面孔，没有办公室：只有账单和起伏不定的成绩。", ru: "Вы заключаете контракт с дорогим коммуникационным агентством. Оно ведёт ваши маркетинговые кампании и повышает известность — но выставляет крупные счета и время от времени выпускает неудачную рекламу, которая СНИЖАЕТ известность. Ни лица, ни кабинета: только счёт и нестабильные результаты.", it: "Firmi con una costosa agenzia di comunicazione. Gestisce le tue campagne marketing e fa salire la notorietà — ma fattura caro e, ogni tanto, sforna una pubblicità fuori bersaglio che FA CROLLARE la notorietà. Nessun volto, nessun ufficio: solo una fattura e risultati altalenanti.", de: "Du unterschreibst bei einer teuren Kommunikationsagentur. Sie steuert deine Marketingkampagnen und steigert deine Bekanntheit — rechnet aber happig ab und bringt hin und wieder eine danebenliegende Werbung heraus, die deine Bekanntheit ABSTÜRZEN lässt. Kein Gesicht, kein Büro: nur eine Rechnung und schwankende Ergebnisse." },
     apply: s => ({ ...s, hasJanice: true, marketingMult: Math.max(s.marketingMult, 1.4) }) },
-  // === PHASE 3 → 4 — Diversification industrielle ===
-  { id: 'diversification', Icon: Briefcase, count: 1, destructible: false, phase: 3, phaseUnlock: 4, name: { fr: 'Diversification industrielle', en: 'Industrial diversification', es: 'Diversificación industrial', zh: "工业多元化", ru: "Промышленная диверсификация", it: "Diversificazione industriale", de: "Industrielle Diversifikation" }, desc: { fr: '→ PHASE 04 · POP ICE + FROZIO + MEDIPACK', en: '→ PHASE 04 · POP ICE + FROZIO + MEDIPACK', es: '→ FASE 04 · POP ICE + FROZIO + MEDIPACK', zh: "→ 第04阶段 · POP ICE + FROZIO + MEDIPACK", ru: "→ ФАЗА 04 · POP ICE + FROZIO + MEDIPACK", it: "→ FASE 04 · POP ICE + FROZIO + MEDIPACK", de: "→ PHASE 04 · POP ICE + FROZIO + MEDIPACK" }, cost: 200000,
-    longDesc: { fr: "Tu réorganises l'usine en trois lignes parallèles. Glace à lécher POP ICE pour l'été, neige artificielle FROZIO pour l'hiver, gels packs médicaux MEDIPACK toute l'année. Tes contrats glaçon existants sont automatiquement reconvertis. Phase 04 : la dernière ligne droite vers la revente.", en: "You reorganize the factory into three parallel lines. POP ICE ice lollies for summer, FROZIO artificial snow for winter, MEDIPACK medical cold packs year-round. Your existing ice cube contracts auto-convert. Phase 04: the final stretch toward acquisition.", es: "Reorganizas la fábrica en tres líneas paralelas. POP ICE chupachups helados para verano, FROZIO nieve artificial para invierno, MEDIPACK packs fríos médicos todo el año. Tus contratos de cubitos existentes se reconvierten automáticamente. Fase 04: la recta final hacia la venta.", zh: "你将工厂重组为三条平行生产线。POP ICE夏季冰棒、FROZIO冬季人造雪、MEDIPACK全年医用冷敷包。你现有的冰块合同自动转换。第04阶段：迈向收购的最后冲刺。", ru: "Вы реорганизуете фабрику в три параллельные линии. Мороженое POP ICE на лето, искусственный снег FROZIO на зиму, медицинские холодовые пакеты MEDIPACK круглый год. Ваши существующие контракты на лёд автоматически конвертируются. Фаза 04: финишная прямая к поглощению.", it: "Riorganizzi la fabbrica in tre linee parallele. Ghiaccioli POP ICE per l'estate, neve artificiale FROZIO per l'inverno, pack freddi medicali MEDIPACK tutto l'anno. I tuoi contratti di cubetti esistenti si convertono in automatico. Fase 04: l'ultimo tratto verso l'acquisizione.", de: "Du gliederst die Fabrik in drei parallele Linien um. POP-ICE-Eislutscher für den Sommer, FROZIO-Kunstschnee für den Winter, MEDIPACK-Medizin-Kühlpacks ganzjährig. Deine bestehenden Eiswürfelverträge konvertieren automatisch. Phase 04: die Zielgerade zur Übernahme." },
-    apply: s => ({ ...s }) },
-  // === EXTENSION CAPACITÉ PHASE 4 (achetables après diversification) ===
-  // Chaque palier augmente le BUDGET WATTS (débit de production réglable
-  // via les curseurs) : 10 (départ) → 13 → 18 → 24. Le budget W est la
-  // contrainte d'arbitrage : en fin de jeu, servir tous les contrats en
-  // pointe consomme ~85% du budget, il faut optimiser les curseurs.
-  // === INFRASTRUCTURE PHASE 4 (migrés depuis P4_INFRA pour affichage liste du bas) ===
-  // Famille A — CAPACITÉ (slots de contrats simultanés)
-  // Famille B — FLOTTE (vitesse / fiabilité camions)
   { id: 'karen_junior',    Icon: UserCheck, count: 1, destructible: false, phase: 2, name: { fr: 'Embaucher Karen · RH Junior', en: 'Hire Karen · HR Junior', es: 'Contratar a Karen · RRHH Junior', zh: "雇用凯伦 · 人事初级", ru: "Нанять Карен · HR Джуниор", it: "Assumi Karen · RU Junior", de: "Karen einstellen · HR Junior" }, desc: { fr: 'Moral niveau de base +3', en: 'Morale base level +3', es: 'Nivel base moral +3', zh: "士气基线 +3", ru: "Базовая мораль +3", it: "Livello base morale +3", de: "Moral-Basis +3" }, cost: 13000,
     salary: { bas: 45, std: 90, haut: 135 }, salaryRole: 'karen', gradeName: { fr: "RH Junior", en: "HR Junior", es: "RRHH Junior", zh: "人事初级", ru: "HR Джуниор", it: "RU Junior", de: "HR Junior" },
     longDesc: { fr: "Tu structures enfin la fonction RH avec une vraie professionnelle, formée à dénouer les conflits dans une boîte de logistique. Sa simple présence apaise l'équipe : niveau de base moral à 73 au lieu de 70 pour tout le monde. Elle gère anniversaires et premiers événements saisonniers. Tu commences à parler d'entreprise structurée.", en: "You finally structure the HR function with a real professional, trained to defuse conflicts at a logistics company. Her mere presence calms the team: morale base level 73 instead of 70 for everyone. She handles birthdays and first seasonal events. You're starting to look like a structured company.", es: "Por fin estructuras la función RH con una profesional de verdad, formada en desactivar conflictos en una empresa de logística. Su simple presencia calma al equipo: nivel base moral a 73 en vez de 70 para todos. Gestiona cumpleaños y primeros eventos estacionales. Empiezas a hablar de empresa estructurada.", zh: "你终于用一位真正的专业人士来搭建人事职能，她在一家物流公司里练就了化解冲突的本事。她的存在本身就能安抚团队：所有人士气基线73而非70。她负责生日和首批季节活动。你开始像一家有架构的公司了。", ru: "Вы наконец-то выстраиваете HR-функцию с настоящим профессионалом, набившим руку на разрешении конфликтов в логистической компании. Само её присутствие успокаивает команду: базовая мораль 73 вместо 70 для всех. Она занимается днями рождения и первыми сезонными мероприятиями. Вы начинаете походить на структурированную компанию.", it: "Finalmente strutturi la funzione RU con una vera professionista, formata a sbrogliare i conflitti in una società di logistica. La sua sola presenza calma il team: livello base morale 73 invece di 70 per tutti. Gestisce compleanni e primi eventi stagionali. Inizi ad assomigliare a un'azienda strutturata.", de: "Du strukturierst endlich die HR-Funktion mit einer echten Profi, geschult darin, Konflikte in einem Logistikunternehmen zu entschärfen. Allein ihre Präsenz beruhigt das Team: Moral-Basis 73 statt 70 für alle. Sie kümmert sich um Geburtstage und erste saisonale Events. Du fängst an, wie ein strukturiertes Unternehmen auszusehen." },
@@ -2270,9 +2100,6 @@ const UPGRADE_FAMILIES = [
     tiers: ['machine_cafe', 'salle_repos', 'salle_sport', 'plan_formation', 'creche_entreprise', 'formation_interne', 'robotisation'],
     minPhase: 2 },
 
-  // ============ DIVERSIFICATION (P4 désactivée) ============
-  // FAMILLE DIVERSIFICATION DÉSACTIVÉE (résidu P4)
-  // { id: 'diversification', label: 'DIVERSIFICATION', icon: 'Briefcase', tiers: ['diversification'], minPhase: 3, hideWhenMax: true },
 ];
 
 const TUTORIAL_STEPS = [
@@ -2653,8 +2480,6 @@ const PHONE_CALLS = [
     narrative: { fr: "Chef, ma chambre froide c'est plus possible. Quand je sors une palette, Brigitte peut plus passer. Quand Lenny vient livrer, on s'écrase contre le mur. J'ai pas la place de respirer. Si on veut continuer à monter, faut un vrai atelier. Un vrai bureau. On déménage ou on coule.", en: "Boss, my cold room isn't working anymore. When I take out a pallet, Brigitte can't pass. When Lenny delivers, we crush against the wall. I have no room to breathe. If we want to keep growing, we need a real workshop. A real office. We move or we sink.", es: "Jefe, mi cámara frigorífica ya no funciona. Cuando saco un palé, Brigitte no puede pasar. Cuando Lenny entrega, nos aplastamos contra la pared. No tengo sitio para respirar. Si queremos seguir creciendo, necesitamos un taller de verdad. Una oficina de verdad. Nos mudamos o nos hundimos.", zh: "老板，我的冷库不行了。我搬出一个托盘，布丽吉特就过不去。莱尼配送时，我们挤在墙上。我没地方喘气。如果想继续增长，我们需要一个真正的车间。一个真正的办公室。要么搬，要么沉。", ru: "Босс, моя холодная комната больше не работает. Когда я вынимаю паллету, Брижит не пройти. Когда Ленни доставляет, мы вжимаемся в стену. Мне негде вздохнуть. Если хотим расти дальше, нужен настоящий цех. Настоящий офис. Переезжаем или тонем.", it: "Capo, la mia cella frigorifera non funziona più. Quando tiro fuori un pallet, Brigitte non passa. Quando Lenny consegna, ci schiacciamo contro il muro. Non ho spazio per respirare. Se vogliamo continuare a crescere, ci serve un vero laboratorio. Un vero ufficio. Traslochiamo o affondiamo.", de: "Chef, mein Kühlraum funktioniert nicht mehr. Wenn ich eine Palette rausziehe, kommt Brigitte nicht vorbei. Wenn Lenny liefert, quetschen wir uns an die Wand. Ich hab keinen Platz zum Atmen. Wenn wir weiter wachsen wollen, brauchen wir eine echte Werkstatt. Ein echtes Büro. Wir ziehen um oder wir gehen unter." } },
   { id: 'janice_welcome', minRevenue: 500000, title: { fr: "Janice, Premier jour", en: "Janice, First day", es: "Janice, Primer día", zh: "贾妮丝, 第一天", ru: "Дженис, Первый день", it: "Janice, Primo giorno", de: "Janice, Erster Tag" }, minPhase: 3, minLevel: 1, decisionTime: 30, needStock: 0, rewardAccept: { money: 0, rep: 0 }, narrativeOnly: true,
     narrative: { fr: "Bonjour. C'est Janice. J'ai pris mes marques dans les nouveaux locaux ce matin, joli choix de mobilier d'ailleurs. J'ai analysé le dossier complet : ta notoriété, tes contrats, ton positionnement. On a une fenêtre. Trois campagnes sont prêtes dans la fenêtre MARKETING. Choisis ta première : Affichage Local, Campagne TV ou Influence Digitale. Chaque choix construit une perception différente du produit. À toi de jouer.", en: "Hello. It's Janice. I settled into the new offices this morning, nice furniture choice by the way. I analyzed the full file: your awareness, your contracts, your positioning. We have a window. Three campaigns are ready in the MARKETING tab. Pick your first: Local Posters, TV Campaign or Digital Influence. Each choice builds a different perception of the product. Your move.", es: "Hola. Soy Janice. He cogido mis marcas en los nuevos locales esta mañana, buena elección de mobiliario por cierto. He analizado el expediente completo: tu notoriedad, tus contratos, tu posicionamiento. Tenemos una ventana. Tres campañas están listas en la ventana MARKETING. Elige la primera: Cartelería Local, Campaña TV o Influencia Digital. Cada elección construye una percepción diferente del producto. Te toca.", zh: "你好。我是贾妮丝。我今早搬进了新办公室,,顺便说，家具选得不错。我分析了完整档案：你的知名度、合同、定位。我们有个窗口。营销标签页里有三个活动准备好了。选你的第一个：本地海报、电视活动或数字影响力。每个选择塑造产品的不同认知。该你了。", ru: "Здравствуйте. Это Дженис. Я обустроилась в новых офисах утром, кстати, хороший выбор мебели. Я проанализировала всё досье: вашу известность, контракты, позиционирование. У нас есть окно. Три кампании готовы во вкладке МАРКЕТИНГ. Выберите первую: Локальные Плакаты, ТВ-Кампания или Цифровое Влияние. Каждый выбор строит разное восприятие продукта. Ваш ход.", it: "Salve. Sono Janice. Mi sono sistemata nei nuovi uffici stamattina, bella scelta di arredamento tra l'altro. Ho analizzato tutto il dossier: la tua notorietà, i tuoi contratti, il tuo posizionamento. Abbiamo una finestra. Tre campagne sono pronte nella scheda MARKETING. Scegli la prima: Manifesti Locali, Campagna TV o Influenza Digitale. Ogni scelta costruisce una percezione diversa del prodotto. Tocca a te.", de: "Hallo. Hier Janice. Ich hab mich heute früh in den neuen Büros eingerichtet, übrigens schöne Möbelwahl. Ich hab die ganze Akte analysiert: deine Bekanntheit, deine Verträge, deine Positionierung. Wir haben ein Zeitfenster. Drei Kampagnen sind im MARKETING-Tab bereit. Wähl deine erste: Lokale Plakate, TV-Kampagne oder Digitaler Einfluss. Jede Wahl baut eine andere Produktwahrnehmung auf. Du bist dran." } },
-  { id: 'janice_phase4_ready', minRevenue: 500000, title: { fr: "Janice, On passe à l'étape supérieure", en: "Janice, Time to scale up", es: "Janice, Pasamos al siguiente nivel", zh: "贾妮丝, 是时候规模化了", ru: "Дженис, Пора масштабироваться", it: "Janice, È ora di crescere", de: "Janice, Zeit zu skalieren" }, minPhase: 99, minLevel: 1, decisionTime: 30, needStock: 0, rewardAccept: { money: 0, rep: 0 }, narrativeOnly: true,
-    narrative: { fr: "Patron. J'ai passé la nuit sur les chiffres. Notoriété au-dessus de 60. Réputation solide. Quatre retailers signés. On est passés devant tous les concurrents en parts de marché, on est n°1. Et on tient depuis cinq semestres. C'est plus une question d'opportunité, c'est un constat : on est devenu une vraie marque. Le marché national est saturé pour nous. La prochaine étape c'est l'international, ou la diversification produit, peut-être les deux. On en reparle quand t'es prêt. Je commence à préparer les options.", en: "Boss. I spent the night on the numbers. Awareness above 60. Solid reputation. Four retailers signed. We've moved ahead of every competitor in market share, we're n°1. And we've been holding on for five semesters. This isn't about opportunity anymore, it's a fact: we've become a real brand. The national market is saturated for us. The next step is international expansion, or product diversification, maybe both. We'll talk again when you're ready. I'm starting to prep the options.", es: "Jefe. He pasado la noche con las cifras. Notoriedad por encima de 60. Reputación sólida. Cuatro retailers firmados. Hemos pasado por delante de todos los competidores en cuota de mercado, somos n°1. Y aguantamos desde hace cinco semestres. Ya no es una cuestión de oportunidad, es una constatación: nos hemos convertido en una marca real. El mercado nacional está saturado para nosotros. El próximo paso es la internacional, o la diversificación de producto, quizás ambos. Hablamos cuando estés listo. Empiezo a preparar las opciones.", zh: "老板。我熬夜看了数据。知名度超过60。声誉稳固。签下四家零售商。我们在市场份额上超过了所有竞争对手,,我们是第一。而且已经保持五个半年了。这不再是机会问题,,这是事实：我们成了一个真正的品牌。全国市场对我们已饱和。下一步是国际扩张，或产品多元化,,也许两者都要。你准备好我们再谈。我开始准备选项了。", ru: "Босс. Я провела ночь над цифрами. Известность выше 60. Солидная репутация. Четыре ритейлера подписаны. Мы обошли всех конкурентов по доле рынка, мы №1. И держимся уже пять полугодий. Это больше не про возможность, это факт: мы стали настоящим брендом. Национальный рынок для нас насыщен. Следующий шаг, международная экспансия или продуктовая диверсификация, может, и то, и другое. Поговорим снова, когда будете готовы. Я начинаю готовить варианты.", it: "Capo. Ho passato la notte sui numeri. Notorietà sopra 60. Reputazione solida. Quattro retailer firmati. Abbiamo superato ogni concorrente per quota di mercato, siamo n°1. E reggiamo da cinque mesi. Non è più una questione di opportunità, è un fatto: siamo diventati un vero marchio. Il mercato nazionale è saturo per noi. Il prossimo passo è l'espansione internazionale, o la diversificazione di prodotto, forse entrambe. Ne riparliamo quando sei pronto. Inizio a preparare le opzioni.", de: "Chef. Ich hab die Nacht über den Zahlen gesessen. Bekanntheit über 60. Solider Ruf. Vier Händler unterschrieben. Wir haben jeden Konkurrenten im Marktanteil überholt, wir sind die Nr. 1. Und wir halten das seit fünf Halbjahren. Das ist keine Chance mehr, es ist eine Tatsache: Wir sind eine echte Marke geworden. Der nationale Markt ist für uns gesättigt. Der nächste Schritt ist internationale Expansion oder Produktdiversifikation, vielleicht beides. Wir reden wieder, wenn du bereit bist. Ich fange an, die Optionen vorzubereiten." } },
   // === Anciens clients repentants (Phase 3, post-grève)
   { id: 'ancien_palace', minRevenue: 500000, title: { fr: "Palace Royal, Direction Achats", en: "Royal Palace, Procurement", es: "Palace Real, Compras", zh: "皇家宫殿, 采购", ru: "Королевский дворец, Снабжение", it: "Palazzo Reale, Approvvigionamenti", de: "Königspalast, Beschaffung" }, minPhase: 3, minLevel: 1, decisionTime: 30, needStock: 200, rewardAccept: { money: 600, rep: 2 },
     narrative: { fr: "Bonjour. C'est la direction achats du Palace Royal. Notre fournisseur historique nous a... disons, déçus. Nous avons besoin de 200 GL sous 48h, avec une exigence de qualité absolue. Si tu peux livrer, on signe un contrat préférentiel à +20% prix marché. Ce serait sage d'oublier nos différends passés.", en: "Hello. Royal Palace procurement here. Our historical supplier has... let's say, disappointed us. We need 200 IC within 48h, with absolute quality requirements. If you can deliver, we sign a preferential contract at +20% market price. It would be wise to forget our past disagreements.", es: "Hola. Compras del Palace Real. Nuestro proveedor histórico nos ha... digamos, decepcionado. Necesitamos 200 CB en 48h, con exigencia de calidad absoluta. Si puedes entregar, firmamos contrato preferente a +20% precio mercado. Sería sabio olvidar nuestras diferencias pasadas.", zh: "你好。皇家宫殿采购部。我们的老供应商……这么说吧，让我们失望了。我们48小时内需要200冰块，质量要求绝对。如果你能交付，我们以高出市价20%签优先合同。明智的话就忘掉我们过去的分歧。", ru: "Здравствуйте. Снабжение Королевского дворца. Наш исторический поставщик нас... скажем так, разочаровал. Нам нужно 200 К в течение 48ч, с абсолютными требованиями к качеству. Если сможете доставить, подпишем преференциальный контракт по +20% к рыночной цене. Было бы мудро забыть наши прошлые разногласия.", it: "Salve. Qui approvvigionamenti del Palazzo Reale. Il nostro fornitore storico ci ha... diciamo, deluso. Ci servono 200 CB entro 48h, con requisiti di qualità assoluti. Se riesci a consegnare, firmiamo un contratto preferenziale a +20% sul prezzo di mercato. Sarebbe saggio dimenticare i nostri disaccordi passati.", de: "Hallo. Hier die Beschaffung des Königspalasts. Unser langjähriger Lieferant hat uns… sagen wir, enttäuscht. Wir brauchen 200 EW binnen 48 Std., mit absoluten Qualitätsanforderungen. Wenn Sie liefern können, unterschreiben wir einen Vorzugsvertrag zu +20% Marktpreis. Es wäre klug, unsere früheren Differenzen zu vergessen." } },
@@ -2685,9 +2510,6 @@ const PHONE_CALLS = [
     narrative: { fr: "Commandant d'un paquebot de luxe en escale forcée. Système de réfrigération en panne, 2000 passagers fortunés qui s'impatientent. 1000 glaçons livrés au port avant l'appareillage. Compagnie solvable, paiement immédiat.", en: "Captain of a luxury liner in forced layover. Refrigeration system down, 2000 wealthy passengers growing impatient. 1000 ice cubes delivered to port before departure. Solvent company, immediate payment.", es: "Comandante de un crucero de lujo en escala forzosa. Sistema de refrigeración averiado, 2000 pasajeros adinerados impacientándose. 1000 cubitos entregados al puerto antes de zarpar. Compañía solvente, pago inmediato.", zh: "被迫停泊的豪华客轮船长。制冷系统瘫痪，2000名富有乘客越来越不耐烦。1000块冰在启航前送到港口。有偿付能力的公司，立即付款。", ru: "Капитан люкс-лайнера на вынужденной стоянке. Система охлаждения не работает, 2000 состоятельных пассажиров теряют терпение. 1000 кубиков доставить в порт до отплытия. Платёжеспособная компания, немедленная оплата.", it: "Capitano di un transatlantico di lusso in sosta forzata. Sistema di refrigerazione KO, 2000 passeggeri facoltosi che si spazientiscono. 1000 cubetti consegnati in porto prima della partenza. Azienda solvibile, pagamento immediato.", de: "Kapitän eines Luxusliners in erzwungenem Zwischenstopp. Kühlsystem ausgefallen, 2000 wohlhabende Passagiere werden ungeduldig. 1000 Eiswürfel an den Hafen geliefert vor Abfahrt. Solvente Firma, sofortige Zahlung." } },
   { id: 'p3_sommet_economique', minRevenue: 3000000, title: { fr: "Sommet économique mondial", en: "Global economic summit", es: "Cumbre económica mundial", zh: "全球经济峰会", ru: "Глобальный экономический саммит", it: "Vertice economico globale", de: "Globaler Wirtschaftsgipfel" }, minPhase: 3, minLevel: 22, decisionTime: 30, needStock: 1300, rewardAccept: { money: 5200, rep: 4 },
     narrative: { fr: "Organisation d'un sommet économique international, chefs d'État et presse mondiale. Le prestataire officiel a été disqualifié pour fraude. 1300 glaçons d'urgence, exigence maximale. Le contrat de votre carrière.", en: "International economic summit organization, heads of state and global press. The official provider was disqualified for fraud. 1300 emergency ice cubes, maximum requirements. The contract of your career.", es: "Organización de una cumbre económica internacional, jefes de Estado y prensa mundial. El proveedor oficial fue descalificado por fraude. 1300 cubitos de urgencia, exigencia máxima. El contrato de tu carrera.", zh: "国际经济峰会组织，国家元首和全球媒体。官方供应商因欺诈被取消资格。1300块应急冰，要求最高。你职业生涯的合同。", ru: "Организация международного экономического саммита, главы государств и мировая пресса. Официального поставщика дисквалифицировали за мошенничество. 1300 экстренных кубиков, максимальные требования. Контракт всей вашей карьеры.", it: "Organizzazione di un vertice economico internazionale, capi di stato e stampa mondiale. Il fornitore ufficiale è stato squalificato per frode. 1300 cubetti d'emergenza, requisiti massimi. Il contratto della tua carriera.", de: "Organisation eines internationalen Wirtschaftsgipfels, Staatsoberhäupter und Weltpresse. Der offizielle Lieferant wurde wegen Betrugs disqualifiziert. 1300 Not-Eiswürfel, höchste Anforderungen. Der Vertrag deiner Karriere." } },
-  // === PHASE 3 → 4 — Dr. Vandenberg (gels packs médicaux, déclenche diversification)
-  { id: 'phase4_vandenberg', minRevenue: 500000, title: { fr: "Dr. Vandenberg, BioCold Logistics", en: "Dr. Vandenberg, BioCold Logistics", es: "Dr. Vandenberg, BioCold Logistics", zh: "范登伯格博士, BioCold Logistics", ru: "Д-р Ванденберг, BioCold Logistics", it: "Dott.ssa Vandenberg, BioCold Logistics", de: "Dr. Vandenberg, BioCold Logistics" }, minPhase: 99, minLevel: 1, decisionTime: 30, needStock: 0, rewardAccept: { money: 0, rep: 0 }, offerOnly: true /* P4 désactivée palier 11 */,
-    narrative: { fr: "Bonjour. Dr. Élise Vandenberg, je dirige les achats d'une centrale d'approvisionnement pour laboratoires pharmaceutiques. Une consœur pharmacienne, Mme Dubreuil, m'a parlé de vous, elle dit que vos glaçons conservent ses molécules sensibles à 4°C précis depuis des mois, sans une seule fonte, sans un seul écart. Ce niveau de constance, c'est exactement ce qu'on cherche à industrialiser. On a besoin d'un fournisseur fiable de gels packs médicaux pour transport de vaccins, médicaments et organes. Volumes garantis sur cinq ans, prix premium, certification stricte. Si vous montez une ligne dédiée, on signe immédiatement. Vous êtes prêt à diversifier ?", en: "Hello. Dr. Élise Vandenberg, I head procurement for a pharmaceutical purchasing centrale. A pharmacist colleague, Mme Dubreuil, mentioned you, she says your ice cubes have kept her sensitive molecules at exactly 4°C for months, without a single melt, without a single deviation. That level of consistency is exactly what we want to industrialize. We need a reliable supplier of medical gel packs for vaccine, drug and organ transport. Guaranteed volumes over five years, premium pricing, strict certification. If you set up a dedicated line, we sign immediately. Ready to diversify?", es: "Hola. Dra. Élise Vandenberg, dirijo las compras de una central de aprovisionamiento para laboratorios farmacéuticos. Una colega farmacéutica, la Sra. Dubreuil, me habló de usted, dice que sus cubitos conservan sus moléculas sensibles a 4°C exacto desde hace meses, sin un solo fundido, sin una sola desviación. Ese nivel de constancia es exactamente lo que buscamos industrializar. Necesitamos un proveedor fiable de gel packs médicos para transporte de vacunas, medicamentos y órganos. Volúmenes garantizados a cinco años, precio premium, certificación estricta. Si montan una línea dedicada, firmamos de inmediato. ¿Listo para diversificar?", zh: "你好。埃莉斯·范登伯格博士，我主管一家医药采购中心的采购。一位药剂师同事杜布勒伊夫人提到你,,她说你的冰块把她的敏感分子精确保持在4°C数月，没有一次融化，没有一次偏差。这种程度的稳定正是我们想工业化的。我们需要一个可靠的医用凝胶包供应商，用于疫苗、药品和器官运输。五年保证产量，高端定价，严格认证。如果你设一条专线，我们立即签。准备好多元化了吗？", ru: "Здравствуйте. Д-р Элиз Ванденберг, я возглавляю снабжение фармацевтического закупочного центра. Коллега-фармацевт, мадам Дюбрёй, упомянула вас, говорит, ваши кубики держали её чувствительные молекулы ровно на 4°C месяцами, без единого таяния, без единого отклонения. Этот уровень постоянства, именно то, что мы хотим индустриализировать. Нам нужен надёжный поставщик медицинских гель-пакетов для транспортировки вакцин, лекарств и органов. Гарантированные объёмы на пять лет, премиум-цена, строгая сертификация. Если запустите выделенную линию, подписываем сразу. Готовы диверсифицироваться?", it: "Salve. Dott.ssa Élise Vandenberg, dirigo gli approvvigionamenti di una centrale acquisti farmaceutica. Una collega farmacista, la signora Dubreuil, mi ha parlato di lei, dice che i suoi cubetti hanno mantenuto le sue molecole sensibili esattamente a 4°C per mesi, senza una sola fusione, senza una sola deviazione. Quel livello di costanza è esattamente ciò che vogliamo industrializzare. Ci serve un fornitore affidabile di pack di gel medicali per il trasporto di vaccini, farmaci e organi. Volumi garantiti su cinque anni, prezzo premium, certificazione rigorosa. Se allestisce una linea dedicata, firmiamo subito. Pronto a diversificare?", de: "Hallo. Dr. Élise Vandenberg, ich leite die Beschaffung einer Pharma-Einkaufszentrale. Eine Apothekerkollegin, Mme Dubreuil, hat Sie erwähnt, sie sagt, Ihre Eiswürfel halten ihre empfindlichen Moleküle seit Monaten bei genau 4°C, ohne ein einziges Schmelzen, ohne eine einzige Abweichung. Genau diese Konstanz wollen wir industrialisieren. Wir brauchen einen zuverlässigen Lieferanten für medizinische Gelpacks zum Impfstoff-, Medikamenten- und Organtransport. Garantierte Mengen über fünf Jahre, Premium-Preise, strenge Zertifizierung. Wenn Sie eine eigene Linie aufbauen, unterschreiben wir sofort. Bereit zu diversifizieren?" } },
 
   // ============================================================
   // === PHASE 3 — APPELS STRATÉGIQUES (notoriété, marque, presse)
@@ -2708,102 +2530,6 @@ const PHONE_CALLS = [
     narrative: { fr: "Bonjour, je suis la coordinatrice du Salon International de l'Alimentaire. Nous avons un emplacement libre pour un stand fournisseur de glace premium. 1200 GL de démonstration, visibilité internationale garantie. Inscription gratuite si tu réponds vite.", en: "Hi, I coordinate the International Food Trade Fair. We have a free spot for a premium ice supplier booth. 1200 IC for demonstration, guaranteed international visibility. Free registration if you respond fast.", es: "Hola, coordino el Salón Internacional Alimentario. Tenemos un sitio libre para stand proveedor de hielo premium. 1200 CB de demostración, visibilidad internacional garantizada. Inscripción gratis si respondes rápido.", zh: "嗨，我协调国际食品贸易博览会。我们有个免费位置给高端供冰商展位。1200冰块做演示，保证国际曝光。回复快就免注册费。", ru: "Привет, координирую Международную Продовольственную Ярмарку. У нас есть свободное место для стенда премиум-поставщика льда. 1200 К для демонстрации, гарантированная международная видимость. Бесплатная регистрация, если ответите быстро.", it: "Ciao, coordino la Fiera Internazionale dell'Alimentare. Abbiamo uno stand libero per un fornitore di ghiaccio premium. 1200 CB per dimostrazione, visibilità internazionale garantita. Iscrizione gratuita se rispondi in fretta.", de: "Hi, ich koordiniere die Internationale Food-Messe. Wir haben einen freien Platz für einen Premium-Eislieferanten-Stand. 1200 EW zur Vorführung, garantierte internationale Sichtbarkeit. Gratis-Anmeldung bei schneller Antwort." } },
 
   // ============================================================
-  // === PHASE 4 — APPELS STRATÉGIQUES (dilemmes pour la valorisation)
-  // ============================================================
-  { id: 'fonds_speculatif', minRevenue: 0, product: 'popice', ethic: 'shady', title: { fr: "Fonds spéculatif anonyme, POP ICE", en: "Anonymous speculative fund, POP ICE", es: "Fondo especulativo anónimo, POP ICE", zh: "匿名投机基金, POP ICE", ru: "Анонимный спекулятивный фонд, POP ICE", it: "Fondo speculativo anonimo, POP ICE", de: "Anonymer Spekulationsfonds, POP ICE" }, minPhase: 4, minLevel: 21, decisionTime: 30, needStock: 5000,
-    rewardAccept: { money: 8000, rep: -12, noto: -5, segEco: -8 }, rewardDecline: { money: 0, rep: 2 },
-    narrative: { fr: "Bonsoir. Cash facile. On t'achète 5000 tubes de POP ICE à 3× le prix marché. La caisse vient discrètement, par valise. Pas de facture, pas de questions, pas de traçabilité. Tu touches 8000€ ce soir. Le marché parallèle paye bien, mais on jase.", en: "Evening. Easy cash. We buy 5000 tubes of POP ICE at 3× market price. Cash comes discreetly, in a briefcase. No invoice, no questions, no traceability. You get €8000 tonight. The parallel market pays well, but tongues wag.", es: "Buenas. Cash fácil. Te compramos 5000 tubos de POP ICE a 3× precio mercado. La pasta viene discretamente, en maletín. Sin factura, sin preguntas, sin trazabilidad. Cobras 8000€ esta noche. El mercado paralelo paga bien, pero se rumorea.", zh: "晚上好。轻松的钱。我们以3倍市价买5000管POP ICE。现金低调送来，装在公文包里。无发票，无问题，无可追溯。今晚你拿到€8000。平行市场出手大方，但人会嚼舌根。", ru: "Добрый вечер. Лёгкие деньги. Покупаем 5000 тюбиков POP ICE по 3× рыночной цены. Наличные приходят незаметно, в чемоданчике. Без счёта, без вопросов, без отслеживания. Получаете €8000 сегодня. Параллельный рынок хорошо платит, но языки чешутся.", it: "Buonasera. Soldi facili. Compriamo 5000 tubi di POP ICE a 3× il prezzo di mercato. Il contante arriva con discrezione, in una valigetta. Niente fattura, niente domande, niente tracciabilità. Ottieni 8000€ stasera. Il mercato parallelo paga bene, ma le lingue si sciolgono.", de: "Abend. Leichtes Geld. Wir kaufen 5000 Tuben POP ICE zum 3-fachen Marktpreis. Bargeld diskret, im Koffer. Keine Rechnung, keine Fragen, keine Rückverfolgbarkeit. 8000€ heute Abend. Der Schwarzmarkt zahlt gut, aber man redet." } },
-  { id: 'chaine_tv_engagement', minRevenue: 2000000, ethic: 'good', title: { fr: "Chaîne TV, docu engagement RSE", en: "TV channel, CSR engagement doc", es: "Cadena TV, documental RSE", zh: "电视台, 企业社会责任纪录片", ru: "ТВ-канал, док о КСО-вовлечённости", it: "Canale TV, doc impegno CSR", de: "TV-Sender, CSR-Doku" }, minPhase: 4, minLevel: 22, decisionTime: 30, needStock: 0,
-    rewardAccept: { money: -5000, rep: 8, noto: 15, segEco: 10 }, rewardDecline: { money: 0, rep: 0, noto: -1 },
-    narrative: { fr: "Bonjour. Chaîne nationale, on prépare un docu prime time sur les entreprises engagées. Tu serais le héros principal, suivi pendant une saison entière. Engagement : 5000€ pour la production du tournage. Visibilité énorme, image impeccable.", en: "Hello. National TV, we're prepping a prime-time doc on engaged companies. You'd be the main hero, followed for an entire season. Commitment: €5000 for the production. Huge visibility, flawless image.", es: "Hola. Cadena nacional, preparamos un documental prime time sobre empresas comprometidas. Serías el héroe principal, seguido durante una estación entera. Compromiso: 5000€ para la producción. Visibilidad enorme, imagen impecable.", zh: "你好。国家电视台，我们在筹备一部黄金时段关于有担当企业的纪录片。你会是主角，跟拍整整一季。承诺：制作费€5000。巨大曝光，完美形象。", ru: "Здравствуйте. Национальное ТВ, готовим док в прайм-тайм о социально ответственных компаниях. Вы были бы главным героем, за вами следят целый сезон. Обязательство: €5000 на производство. Огромная видимость, безупречный имидж.", it: "Salve. TV nazionale, prepariamo un documentario in prime-time sulle aziende impegnate. Saresti l'eroe principale, seguito per un'intera stagione. Impegno: 5000€ per la produzione. Visibilità enorme, immagine impeccabile.", de: "Hallo. Nationales TV, wir bereiten eine Prime-Time-Doku über engagierte Unternehmen vor. Du wärst der Hauptheld, eine ganze Staffel begleitet. Beitrag: 5000€ für die Produktion. Riesige Sichtbarkeit, makelloses Image." } },
-  { id: 'lobbying_pharma', minRevenue: 2000000, ethic: 'shady', title: { fr: "Lobbying pharma, MEDIPACK exclusif", en: "Pharma lobbying, MEDIPACK exclusive", es: "Lobby farma, MEDIPACK exclusivo", zh: "医药游说, MEDIPACK独家", ru: "Фарма-лоббирование, эксклюзив MEDIPACK", it: "Lobby farmaceutica, esclusiva MEDIPACK", de: "Pharma-Lobbying, MEDIPACK exklusiv" }, minPhase: 4, minLevel: 22, decisionTime: 30, needStock: 0,
-    rewardAccept: { money: 15000, rep: -8, noto: 8, segEco: -10 }, rewardDecline: { money: 0, rep: 0 },
-    narrative: { fr: "Bonjour. Représentant d'un consortium pharmaceutique. On finance ta R&D MEDIPACK à hauteur de 15000€ contre une exclusivité absolue de deux ans pour notre groupe. Tu refuses tous les autres labos. C'est ferme, c'est gros, c'est rentable.", en: "Hello. Representative of a pharma consortium. We fund your MEDIPACK R&D for €15000 against a strict 2-year exclusivity for our group. You refuse all other labs. Firm, big, lucrative.", es: "Hola. Representante de un consorcio farmacéutico. Financiamos tu I+D MEDIPACK con 15000€ a cambio de exclusividad estricta de 2 años para nuestro grupo. Rechazas todos los demás labos. Firme, grande, rentable.", zh: "你好。一个医药财团的代表。我们出资€15000资助你的MEDIPACK研发，换取对我们集团严格的2年独家。你拒绝所有其他实验室。坚定、巨大、有利可图。", ru: "Здравствуйте. Представитель фарма-консорциума. Финансируем вашу R&D MEDIPACK за €15000 против строгой 2-летней эксклюзивности для нашей группы. Вы отказываете всем другим лабораториям. Твёрдо, крупно, прибыльно.", it: "Salve. Rappresentante di un consorzio farmaceutico. Finanziamo la tua R&S MEDIPACK per 15000€ contro un'esclusiva rigorosa di 2 anni per il nostro gruppo. Rifiuti tutti gli altri laboratori. Solido, grande, lucrativo.", de: "Hallo. Vertreter eines Pharmakonsortiums. Wir finanzieren deine MEDIPACK-F&E mit 15000€ gegen strikte 2-Jahres-Exklusivität für unsere Gruppe. Du lehnst alle anderen Labore ab. Fest, groß, lukrativ." } },
-  { id: 'greenwashing_offer', minRevenue: 4000000, ethic: 'shady', title: { fr: "Agence greenwashing, image éco", en: "Greenwashing agency, eco image", es: "Agencia greenwashing, imagen eco", zh: "漂绿机构, 环保形象", ru: "Агентство гринвошинга, эко-имидж", it: "Agenzia greenwashing, immagine eco", de: "Greenwashing-Agentur, Öko-Image" }, minPhase: 4, minLevel: 23, decisionTime: 30, needStock: 0,
-    rewardAccept: { money: -6000, rep: 0, noto: 5, segEco: 10, greenwashRisk: true }, rewardDecline: { money: 0, rep: 3 },
-    narrative: { fr: "Bonjour. Agence spécialisée. On te bâtit une image écolo impeccable sans rien changer à ta prod. Storytelling, certifications de complaisance, photos d'ouvriers en vert. 6000€ et c'est plié. Risque ? Si un journaliste creuse, l'addition est salée.", en: "Hello. Specialized agency. We build you a flawless green image without changing your production. Storytelling, complacent certifications, photos of workers in green. €6000 and it's done. Risk? If a journalist digs, the bill is steep.", es: "Hola. Agencia especializada. Te construimos una imagen ecológica impecable sin cambiar nada de tu producción. Storytelling, certificaciones de complacencia, fotos de obreros en verde. 6000€ y listo. ¿Riesgo? Si un periodista escarba, la factura es salada.", zh: "你好。专业机构。我们为你打造完美绿色形象，不改变你的生产。叙事、纵容性认证、穿绿衣工人的照片。€6000搞定。风险？要是有记者深挖，账单很贵。", ru: "Здравствуйте. Специализированное агентство. Строим вам безупречный зелёный имидж без изменения производства. Сторителлинг, угодливые сертификации, фото рабочих в зелёном. €6000, и готово. Риск? Если журналист копнёт, счёт крутой.", it: "Salve. Agenzia specializzata. Ti costruiamo un'immagine green impeccabile senza cambiare la produzione. Storytelling, certificazioni compiacenti, foto di operai in verde. 6000€ ed è fatta. Rischio? Se un giornalista scava, il conto è salato.", de: "Hallo. Spezialagentur. Wir bauen dir ein makelloses grünes Image, ohne deine Produktion zu ändern. Storytelling, gefällige Zertifikate, Fotos von Arbeitern in Grün. 6000€ und es ist erledigt. Risiko? Gräbt ein Journalist nach, wird die Rechnung happig." } },
-  { id: 'partenariat_humanitaire', minRevenue: 4000000, product: 'frozio', ethic: 'good', title: { fr: "ONG, urgence climatique mondiale", en: "NGO, global climate emergency", es: "ONG, emergencia climática mundial", zh: "NGO, 全球气候紧急", ru: "НКО, глобальная климатическая ЧС", it: "ONG, emergenza climatica globale", de: "NGO, globaler Klimanotstand" }, minPhase: 4, minLevel: 23, decisionTime: 30, needStock: 800,
-    rewardAccept: { money: -3000, rep: 12, noto: 8, segEco: 15, segFamille: 5 }, rewardDecline: { money: 0, rep: -6 },
-    narrative: { fr: "Bonsoir. ONG ClimateAid. Catastrophe climatique majeure au Sud, urgence vitale. On a besoin de 800 packs FROZIO et MEDIPACK pour les zones sinistrées. On paye 30% du prix marché, mais la presse couvre. Refuser, c'est public aussi.", en: "Evening. ClimateAid NGO. Major climate disaster in the South, life-threatening urgency. We need 800 packs of FROZIO and MEDIPACK for disaster zones. We pay 30% of market price, but press covers it. Declining is also public.", es: "Buenas. ONG ClimateAid. Catástrofe climática mayor en el Sur, urgencia vital. Necesitamos 800 packs de FROZIO y MEDIPACK para zonas siniestradas. Pagamos 30% del precio mercado, pero la prensa cubre. Negarse también es público.", zh: "晚上好。ClimateAid NGO。南方重大气候灾难，危及生命的紧急。我们需要800包FROZIO和MEDIPACK给灾区。我们付市价30%，但媒体会报道。拒绝同样是公开的。", ru: "Добрый вечер. НКО ClimateAid. Крупная климатическая катастрофа на Юге, угроза жизни. Нам нужно 800 упаковок FROZIO и MEDIPACK для зон бедствия. Платим 30% рыночной цены, но пресса это освещает. Отказ тоже публичен.", it: "Buonasera. ONG ClimateAid. Grave disastro climatico nel Sud, urgenza vitale. Ci servono 800 pack di FROZIO e MEDIPACK per le zone disastrate. Paghiamo il 30% del prezzo di mercato, ma la stampa lo copre. Rifiutare è anch'esso pubblico.", de: "Abend. NGO ClimateAid. Große Klimakatastrophe im Süden, lebensbedrohliche Dringlichkeit. Wir brauchen 800 Packs FROZIO und MEDIPACK für die Katastrophengebiete. Wir zahlen 30% des Marktpreises, aber die Presse berichtet. Ablehnen ist ebenfalls öffentlich." } },
-  { id: 'sabotage_concurrent', minRevenue: 7000000, ethic: 'shady', title: { fr: "Informateur, plans concurrent", en: "Informant, competitor plans", es: "Informador, planes competidor", zh: "线人, 竞争对手计划", ru: "Информатор, планы конкурента", it: "Informatore, piani del concorrente", de: "Informant, Konkurrenzpläne" }, minPhase: 4, minLevel: 24, decisionTime: 30, needStock: 0,
-    rewardAccept: { money: -4000, rep: -15, noto: 15, inspectionRisk: true }, rewardDecline: { money: 0, rep: 5 },
-    narrative: { fr: "Allô. Vieux contact dans la profession. J'ai les plans de production de Cristal Royal. Avec ça tu peux saboter leur prochaine campagne, bloquer leur prod une saison. 4000€ et c'est à toi. Discrétion absolue. Risque : leur sécurité fouille parfois.", en: "Hello. Old contact in the trade. I have Cristal Royal's production plans. With this you can sabotage their next campaign, block their production for a season. €4000 and it's yours. Absolute discretion. Risk: their security sometimes digs.", es: "Aló. Viejo contacto del sector. Tengo los planes de producción de Cristal Royal. Con eso puedes sabotear su próxima campaña, bloquear su producción una temporada. 4000€ y es tuyo. Discreción absoluta. Riesgo: a veces su seguridad escarba.", zh: "你好。行业里的老关系。我有Cristal Royal的生产计划。有了它你能破坏他们的下一个活动，封锁他们一个季度的生产。€4000就归你。绝对保密。风险：他们的安保有时会深挖。", ru: "Здравствуйте. Старый контакт в отрасли. У меня производственные планы Cristal Royal. С этим вы можете саботировать их следующую кампанию, заблокировать их производство на сезон. €4000, и они ваши. Абсолютная конфиденциальность. Риск: их безопасность иногда копает.", it: "Salve. Vecchio contatto nel settore. Ho i piani di produzione di Cristal Royal. Con questi puoi sabotare la loro prossima campagna, bloccare la loro produzione per una stagione. 4000€ ed è tuo. Discrezione assoluta. Rischio: la loro sicurezza a volte indaga.", de: "Hallo. Alter Kontakt aus der Branche. Ich habe Cristal Royals Produktionspläne. Damit kannst du ihre nächste Kampagne sabotieren, ihre Produktion eine Saison blockieren. 4000€ und es gehört dir. Absolute Diskretion. Risiko: Ihre Sicherheit gräbt manchmal nach." } },
-  { id: 'whistleblower', minRevenue: 7000000, ethic: 'shady', title: { fr: "Ex-cadre concurrent, infos sensibles", en: "Ex-competitor exec, sensitive info", es: "Ex-ejecutivo competidor, info sensible", zh: "前竞争对手高管, 敏感信息", ru: "Экс-руководитель конкурента, чувствительная инфо", it: "Ex dirigente concorrente, info sensibili", de: "Ex-Konkurrenzmanager, sensible Infos" }, minPhase: 4, minLevel: 24, decisionTime: 30, needStock: 0,
-    rewardAccept: { money: -3000, rep: -10, noto: 10 }, rewardDecline: { money: 0, rep: 4 },
-    narrative: { fr: "Bonjour. J'étais cadre senior chez Glacier Frères jusqu'à la semaine dernière. J'ai des infos qui peuvent les couler, failles fiscales, fournisseurs douteux. Je veux 3000€ et un poste chez toi. Tu deviens le seul à savoir.", en: "Hello. I was senior exec at Glacier Frères until last week. I have info that can sink them, tax loopholes, dodgy suppliers. I want €3000 and a position with you. You become the only one to know.", es: "Hola. Era ejecutivo senior en Glacier Frères hasta la semana pasada. Tengo información que puede hundirlos, vacíos fiscales, proveedores dudosos. Quiero 3000€ y un puesto contigo. Te conviertes en el único que sabe.", zh: "你好。我上周之前是格拉西耶兄弟的高管。我有能把他们搞垮的信息,,税务漏洞、可疑供应商。我要€3000和你这儿一个职位。你成为唯一知情者。", ru: "Здравствуйте. Я был топ-менеджером в Glacier Frères до прошлой недели. У меня инфо, которая может их потопить, налоговые лазейки, мутные поставщики. Хочу €3000 и должность у вас. Вы становитесь единственным, кто знает.", it: "Salve. Ero dirigente senior da Glacier Frères fino alla settimana scorsa. Ho info che possono affondarli, scappatoie fiscali, fornitori loschi. Voglio 3000€ e un posto da te. Diventi l'unico a sapere.", de: "Hallo. Ich war bis letzte Woche leitender Manager bei Glacier Frères. Ich habe Infos, die sie versenken können, Steuerschlupflöcher, zwielichtige Lieferanten. Ich will 3000€ und eine Stelle bei dir. Du wirst der Einzige, der es weiß." } },
-  { id: 'mediation_finale', minRevenue: 11000000, title: { fr: "Médiateur, premières offres d'acquisition", en: "Mediator, first acquisition offers", es: "Mediador, primeras ofertas de adquisición", zh: "中介, 首批收购报价", ru: "Медиатор, первые предложения о поглощении", it: "Mediatore, prime offerte di acquisizione", de: "Vermittler, erste Übernahmeangebote" }, minPhase: 4, minLevel: 25, decisionTime: 30, needStock: 0, narrativeOnly: true, offerOnly: true,
-    rewardAccept: { money: 0, rep: 0 },
-    narrative: { fr: "Bonjour. Je suis Médiateur de Transactions Industrielles. Trois acquéreurs majeurs sont désormais sérieux dans leurs intentions de te racheter. Ils veulent rencontrer ton équipe et examiner tes livres. C'est le début de la phase finale. Tu te prépares ?", en: "Hello. I'm an Industrial Transactions Mediator. Three major acquirers are now serious in their intentions to buy you out. They want to meet your team and examine your books. This is the start of the final phase. Are you ready?", es: "Hola. Soy Mediador de Transacciones Industriales. Tres compradores mayores ya están serios en su intención de adquirirte. Quieren conocer a tu equipo y examinar tus libros. Es el inicio de la fase final. ¿Te preparas?", zh: "你好。我是工业交易中介。三家大型收购方现在认真有意收购你。他们想见你的团队、查你的账本。这是最终阶段的开始。你准备好了吗？", ru: "Здравствуйте. Я Медиатор Промышленных Сделок. Три крупных покупателя теперь серьёзны в намерениях вас выкупить. Они хотят встретиться с вашей командой и изучить ваши книги. Это начало финальной фазы. Вы готовы?", it: "Salve. Sono un Mediatore di Transazioni Industriali. Tre grandi acquirenti sono ora seri nelle loro intenzioni di rilevarti. Vogliono incontrare il tuo team ed esaminare i tuoi libri contabili. È l'inizio della fase finale. Sei pronto?", de: "Hallo. Ich bin Vermittler für Industrietransaktionen. Drei große Käufer meinen es jetzt ernst mit der Übernahme. Sie wollen dein Team treffen und deine Bücher prüfen. Das ist der Beginn der finalen Phase. Bist du bereit?" } },
-
-  // ============================================================
-  // === PHASE 4 — APPELS ONE-SHOT BÉNÉF (gros gains, peu de risque)
-  // ============================================================
-  { id: 'tournage_pub_popice', minRevenue: 0, product: 'popice', title: { fr: "Tournage pub nationale POP ICE", en: "POP ICE national ad shoot", es: "Rodaje anuncio nacional POP ICE", zh: "POP ICE全国广告拍摄", ru: "Съёмки нац. рекламы POP ICE", it: "Riprese spot nazionale POP ICE", de: "POP ICE nationaler Werbedreh" }, minPhase: 4, minLevel: 21, decisionTime: 30, needStock: 400, rewardAccept: { money: 3500, rep: 2, noto: 3 },
-    narrative: { fr: "Bonjour. Agence de pub, tournage spot national POP ICE demain. On a besoin de 400 tubes pour les prises et les figurants. Paiement immédiat à la livraison. Pas de négociation, juste de la qualité.", en: "Hello. Ad agency, national POP ICE commercial shoot tomorrow. We need 400 tubes for takes and extras. Payment on delivery. No negotiation, just quality.", es: "Hola. Agencia de publicidad, rodaje anuncio nacional POP ICE mañana. Necesitamos 400 tubos para las tomas y figurantes. Pago a la entrega. Sin negociación, solo calidad.", zh: "你好。广告公司，明天拍POP ICE全国广告。我们需要400管用于拍摄和替补。交付付款。不谈判，只要质量。", ru: "Здравствуйте. Рекламное агентство, завтра съёмки национальной рекламы POP ICE. Нам нужно 400 тюбиков для дублей и массовки. Оплата при доставке. Без переговоров, только качество.", it: "Salve. Agenzia pubblicitaria, riprese spot nazionale POP ICE domani. Ci servono 400 tubi per ciak e comparse. Pagamento alla consegna. Niente trattative, solo qualità.", de: "Hallo. Werbeagentur, nationaler POP-ICE-Werbedreh morgen. Wir brauchen 400 Tuben für Takes und Statisten. Zahlung bei Lieferung. Keine Verhandlung, nur Qualität." } },
-  { id: 'expedition_arctique_frozio', minRevenue: 2000000, product: 'frozio', ethic: 'good', title: { fr: "Mission scientifique arctique, FROZIO", en: "Arctic scientific mission, FROZIO", es: "Misión científica ártica, FROZIO", zh: "北极科考任务, FROZIO", ru: "Арктическая научная миссия, FROZIO", it: "Missione scientifica artica, FROZIO", de: "Arktis-Forschungsmission, FROZIO" }, minPhase: 4, minLevel: 22, decisionTime: 30, needStock: 800, rewardAccept: { money: 5500, rep: 3, noto: 2, segEco: 3 },
-    narrative: { fr: "Bonjour. Institut polaire. Mission scientifique en Arctique le mois prochain. On a besoin de 800 packs de neige artificielle FROZIO pour tester les équipements à -20°C avant le départ. Trajet long, mais bien payé.", en: "Hello. Polar Institute. Arctic scientific mission next month. We need 800 packs of FROZIO artificial snow to test equipment at -20°C before departure. Long trip, but well paid.", es: "Hola. Instituto polar. Misión científica en el Ártico el mes próximo. Necesitamos 800 packs de nieve artificial FROZIO para probar equipos a -20°C antes de salir. Trayecto largo, pero bien pagado.", zh: "你好。极地研究所。下个月北极科考任务。我们需要800包FROZIO人造雪，在出发前于-20°C测试设备。行程长，但报酬好。", ru: "Здравствуйте. Полярный институт. Арктическая научная миссия в следующем месяце. Нам нужно 800 упаковок искусственного снега FROZIO для тестирования оборудования при -20°C перед отправлением. Долгая поездка, но хорошо оплачивается.", it: "Salve. Istituto Polare. Missione scientifica artica il mese prossimo. Ci servono 800 pack di neve artificiale FROZIO per testare l'attrezzatura a -20°C prima della partenza. Viaggio lungo, ma ben pagato.", de: "Hallo. Polarinstitut. Arktis-Forschungsmission nächsten Monat. Wir brauchen 800 Packs FROZIO-Kunstschnee, um Ausrüstung bei -20°C vor Abreise zu testen. Lange Fahrt, aber gut bezahlt." } },
-  { id: 'hopital_urgence_medipack', minRevenue: 2000000, product: 'medipack', ethic: 'good', title: { fr: "Hôpital public, commande d'urgence", en: "Public hospital, emergency order", es: "Hospital público, pedido urgente", zh: "公立医院, 紧急订单", ru: "Государственная больница, экстренный заказ", it: "Ospedale pubblico, ordine d'emergenza", de: "Öffentliches Krankenhaus, Notbestellung" }, minPhase: 4, minLevel: 22, decisionTime: 30, needStock: 600, rewardAccept: { money: 4800, rep: 4, noto: 2 },
-    narrative: { fr: "Allô. CHU. Stock épuisé après une vague d'accidents de la route ce week-end. Besoin de 600 MEDIPACK ce soir. Prix marché, pas de marchandage. C'est pour sauver des vies, pas pour négocier.", en: "Hello. University Hospital. Stock depleted after a wave of road accidents this weekend. Need 600 MEDIPACK tonight. Market price, no haggling. It's to save lives, not to negotiate.", es: "Aló. Hospital universitario. Stock agotado tras una ola de accidentes de tráfico el fin de semana. Necesitamos 600 MEDIPACK esta noche. Precio mercado, sin regateos. Es para salvar vidas, no para negociar.", zh: "你好。大学医院。这周末一波交通事故后库存耗尽。今晚需要600 MEDIPACK。市场价，不还价。这是救命，不是谈判。", ru: "Здравствуйте. Университетская больница. Запас исчерпан после волны ДТП в эти выходные. Нужно 600 MEDIPACK сегодня. Рыночная цена, без торга. Это чтобы спасать жизни, не для переговоров.", it: "Salve. Ospedale Universitario. Scorta esaurita dopo un'ondata di incidenti stradali questo weekend. Ci servono 600 MEDIPACK stasera. Prezzo di mercato, niente trattative. È per salvare vite, non per negoziare.", de: "Hallo. Universitätsklinik. Bestand erschöpft nach einer Welle von Verkehrsunfällen am Wochenende. Brauchen 600 MEDIPACK heute Abend. Marktpreis, kein Feilschen. Es geht um Leben, nicht ums Verhandeln." } },
-  { id: 'salon_innovation', minRevenue: 4000000, title: { fr: "Salon européen, Innovation alimentaire", en: "European fair, Food Innovation", es: "Salón europeo, Innovación alimentaria", zh: "欧洲博览会, 食品创新", ru: "Европейская ярмарка, Food Innovation", it: "Fiera europea, Food Innovation", de: "Europäische Messe, Food Innovation" }, minPhase: 4, minLevel: 23, decisionTime: 30, needStock: 0, rewardAccept: { money: -2000, rep: 5, noto: 8, segPro: 5, segLuxe: 5 },
-    narrative: { fr: "Bonjour. Salon européen de l'innovation alimentaire. On t'invite à présenter ta gamme sur un stand prestige. Pas de stock à livrer, juste de la présence. Inscription : 2000€, mais l'impact image est massif.", en: "Hello. European food innovation fair. We invite you to showcase your range at a prestige booth. No stock to deliver, just attendance. Registration: €2000, but the image impact is massive.", es: "Hola. Salón europeo de innovación alimentaria. Te invitamos a presentar tu gama en un stand de prestigio. Sin stock que entregar, solo presencia. Inscripción: 2000€, pero el impacto de imagen es masivo.", zh: "你好。欧洲食品创新博览会。我们邀请你在一个高端展位展示你的产品系列。无需送货，只需出席。注册费：€2000,,但形象效应巨大。", ru: "Здравствуйте. Европейская ярмарка продовольственных инноваций. Приглашаем вас представить вашу линейку на престижном стенде. Запаса доставлять не нужно, только присутствие. Регистрация: €2000, но имиджевый эффект колоссальный.", it: "Salve. Fiera europea dell'innovazione alimentare. Ti invitiamo a esporre la tua gamma in uno stand di prestigio. Nessuna scorta da consegnare, solo presenza. Iscrizione: 2000€, ma l'impatto d'immagine è enorme.", de: "Hallo. Europäische Food-Innovationsmesse. Wir laden dich ein, deine Palette an einem Prestige-Stand zu zeigen. Kein Bestand zu liefern, nur Anwesenheit. Anmeldung: 2000€, aber die Image-Wirkung ist enorm." } },
-  { id: 'commande_militaire_medipack', minRevenue: 4000000, product: 'medipack', title: { fr: "Marché militaire, MEDIPACK", en: "Military contract, MEDIPACK", es: "Mercado militar, MEDIPACK", zh: "军方合同, MEDIPACK", ru: "Военный контракт, MEDIPACK", it: "Contratto militare, MEDIPACK", de: "Militärvertrag, MEDIPACK" }, minPhase: 4, minLevel: 23, decisionTime: 30, needStock: 1000, rewardAccept: { money: 7500, rep: 2, noto: 3 },
-    narrative: { fr: "Bonjour. Direction logistique armée. Contrat ferme : 1000 MEDIPACK livrés sous escorte au camp d'entraînement régional. Délai serré, paiement gros, et engagement long terme si tu tiens.", en: "Hello. Army logistics direction. Firm contract: 1000 MEDIPACK delivered under escort to the regional training camp. Tight deadline, big payment, long-term engagement if you deliver.", es: "Hola. Dirección logística del ejército. Contrato firme: 1000 MEDIPACK entregados con escolta al campo de entrenamiento regional. Plazo apretado, pago grande, compromiso largo plazo si cumples.", zh: "你好。军队物流局。坚定合同：1000 MEDIPACK押运送到地区训练营。期限紧，付款大，交付则长期合作。", ru: "Здравствуйте. Дирекция армейской логистики. Твёрдый контракт: 1000 MEDIPACK доставить под охраной в региональный учебный лагерь. Жёсткий срок, большая оплата, долгосрочное обязательство, если доставите.", it: "Salve. Direzione logistica dell'esercito. Contratto fermo: 1000 MEDIPACK consegnati sotto scorta al campo di addestramento regionale. Scadenza serrata, grande pagamento, impegno a lungo termine se consegni.", de: "Hallo. Heereslogistik-Direktion. Fester Vertrag: 1000 MEDIPACK unter Eskorte zum regionalen Übungslager geliefert. Knappe Frist, große Zahlung, langfristige Bindung bei Lieferung." } },
-  { id: 'festival_winter_frozio', minRevenue: 7000000, product: 'frozio', title: { fr: "Festival hiver, neige artificielle", en: "Winter festival, artificial snow", es: "Festival de invierno, nieve artificial", zh: "冬季节庆, 人造雪", ru: "Зимний фестиваль, искусственный снег", it: "Festival invernale, neve artificiale", de: "Winterfestival, Kunstschnee" }, minPhase: 4, minLevel: 24, decisionTime: 30, needStock: 1500, rewardAccept: { money: 11000, rep: 3, noto: 5, segFamille: 2 },
-    narrative: { fr: "Bonjour. Festival d'hiver de la région, 30 000 visiteurs attendus. On a besoin de 1500 packs FROZIO pour décorer la place centrale et créer une piste de glissade. Trois jours de livraison étalée, paiement à la fin. Le cachet pèse.", en: "Hello. Regional winter festival, 30,000 visitors expected. We need 1500 packs of FROZIO to decorate the central square and build a sliding track. Three-day staggered delivery, payment at the end. Big fee.", es: "Hola. Festival de invierno regional, 30 000 visitantes esperados. Necesitamos 1500 packs de FROZIO para decorar la plaza central y crear una pista deslizante. Entrega escalonada tres días, pago al final. Buen cachet.", zh: "你好。地区冬季节庆,,预计30000名访客。我们需要1500包FROZIO装饰中央广场并搭一条滑道。三天分批送，结束时付款。大笔报酬。", ru: "Здравствуйте. Региональный зимний фестиваль, ожидается 30 000 посетителей. Нам нужно 1500 упаковок FROZIO для украшения центральной площади и постройки горки. Поэтапная доставка за три дня, оплата в конце. Большой гонорар.", it: "Salve. Festival invernale regionale, 30.000 visitatori previsti. Ci servono 1500 pack di FROZIO per decorare la piazza centrale e costruire una pista di slittino. Consegna scaglionata su tre giorni, pagamento alla fine. Grande compenso.", de: "Hallo. Regionales Winterfestival, 30.000 Besucher erwartet. Wir brauchen 1500 Packs FROZIO, um den zentralen Platz zu schmücken und eine Rutschbahn zu bauen. Lieferung über drei Tage gestaffelt, Zahlung am Ende. Hohe Gebühr." } },
-  { id: 'commande_compagnie_aerienne', minRevenue: 7000000, product: 'popice', title: { fr: "Compagnie aérienne premium, POP ICE", en: "Premium airline, POP ICE", es: "Aerolínea premium, POP ICE", zh: "高端航空公司, POP ICE", ru: "Премиум авиакомпания, POP ICE", it: "Compagnia aerea premium, POP ICE", de: "Premium-Airline, POP ICE" }, minPhase: 4, minLevel: 24, decisionTime: 30, needStock: 1200, rewardAccept: { money: 9000, rep: 2, noto: 5, segLuxe: 3 },
-    narrative: { fr: "Bonjour. Direction achats compagnie aérienne premium. On veut tes POP ICE servis en première classe sur 30 vols longs-courriers. Test 3 mois, exclusivité partielle. Paiement upfront. Si ça marche, on renouvelle gros.", en: "Hello. Premium airline procurement. We want your POP ICE served first class on 30 long-haul flights. 3-month test, partial exclusivity. Upfront payment. If it works, we renew big.", es: "Hola. Compras aerolínea premium. Queremos tus POP ICE servidos en primera clase en 30 vuelos largos. Test 3 meses, exclusividad parcial. Pago upfront. Si funciona, renovamos grande.", zh: "你好。高端航空公司采购。我们想在30个长途航班的头等舱供应你的POP ICE。3个月试用，部分独家。预付。如果有效，我们大规模续约。", ru: "Здравствуйте. Снабжение премиум-авиакомпании. Хотим ваш POP ICE в первом классе на 30 дальнемагистральных рейсах. 3-месячный тест, частичная эксклюзивность. Предоплата. Если сработает, продлеваем по-крупному.", it: "Salve. Approvvigionamenti di una compagnia aerea premium. Vogliamo il tuo POP ICE servito in prima classe su 30 voli a lungo raggio. Test di 3 mesi, esclusiva parziale. Pagamento anticipato. Se funziona, rinnoviamo in grande.", de: "Hallo. Einkauf einer Premium-Airline. Wir wollen dein POP ICE in der First Class auf 30 Langstreckenflügen. 3-Monats-Test, Teilexklusivität. Vorauszahlung. Wenn es läuft, verlängern wir groß." } },
-  { id: 'gros_evenement_3produits', minRevenue: 11000000, product: 'popice', title: { fr: "Grands Jeux régionaux, gamme complète", en: "Regional Games, full range", es: "Juegos regionales, gama completa", zh: "地区运动会, 全系列", ru: "Региональные Игры, вся линейка", it: "Giochi regionali, gamma completa", de: "Regionale Spiele, volle Bandbreite" }, minPhase: 4, minLevel: 25, decisionTime: 30, needStock: 2500, rewardAccept: { money: 18000, rep: 6, noto: 8, segFamille: 3, segPro: 3 },
-    narrative: { fr: "Bonjour. Comité d'organisation des Grands Jeux régionaux. Événement de l'année, 50 000 spectateurs, presse nationale. On veut TOUTE ta gamme : POP ICE pour les enfants, FROZIO pour la patinoire éphémère, MEDIPACK pour le service médical. Le plus gros contrat de ta vie.", en: "Hello. Regional Games organizing committee. Event of the year, 50,000 spectators, national press. We want your FULL range: POP ICE for kids, FROZIO for the temporary rink, MEDIPACK for medical service. Biggest contract of your life.", es: "Hola. Comité organizador de los Juegos regionales. Evento del año, 50 000 espectadores, prensa nacional. Queremos TODA tu gama: POP ICE para los niños, FROZIO para la pista efímera, MEDIPACK para servicio médico. El contrato más grande de tu vida.", zh: "你好。地区运动会组委会。年度盛事,,50000名观众，全国媒体。我们想要你的全系列：POP ICE给孩子，FROZIO给临时溜冰场，MEDIPACK给医疗服务。你一生最大的合同。", ru: "Здравствуйте. Оргкомитет Региональных Игр. Событие года, 50 000 зрителей, национальная пресса. Хотим вашу ПОЛНУЮ линейку: POP ICE для детей, FROZIO для временного катка, MEDIPACK для медслужбы. Крупнейший контракт вашей жизни.", it: "Salve. Comitato organizzatore dei Giochi regionali. Evento dell'anno, 50.000 spettatori, stampa nazionale. Vogliamo la tua gamma COMPLETA: POP ICE per i bambini, FROZIO per la pista temporanea, MEDIPACK per il servizio medico. Il più grande contratto della tua vita.", de: "Hallo. Organisationskomitee der Regionalen Spiele. Event des Jahres, 50.000 Zuschauer, nationale Presse. Wir wollen deine GESAMTE Palette: POP ICE für Kinder, FROZIO für die temporäre Eisbahn, MEDIPACK für den Sanitätsdienst. Größter Vertrag deines Lebens." } },
-
-  // ============================================================
-  // === PHASE 4 — PETITS CONTRATS PRODUITS (dynamisent, écoulent le stock)
-  // POP ICE / FROZIO / MEDIPACK — jamais de glaçons. Niveaux 21-26.
-  // ============================================================
-  // --- POP ICE (7) ---
-  { id: 'p4_pop_anniv', minRevenue: 0, product: 'popice', title: { fr: "Goûter d'anniversaire débordé", en: "Overrun birthday party", es: "Cumpleaños desbordado", zh: "失控的生日派对", ru: "Вышедший из-под контроля день рождения", it: "Festa di compleanno fuori controllo", de: "Ausgeuferte Geburtstagsfeier" }, minPhase: 4, minLevel: 21, decisionTime: 30, needStock: 40, rewardAccept: { money: 350, rep: 1, noto: 1 },
-    narrative: { fr: "Allô ! J'ai loué un château gonflable et invité 30 gamins surexcités. J'avais oublié les boissons. 40 POP ICE tout de suite ou c'est l'émeute chez les 6 ans. Je paye, je paye, pitié.", en: "Hello! I rented a bouncy castle and invited 30 hyper kids. I forgot the drinks. 40 POP ICE right now or it's a riot among 6-year-olds. I'll pay, I'll pay, please.", es: "¡Hola! Alquilé un castillo hinchable e invité a 30 niños hiperactivos. Olvidé las bebidas. 40 POP ICE ya o es un motín de niños de 6 años. Pago, pago, por favor.", zh: "你好！我租了个充气城堡，邀请了30个过度兴奋的孩子。我忘了买饮料。现在就要40 POP ICE，否则6岁孩子要暴动了。我付钱，我付钱，求你了。", ru: "Здравствуйте! Я арендовал батут и пригласил 30 гиперактивных детей. Забыл напитки. 40 POP ICE прямо сейчас, иначе бунт среди 6-леток. Я заплачу, заплачу, пожалуйста.", it: "Salve! Ho noleggiato un gonfiabile e invitato 30 bambini scatenati. Ho dimenticato le bibite. 40 POP ICE subito o è una rivolta tra bambini di 6 anni. Pago, pago, ti prego.", de: "Hallo! Ich hab eine Hüpfburg gemietet und 30 hyperaktive Kinder eingeladen. Die Getränke hab ich vergessen. 40 POP ICE sofort oder es gibt einen Aufstand unter 6-Jährigen. Ich zahl, ich zahl, bitte." } },
-  { id: 'p4_pop_cine', minRevenue: 2000000, product: 'popice', title: { fr: "Plateau ciné en surchauffe", en: "Overheating film set", es: "Rodaje sobrecalentado", zh: "过热的拍摄片场", ru: "Перегревающаяся киноплощадка", it: "Set cinematografico surriscaldato", de: "Überhitztes Filmset" }, minPhase: 4, minLevel: 22, decisionTime: 30, needStock: 80, rewardAccept: { money: 600, rep: 1, noto: 2 },
-    narrative: { fr: "Tournage en plein cagnard, l'équipe technique fond littéralement. Le régisseur menace de tout arrêter. 80 POP ICE livrés sur le plateau, je sors la caisse prod direct.", en: "Shoot in blazing heat, the crew is literally melting. The location manager threatens to shut it all down. 80 POP ICE on set, I'll open the production cash right away.", es: "Rodaje bajo un sol abrasador, el equipo técnico se derrite literalmente. El regidor amenaza con parar todo. 80 POP ICE en el set, abro la caja de producción ya.", zh: "烈日下拍摄，剧组真的在融化。场地经理威胁要全停。80 POP ICE送片场，我马上开制作金库。", ru: "Съёмки в палящей жаре, группа буквально плавится. Локейшн-менеджер грозит всё остановить. 80 POP ICE на площадку, я сразу открою кассу производства.", it: "Riprese sotto un caldo torrido, la troupe si scioglie letteralmente. Il location manager minaccia di fermare tutto. 80 POP ICE sul set, apro subito la cassa della produzione.", de: "Dreh in glühender Hitze, die Crew schmilzt buchstäblich. Der Location-Manager droht, alles abzubrechen. 80 POP ICE ans Set, ich öffne sofort die Produktionskasse." } },
-  { id: 'p4_pop_gym', minRevenue: 2000000, product: 'popice', title: { fr: "Salle de sport sans clim", en: "Gym with no AC", es: "Gimnasio sin aire", zh: "没空调的健身房", ru: "Спортзал без кондиционера", it: "Palestra senza aria condizionata", de: "Fitnessstudio ohne Klima" }, minPhase: 4, minLevel: 22, decisionTime: 30, needStock: 60, rewardAccept: { money: 500, rep: 1, noto: 1 },
-    narrative: { fr: "La clim a lâché en plein cours de RPM, j'ai douze cyclistes au bord du malaise. 60 POP ICE pour les ranimer avant qu'ils ne me fassent un procès. Urgent.", en: "AC died mid spin class, I have twelve cyclists on the verge of fainting. 60 POP ICE to revive them before they sue me. Urgent.", es: "El aire petó en plena clase de RPM, tengo doce ciclistas a punto de desmayarse. 60 POP ICE para reanimarlos antes de que me demanden. Urgente.", zh: "动感单车课中途空调死了，我有十二个骑手快晕了。60 POP ICE在他们告我之前救活他们。急。", ru: "Кондиционер сдох посреди спин-класса, у меня двенадцать велосипедистов на грани обморока. 60 POP ICE, чтобы их оживить, пока они на меня не подали в суд. Срочно.", it: "L'aria condizionata è morta a metà corso di spinning, ho dodici ciclisti sul punto di svenire. 60 POP ICE per rianimarli prima che mi facciano causa. Urgente.", de: "Klima mitten im Spinning-Kurs ausgefallen, ich hab zwölf Radler kurz vor der Ohnmacht. 60 POP ICE, um sie wiederzubeleben, bevor sie mich verklagen. Dringend." } },
-  { id: 'p4_pop_fraise', minRevenue: 4000000, product: 'popice', title: { fr: "Festival de la fraise", en: "Strawberry festival", es: "Festival de la fresa", zh: "草莓节", ru: "Клубничный фестиваль", it: "Festival della fragola", de: "Erdbeerfest" }, minPhase: 4, minLevel: 23, decisionTime: 30, needStock: 120, rewardAccept: { money: 1100, rep: 2, noto: 2 },
-    narrative: { fr: "Bonjour, Comité de la Fête de la Fraise. Notre stand 'smoothies givrés' cartonne, on est en rupture. 120 POP ICE pour tenir le week-end. La reine de la fraise compte sur vous.", en: "Hello, Strawberry Festival Committee. Our 'frozen smoothies' stand is a hit, we're out of stock. 120 POP ICE to last the weekend. The strawberry queen is counting on you.", es: "Hola, Comité de la Fiesta de la Fresa. Nuestro puesto de 'smoothies helados' arrasa, estamos sin stock. 120 POP ICE para aguantar el fin de semana. La reina de la fresa cuenta con vosotros.", zh: "你好，草莓节委员会。我们的「冰冻思慕雪」摊位很火，缺货了。120 POP ICE撑过周末。草莓女王指望你了。", ru: "Здравствуйте, Комитет Клубничного Фестиваля. Наш стенд «замороженных смузи», хит, у нас кончился запас. 120 POP ICE, чтобы продержаться выходные. Клубничная королева на вас рассчитывает.", it: "Salve, Comitato del Festival della Fragola. Il nostro stand di «smoothie ghiacciati» è un successo, siamo a corto. 120 POP ICE per reggere il weekend. La regina della fragola conta su di te.", de: "Hallo, Erdbeerfest-Komitee. Unser „Frozen-Smoothies“-Stand läuft top, wir sind ausverkauft. 120 POP ICE für das Wochenende. Die Erdbeerkönigin zählt auf dich." } },
-  { id: 'p4_pop_marathon', minRevenue: 7000000, product: 'popice', title: { fr: "Marathon caritatif", en: "Charity marathon", es: "Maratón solidario", zh: "慈善马拉松", ru: "Благотворительный марафон", it: "Maratona benefica", de: "Wohltätigkeitsmarathon" }, minPhase: 4, minLevel: 24, decisionTime: 30, needStock: 150, rewardAccept: { money: 1500, rep: 3, noto: 2 },
-    narrative: { fr: "Course solidaire de 5000 coureurs sous 35°C. Le ravitaillement officiel a coulé. 150 POP ICE pour éviter l'évanouissement collectif. C'est pour la bonne cause, et c'est filmé.", en: "Charity race, 5000 runners under 35°C. The official refreshment sank. 150 POP ICE to avoid mass fainting. It's for a good cause, and it's filmed.", es: "Carrera solidaria de 5000 corredores a 35°C. El avituallamiento oficial se hundió. 150 POP ICE para evitar el desmayo colectivo. Es por buena causa, y está filmado.", zh: "慈善赛跑，5000名跑者35°C下。官方补给沉了。150 POP ICE避免大规模晕倒。这是为了好事，而且有拍摄。", ru: "Благотворительный забег, 5000 бегунов при 35°C. Официальное питание потонуло. 150 POP ICE во избежание массовых обмороков. Это для доброго дела, и это снимают.", it: "Corsa benefica, 5000 runner sotto i 35°C. Il ristoro ufficiale è affondato. 150 POP ICE per evitare svenimenti di massa. È per una buona causa, ed è filmato.", de: "Wohltätigkeitslauf, 5000 Läufer bei 35°C. Die offizielle Erfrischung ist abgesoffen. 150 POP ICE, um Massen-Ohnmacht zu vermeiden. Es ist für einen guten Zweck, und es wird gefilmt." } },
-  { id: 'p4_pop_tv', minRevenue: 11000000, product: 'popice', title: { fr: "Plateau télé jeunesse", en: "Kids' TV show", es: "Programa infantil TV", zh: "儿童电视节目", ru: "Детское ТВ-шоу", it: "Programma TV per bambini", de: "Kinder-TV-Show" }, minPhase: 4, minLevel: 25, decisionTime: 30, needStock: 100, rewardAccept: { money: 1300, rep: 2, noto: 4 },
-    narrative: { fr: "Émission jeunesse en direct, on offre des POP ICE à tout le public enfant. Le sponsor habituel s'est désisté ce matin. 100 tubes avant 17h, plateau national, beau cachet.", en: "Live kids' show, we hand out POP ICE to the whole child audience. The usual sponsor pulled out this morning. 100 tubes before 5 PM, national stage, good fee.", es: "Programa infantil en directo, regalamos POP ICE a todo el público infantil. El patrocinador habitual se retiró esta mañana. 100 tubos antes de las 17h, plató nacional, buen caché.", zh: "现场儿童节目，我们给全场儿童观众发POP ICE。常用赞助商今早撤了。下午5点前要100管，全国舞台，报酬不错。", ru: "Прямое детское шоу, раздаём POP ICE всей детской аудитории. Обычный спонсор отказался утром. 100 тюбиков до 17:00, национальная сцена, хороший гонорар.", it: "Show per bambini in diretta, distribuiamo POP ICE a tutto il pubblico di piccoli. Il solito sponsor si è ritirato stamattina. 100 tubi prima delle 17, palco nazionale, buon compenso.", de: "Live-Kindershow, wir verteilen POP ICE ans ganze Kinderpublikum. Der übliche Sponsor ist heute früh abgesprungen. 100 Tuben vor 17 Uhr, nationale Bühne, gute Gage." } },
-  { id: 'p4_pop_parc', minRevenue: 16000000, product: 'popice', title: { fr: "Parc d'attractions en feu", en: "Theme park on fire", es: "Parque de atracciones a tope", zh: "着火的主题公园", ru: "Тематический парк в огне", it: "Parco a tema in fiamme", de: "Freizeitpark in Flammen" }, minPhase: 4, minLevel: 26, decisionTime: 30, needStock: 200, rewardAccept: { money: 2400, rep: 3, noto: 5 },
-    narrative: { fr: "Le parc explose de monde pour les vacances, nos distributeurs sont vides depuis ce matin, les files s'énervent. 200 POP ICE en livraison express. Le directeur signe les yeux fermés.", en: "The park is packed for the holidays, our dispensers have been empty since morning, queues are getting angry. 200 POP ICE express delivery. The director signs blindly.", es: "El parque revienta de gente por las vacaciones, nuestras máquinas están vacías desde la mañana, las colas se enfadan. 200 POP ICE entrega exprés. El director firma con los ojos cerrados.", zh: "公园假期爆满，我们的分发机从早上就空了，排队的人越来越火。200 POP ICE快递。主管闭眼签字。", ru: "Парк забит на каникулах, наши диспенсеры пусты с утра, очереди злятся. 200 POP ICE экспресс-доставка. Директор подписывает вслепую.", it: "Il parco è pieno per le vacanze, i nostri dispenser sono vuoti da stamattina, le code si arrabbiano. 200 POP ICE consegna express. Il direttore firma a occhi chiusi.", de: "Der Park ist in den Ferien rappelvoll, unsere Automaten sind seit dem Morgen leer, die Schlangen werden wütend. 200 POP ICE Express-Lieferung. Der Direktor unterschreibt blind." } },
-  // --- FROZIO (7) ---
-  { id: 'p4_fro_demande', minRevenue: 0, product: 'frozio', title: { fr: "Demande en mariage givrée", en: "Frosty proposal", es: "Pedida de mano helada", zh: "冰雪求婚", ru: "Морозное предложение руки", it: "Proposta gelida", de: "Frostiger Heiratsantrag" }, minPhase: 4, minLevel: 21, decisionTime: 30, needStock: 50, rewardAccept: { money: 450, rep: 1, noto: 1 },
-    narrative: { fr: "Je veux faire ma demande sous la neige. En juillet. Oui je sais. Il me faut 50 FROZIO pour recouvrir le balcon avant 20h. Elle dit toujours qu'elle veut 'un truc magique', alors là...", en: "I want to propose in the snow. In July. Yes I know. I need 50 FROZIO to cover the balcony before 8 PM. She always says she wants 'something magical', so here goes...", es: "Quiero pedir matrimonio bajo la nieve. En julio. Sí, lo sé. Necesito 50 FROZIO para cubrir el balcón antes de las 20h. Siempre dice que quiere 'algo mágico', así que...", zh: "我想在雪中求婚。在七月。是的我知道。我需要50 FROZIO在晚8点前铺满阳台。她总说想要「有魔法的东西」，那就来吧……", ru: "Хочу сделать предложение в снегу. В июле. Да, знаю. Мне нужно 50 FROZIO, чтобы покрыть балкон до 20:00. Она всегда говорит, что хочет «чего-то волшебного», так что вот...", it: "Voglio fare la proposta nella neve. A luglio. Sì lo so. Mi servono 50 FROZIO per coprire il balcone prima delle 20. Dice sempre che vuole «qualcosa di magico», quindi ci provo...", de: "Ich will im Schnee einen Heiratsantrag machen. Im Juli. Ja, ich weiß. Ich brauche 50 FROZIO, um den Balkon vor 20 Uhr zu bedecken. Sie sagt immer, sie will „etwas Magisches“, also los…" } },
-  { id: 'p4_fro_clip', minRevenue: 2000000, product: 'frozio', title: { fr: "Clip de rap hivernal", en: "Winter rap video", es: "Videoclip de rap invernal", zh: "冬季说唱MV", ru: "Зимний рэп-клип", it: "Video rap invernale", de: "Winter-Rap-Video" }, minPhase: 4, minLevel: 22, decisionTime: 30, needStock: 90, rewardAccept: { money: 750, rep: 1, noto: 3 },
-    narrative: { fr: "Yo, on tourne un clip ambiance Noël gangsta en plein août. Le rappeur veut de la 'vraie fausse neige' partout. 90 FROZIO sur le parking, on paye cash, faut que ça brille.", en: "Yo, we're shooting a gangsta Christmas vibe video in mid-August. The rapper wants 'real fake snow' everywhere. 90 FROZIO in the parking lot, we pay cash, it's gotta shine.", es: "Yo, rodamos un videoclip ambiente Navidad gangsta en pleno agosto. El rapero quiere 'nieve falsa de verdad' por todas partes. 90 FROZIO en el parking, pagamos cash, tiene que brillar.", zh: "哟，我们在八月中拍一个匪帮圣诞氛围的MV。说唱歌手要到处都是「真正的假雪」。停车场来90 FROZIO，现金付，得闪亮。", ru: "Йо, снимаем гангста-рождественский клип в середине августа. Рэпер хочет «настоящий ненастоящий снег» повсюду. 90 FROZIO на парковку, платим наличными, должно блестеть.", it: "Yo, giriamo un video natalizio in stile gangsta a metà agosto. Il rapper vuole «vera neve finta» ovunque. 90 FROZIO nel parcheggio, paghiamo contanti, deve brillare.", de: "Yo, wir drehen Mitte August ein Gangsta-Weihnachts-Video. Der Rapper will überall „echten Fake-Schnee“. 90 FROZIO auf dem Parkplatz, wir zahlen bar, das muss glänzen." } },
-  { id: 'p4_fro_vitrine', minRevenue: 2000000, product: 'frozio', title: { fr: "Vitrine de Noël en retard", en: "Late Christmas window", es: "Escaparate navideño atrasado", zh: "迟到的圣诞橱窗", ru: "Запоздалая рождественская витрина", it: "Vetrina di Natale in ritardo", de: "Späte Weihnachtsauslage" }, minPhase: 4, minLevel: 22, decisionTime: 30, needStock: 70, rewardAccept: { money: 650, rep: 1, noto: 2 },
-    narrative: { fr: "Grand magasin, notre déco de Noël est bloquée à la douane. On a besoin de 70 FROZIO pour habiller la vitrine principale ce soir, sinon c'est la honte sur l'avenue.", en: "Department store, our Christmas decor is stuck at customs. We need 70 FROZIO to dress the main window tonight, otherwise it's a disgrace on the avenue.", es: "Grandes almacenes, nuestra decoración navideña está bloqueada en aduana. Necesitamos 70 FROZIO para vestir el escaparate principal esta noche, si no es la vergüenza de la avenida.", zh: "百货公司，我们的圣诞装饰卡在海关。今晚需要70 FROZIO布置主橱窗，否则就是大街上的耻辱。", ru: "Универмаг, наш рождественский декор застрял на таможне. Нам нужно 70 FROZIO, чтобы оформить главную витрину сегодня, иначе позор на проспекте.", it: "Grande magazzino, le decorazioni natalizie sono bloccate in dogana. Ci servono 70 FROZIO per allestire la vetrina principale stasera, altrimenti è una vergogna sul viale.", de: "Kaufhaus, unsere Weihnachtsdeko hängt im Zoll fest. Wir brauchen 70 FROZIO, um heute Abend das Hauptschaufenster zu schmücken, sonst ist es eine Blamage auf der Avenue." } },
-  { id: 'p4_fro_ski', minRevenue: 4000000, product: 'frozio', title: { fr: "Compétition de ski indoor", en: "Indoor ski competition", es: "Competición de esquí indoor", zh: "室内滑雪比赛", ru: "Соревнования по закрытому лыжному спуску", it: "Gara di sci indoor", de: "Indoor-Ski-Wettkampf" }, minPhase: 4, minLevel: 23, decisionTime: 30, needStock: 130, rewardAccept: { money: 1200, rep: 2, noto: 2 },
-    narrative: { fr: "La piste de ski couverte a une zone qui a fondu, compétition régionale dans deux jours. 130 FROZIO pour reconstituer le bas de piste. Fédération honorifique, paiement solide.", en: "The covered ski slope has a melted zone, regional competition in two days. 130 FROZIO to rebuild the bottom of the slope. Honorary federation, solid payment.", es: "La pista de esquí cubierta tiene una zona derretida, competición regional en dos días. 130 FROZIO para reconstruir la parte baja. Federación honorífica, pago sólido.", zh: "室内滑雪道有一块融了，两天后地区比赛。130 FROZIO重建滑道底部。荣誉联合会，付款扎实。", ru: "На крытом лыжном спуске растаявшая зона, региональные соревнования через два дня. 130 FROZIO, чтобы восстановить низ спуска. Почётная федерация, солидная оплата.", it: "La pista da sci coperta ha una zona sciolta, gara regionale tra due giorni. 130 FROZIO per ricostruire il fondo della pista. Federazione onoraria, pagamento solido.", de: "Die überdachte Skipiste hat eine geschmolzene Zone, Regionalwettkampf in zwei Tagen. 130 FROZIO, um das untere Pistenstück neu zu bauen. Ehrenwerter Verband, solide Zahlung." } },
-  { id: 'p4_fro_marche', minRevenue: 7000000, product: 'frozio', title: { fr: "Marché de Noël en canicule", en: "Christmas market in a heatwave", es: "Mercado navideño en ola de calor", zh: "热浪中的圣诞市集", ru: "Рождественский рынок в жару", it: "Mercatino di Natale in piena calura", de: "Weihnachtsmarkt bei Hitze" }, minPhase: 4, minLevel: 24, decisionTime: 30, needStock: 160, rewardAccept: { money: 1600, rep: 2, noto: 3 },
-    narrative: { fr: "Marché de Noël avancé en septembre (ne demandez pas pourquoi, c'est politique). On veut une ambiance hivernale crédible. 160 FROZIO sur toute la place. Subvention municipale à la clé.", en: "Christmas market moved to September (don't ask why, it's political). We want a credible winter vibe. 160 FROZIO across the whole square. Municipal subsidy at stake.", es: "Mercado navideño adelantado a septiembre (no preguntes por qué, es político). Queremos un ambiente invernal creíble. 160 FROZIO por toda la plaza. Subvención municipal en juego.", zh: "圣诞市集挪到了九月（别问为什么，是政治）。我们想要逼真的冬季氛围。整个广场160 FROZIO。市政补贴悬而未决。", ru: "Рождественский рынок перенесли на сентябрь (не спрашивайте почему, это политика). Хотим правдоподобную зимнюю атмосферу. 160 FROZIO по всей площади. На кону муниципальная субсидия.", it: "Mercatino di Natale spostato a settembre (non chiedere perché, è politico). Vogliamo un'atmosfera invernale credibile. 160 FROZIO su tutta la piazza. In ballo c'è un sussidio comunale.", de: "Weihnachtsmarkt auf September verschoben (frag nicht warum, das ist politisch). Wir wollen ein glaubhaftes Winter-Feeling. 160 FROZIO über den ganzen Platz. Kommunaler Zuschuss steht auf dem Spiel." } },
-  { id: 'p4_fro_reveillon', minRevenue: 11000000, product: 'frozio', title: { fr: "Réveillon d'entreprise déguisé", en: "Themed company party", es: "Fiesta de empresa temática", zh: "主题公司派对", ru: "Тематическая корпоративная вечеринка", it: "Festa aziendale a tema", de: "Themen-Firmenparty" }, minPhase: 4, minLevel: 25, decisionTime: 30, needStock: 110, rewardAccept: { money: 1400, rep: 2, noto: 3 },
-    narrative: { fr: "Soirée d'entreprise thème 'Pôle Nord', 300 invités, le boss veut épater. Le décorateur a disparu avec l'acompte. 110 FROZIO pour sauver la soirée, comité d'entreprise généreux.", en: "Company party 'North Pole' theme, 300 guests, the boss wants to impress. The decorator vanished with the deposit. 110 FROZIO to save the night, generous works council.", es: "Fiesta de empresa tema 'Polo Norte', 300 invitados, el jefe quiere impresionar. El decorador desapareció con el anticipo. 110 FROZIO para salvar la noche, comité de empresa generoso.", zh: "公司派对「北极」主题，300名宾客，老板想惊艳全场。装饰师卷着定金跑了。110 FROZIO救这一夜，工会出手大方。", ru: "Корпоратив в теме «Северный полюс», 300 гостей, босс хочет впечатлить. Декоратор исчез с задатком. 110 FROZIO, чтобы спасти вечер, щедрый профсоюз.", it: "Festa aziendale tema «Polo Nord», 300 ospiti, il capo vuole stupire. Il decoratore è sparito con l'acconto. 110 FROZIO per salvare la serata, comitato aziendale generoso.", de: "Firmenparty Thema „Nordpol“, 300 Gäste, der Chef will beeindrucken. Der Dekorateur ist mit der Anzahlung verschwunden. 110 FROZIO, um den Abend zu retten, großzügiger Betriebsrat." } },
-  { id: 'p4_fro_film', minRevenue: 16000000, product: 'frozio', title: { fr: "Film de Noël hollywoodien", en: "Hollywood Christmas movie", es: "Película navideña de Hollywood", zh: "好莱坞圣诞电影", ru: "Голливудский рождественский фильм", it: "Film di Natale hollywoodiano", de: "Hollywood-Weihnachtsfilm" }, minPhase: 4, minLevel: 26, decisionTime: 30, needStock: 220, rewardAccept: { money: 2600, rep: 3, noto: 5 },
-    narrative: { fr: "Production internationale, scène de tempête de neige finale, budget colossal mais effets numériques refusés par le réalisateur. 220 FROZIO sur le plateau demain. Crédit au générique.", en: "International production, final snowstorm scene, colossal budget but the director refuses CGI. 220 FROZIO on set tomorrow. Credit in the titles.", es: "Producción internacional, escena de tormenta de nieve final, presupuesto colosal pero el director rechaza CGI. 220 FROZIO en el set mañana. Crédito en los títulos.", zh: "国际制作，最后的暴风雪场景，预算庞大但导演拒绝CGI。明天220 FROZIO送片场。署名上字幕。", ru: "Международное производство, финальная сцена снежной бури, колоссальный бюджет, но режиссёр отказывается от CGI. 220 FROZIO на площадку завтра. Упоминание в титрах.", it: "Produzione internazionale, scena finale della tempesta di neve, budget colossale ma il regista rifiuta la CGI. 220 FROZIO sul set domani. Citazione nei titoli.", de: "Internationale Produktion, finale Schneesturm-Szene, kolossales Budget, aber der Regisseur lehnt CGI ab. 220 FROZIO morgen ans Set. Nennung im Abspann." } },
-  // --- MEDIPACK (7) ---
-  { id: 'p4_med_foot', minRevenue: 0, product: 'medipack', title: { fr: "Tournoi de foot amateur", en: "Amateur football tournament", es: "Torneo de fútbol amateur", zh: "业余足球赛", ru: "Любительский футбольный турнир", it: "Torneo di calcio amatoriale", de: "Amateur-Fußballturnier" }, minPhase: 4, minLevel: 21, decisionTime: 30, needStock: 45, rewardAccept: { money: 400, rep: 1, noto: 1 },
-    narrative: { fr: "Tournoi du dimanche, 16 équipes, déjà 4 entorses et un nez cassé. Le kiné est à court de poches de froid. 45 MEDIPACK au bord du terrain, on se cotise, ça urge.", en: "Sunday tournament, 16 teams, already 4 sprains and a broken nose. The physio is out of cold packs. 45 MEDIPACK pitchside, we're pooling cash, it's urgent.", es: "Torneo del domingo, 16 equipos, ya 4 esguinces y una nariz rota. El fisio se quedó sin bolsas de frío. 45 MEDIPACK junto al campo, nos cotizamos, urge.", zh: "周日联赛，16支队，已经4个扭伤一个鼻梁断了。理疗师的冷敷包用光了。场边45 MEDIPACK，我们凑钱，急。", ru: "Воскресный турнир, 16 команд, уже 4 растяжения и сломанный нос. У физиотерапевта кончились холодовые пакеты. 45 MEDIPACK у поля, скидываемся, срочно.", it: "Torneo domenicale, 16 squadre, già 4 distorsioni e un naso rotto. Il fisioterapista è senza pack freddi. 45 MEDIPACK a bordo campo, facciamo una colletta, è urgente.", de: "Sonntagsturnier, 16 Teams, schon 4 Verstauchungen und eine gebrochene Nase. Dem Physio gehen die Kühlpacks aus. 45 MEDIPACK an den Spielfeldrand, wir legen zusammen, es ist dringend." } },
-  { id: 'p4_med_cascade', minRevenue: 2000000, product: 'medipack', title: { fr: "Cascadeurs en formation", en: "Stunt trainees", es: "Especialistas en formación", zh: "特技学员", ru: "Стажёры-каскадёры", it: "Allievi stuntman", de: "Stunt-Azubis" }, minPhase: 4, minLevel: 22, decisionTime: 30, needStock: 85, rewardAccept: { money: 700, rep: 1, noto: 2 },
-    narrative: { fr: "École de cascade, journée chutes contrôlées. Beaucoup de bleus, peu de glace. 85 MEDIPACK pour la fin de journée, sinon les stagiaires ne tiennent pas la semaine.", en: "Stunt school, controlled falls day. Lots of bruises, little ice. 85 MEDIPACK for the end of the day, otherwise the trainees won't last the week.", es: "Escuela de especialistas, día de caídas controladas. Muchos moratones, poco hielo. 85 MEDIPACK para el final del día, si no los becarios no aguantan la semana.", zh: "特技学校，受控跌落日。瘀伤多，冰少。85 MEDIPACK撑到一天结束，否则学员撑不过这周。", ru: "Школа каскадёров, день контролируемых падений. Много синяков, мало льда. 85 MEDIPACK на конец дня, иначе стажёры не продержатся неделю.", it: "Scuola di stunt, giornata di cadute controllate. Tanti lividi, poco ghiaccio. 85 MEDIPACK per fine giornata, altrimenti gli allievi non reggono la settimana.", de: "Stuntschule, Tag der kontrollierten Stürze. Viele Prellungen, wenig Eis. 85 MEDIPACK für das Tagesende, sonst halten die Azubis die Woche nicht durch." } },
-  { id: 'p4_med_urgences', minRevenue: 2000000, product: 'medipack', title: { fr: "Cabinet médical débordé", en: "Overwhelmed medical office", es: "Consultorio médico desbordado", zh: "忙不过来的诊所", ru: "Заваленный медкабинет", it: "Ambulatorio medico sommerso", de: "Überlaufene Arztpraxis" }, minPhase: 4, minLevel: 22, decisionTime: 30, needStock: 65, rewardAccept: { money: 600, rep: 2, noto: 1 },
-    narrative: { fr: "Cabinet médical de quartier, vague de chaleur, on enchaîne les coups de chaud. Stock de froid épuisé. 65 MEDIPACK ce soir. Prix juste, on ne marchande pas la santé.", en: "Neighborhood medical office, heatwave, back-to-back heat strokes. Cold stock depleted. 65 MEDIPACK tonight. Fair price, we don't haggle over health.", es: "Consultorio médico de barrio, ola de calor, golpes de calor sin parar. Stock de frío agotado. 65 MEDIPACK esta noche. Precio justo, no se regatea la salud.", zh: "街区诊所，热浪，中暑一个接一个。冷库耗尽。今晚65 MEDIPACK。公道价，健康的事不还价。", ru: "Районный медкабинет, жара, тепловые удары один за другим. Холодный запас исчерпан. 65 MEDIPACK сегодня. Справедливая цена, на здоровье не торгуемся.", it: "Ambulatorio di quartiere, ondata di caldo, colpi di calore a raffica. Scorta di freddo esaurita. 65 MEDIPACK stasera. Prezzo giusto, sulla salute non si tira.", de: "Arztpraxis im Viertel, Hitzewelle, Hitzschlag um Hitzschlag. Kältevorrat erschöpft. 65 MEDIPACK heute Abend. Fairer Preis, über Gesundheit feilschen wir nicht." } },
-  { id: 'p4_med_boxe', minRevenue: 4000000, product: 'medipack', title: { fr: "Gala de boxe", en: "Boxing gala", es: "Velada de boxeo", zh: "拳击晚会", ru: "Боксёрский гала", it: "Gala di boxe", de: "Box-Gala" }, minPhase: 4, minLevel: 23, decisionTime: 30, needStock: 125, rewardAccept: { money: 1300, rep: 2, noto: 2 },
-    narrative: { fr: "Gala de boxe ce week-end, douze combats programmés. Le médecin du ring veut du stock d'avance, ça va saigner. 125 MEDIPACK en coulisses. Organisation sérieuse, paiement net.", en: "Boxing gala this weekend, twelve fights scheduled. The ring doctor wants stock in advance, it's gonna bleed. 125 MEDIPACK backstage. Serious organization, clean payment.", es: "Velada de boxeo este fin de semana, doce combates programados. El médico del ring quiere stock por adelantado, va a sangrar. 125 MEDIPACK entre bastidores. Organización seria, pago limpio.", zh: "这周末拳击晚会，十二场比赛在排程。台医想提前备货，会流血的。后台125 MEDIPACK。组织正规，付款干净。", ru: "Боксёрский гала в эти выходные, двенадцать боёв в программе. Врач ринга хочет запас заранее, будет кровь. 125 MEDIPACK за кулисами. Серьёзная организация, чистая оплата.", it: "Gala di boxe questo weekend, dodici incontri in programma. Il medico del ring vuole la scorta in anticipo, ci sarà sangue. 125 MEDIPACK dietro le quinte. Organizzazione seria, pagamento pulito.", de: "Box-Gala dieses Wochenende, zwölf Kämpfe angesetzt. Der Ringarzt will Vorrat im Voraus, das wird bluten. 125 MEDIPACK hinter die Bühne. Seriöse Organisation, saubere Zahlung." } },
-  { id: 'p4_med_scolaire', minRevenue: 7000000, product: 'medipack', title: { fr: "Festival sportif scolaire", en: "School sports festival", es: "Festival deportivo escolar", zh: "校园体育节", ru: "Школьный спортивный праздник", it: "Festa sportiva scolastica", de: "Schulsportfest" }, minPhase: 4, minLevel: 24, decisionTime: 30, needStock: 155, rewardAccept: { money: 1700, rep: 3, noto: 2 },
-    narrative: { fr: "Jeux inter-collèges, 2000 ados, on prévoit large côté bobos. L'infirmerie réclame du renfort froid. 155 MEDIPACK pour la journée. Éducation nationale, paiement garanti.", en: "Inter-school games, 2000 teens, we plan big on the boo-boo side. The infirmary wants cold reinforcement. 155 MEDIPACK for the day. State education, guaranteed payment.", es: "Juegos entre institutos, 2000 adolescentes, prevemos de sobra en heridas. La enfermería pide refuerzo de frío. 155 MEDIPACK para la jornada. Educación nacional, pago garantizado.", zh: "校际运动会，2000名青少年，磕碰方面我们准备得很足。医务室想要冷敷增援。当天155 MEDIPACK。国家教育，付款保证。", ru: "Межшкольные игры, 2000 подростков, планируем по-крупному по части ушибов. Медпункт хочет холодовое подкрепление. 155 MEDIPACK на день. Гособразование, гарантированная оплата.", it: "Giochi inter-scolastici, 2000 ragazzi, prevediamo grosso sul fronte bua. L'infermeria vuole rinforzo di freddo. 155 MEDIPACK per la giornata. Pubblica istruzione, pagamento garantito.", de: "Schulübergreifende Spiele, 2000 Jugendliche, wir planen groß auf der Wehwehchen-Seite. Die Krankenstation will Kälte-Verstärkung. 155 MEDIPACK für den Tag. Staatliche Bildung, garantierte Zahlung." } },
-  { id: 'p4_med_studio', minRevenue: 11000000, product: 'medipack', title: { fr: "Tournage cascade dangereuse", en: "Dangerous stunt shoot", es: "Rodaje de acrobacia peligrosa", zh: "危险特技拍摄", ru: "Опасные каскадёрские съёмки", it: "Riprese stunt pericolose", de: "Gefährlicher Stunt-Dreh" }, minPhase: 4, minLevel: 25, decisionTime: 30, needStock: 105, rewardAccept: { money: 1500, rep: 2, noto: 3 },
-    narrative: { fr: "Film d'action, semaine de cascades à haut risque, l'assurance exige un stock médical conséquent sur place. 105 MEDIPACK livrés au studio. Production solide, paiement immédiat.", en: "Action film, high-risk stunt week, insurance demands substantial medical stock on site. 105 MEDIPACK delivered to the studio. Solid production, immediate payment.", es: "Película de acción, semana de acrobacias de alto riesgo, el seguro exige stock médico considerable in situ. 105 MEDIPACK entregados al estudio. Producción sólida, pago inmediato.", zh: "动作片，高危特技周，保险要求现场有大量医疗储备。105 MEDIPACK送片场。制作扎实，立即付款。", ru: "Боевик, неделя высокорисковых трюков, страховка требует существенный медзапас на месте. 105 MEDIPACK доставить в студию. Солидное производство, немедленная оплата.", it: "Film d'azione, settimana di stunt ad alto rischio, l'assicurazione esige una scorta medica consistente in loco. 105 MEDIPACK consegnati allo studio. Produzione solida, pagamento immediato.", de: "Actionfilm, Hochrisiko-Stuntwoche, die Versicherung verlangt erheblichen Sanitätsvorrat vor Ort. 105 MEDIPACK ins Studio geliefert. Solide Produktion, sofortige Zahlung." } },
-  { id: 'p4_med_marathon', minRevenue: 16000000, product: 'medipack', title: { fr: "Marathon international", en: "International marathon", es: "Maratón internacional", zh: "国际马拉松", ru: "Международный марафон", it: "Maratona internazionale", de: "Internationaler Marathon" }, minPhase: 4, minLevel: 26, decisionTime: 30, needStock: 210, rewardAccept: { money: 2800, rep: 3, noto: 5 },
-    narrative: { fr: "Marathon international, 20 000 coureurs, dispositif médical massif imposé par la fédération. Notre fournisseur a fait défaut. 210 MEDIPACK répartis sur le parcours. Visibilité mondiale.", en: "International marathon, 20,000 runners, massive medical setup required by the federation. Our supplier defaulted. 210 MEDIPACK along the course. Global visibility.", es: "Maratón internacional, 20 000 corredores, dispositivo médico masivo impuesto por la federación. Nuestro proveedor falló. 210 MEDIPACK repartidos por el recorrido. Visibilidad mundial.", zh: "国际马拉松，20000名跑者，联合会要求大规模医疗配置。我们的供应商违约了。沿途210 MEDIPACK。全球曝光。", ru: "Международный марафон, 20 000 бегунов, массивное медоснащение по требованию федерации. Наш поставщик подвёл. 210 MEDIPACK вдоль трассы. Глобальная видимость.", it: "Maratona internazionale, 20.000 runner, dispositivo medico massiccio richiesto dalla federazione. Il nostro fornitore è inadempiente. 210 MEDIPACK lungo il percorso. Visibilità globale.", de: "Internationaler Marathon, 20.000 Läufer, massives Sanitätsaufgebot vom Verband gefordert. Unser Lieferant ist ausgefallen. 210 MEDIPACK entlang der Strecke. Weltweite Sichtbarkeit." } },
   // === PHASE 2 — niveaux 11-20 (industrie locale, demandes moyennes) ===
   { id: 'restaurant_groupe', minCap: 1500, title: { fr: "Groupe de restos régional", en: "Regional restaurant group", es: "Grupo de restos regional", zh: "区域餐饮集团", ru: "Региональная сеть ресторанов", it: "Gruppo ristoranti regionale", de: "Regionale Restaurantgruppe" }, minPhase: 2, minLevel: 11, decisionTime: 30, needStock: 1200, rewardAccept: { money: 2400, rep: 2 },
     narrative: { fr: "Bonjour, je dirige les achats pour un groupe de 12 restaurants dans la région. Notre fournisseur habituel a déposé le bilan. Il nous faut 1200 glaçons livrés ce soir, sinon les services sont morts. 2400€, on a un compte ouvert si ça passe.", en: "Hello, I head purchasing for a 12-restaurant regional group. Our usual supplier went bankrupt. We need 1200 ice cubes delivered tonight or service is dead. 2400€, we'll open an account if it works.", es: "Hola, dirijo las compras de un grupo de 12 restaurantes en la región. Nuestro proveedor habitual quebró. Necesitamos 1200 cubitos entregados esta noche o se acaba el servicio. 2400€, abrimos cuenta si funciona.", zh: "你好，我管理一家区域12家餐厅的采购。常用供应商破产了。今晚需要1200块冰，否则服务垮了。2400€，可以的话开账户。", ru: "Здравствуйте, я закупщик для региональной группы из 12 ресторанов. Наш постоянный поставщик обанкротился. Нужно 1200 кубиков сегодня вечером, иначе обслуживание мертво. 2400€, откроем счёт если получится.", it: "Salve, dirigo gli acquisti per un gruppo regionale di 12 ristoranti. Il nostro fornitore abituale è fallito. Servono 1200 cubetti stasera o salta il servizio. 2400€, apriamo un conto se va bene.", de: "Hallo, ich leite den Einkauf für eine regionale 12-Restaurant-Gruppe. Unser üblicher Lieferant ist pleite. Wir brauchen heute Abend 1200 Eiswürfel, sonst ist der Service tot. 2400€, wir eröffnen ein Konto wenn's klappt." } },
@@ -3341,11 +3067,6 @@ const DEV_PREVIEW_MESSAGES = {
       "L'ambiance est bonne en ce moment. J'ai envie de venir bosser le matin.",
       "Je vais te dire, on est en train de construire quelque chose ici. Ça se sent.",
     ],
-    phase4: [
-      "Et si on faisait pas que des glaçons ? Genre... d'autres produits congelés ?",
-      "J'ai bossé sur un prototype POP ICE. Ça déchire. Tu veux voir ?",
-      "Le proto est validé. Reste plus qu'à décider si on lance la prod.",
-    ],
   },
   brigitte: {
     quotidien: [
@@ -3368,22 +3089,12 @@ const DEV_PREVIEW_MESSAGES = {
       "Le café de la machine est dégueulasse. Investis dans une vraie, ça motive plus que ton sourire.",
       "T'es là depuis ce matin sans pause. Va faire un tour, je gère.",
     ],
-    phase4: [
-      "Tu sais que tes glaçons se vendent mal l'hiver ? Faut diversifier la gamme.",
-      "Si on faisait du saisonnier en plus du glaçon ? L'été c'est pop ice, l'hiver c'est frozio.",
-      "On a fini la consolidation des chiffres. T'as cinq acquéreurs potentiels sur la table.",
-    ],
   },
   janice: {
     celebration: [
       "Notre dernier post a fait 12 000 likes ! On commence à exister sur le créneau.",
       "J'ai vu deux concurrents copier notre charte graphique cette semaine. Bon signe.",
       "On vient d'être cité dans Glace Magazine. Ça pète.",
-    ],
-    phase4: [
-      "On a fait le tour de notre marché. On a fait grimper la notoriété. Maintenant faut diversifier.",
-      "Les acquéreurs potentiels arrivent à la table. À toi de décider quand on appuie.",
-      "J'ai préparé un dossier. Cinq investisseurs, cinq trajectoires. Tu choisis.",
     ],
   },
   lenny: {
@@ -3392,570 +3103,8 @@ const DEV_PREVIEW_MESSAGES = {
       "Petit pépin moteur sur le retour, j'ai bricolé sur l'autoroute. Livraison sauvée.",
       "Le responsable de [client] m'a demandé mon prénom aujourd'hui. Bon signe.",
     ],
-    phase4: [
-      "Patron, j'ai eu une idée chelou hier soir. On vend que des glaçons. Mais si on faisait genre... pop ice ?",
-      "J'ai vu un manège glaces à l'italienne hier. Imagine si on faisait pareil avec nos cubes.",
-      "On pourrait diversifier. T'en penses quoi ? Je dis ça comme ça.",
-    ],
   },
 };
-
-// Pictogrammes SVG monochromes pour les 3 produits Phase 4 (aucune couleur)
-function ProductIcon({ id, size = 16 }) {
-  const common = { width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' };
-  if (id === 'popice') {
-    // Tube de glace (popsicle / jus glacé en tube)
-    return (
-      <svg {...common} aria-hidden="true">
-        <rect x="8" y="3" width="8" height="15" rx="2" />
-        <path d="M10 18 v2.5 a2 2 0 0 0 4 0 V18" />
-        <line x1="10" y1="7" x2="14" y2="7" />
-        <line x1="10" y1="10" x2="14" y2="10" />
-      </svg>
-    );
-  }
-  if (id === 'frozio') {
-    // Flocon de neige (neige artificielle)
-    return (
-      <svg {...common} aria-hidden="true">
-        <line x1="12" y1="3" x2="12" y2="21" />
-        <line x1="3" y1="12" x2="21" y2="12" />
-        <line x1="5.5" y1="5.5" x2="18.5" y2="18.5" />
-        <line x1="18.5" y1="5.5" x2="5.5" y2="18.5" />
-        <path d="M12 6 l-2 -2 M12 6 l2 -2 M12 18 l-2 2 M12 18 l2 2" />
-        <path d="M6 12 l-2 -2 M6 12 l-2 2 M18 12 l2 -2 M18 12 l2 2" />
-      </svg>
-    );
-  }
-  // medipack : croix médicale dans un carré (gel pack médical)
-  return (
-    <svg {...common} aria-hidden="true">
-      <rect x="3.5" y="3.5" width="17" height="17" rx="2.5" />
-      <line x1="12" y1="8" x2="12" y2="16" />
-      <line x1="8" y1="12" x2="16" y2="12" />
-    </svg>
-  );
-}
-
-// Ligne de livraison Phase 4 : une seule route, plusieurs camions (1 par contrat
-// actif), positionnés selon leur progression. Tap sur un camion → bulle infos.
-function DeliveryLine({ lines, contractsById, language, localizeField, fmtInt }) {
-  const [selected, setSelected] = useState(null);
-  // Cap visuel : on n'affiche pas plus de 6 camions (lisibilité)
-  const MAX_TRUCKS = 6;
-  const active = lines.filter(l => l && (l.truckPhase === 'going' || l.truckPhase === 'returning' || l.truckPhase === 'loading'));
-  const shown = active.slice(0, MAX_TRUCKS);
-  const overflow = active.length - shown.length;
-  if (active.length === 0) {
-    return (
-      <div className="delivery-line-wrap">
-        <div className="delivery-line-empty">Aucune livraison en cours</div>
-      </div>
-    );
-  }
-  const sel = selected != null ? shown.find(l => l.contractId === selected) : null;
-  const selC = sel ? contractsById[sel.contractId] : null;
-  return (
-    <div className="delivery-line-wrap">
-      <div className="delivery-line">
-        <div className="delivery-line-road" />
-        <div className="delivery-line-depot" title="Atelier">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true">
-            <path d="M3 11 L12 4 L21 11" /><rect x="6" y="11" width="12" height="9" />
-          </svg>
-        </div>
-        <div className="delivery-line-dest" title="Clients">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <circle cx="12" cy="10" r="3.5" /><path d="M12 21 C12 21 5 14.5 5 9.5 A7 7 0 0 1 19 9.5 C19 14.5 12 21 12 21 Z" />
-          </svg>
-        </div>
-        {shown.map((l, i) => {
-          // Position : loading = au dépôt (0), going = truckPos, returning = recule
-          const p = l.truckPhase === 'loading' ? 0
-            : l.truckPhase === 'returning' ? Math.max(0, 1 - l.truckPos)
-            : Math.min(1, l.truckPos || 0);
-          const leftPct = 8 + p * 78; // marge dépôt 8% → client 86%
-          const isSel = selected === l.contractId;
-          return (
-            <button
-              key={l.contractId}
-              className={`delivery-truck ${isSel ? 'is-sel' : ''} ${l.truckPhase === 'returning' ? 'is-return' : ''}`}
-              style={{ left: `${leftPct}%`, bottom: `${14 + (i % 3) * 9}px` }}
-              onClick={() => setSelected(isSel ? null : l.contractId)}
-              aria-label="Livraison"
-            >
-              <svg width="20" height="13" viewBox="0 0 40 26" fill="none" aria-hidden="true">
-                <rect x="1" y="7" width="22" height="14" rx="1.5" stroke="currentColor" strokeWidth="2.5" fill="var(--bg)" />
-                <path d="M23 11 L31 11 L37 16 L37 21 L23 21 Z" stroke="currentColor" strokeWidth="2.5" fill="var(--bg)" strokeLinejoin="round" />
-                <circle cx="9" cy="22" r="3" fill="var(--fg)" />
-                <circle cx="31" cy="22" r="3" fill="var(--fg)" />
-              </svg>
-            </button>
-          );
-        })}
-      </div>
-      {overflow > 0 && <div className="delivery-line-overflow">+{overflow} autre{overflow > 1 ? 's' : ''} livraison{overflow > 1 ? 's' : ''}</div>}
-      {sel && selC && (() => {
-        const rev = Math.round((selC.qty || 0) * (selC.pricePerUnit || 0));
-        const pos = sel.truckPos || 0;
-        let stateLine;
-        if (sel.truckPhase === 'loading') {
-          stateLine = 'En attente de stock';
-        } else if (sel.truckPhase === 'returning') {
-          stateLine = 'Retour à l\'atelier';
-        } else {
-          const pct = Math.floor(pos * 100);
-          // Temps restant = (fraction restante × longueur courbe) / vitesse
-          const _len = (typeof p4CurveLength === 'function' && selC.x != null)
-            ? p4CurveLength(P4_FACTORY, selC) : 100;
-          const secLeft = Math.max(0, Math.ceil((1 - pos) * _len / P4_TRUCK_SPEED));
-          stateLine = `Livraison ${pct}% · ~${secLeft}s restantes`;
-        }
-        return (
-          <div className="delivery-bubble">
-            <div className="delivery-bubble-name">{localizeField(selC.name, language)}</div>
-            <div className="delivery-bubble-meta">Contrat : {fmtInt(rev)}€</div>
-            <div className="delivery-bubble-state">{stateLine}</div>
-          </div>
-        );
-      })()}
-    </div>
-  );
-}
-
-// =========================================================================
-// === COMPOSANT CARTE LOGISTIQUE PHASE 4 ===
-// Remplace la zone des lignes camions. Affiche le continent, les pays
-// (ouverts ou hachurés selon le produit actif), le cartouche produit avec
-// barre de stock, les contrats des marchés ouverts, et les camions animés
-// sur les contrats signés (linesP4).
-// =========================================================================
-function P4MapView({
-  activeProduct, products, productRate, stockRatio,
-  openMarkets, signedLines, language, localizeField, curSeasonId,
-  onPrev, onNext, productIndex, productCount,
-  fmt2, onOpenSuppliers, onOpenInfra,
-  wCost, wBudget, wUsed,
-  targetPop, targetFro, targetMed, onTargetSet, onTargetSetW,
-  stockNow, stockCap, activeLines, onReneg, fmtInt, p4Monitor, p4ProductStats, onTruckRepair, t, nowSec,
-}) {
-  const C = P4_CARTOUCHE;
-  const p4SwipeRef = useRef({ x: 0, active: false });
-  const prof = PRODUCT_PROFILES[activeProduct];
-  const prodName = localizeField(prof.name, language);
-  // contrats du produit actif dont le marché (pays:produit) est ouvert
-  const visibleContracts = (P4_CONTRACTS_BY_PRODUCT[activeProduct] || [])
-    .filter(c => openMarkets.includes(p4MarketKey(c.pays, activeProduct)));
-
-  // Construit une route courbe usine -> contrat (quadratique légèrement déviée)
-  const routeD = (c, seed) => {
-    const a = P4_FACTORY, b = c;
-    const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
-    const dx = b.x - a.x, dy = b.y - a.y;
-    const len = Math.hypot(dx, dy) || 1;
-    const nx = -dy / len, ny = dx / len;
-    const amp = p4CurveAmp(c.id);
-    return `M ${a.x} ${a.y} Q ${mx + nx * amp} ${my + ny * amp} ${b.x} ${b.y}`;
-  };
-
-  // Camions : pour chaque ligne signée du produit actif, on positionne un
-  // point sur la route du contrat correspondant selon truckPos/truckPhase.
-  // Stock courant par produit (depuis p4ProductStats) pour savoir si le
-  // dépôt peut fournir un camion en attente.
-  const _stockByProd = {};
-  (p4ProductStats || []).forEach(p => { _stockByProd[p.key] = p.stock; });
-
-  const trucks = [];
-  (signedLines || []).forEach(line => {
-    const c = visibleContracts.find(vc => vc.id === line.mapContractId);
-    if (!c) return;
-    // CAMION GARÉ : contrat hors saison (hibernation) ou suspendu →
-    // le camion ne circule pas, on ne dessine PAS son point.
-    const offSeason = curSeasonId
-      && !p4ContractInSeason(line.contractId, curSeasonId);
-    const parked = offSeason || line.status === 'suspended';
-    if (parked) return; // pas de point pour un camion garé
-    // position 0..1 le long de la route
-    let t = 0;
-    if (line.truckPhase === 'going') t = line.truckPos;
-    else if (line.truckPhase === 'returning') t = line.truckPos;
-    else if (line.truckPhase === 'loading') t = 0;
-    // PÉNURIE : camion au dépôt (loading), en saison, mais le stock du
-    // produit ne suffit pas à charger le lot → point clignotant.
-    const batchQty = Math.ceil(c.qty / (c.batchDivisor || 1));
-    const curStock = _stockByProd[c.product];
-    const starved = line.truckPhase === 'loading'
-      && !line.broken
-      && (typeof curStock === 'number')
-      && curStock < batchQty;
-    trucks.push({
-      c, t,
-      phase: line.truckPhase,
-      broken: !!line.broken,
-      starved,
-      contractId: line.contractId,
-      repairUntil: line.repairUntil || 0,
-    });
-  });
-
-  // Ensemble des ids de contrats SIGNÉS (une ligne existe pour eux).
-  // Les points ne s'affichent QUE pour ces contrats.
-  const signedContractIds = new Set(
-    (signedLines || []).map(l => l.mapContractId).filter(Boolean)
-  );
-
-  return (
-    <>
-    <div className="p4map-wrap">
-      <button className="p4map-suppliers-btn" onClick={onOpenSuppliers}>
-        <SlidersHorizontal size={15} strokeWidth={2.4} className="p4map-sup-ico" />
-        <span className="p4map-sup-txt">FOURNISSEURS &amp; PRIX DE VENTE</span>
-        <Coins size={14} strokeWidth={2.2} className="p4map-sup-ico2" />
-      </button>
-      {p4ProductStats && (() => {
-        const wB = wBudget || 0;
-        const wU = wUsed || 0;
-        const UNITS_BY_KEY = { popice: targetPop, frozio: targetFro, medipack: targetMed };
-        const wFree = Math.max(0, wB - wU);
-        const pctW = wB > 0 ? Math.min(100, Math.round(wU / wB * 100)) : 0;
-        const saturated = wFree <= 0 && wB > 0;
-        const hot100 = pctW >= 100 || saturated;
-        const hot90 = !hot100 && pctW >= 90;
-        return (
-        <div className="p4map-statsbox">
-          <div className="p4map-wbudget">
-            <div className="p4map-wbud-head">
-              <span className="p4map-wbud-lbl">{t('ui.factory_capacity')}</span>
-              <span className="p4map-wbud-val">{wU} / {wB} kW</span>
-            </div>
-            <div className={`p4map-wbud-bar ${hot100 ? 'hot100' : ''}`}>
-              <div
-                className={`p4map-wbud-fill ${hot100 ? 'hot100' : hot90 ? 'hot90' : ''}`}
-                style={{ width: pctW + '%' }}
-              />
-            </div>
-            <div className={`p4map-wbud-free ${hot100 ? 'sat' : ''}`}>
-              {saturated ? 'USINE SATURÉE · agrandir pour produire plus' : `${wFree} kW disponibles`}
-            </div>
-          </div>
-        <div className="p4map-pstats">
-          {p4ProductStats.map(p => {
-            const full = p.stockCap > 0 && p.stock >= p.stockCap;
-            const wasting = full && p.prodPerSec > 0;
-            const pctFill = p.stockCap > 0 ? Math.min(100, Math.round(p.stock / p.stockCap * 100)) : 0;
-            const wc = (wCost && wCost[p.key]) || 1;
-            const units = UNITS_BY_KEY[p.key] || 0;
-            const wAlloc = units * wc;
-            // Curseurs INDÉPENDANTS : chacun va de 0 au budget total de
-            // l'usine, sans tenir compte des deux autres. La somme peut
-            // dépasser le budget → l'usine se met en surcharge (géré par
-            // le throttle + barre « USINE SATURÉE »).
-            const sliderMax = Math.max(1, wB);
-            return (
-              <div key={p.key} className="p4map-pcol">
-                <div className="p4map-pname">{p.label}</div>
-                <div className="p4map-vbar-zone">
-                  {wasting && (
-                    <div className="p4map-rays">
-                      <span className="p4map-ray p4map-ray1" />
-                      <span className="p4map-ray p4map-ray2" />
-                      <span className="p4map-ray p4map-ray3" />
-                    </div>
-                  )}
-                  <div className={`p4map-vbar-wrap ${full ? 'full' : ''}`}>
-                    <div className="p4map-vbar">
-                      <div className="p4map-vbar-fill" style={{ height: pctFill + '%' }} />
-                    </div>
-                  </div>
-                  <input
-                    type="range" min="0" max={sliderMax} step="1"
-                    value={Math.min(wAlloc, sliderMax)}
-                    onChange={e => onTargetSetW(p.key, parseInt(e.target.value, 10))}
-                    className="p4map-vslider"
-                    aria-label={p.label}
-                  />
-                </div>
-                <div className="p4map-vbar-val">
-                  {p.stock}<span className="p4map-vbar-cap"> /{p.stockCap}</span>
-                </div>
-                {wasting
-                  ? <div className="p4map-loss-tag">PERTE</div>
-                  : <div className="p4map-loss-tag hidden">PERTE</div>}
-                <div className={`p4map-pmeta ${p.throttled && p.targetUnits > 0 ? 'p4map-pmeta-throt' : ''}`}>
-                  {p.prodPerSec} u/s · {wAlloc}kW
-                </div>
-                <div className="p4map-penergy">
-                  {p.energyEurPerSec.toFixed(2)} €/s
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        </div>
-        );
-      })()}
-
-      <div className="p4map-mapblock">
-      <div className="p4map-prodbar">
-        <button className="p4map-nav" onClick={onPrev} aria-label={t('aria.prev_product')}>‹</button>
-        <div className="p4map-prodcenter">
-          <div className="p4map-prodname">
-            <span className="p4map-prodicon"><ProductIcon id={activeProduct} size={15} /></span>
-            {prodName}
-          </div>
-          <div className="p4map-prodrate">{productRate}</div>
-          <div className="p4map-proddots">
-            {Array.from({ length: productCount }).map((_, i) => (
-              <span key={i} className={`p4map-pd ${i === productIndex ? 'on' : ''}`} />
-            ))}
-          </div>
-        </div>
-        <button className="p4map-nav" onClick={onNext} aria-label={t('aria.next_product')}>›</button>
-      </div>
-
-      {p4ProductStats && (() => {
-        const ps = p4ProductStats.find(x => x.key === activeProduct);
-        if (!ps) return null;
-        return (
-          <div className="p4map-monitor">
-            <div className="p4map-mon-cell">
-              <span className="p4map-mon-lbl">{t('ui.gross_revenue')}</span>
-              <span className="p4map-mon-val p4map-mon-thin">{fmtInt(ps.grossPerSec * MONTH_DURATION)} {t('unit.eur_month')}</span>
-            </div>
-            <div className="p4map-mon-cell">
-              <span className="p4map-mon-lbl">{t('ui.material_cost')}</span>
-              <span className="p4map-mon-val p4map-mon-thin p4map-mon-cost">−{fmtInt(ps.matPerSec * MONTH_DURATION)} {t('unit.eur_month')}</span>
-            </div>
-            <div className="p4map-mon-cell">
-              <span className="p4map-mon-lbl">{t('ui.energy')}</span>
-              <span className="p4map-mon-val p4map-mon-thin p4map-mon-cost">−{fmtInt(ps.energyEurPerSec * MONTH_DURATION)} {t('unit.eur_month')}</span>
-            </div>
-            <div className="p4map-mon-cell">
-              <span className="p4map-mon-lbl">{t('ui.net_margin')}</span>
-              <span className={`p4map-mon-val p4map-mon-strong ${ps.netPerSec < 0 ? 'p4map-mon-loss' : ''}`}>
-                {ps.netPerSec >= 0 ? '' : '−'}{fmtInt(Math.abs(ps.netPerSec * MONTH_DURATION))} {t('unit.eur_month')}
-              </span>
-            </div>
-          </div>
-        );
-      })()}
-
-      <div
-        className="p4map-canvas"
-        onTouchStart={e => { p4SwipeRef.current = { x: e.touches[0].clientX, active: true }; }}
-        onTouchEnd={e => {
-          if (!p4SwipeRef.current.active) return;
-          p4SwipeRef.current.active = false;
-          const dx = (e.changedTouches[0].clientX) - p4SwipeRef.current.x;
-          if (dx < -45) onNext();
-          else if (dx > 45) onPrev();
-        }}
-      >
-        <svg className="p4map-svg" viewBox={P4_MAP_VIEWBOX} preserveAspectRatio="xMidYMid meet">
-          <defs>
-            <pattern id="p4hatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
-              <rect width="6" height="6" fill="var(--bg)" />
-              <line x1="0" y1="0" x2="0" y2="6" stroke="var(--m1)" strokeWidth="2.4" opacity="0.5" />
-            </pattern>
-            {/* Pays voisin (hachuré à droite) */}
-            <pattern id="p4neighborhatch" patternUnits="userSpaceOnUse" width="4" height="4" patternTransform="rotate(45)">
-              <line x1="0" y1="0" x2="0" y2="4" stroke="var(--m4)" strokeWidth="0.6" opacity="0.8" />
-              <line x1="0" y1="0" x2="4" y2="0" stroke="var(--m4)" strokeWidth="0.6" opacity="0.8" />
-            </pattern>
-          </defs>
-
-          {/* Zone "pays voisin" hachurée, à droite */}
-          <path d="M 65,0 L 400,0 L 400,416 L 335,416 C 327,405 348,395 343.5,380.0 L 357.5,374.8 L 371.2,353.2 L 366.9,335.0 L 369.4,319.2 L 368.3,297.9 L 352.5,267.1 L 348.9,252.2 L 353.2,232.9 L 369.8,205.0 L 374.8,190.5 L 375.2,174.6 L 369.2,148.2 L 363.3,133.7 L 333.0,86.9 L 300.6,63.1 L 310.0,30.1 L 289.5,22.7 L 272.5,22.7 L 209.7,42.4 L 176.1,46.8 L 122.8,40.1 L 91.1,29.7 L 80.3,20.4 L 76.7,12.6 C 70,-1 78,4 65,0 Z" fill="url(#p4neighborhatch)" stroke="none" />
-
-          {/* Amorces noires de côtes (prolongement du continent) */}
-          <path d="M 76.7,12.6 C 78,4 70,-1 65,0" fill="none" stroke="var(--m1)" strokeWidth="1.4" strokeLinecap="round" />
-          <path d="M 343.5,380.0 C 348,395 327,405 335,416" fill="none" stroke="var(--m1)" strokeWidth="1.4" strokeLinecap="round" />
-
-          {/* Label MER (à gauche du continent) */}
-          <text className="p4map-sea" x="70" y="212" textAnchor="middle">MER</text>
-
-          {/* Continent */}
-          <path className="p4map-continent" d={P4_MAP_CONTINENT} />
-          {/* Frontières internes (gris clair, plein) */}
-          {P4_MAP_BORDERS.map((d, i) => (
-            <path key={i} className="p4map-border" d={d} />
-          ))}
-
-          {/* Pays hachurés : ceux dont le marché du produit actif n'est PAS ouvert */}
-          {Object.entries(P4_PAYS_POLY).map(([pays, poly]) => {
-            const isOpen = openMarkets.includes(p4MarketKey(pays, activeProduct));
-            if (isOpen) return null;
-            return <polygon key={pays} className="p4map-locked" points={poly} />;
-          })}
-
-          {/* Noms de pays */}
-          {Object.entries(P4_PAYS).map(([pays, info]) => (
-            <text key={pays} className="p4map-country" x={info.label[0]} y={info.label[1]} textAnchor="middle">{pays}</text>
-          ))}
-
-          {/* Routes vers les contrats signés */}
-          {trucks.map(({ c }, i) => (
-            <path key={'r' + c.id} className="p4map-route active" d={routeD(c, i + 1)} />
-          ))}
-
-          {/* Points des contrats SIGNÉS uniquement */}
-          {visibleContracts.filter(c => signedContractIds.has(c.id)).map(c => {
-            const onRight = c.side === 'R' ? true : c.side === 'L' ? false
-              : (c.x >= (P4_PAYS[c.pays] ? P4_PAYS[c.pays].label[0] : P4_FACTORY.x));
-            const lx = c.x + (onRight ? 7 : -7);
-            const anchor = onRight ? 'start' : 'end';
-            // Hors saison : le client ne commande pas (contrat en
-            // hibernation). On grise le carré + tiret central « inactif ».
-            const offSeason = curSeasonId
-              && !p4ContractInSeason(c.id, curSeasonId);
-            return (
-              <g key={c.id} className={offSeason ? 'p4map-sq-off' : ''}>
-                <rect className={`p4map-dot-sq ${c.prio ? 'prio' : ''} ${offSeason ? 'off' : ''}`} x={c.x - 4} y={c.y - 4} width="8" height="8" />
-                {offSeason && (
-                  <line className="p4map-sq-offmark" x1={c.x - 2.2} y1={c.y} x2={c.x + 2.2} y2={c.y} />
-                )}
-                <text className={`p4map-clbl ${offSeason ? 'off' : ''}`} x={lx} y={c.y - 2} textAnchor={anchor}>{localizeField(c.name, language)}</text>
-                <text className={`p4map-csub ${offSeason ? 'off' : ''}`} x={lx} y={c.y + 8} textAnchor={anchor}>{offSeason ? 'hors saison' : `${c.qty}u`}</text>
-              </g>
-            );
-          })}
-
-          {/* Camions — états visuels : chargé (plein), vide au retour
-              (contour), en attente de stock (pulse), en panne (anneau
-              clignotant + cliquable pour réparer) */}
-          {trucks.map(({ c, t: tpos, phase, broken, starved, contractId, repairUntil }, i) => {
-            const a = P4_FACTORY;
-            const mx = (a.x + c.x) / 2, my = (a.y + c.y) / 2;
-            const dx = c.x - a.x, dy = c.y - a.y;
-            const len = Math.hypot(dx, dy) || 1;
-            const nx = -dy / len, ny = dx / len;
-            const amp = p4CurveAmp(c.id);
-            const cx0 = mx + nx * amp, cy0 = my + ny * amp;
-            const u = Math.max(0, Math.min(1, tpos));
-            const px = (1 - u) * (1 - u) * a.x + 2 * (1 - u) * u * cx0 + u * u * c.x;
-            const py = (1 - u) * (1 - u) * a.y + 2 * (1 - u) * u * cy0 + u * u * c.y;
-            const isEmpty = phase === 'returning';   // vide au retour
-            // Clignote UNIQUEMENT en pénurie : au dépôt, en saison, mais
-            // le stock ne suffit pas à charger (le dépôt ne fournit pas).
-            const isStarved = starved;
-            if (broken) {
-              const repairing = repairUntil && nowSec < repairUntil;
-              if (repairing) {
-                // Réparation en cours : anneau de progression qui se remplit
-                // (même principe que les phases 2/3).
-                const dur = 4;
-                const remain = Math.max(0, repairUntil - nowSec);
-                const pct = Math.max(0, Math.min(1, 1 - remain / dur));
-                const rr = 8;
-                const circ = 2 * Math.PI * rr;
-                return (
-                  <g key={'t' + c.id}>
-                    <circle cx={px} cy={py} r={rr}
-                      fill="var(--bg)" stroke="var(--fg)" strokeWidth="1.6" opacity="0.28" />
-                    <circle cx={px} cy={py} r={rr}
-                      fill="none" stroke="var(--fg)" strokeWidth="1.6"
-                      strokeDasharray={circ}
-                      strokeDashoffset={circ * (1 - pct)}
-                      strokeLinecap="round"
-                      transform={`rotate(-90 ${px} ${py})`}
-                      style={{ transition: 'stroke-dashoffset 0.1s linear' }} />
-                    <circle className="p4map-truck-brkdot" cx={px} cy={py} r="3" />
-                  </g>
-                );
-              }
-              // Pas encore lancée : étiquette « RÉPARATION + montant »
-              // cliquable, lance la réparation directement.
-              const repCost = p4RepairCost(contractId);
-              const boxW = 60, boxH = 20;
-              const bx = Math.max(2, Math.min(400 - boxW - 2, px - boxW / 2));
-              const by = Math.max(2, py - 30);
-              return (
-                <g key={'t' + c.id} className="p4map-truck-broken"
-                   onClick={() => onTruckRepair && onTruckRepair(contractId)}
-                   style={{ cursor: 'pointer' }}>
-                  <circle className="p4map-truck-brkring" cx={px} cy={py} r="7" />
-                  <circle className="p4map-truck-brkring p4map-truck-brkring2" cx={px} cy={py} r="7" />
-                  <circle className="p4map-truck-brkdot" cx={px} cy={py} r="3.6" />
-                  {/* Étiquette réparation directement visible */}
-                  <rect className="p4map-repbox" x={bx} y={by} width={boxW} height={boxH} rx="2.5" />
-                  <text className="p4map-reptxt-t" x={bx + boxW / 2} y={by + 8} textAnchor="middle">RÉPARATION</text>
-                  <text className="p4map-reptxt-v" x={bx + boxW / 2} y={by + 16} textAnchor="middle">{fmtInt(repCost)} €</text>
-                  {/* zone tactile large pour mobile */}
-                  <circle cx={px} cy={py} r="14" fill="transparent" />
-                  <rect x={bx} y={by} width={boxW} height={boxH} fill="transparent" />
-                </g>
-              );
-            }
-            return (
-              <circle
-                key={'t' + c.id}
-                className={`p4map-truck ${isEmpty ? 'is-empty' : ''} ${isStarved ? 'is-waiting' : ''}`}
-                cx={px} cy={py} r="3.6"
-              />
-            );
-          })}
-
-          {/* Usine (picto lucide Factory) + cartouche produit */}
-          <g>
-            <rect className="p4map-cartbox" x={C.x} y={C.y} width={C.w} height={C.h + 9} rx="2" />
-            <text className="p4map-cartprod" x={C.x + C.w / 2} y={C.y + 9} textAnchor="middle">{prodName}</text>
-            <text className="p4map-cartstock" x={C.x + C.w / 2} y={C.y + 18} textAnchor="middle">{Math.round(stockNow)} / {Math.round(stockCap)}</text>
-            <line className="p4map-cartsep" x1={C.x} y1={C.y + 22} x2={C.x + C.w} y2={C.y + 22} />
-            <rect className="p4map-carttrack" x={C.barX} y={C.y + 27} width={C.barW} height={C.barH} rx="1" />
-            <rect className="p4map-cartfill" x={C.barX} y={C.y + 27} width={Math.max(1, stockRatio * C.barW)} height={C.barH} rx="1" />
-            <g transform={`translate(${P4_FACTORY_PICTO.tx},${P4_FACTORY_PICTO.ty}) scale(${P4_FACTORY_PICTO.scale})`}>
-              <g fill="none" stroke="var(--fg)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
-                <path d="M17 18h1" />
-                <path d="M12 18h1" />
-                <path d="M7 18h1" />
-              </g>
-            </g>
-          </g>
-        </svg>
-      </div>
-      </div>
-      </div>
-      <div className="p4map-settings">
-        <div className="p4map-contracts">
-          <div className="p4map-contracts-hd">
-            <span>{t('ui.active_contracts')}</span>
-            <span>{activeLines.length}</span>
-          </div>
-          {activeLines.length === 0 ? (
-            <div className="p4map-contracts-empty">Aucun contrat {prodName} signé</div>
-          ) : (
-            activeLines.map((l, i) => (
-              <div key={i} className={`p4map-cline${l.suspended ? ' p4map-cline-susp' : ''}${l.offSeason ? ' p4map-cline-off' : ''}`}>
-                <div className="p4map-cline-top">
-                  <span className="p4map-cline-name">{l.name}</span>
-                  <span className="p4map-cline-ca">{fmt2(l.caTotal)}€</span>
-                </div>
-                <div className="p4map-cline-mid">
-                  <span>{l.qty}u · {fmt2(l.price)}€/u</span>
-                  <span className={l.profitClass}>{l.profitTxt}</span>
-                </div>
-                <div className="p4map-cline-foot">
-                  <span className={(l.suspended || l.offSeason) ? 'p4map-cline-urgent' : ''}>{l.statusTxt}</span>
-                  <span>cumul {fmtInt(l.revenueAccum)}€</span>
-                </div>
-                {l.suspended && onReneg && (
-                  <button
-                    className="p4map-reneg-btn"
-                    onClick={() => onReneg(l.contractId)}
-                  >
-                    RENÉGOCIER (BRIGITTE)
-                  </button>
-                )}
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-    </>
-  );
-}
-
 
 function TruckSvg({ qty = 20, meltAccum = 0, isLoaded = false, className = '' }) {
   // Cab pixel size is CONSTANT — only trailer length varies with qty
@@ -4082,385 +3231,6 @@ function TruckSvg({ qty = 20, meltAccum = 0, isLoaded = false, className = '' })
 
 const B2B_BY_ID = Object.fromEntries(B2B_CONTRACTS.map(c => [c.id, c]));
 
-// === CONTRATS B2B PHASE 4 — par produit ===
-// Chaque contrat a un product ('popice' | 'frozio' | 'medipack')
-// qty = unités, deliveryTime = secondes pour un aller (×2 pour cycle complet)
-// pricePerUnit = prix marché du contrat (fixe, pas modulable par le joueur)
-// totalPrice = qty × pricePerUnit
-// Niveau 1-3 par produit, déblocage selon niveau du joueur
-const B2B_PHASE4 = [
-  // === POP ICE (consommable rapide, grand public) ===
-  { id: 'pop_superette', product: 'popice', tier: 1, minLevel: 21,
-    name: { fr: "Supérette Coin Sud", en: "Corner Shop South", es: "Tienda Esquina Sur", zh: "南部街角小店", ru: "Магазинчик на углу Юг", it: "Negozio di quartiere Sud", de: "Tante-Emma Süd" },
-    qty: 50, deliveryTime: 30, pricePerUnit: 1.60, brigitteTier: 4,
-    narrative: { fr: "Petite supérette de quartier. Veut tester POP ICE en linéaire pendant l'été.", en: "Small neighborhood shop. Wants to test POP ICE on shelves during summer.", es: "Tienda de barrio. Quiere probar POP ICE en lineal durante el verano.", zh: "小型街区店。想夏天在货架上试销POP ICE。", ru: "Маленький районный магазин. Хочет протестировать POP ICE на полках летом.", it: "Piccolo negozio di quartiere. Vuole testare POP ICE a scaffale durante l'estate.", de: "Kleiner Laden im Viertel. Will POP ICE im Sommer im Regal testen." } },
-  { id: 'pop_boulangerie_chain', product: 'popice', tier: 1, minLevel: 21,
-    name: { fr: "Chaîne de boulangeries", en: "Bakery chain", es: "Cadena de panaderías", zh: "面包房连锁", ru: "Сеть пекарен", it: "Catena di panifici", de: "Bäckereikette" },
-    qty: 200, deliveryTime: 50, pricePerUnit: 2.00, brigitteTier: 4,
-    narrative: { fr: "12 boutiques régionales. POP ICE en caisse pour les gamins.", en: "12 regional bakery stores. POP ICE at checkout for kids.", es: "12 tiendas regionales. POP ICE en caja para los niños.", zh: "12家地区面包房。收银台POP ICE给孩子。", ru: "12 региональных пекарен. POP ICE на кассе для детей.", it: "12 negozi di panificio regionali. POP ICE alla cassa per i bambini.", de: "12 regionale Bäckereifilialen. POP ICE an der Kasse für Kinder." } },
-  { id: 'pop_distri_national', product: 'popice', tier: 2, minLevel: 23,
-    name: { fr: "Distri National, référencement", en: "National Distri, listing", es: "Distri Nacional, referencia", zh: "全国分销, 上架", ru: "Национальная Дистри, листинг", it: "Distri Nazionale, listing", de: "National Distri, Listung" },
-    qty: 800, deliveryTime: 90, pricePerUnit: 2.20, brigitteTier: 5,
-    narrative: { fr: "Référencement national POP ICE sur 200 magasins. Volume garanti.", en: "POP ICE national listing across 200 stores. Guaranteed volume.", es: "Referencia nacional POP ICE en 200 tiendas. Volumen garantizado.", zh: "POP ICE在200家店全国上架。保证量。", ru: "Национальный листинг POP ICE в 200 магазинах. Гарантированный объём.", it: "Listing nazionale POP ICE in 200 negozi. Volume garantito.", de: "POP-ICE-Listung national in 200 Filialen. Garantiertes Volumen." } },
-  { id: 'pop_aire_autoroute', product: 'popice', tier: 2, minLevel: 23,
-    name: { fr: "Aires d'autoroute, saison estivale", en: "Highway rest areas, summer", es: "Áreas de autopista, verano", zh: "高速服务区, 夏季", ru: "Трассовые стоянки, лето", it: "Aree di sosta autostradali, estate", de: "Autobahnraststätten, Sommer" },
-    qty: 600, deliveryTime: 75, pricePerUnit: 2.40, brigitteTier: 5,
-    narrative: { fr: "Réseau de 40 aires d'autoroute. POP ICE pour les familles en transit.", en: "Network of 40 highway rest areas. POP ICE for families on the road.", es: "Red de 40 áreas de autopista. POP ICE para familias en ruta.", zh: "40个高速服务区网络。POP ICE给路上的家庭。", ru: "Сеть из 40 трассовых стоянок. POP ICE для семей в дороге.", it: "Rete di 40 aree di sosta autostradali. POP ICE per le famiglie in viaggio.", de: "Netz aus 40 Autobahnraststätten. POP ICE für Familien unterwegs." } },
-  { id: 'pop_export_premium', product: 'popice', tier: 3, minLevel: 25,
-    name: { fr: "Export premium, chaîne européenne", en: "Premium export, European chain", es: "Exportación premium, cadena europea", zh: "高端出口, 欧洲连锁", ru: "Премиум-экспорт, европейская сеть", it: "Export premium, catena europea", de: "Premium-Export, europäische Kette" },
-    qty: 1500, deliveryTime: 140, pricePerUnit: 2.80, brigitteTier: 6,
-    narrative: { fr: "Distribution europééenne, POP ICE en exclusivité saisonnière. Très gros volume.", en: "European distribution, POP ICE seasonal exclusive. Very large volume.", es: "Distribución europea, POP ICE en exclusiva estacional. Volumen muy grande.", zh: "欧洲分销，POP ICE季节性独家。量非常大。", ru: "Европейская дистрибуция, сезонный эксклюзив POP ICE. Очень большой объём.", it: "Distribuzione europea, esclusiva stagionale POP ICE. Volume molto grande.", de: "Europäischer Vertrieb, POP ICE saisonal exklusiv. Sehr großes Volumen." } },
-
-  // === FROZIO (premium events, saisonnier hiver) ===
-  { id: 'fro_station_ski', product: 'frozio', tier: 1, minLevel: 21,
-    name: { fr: "Station de ski régionale", en: "Regional ski resort", es: "Estación de esquí regional", zh: "地区滑雪度假村", ru: "Региональный горнолыжный курорт", it: "Stazione sciistica regionale", de: "Regionales Skigebiet" },
-    qty: 80, deliveryTime: 60, pricePerUnit: 18.00, brigitteTier: 4,
-    narrative: { fr: "Station moyenne montagne. Besoin de neige FROZIO d'appoint en début de saison.", en: "Mid-mountain ski resort. Needs FROZIO snow backup at season start.", es: "Estación de media montaña. Necesita nieve FROZIO de apoyo al inicio de temporada.", zh: "中山滑雪度假村。赛季初需要FROZIO雪备份。", ru: "Среднегорный горнолыжный курорт. Нужен резерв снега FROZIO в начале сезона.", it: "Stazione sciistica di media montagna. Serve riserva di neve FROZIO a inizio stagione.", de: "Mittelgebirgs-Skigebiet. Braucht FROZIO-Schnee-Backup zum Saisonstart." } },
-  { id: 'fro_tournage_cine', product: 'frozio', tier: 1, minLevel: 21,
-    name: { fr: "Tournage cinéma, décor hivernal", en: "Film shoot, winter set", es: "Rodaje cine, decorado invernal", zh: "电影拍摄, 冬季布景", ru: "Киносъёмки, зимняя площадка", it: "Riprese film, set invernale", de: "Filmdreh, Winterset" },
-    qty: 150, deliveryTime: 80, pricePerUnit: 22.00, brigitteTier: 4,
-    narrative: { fr: "Production de cinéma indépendante, FROZIO pour décor hivernal d'un long-métrage.", en: "Indie film production, FROZIO for a feature's winter set.", es: "Producción de cine independiente, FROZIO para decorado invernal de un largometraje.", zh: "独立电影制作，FROZIO用于一部长片的冬季布景。", ru: "Производство инди-фильма, FROZIO для зимней площадки полнометражки.", it: "Produzione di un film indie, FROZIO per il set invernale di un lungometraggio.", de: "Indie-Filmproduktion, FROZIO für das Winterset eines Spielfilms." } },
-  { id: 'fro_festival_glace', product: 'frozio', tier: 2, minLevel: 23,
-    name: { fr: "Festival de la glace", en: "Ice festival", es: "Festival del hielo", zh: "冰雪节", ru: "Ледовый фестиваль", it: "Festival del ghiaccio", de: "Eisfestival" },
-    qty: 400, deliveryTime: 120, pricePerUnit: 22.50, brigitteTier: 5,
-    narrative: { fr: "Festival hivernal de sculptures FROZIO. Patinoire éphémère + décors.", en: "Winter FROZIO sculpture festival. Pop-up rink + sets.", es: "Festival invernal de esculturas FROZIO. Pista efímera + decorados.", zh: "冬季FROZIO雕塑节。快闪溜冰场 + 布景。", ru: "Зимний фестиваль скульптур FROZIO. Поп-ап каток + декорации.", it: "Festival invernale di sculture FROZIO. Pista pop-up + set.", de: "Winterliches FROZIO-Skulpturenfestival. Pop-up-Eisbahn + Kulissen." } },
-  { id: 'fro_parc_attractions', product: 'frozio', tier: 2, minLevel: 23,
-    name: { fr: "Parc d'attractions, zone hiver", en: "Theme park, winter zone", es: "Parque de atracciones, zona invierno", zh: "主题公园, 冬季区", ru: "Тематический парк, зимняя зона", it: "Parco a tema, zona invernale", de: "Freizeitpark, Winterzone" },
-    qty: 350, deliveryTime: 100, pricePerUnit: 24.00, brigitteTier: 5,
-    narrative: { fr: "Création d'une zone immersive hivernale pendant l'année. FROZIO renouvelé en continu.", en: "Building a year-round immersive winter zone. FROZIO continuously refreshed.", es: "Creación de una zona invernal inmersiva todo el año. FROZIO renovado en continuo.", zh: "建造全年沉浸式冬季区。FROZIO持续补充。", ru: "Постройка круглогодичной иммерсивной зимней зоны. FROZIO непрерывно обновляется.", it: "Costruzione di una zona invernale immersiva tutto l'anno. FROZIO rinnovato in continuazione.", de: "Bau einer ganzjährigen immersiven Winterzone. FROZIO laufend nachgefüllt." } },
-  { id: 'fro_jo_dhiver', product: 'frozio', tier: 3, minLevel: 25,
-    name: { fr: "Jeux régionaux d'hiver", en: "Regional winter games", es: "Juegos regionales de invierno", zh: "地区冬季运动会", ru: "Региональные зимние игры", it: "Giochi invernali regionali", de: "Regionale Winterspiele" },
-    qty: 800, deliveryTime: 180, pricePerUnit: 28.00, brigitteTier: 7,
-    narrative: { fr: "Compétition internationale, FROZIO pour pistes et décors. Visibilité mondiale.", en: "International competition, FROZIO for tracks and sets. Worldwide visibility.", es: "Competición internacional, FROZIO para pistas y decorados. Visibilidad mundial.", zh: "国际比赛，FROZIO用于赛道和布景。全球曝光。", ru: "Международные соревнования, FROZIO для трасс и декораций. Всемирная видимость.", it: "Competizione internazionale, FROZIO per piste e set. Visibilità mondiale.", de: "Internationaler Wettkampf, FROZIO für Bahnen und Kulissen. Weltweite Sichtbarkeit." } },
-
-  // === MEDIPACK (premium pharma, constant toute l'année) ===
-  { id: 'med_clinique_privee', product: 'medipack', tier: 1, minLevel: 22,
-    name: { fr: "Clinique privée régionale", en: "Regional private clinic", es: "Clínica privada regional", zh: "地区私人诊所", ru: "Региональная частная клиника", it: "Clinica privata regionale", de: "Regionale Privatklinik" },
-    qty: 30, deliveryTime: 70, pricePerUnit: 45.00, brigitteTier: 4,
-    narrative: { fr: "Clinique de proximité. MEDIPACK pour transport vaccins routiniers.", en: "Local clinic. MEDIPACK for routine vaccine transport.", es: "Clínica local. MEDIPACK para transporte de vacunas rutinarias.", zh: "本地诊所。MEDIPACK用于常规疫苗运输。", ru: "Местная клиника. MEDIPACK для транспортировки рутинных вакцин.", it: "Clinica locale. MEDIPACK per il trasporto di vaccini di routine.", de: "Lokale Klinik. MEDIPACK für den Routine-Impfstofftransport." } },
-  { id: 'med_lab_recherche', product: 'medipack', tier: 2, minLevel: 23,
-    name: { fr: "Labo de recherche universitaire", en: "University research lab", es: "Laboratorio de investigación universitario", zh: "大学研究实验室", ru: "Университетская исследовательская лаборатория", it: "Laboratorio di ricerca universitario", de: "Universitäres Forschungslabor" },
-    qty: 80, deliveryTime: 100, pricePerUnit: 52.00, brigitteTier: 5,
-    narrative: { fr: "Université de pointe. MEDIPACK pour échantillons biologiques en transit.", en: "Top-tier university. MEDIPACK for biological samples in transit.", es: "Universidad puntera. MEDIPACK para muestras biológicas en tránsito.", zh: "顶级大学。MEDIPACK用于运输中的生物样本。", ru: "Топовый университет. MEDIPACK для биологических образцов в транзите.", it: "Università di alto livello. MEDIPACK per campioni biologici in transito.", de: "Spitzenuniversität. MEDIPACK für biologische Proben im Transit." } },
-  { id: 'med_hopital_chu', product: 'medipack', tier: 2, minLevel: 23,
-    name: { fr: "CHU, service oncologie", en: "Hospital, oncology", es: "Hospital universitario, oncología", zh: "医院, 肿瘤科", ru: "Больница, онкология", it: "Ospedale, oncologia", de: "Krankenhaus, Onkologie" },
-    qty: 120, deliveryTime: 90, pricePerUnit: 48.00, brigitteTier: 5,
-    narrative: { fr: "Hôpital universitaire. MEDIPACK quotidien pour chimiothérapies en transit.", en: "University hospital. Daily MEDIPACK for chemotherapy in transit.", es: "Hospital universitario. MEDIPACK diario para quimioterapias en tránsito.", zh: "大学医院。每日MEDIPACK用于运输中的化疗。", ru: "Университетская больница. Ежедневный MEDIPACK для химиотерапии в транзите.", it: "Ospedale universitario. MEDIPACK quotidiano per la chemio in transito.", de: "Universitätsklinik. Täglich MEDIPACK für Chemotherapie im Transit." } },
-  { id: 'med_centrale_pharma', product: 'medipack', tier: 3, minLevel: 24,
-    name: { fr: "Centrale d'achat pharma", en: "Pharma purchasing centrale", es: "Central de compras farma", zh: "医药采购中心", ru: "Фарма-закупочный центр", it: "Centrale acquisti farmaceutica", de: "Pharma-Einkaufszentrale" },
-    qty: 200, deliveryTime: 150, pricePerUnit: 56.00, brigitteTier: 6,
-    narrative: { fr: "Centrale nationale. MEDIPACK référencé pour 80 pharmacies hospitalières.", en: "National centrale. MEDIPACK listed for 80 hospital pharmacies.", es: "Central nacional. MEDIPACK referenciado para 80 farmacias hospitalarias.", zh: "全国中心。MEDIPACK为80家医院药房上架。", ru: "Национальный центр. MEDIPACK в листинге для 80 больничных аптек.", it: "Centrale nazionale. MEDIPACK a listino per 80 farmacie ospedaliere.", de: "Nationale Zentrale. MEDIPACK gelistet für 80 Krankenhausapotheken." } },
-  { id: 'med_org_transplant', product: 'medipack', tier: 3, minLevel: 25,
-    name: { fr: "Réseau transplantation d'organes", en: "Organ transplant network", es: "Red de trasplantes de órganos", zh: "器官移植网络", ru: "Сеть трансплантации органов", it: "Rete trapianti d'organo", de: "Organtransplantationsnetz" },
-    qty: 150, deliveryTime: 140, pricePerUnit: 75.00, brigitteTier: 7,
-    narrative: { fr: "Le contrat le plus prestigieux : MEDIPACK certifié pour transport d'organes. Aucun droit à l'erreur.", en: "The most prestigious contract: MEDIPACK certified for organ transport. No room for error.", es: "El contrato más prestigioso: MEDIPACK certificado para transporte de órganos. Cero margen de error.", zh: "最具声望的合同：MEDIPACK认证用于器官运输。没有出错的余地。", ru: "Самый престижный контракт: MEDIPACK, сертифицированный для транспортировки органов. Места для ошибки нет.", it: "Il contratto più prestigioso: MEDIPACK certificato per il trasporto di organi. Nessuno spazio per l'errore.", de: "Der prestigeträchtigste Vertrag: MEDIPACK zertifiziert für den Organtransport. Kein Raum für Fehler." } },
-];
-const B2B_PHASE4_BY_ID = Object.fromEntries(B2B_PHASE4.map(c => [c.id, c]));
-const B2B_PHASE4_BY_PRODUCT = {
-  popice: B2B_PHASE4.filter(c => c.product === 'popice'),
-  frozio: B2B_PHASE4.filter(c => c.product === 'frozio'),
-  medipack: B2B_PHASE4.filter(c => c.product === 'medipack'),
-};
-
-// =========================================================================
-// === CARTE LOGISTIQUE PHASE 4 ===
-// Géométrie validée (viewBox 0 0 400 416). Continent unique, frontières
-// internes en gris clair, pays hachurés tant que non ouverts. La carte
-// remplace la zone des lignes camions : usine dans HOMELAND, contrats des
-// marchés ouverts visibles, camions animés sur les contrats signés.
-// =========================================================================
-const P4_MAP_VIEWBOX = '0 0 400 416';
-const P4_MAP_CONTINENT =
-  'M 76.7 12.6 L 80.3 20.4 L 91.1 29.7 L 122.8 40.1 L 176.1 46.8 L 209.7 42.4 L 272.5 22.7 L 289.5 22.7 L 310.0 30.1 L 300.6 63.1 L 333.0 86.9 L 363.3 133.7 L 369.2 148.2 L 375.2 174.6 L 374.8 190.5 L 369.8 205.0 L 353.2 232.9 L 348.9 252.2 L 352.5 267.1 L 368.3 297.9 L 369.4 319.2 L 366.9 335.0 L 371.2 353.2 L 357.5 374.8 L 343.5 380.0 L 299.2 376.3 L 289.8 370.7 L 280.1 359.5 L 274.3 357.3 L 262.1 360.3 L 243.4 374.9 L 235.6 379.4 L 228.6 382.9 L 188.7 392.2 L 168.1 392.2 L 154.5 387.8 L 148.7 376.6 L 147.3 358.1 L 136.8 344.7 L 130.0 319.4 L 122.4 311.6 L 114.1 312.0 L 110.5 309.4 L 109.8 296.8 L 114.9 293.1 L 121.3 296.8 L 126.7 295.3 L 149.8 275.2 L 155.9 262.6 L 157.5 253.3 L 158.4 244.8 L 155.9 237.3 L 147.6 228.4 L 131.4 221.7 L 122.4 188.3 L 107.5 175.8 L 104.0 169.6 L 98.0 167.1 L 91.8 164.9 L 65.9 148.2 L 36.7 140.0 L 33.8 130.0 L 36.7 115.5 L 31.0 107.3 L 31.0 102.1 L 34.2 96.2 L 49.7 88.8 L 56.9 79.9 L 59.4 45.7 L 54.4 29.7 L 57.2 25.6 Z';
-const P4_MAP_BORDERS = [];
-// Position du libellé de chaque pays (centres validés manuellement)
-const P4_PAYS = {};
-// Polygones des zones hachurées (pays verrouillés) — par pays
-const P4_PAYS_POLY = {};
-// Usine + cartouche (hors continent, coin haut-gauche)
-const P4_FACTORY = {};
-// Position du picto usine lucide (translate) et du cartouche
-const P4_FACTORY_PICTO = '';
-const P4_CARTOUCHE = '';
-
-// Les 24 contrats positionnés (positions résolues définitives).
-// id = clé unique ; mapB2BId sera relié aux contrats B2B_PHASE4 en étape 2.
-const P4_CONTRACTS = [];
-const P4_CONTRACTS_BY_PRODUCT = {
-  popice: P4_CONTRACTS.filter(c => c.product === 'popice'),
-  frozio: P4_CONTRACTS.filter(c => c.product === 'frozio'),
-  medipack: P4_CONTRACTS.filter(c => c.product === 'medipack'),
-};
-// === SYSTÈME D'OUVERTURE DES PAYS (design validé) ===
-// Ordre proche→loin par distance réelle depuis l'usine. HOMELAND ouvert
-// d'office. Chaque pays s'ouvre via UN appel narratif (contact local) qui
-// débloque son contrat d'ENTRÉE. Brigitte débloque ensuite les contrats
-// suivants un par un, au fil des livraisons.
-const P4_COUNTRY_ORDER = []; // P4 désactivée — palier 11
-// Par pays : l'appel d'ouverture (id dans PHONE_CALLS) + le contrat d'entrée.
-const P4_COUNTRY_OPENING = {
-  DORASIE: { call: 'p4_open_DORASIE', entry: 'pm_fro_skiable' },
-  WESTERIA:  { call: 'p4_open_WESTERIA',  entry: 'pm_fro_parc' },
-  RIVELIS:   { call: 'p4_open_RIVELIS',   entry: 'pm_pop_bazar' },
-  MIDELAND: { call: 'p4_open_MIDELAND', entry: 'pm_pop_relais' },
-  SUDORA: { call: 'p4_open_SUDORA', entry: 'pm_med_littoral' },
-};
-// Par pays : chaîne ordonnée des contrats débloqués par Brigitte APRÈS
-// l'entrée (un pop-up court de Brigitte par contrat, texte 7 langues).
-const P4_COUNTRY_BRIGITTE_CHAIN = {}; // P4 désactivée — palier 11
-// Clé d'un marché ouvert = "PAYS:produit"
-const p4MarketKey = (pays, product) => `${pays}:${product}`;
-
-// =========================================================================
-// === SYSTÈME FOURNISSEURS PHASE 4 ===
-// Stock commun neutre. Chaque contrat signé porte un fournisseur + un prix,
-// réglables à tout moment. La qualité est appliquée à la livraison.
-// La réputation se calcule sur la MOYENNE glissante qualité/prix livrée
-// pendant le contrat (anti-exploit du switch de dernière seconde).
-// =========================================================================
-// 3 paliers par produit : eco / std / prm. cost = coût matière à l'unité
-// produite. q = qualité 0..1 (pilote prix-juste, revenu B2B, avis clients).
-const P4_SUPPLIERS = [];
-const P4_SUPPLIER_DEFAULT = 'eco'; // ÉCO par défaut en début de Phase 4
-const P4_SUPPLIER_BY_ID = (product, id) =>
-  (P4_SUPPLIERS[product] ? P4_SUPPLIERS[product].tiers.find(s => s.id === id) : null)
-  || (P4_SUPPLIERS[product] ? P4_SUPPLIERS[product].tiers[0] : null);
-
-// Profil d'un contrat : ce que le client attend (indice montré à la signature).
-// qExpect = qualité attendue 0..1 ; priceTol = tolérance prix (mult. du prix
-// juste avant que la réputation morde) ; priceLow = vrai si le client veut
-// surtout du prix bas (un prix élevé le braque même à qualité correcte).
-const P4_CONTRACT_PROFILE = {
-  LUXE:     { id: 'LUXE',     qExpect: 0.9,  priceTol: 1.35, priceLow: false,
-              label: { fr: 'LUXE', en: 'LUXURY', es: 'LUJO', zh: "奢侈", ru: "ЛЮКС", it: "LUSSO", de: "LUXUS" } },
-  STANDARD: { id: 'STANDARD', qExpect: 0.6,  priceTol: 1.10, priceLow: false,
-              label: { fr: 'STANDARD', en: 'STANDARD', es: 'ESTÁNDAR', zh: "标准", ru: "СТАНДАРТ", it: "STANDARD", de: "STANDARD" } },
-  VOLUME:   { id: 'VOLUME',   qExpect: 0.3,  priceTol: 0.95, priceLow: true,
-              label: { fr: 'VOLUME', en: 'VOLUME', es: 'VOLUMEN', zh: "销量", ru: "ОБЪЁМ", it: "VOLUME", de: "VOLUMEN" } },
-};
-// Attribution d'un profil à chaque contrat-carte (par id P4_CONTRACTS).
-// Les gros volumes prioritaires premium = LUXE ; les gros volumes
-// populaires = VOLUME ; le reste = STANDARD.
-const P4_CONTRACT_PROFILES = {
-  // POP ICE
-  pm_pop_epicerie: 'STANDARD', pm_pop_cabane: 'STANDARD',
-  pm_pop_fournil: 'VOLUME',    pm_pop_relais: 'VOLUME',
-  pm_pop_bazar: 'LUXE',        pm_pop_foire: 'VOLUME',
-  pm_pop_lagon: 'LUXE',        pm_pop_souk: 'VOLUME',
-  pm_pop_aqua: 'STANDARD',
-  // FROZIO
-  pm_fro_skiable: 'LUXE',      pm_fro_anneau: 'STANDARD',
-  pm_fro_parc: 'STANDARD',     pm_fro_plateau: 'LUXE',
-  pm_fro_halle: 'VOLUME',      pm_fro_bureau: 'STANDARD',
-  pm_fro_decors: 'STANDARD',   pm_fro_comptoir: 'VOLUME',
-  // MEDIPACK
-  pm_med_clinique: 'STANDARD', pm_med_biolab: 'STANDARD',
-  pm_med_hopital: 'LUXE',      pm_med_pharma: 'LUXE',
-  pm_med_littoral: 'STANDARD', pm_med_greffes: 'LUXE',
-  pm_med_cryo: 'STANDARD',     pm_med_sang: 'VOLUME',
-  pm_med_zoo: 'STANDARD',
-};
-const p4ProfileOf = (mapContractId) =>
-  P4_CONTRACT_PROFILE[P4_CONTRACT_PROFILES[mapContractId] || 'STANDARD'];
-
-// === TEXTES D'ACCOMPAGNEMENT DES CONTRATS P4 (un par contrat) ===
-// Décor vivant/absurde, ton des autres phases. AUCUNE mention de qualité
-// ni de prix : le joueur déduit l'exigence du TYPE d'enseigne. Un texte
-// unique par id de contrat (collé à son nom).
-const P4_CONTRACT_FLAVOR = {};
-function p4ContractFlavor(contractId, language) {
-  const entry = P4_CONTRACT_FLAVOR[contractId];
-  if (!entry) return '';
-  return entry[language] || entry.fr;
-}
-// === SAISONNALITÉ DES CONTRATS P4 ===
-// Hors saison active, le client ne commande pas (le contrat hiberne et
-// reprend tout seul à sa saison). [] vide = toute l'année.
-const P4_CONTRACT_SEASONS = {};
-// Le contrat est-il en saison active maintenant ? (true = oui ou toute l'année)
-function p4ContractInSeason(contractId, seasonId) {
-  const s = P4_CONTRACT_SEASONS[contractId];
-  if (!s || s.length === 0) return true; // toute l'année
-  return s.includes(seasonId);
-}
-// Ordre cyclique des saisons (pour calculer la saison suivante).
-const P4_SEASON_CYCLE = ['winter', 'spring', 'summer', 'autumn'];
-// Le contrat est-il PROPOSABLE dans la marketplace pour cette saison ?
-// Option B : pendant sa saison active OU la saison juste avant (le joueur
-// anticipe : il signe et lance la production pour être prêt à temps).
-function p4ContractProposable(contractId, seasonId) {
-  const s = P4_CONTRACT_SEASONS[contractId];
-  if (!s || s.length === 0) return true; // toute l'année
-  if (s.includes(seasonId)) return true;
-  // saison suivante après la saison courante
-  const idx = P4_SEASON_CYCLE.indexOf(seasonId);
-  const next = P4_SEASON_CYCLE[(idx + 1) % 4];
-  return s.includes(next); // la saison courante précède une saison active
-}
-// Libellé saisonnier pour l'affichage (fiche détail + statut).
-function p4SeasonLabel(contractId, language) {
-  const s = P4_CONTRACT_SEASONS[contractId];
-  const ALL = { fr: "Toute l'année", en: 'All year round', es: 'Todo el año', zh: "全年", ru: "Круглый год", it: "Tutto l'anno", de: "Das ganze Jahr über" };
-  if (!s || s.length === 0) return ALL[language] || ALL.fr;
-  const NM = {
-    winter: { fr: 'hiver', en: 'winter', es: 'invierno', zh: "冬", ru: "зима", it: "inverno", de: "Winter" },
-    spring: { fr: 'printemps', en: 'spring', es: 'primavera', zh: "春", ru: "весна", it: "primavera", de: "Frühling" },
-    summer: { fr: 'été', en: 'summer', es: 'verano', zh: "夏", ru: "лето", it: "estate", de: "Sommer" },
-    autumn: { fr: 'automne', en: 'autumn', es: 'otoño', zh: "秋", ru: "осень", it: "autunno", de: "Herbst" },
-  };
-  // ordre saisonnier lisible
-  const ord = ['winter', 'spring', 'summer', 'autumn'];
-  const parts = ord.filter(k => s.includes(k)).map(k => (NM[k][language] || NM[k].fr));
-  return parts.join(' · ');
-}
-// Distance qualitative (proche / moyenne / lointaine) pour l'affichage.
-function p4DistanceLabel(dist, language) {
-  const L = {
-    near: { fr: 'livraison proche', en: 'short delivery', es: 'entrega cercana', zh: "短途配送", ru: "короткая доставка", it: "consegna corta", de: "kurze Lieferung" },
-    mid: { fr: 'livraison moyenne', en: 'medium delivery', es: 'entrega media', zh: "中途配送", ru: "средняя доставка", it: "consegna media", de: "mittlere Lieferung" },
-    far: { fr: 'livraison lointaine', en: 'long delivery', es: 'entrega lejana', zh: "长途配送", ru: "долгая доставка", it: "consegna lunga", de: "lange Lieferung" },
-  };
-  const k = dist < 110 ? 'near' : dist < 200 ? 'mid' : 'far';
-  return L[k][language] || L[k].fr;
-}
-
-// === ENRICHISSEMENT ÉCO DES CONTRATS-CARTE ===
-// Chaque contrat P4_CONTRACTS reçoit prix/tier/durée dérivés de son profil
-// (LUXE/STANDARD/VOLUME) et du prix de base produit. Système UNIQUE :
-// le contrat de la carte EST le contrat signable (plus de B2B_PHASE4
-// abstrait parallèle). Validé : LUXE ×1,5 / STD ×1,0 / VOLUME ×0,8 ;
-// tier LUXE=3 / STD=2 / VOLUME=1 ; durée 600s + 2s/u, plafond 1200s.
-const P4_PROFILE_PRICE_MULT = { LUXE: 1.5, STANDARD: 1.0, VOLUME: 0.8 };
-// VITESSE camion constante (unités-carte par seconde de jeu). Tous les
-// camions roulent à la même vitesse : un point 2× plus loin = trajet 2×
-// plus long. Le temps d'un trajet = longueur de la courbe / cette vitesse.
-// 1,5 u/s : déplacement posé et bien lisible (un trajet typique ~120 u
-// dure ~80s ; les contrats récurrents tournent en continu de toute façon).
-const P4_TRUCK_SPEED = 1.5;
-// Déviation de la courbe (point de contrôle) STABLE par contrat : basée
-// sur un hash de l'id, pas sur l'index d'affichage. Garantit que la
-// courbe est identique dans routeD, le rendu du camion et le calcul de
-// longueur — donc une vitesse réellement constante et cohérente.
-function p4CurveAmp(contractId) {
-  let h = 0;
-  const s = String(contractId || '');
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-  return (h % 1000) / 1000 * 30 - 10; // même plage qu'avant : [-10, +20]
-}
-// Longueur approchée de la courbe de Bézier quadratique usine -> contrat
-// (échantillonnage en 24 segments : largement assez précis pour la vitesse).
-function p4CurveLength(factory, c) {
-  const a = factory, b = c;
-  const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
-  const dx = b.x - a.x, dy = b.y - a.y;
-  const len = Math.hypot(dx, dy) || 1;
-  const nx = -dy / len, ny = dx / len;
-  const amp = p4CurveAmp(c.id);
-  const cx0 = mx + nx * amp, cy0 = my + ny * amp;
-  const N = 24;
-  let total = 0, px = a.x, py = a.y;
-  for (let k = 1; k <= N; k++) {
-    const u = k / N;
-    const qx = (1 - u) * (1 - u) * a.x + 2 * (1 - u) * u * cx0 + u * u * b.x;
-    const qy = (1 - u) * (1 - u) * a.y + 2 * (1 - u) * u * cy0 + u * u * b.y;
-    total += Math.hypot(qx - px, qy - py);
-    px = qx; py = qy;
-  }
-  return total || 1;
-}
-const P4_PROFILE_TIER = { LUXE: 3, STANDARD: 2, VOLUME: 1 };
-// Référence de distance pour la prime : le plus proche (~42) = prime 1,0,
-// le plus loin (~321) ≈ ×1,8. Calé sur les distances réelles calculées.
-const P4_DIST_MIN = 42;
-const P4_DIST_REF = 280;
-const P4_DIST_FORCE = 0.8;
-// === CONTRATS RÉCURRENTS : seuils qualité/prix ===
-// Les contrats P4 tournent INDÉFINIMENT. Le client surveille le ratio
-// prix-demandé / prix-juste-pour-la-qualité (avgOver). Au-delà du seuil de
-// rupture, durablement, il cesse de commander (contrat suspendu). Pour
-// reprendre via Brigitte, il faut redescendre sous le seuil de renégo.
-const P4_BREAK_THRESHOLD = 1.35; // > 1,35 durablement → le client rompt
-const P4_RENEG_OK = 1.10;        // doit repasser sous 1,10 pour reprendre
-const P4_BREAK_MIN_BATCHES = 2;  // nb mini de lots livrés avant rupture possible
-function enrichP4Contract(c) {
-  const profKey = P4_CONTRACT_PROFILES[c.id] || 'STANDARD';
-  const base = (PRODUCT_PROFILES[c.product] && PRODUCT_PROFILES[c.product].basePrice) || 1;
-  const mult = P4_PROFILE_PRICE_MULT[profKey] || 1;
-  const tier = P4_PROFILE_TIER[profKey] || 2;
-  // Distance réelle (longueur de la courbe usine -> contrat).
-  const dist = p4CurveLength(P4_FACTORY, c);
-  // Prime de distance : un contrat lointain immobilise un camion bien plus
-  // longtemps → il doit rapporter plus pour rester intéressant.
-  const distPremium = 1 + Math.max(0, (dist - P4_DIST_MIN) / P4_DIST_REF) * P4_DIST_FORCE;
-  const pricePerUnit = Math.round(base * mult * distPremium * 100) / 100;
-  // Taille d'un lot par cycle de livraison (le contrat est récurrent : ce
-  // lot repart à chaque tour de camion, sans fin).
-  // Lots PLEINS pour tous les tiers (chaque livraison = quantité entière
-  // du contrat) : la demande cumulée monte assez haut pour qu'un curseur
-  // ample (plusieurs crans sur chaque produit) garde une vraie tension
-  // Watts en fin de jeu (Option B — coûts W ×1, budget 24 → 46 W).
-  const batchDivisor = 1;
-  return {
-    ...c,
-    profileKey: profKey,
-    pricePerUnit,
-    tier,
-    batchDivisor,
-    dist: Math.round(dist),
-    distPremium: Math.round(distPremium * 100) / 100,
-    grossTotal: Math.round(c.qty * pricePerUnit),
-  };
-}
-const P4_CONTRACTS_ENRICHED = P4_CONTRACTS.map(enrichP4Contract);
-const P4_CONTRACT_BY_ID = Object.fromEntries(
-  P4_CONTRACTS_ENRICHED.map(c => [c.id, c])
-);
-// Coût de réparation d'un camion en panne, proportionnel à la valeur
-// du contrat (qty × prix/u), borné entre P4_TRUCK_REPAIR_MIN et MAX.
-function p4RepairCost(contractId) {
-  const c = P4_CONTRACT_BY_ID[contractId];
-  if (!c) return P4_TRUCK_REPAIR_MIN;
-  const value = (c.qty || 0) * (c.pricePerUnit || 0);
-  // value typique ~ quelques milliers à dizaines de milliers : on mappe
-  // ~2000€ de valeur → MIN, ~20000€ → MAX (interpolation linéaire bornée).
-  const ratio = Math.max(0, Math.min(1, (value - 2000) / 18000));
-  const cost = P4_TRUCK_REPAIR_MIN + ratio * (P4_TRUCK_REPAIR_MAX - P4_TRUCK_REPAIR_MIN);
-  return Math.round(cost / 50) * 50; // arrondi à 50€
-}
-
-// =========================================================================
-// === FIL D'AVIS CLIENTS (système fournisseurs) ===
-// Avis signés par le contrat réel servi. 3 tonalités selon le ratio
-// qualité/prix livré. {f} = description sensorielle du produit fini
-// (interpolée depuis le fournisseur choisi).
-// =========================================================================
-const P4_REVIEWS = [];
-// Génère un avis client signé. tone: 'neg'|'neutral'|'pos'.
-function makeP4Review(contractName, finishText, tone, lang) {
-  const bank = (P4_REVIEWS[tone] && P4_REVIEWS[tone][lang]) || P4_REVIEWS.neutral.fr;
-  const tpl = bank[Math.floor(Math.random() * bank.length)];
-  const text = tpl.replace('{f}', finishText);
-  return { from: contractName, text, tone: tone === 'neg' ? 'neg' : tone === 'pos' ? 'pos' : 'neu' };
-}
-
-// =========================================================================
-// === EVENTS BANDEAU PHASE 4 ===
-// Même moteur visuel que les events P1-3 (bandeau haut : icône + nom +
-// impact + chrono) mais effets sur les mécaniques P4 (réputation,
-// contrats, fournisseurs, livraisons). Aucun effet glaçon.
-// effects possibles : revenueMult, repErodeMult, matCostMult,
-// demandMult (offre marketplace), truckSpeedMult, repTest{threshold,ok,ko}
-// =========================================================================
-const P4_EVENTS = {};
-const P4_EVENT_KEYS = Object.keys(P4_EVENTS);
-
-// =========================================================================
-// === POP-UPS PERSONNAGES PHASE 4 ===
-// Même visuel que P1-3 (bulle perso + label OBSERVATION). Contenu neuf,
-// centré carte/contrats/fournisseurs/pays. {ctx} interpolé si fourni.
-// Clés de déclenchement : 'rep_low', 'luxe_eco', 'pays_open',
-// 'margin_neg', 'premium_on', 'big_done', 'ambient'.
-// =========================================================================
 // === REMERCIEMENTS DE PROMOTION ===
 // Map upgrade_id → { speaker, fr/en/es/zh/ru/it/de }. Affiché en popup
 // quand le joueur achète une amélioration qui boost ce personnage.
@@ -4844,168 +3614,6 @@ const UPGRADE_THANKS = {
 };
 
 
-const P4_POPUPS = {};
-function pickP4Popup(speaker, key, lang) {
-  const sp = P4_POPUPS[speaker];
-  if (!sp) return null;
-  const bank = sp[key] || sp.ambient;
-  if (!bank) return null;
-  const arr = bank[lang] || bank.fr;
-  if (!arr || !arr.length) return null;
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
-
-// === ACQUÉREURS PHASE 4 ===
-// 5 acquéreurs qui se manifestent progressivement en Phase 4.
-// Chacun a un profil et des conditions d'éveil propres.
-// Le joueur peut accepter, refuser, ou négocier (+10% une fois).
-// L'offre est calculée à l'apparition et reste fixe — sauf si le joueur fait
-// un choix incompatible après réception (l'acquéreur peut alors se retirer).
-const ACQUIRERS = [
-  {
-    id: 'patrice_glacier',
-    name: { fr: "Patrice Glacier", en: "Patrice Glacier", es: "Patrice Glacier", zh: "帕特里斯·格拉西耶", ru: "Патрис Гласье", it: "Patrice Glacier", de: "Patrice Glacier" },
-    company: { fr: "Glacier Frères", en: "Glacier Brothers", es: "Hermanos Glacier", zh: "格拉西耶兄弟", ru: "Братья Гласье", it: "Fratelli Glacier", de: "Glacier Brothers" },
-    archetype: 'rival',
-    multiplier: 5,
-    // Tone & pitch dans la modale d'offre
-    pitch: {
-      fr: "Patron, vous m'avez fait suer pendant trois ans. Je ne peux plus lutter. Ma boîte n'a plus le choix, je viens vous absorber avant que vous nous écrasiez. Acceptez et je vous laisse les clés du groupe consolidé. Refusez et je me retire pour de bon.",
-      en: "Boss, you've been making me sweat for three years. I can't fight anymore. My company has no choice, I'm coming to absorb you before you crush us. Accept and I'll hand you the keys to the merged group. Refuse and I'm out for good.",
-      es: "Jefe, me ha hecho sudar tres años. No puedo más. Mi empresa no tiene opción, vengo a absorberle antes de que nos aplasten. Acepte y le entrego las llaves del grupo consolidado. Rechace y me retiro definitivamente.", zh: "老板，你让我冒了三年汗。我打不动了。我的公司别无选择,,我来收购你，趁你还没把我们压垮。接受，我把合并集团的钥匙交给你。拒绝，我就彻底退出。", ru: "Босс, ты заставляешь меня потеть три года. Я больше не могу бороться. У моей компании нет выбора, я прихожу поглотить тебя, пока ты нас не раздавил. Согласись, и я передам тебе ключи от объединённой группы. Откажись, и я ухожу навсегда.", it: "Capo, mi fai sudare da tre anni. Non posso più combattere. La mia azienda non ha scelta, vengo ad assorbirti prima che ci schiacci. Accetta e ti consegno le chiavi del gruppo fuso. Rifiuta e mi ritiro per sempre.", de: "Chef, Sie lassen mich seit drei Jahren schwitzen. Ich kann nicht mehr kämpfen. Meine Firma hat keine Wahl, ich komme, um Sie zu schlucken, bevor Sie uns zerquetschen. Nehmen Sie an, übergebe ich Ihnen die Schlüssel zur fusionierten Gruppe. Lehnen Sie ab, bin ich endgültig raus.",
-    },
-    requirements: { minLevel: 23, minValuation: 1500000 },
-    // Bonus/malus appliqués au multiplier de base
-    computeBonus: (ctx) => {
-      let bonus = 0;
-      // Patrice paie plus si t'es visible (humiliation totale)
-      if (ctx.notoriety >= 80) bonus += 0.10;
-      return bonus;
-    },
-    // Aucune condition de retrait
-    shouldWithdraw: () => false,
-  },
-  {
-    id: 'ethicvest',
-    name: { fr: "Claire Beaumont", en: "Claire Beaumont", es: "Claire Beaumont", zh: "克莱尔·博蒙", ru: "Клер Бомон", it: "Claire Beaumont", de: "Claire Beaumont" },
-    company: { fr: "EthicVest Capital", en: "EthicVest Capital", es: "EthicVest Capital", zh: "EthicVest Capital", ru: "EthicVest Capital", it: "EthicVest Capital", de: "EthicVest Capital" },
-    archetype: 'ethical',
-    multiplier: 8,
-    pitch: {
-      fr: "Bonjour. EthicVest Capital, fonds d'investissement à impact. Nous suivons votre parcours depuis dix-huit mois. Votre réputation, votre engagement éco-responsable, vos partenariats humanitaires. Nous voulons vous rejoindre, pas vous absorber. Vous gardez votre marque, votre équipe, votre âme. Nous apportons les capitaux pour scaler à l'européen.",
-      en: "Hello. EthicVest Capital, impact investment fund. We've followed your journey for eighteen months. Your reputation, your eco-responsibility, your humanitarian partnerships. We want to join you, not absorb you. You keep your brand, team, soul. We provide capital to scale European.",
-      es: "Hola. EthicVest Capital, fondo de inversión de impacto. Seguimos su trayectoria desde hace dieciocho meses. Su reputación, su compromiso ecológico, sus alianzas humanitarias. Queremos unirnos a usted, no absorberle. Conserva marca, equipo y alma. Aportamos capital para escalar a europeo.", zh: "你好。EthicVest Capital,,影响力投资基金。我们跟踪你的历程十八个月了。你的声誉、你的环保责任、你的人道合作。我们想加入你，不是吞并你。你保留品牌、团队、灵魂。我们提供资本助你欧洲规模化。", ru: "Здравствуйте. EthicVest Capital, фонд импакт-инвестиций. Мы следим за вашим путём восемнадцать месяцев. Ваша репутация, ваша эко-ответственность, ваши гуманитарные партнёрства. Мы хотим присоединиться к вам, не поглотить. Вы сохраняете бренд, команду, душу. Мы даём капитал для масштабирования на европейском уровне.", it: "Salve. EthicVest Capital, fondo di investimento d'impatto. Seguiamo il tuo percorso da diciotto mesi. La tua reputazione, la tua eco-responsabilità, le tue partnership umanitarie. Vogliamo unirci a te, non assorbirti. Mantieni marchio, team, anima. Forniamo capitale per scalare a livello europeo.", de: "Hallo. EthicVest Capital, Impact-Investmentfonds. Wir verfolgen Ihren Weg seit achtzehn Monaten. Ihr Ruf, Ihre Öko-Verantwortung, Ihre humanitären Partnerschaften. Wir wollen einsteigen, nicht schlucken. Sie behalten Marke, Team, Seele. Wir liefern Kapital zur europäischen Skalierung.",
-    },
-    requirements: { minLevel: 23, minValuation: 2000000, minReputation: 70 },
-    computeBonus: (ctx) => {
-      let bonus = 0;
-      // Bonus par segment éco élevé
-      if (ctx.segEco >= 60) bonus += 0.15;
-      if (ctx.segEco >= 80) bonus += 0.10;
-      // Bonus si partenariat humanitaire accepté
-      if (ctx.completedCalls.includes('partenariat_humanitaire')) bonus += 0.15;
-      // Bonus si journaliste éco accepté
-      if (ctx.completedCalls.includes('journaliste_eco')) bonus += 0.05;
-      return bonus;
-    },
-    // Se retire si le joueur fait un choix shady après réception de l'offre
-    shouldWithdraw: (ctx, offerReceivedAt) => {
-      const shadyCalls = ['lobbying_pharma', 'fonds_speculatif', 'greenwashing_offer', 'sabotage_concurrent', 'whistleblower', 'actionnaire_minoritaire'];
-      for (const cid of shadyCalls) {
-        const acceptedAt = ctx.callAcceptTimes[cid];
-        if (acceptedAt && acceptedAt > offerReceivedAt) return true;
-      }
-      return false;
-    },
-    withdrawReason: {
-      fr: "Nous avons appris votre récente décision. Notre fonds ne peut donner suite à cette offre. Bonne continuation.",
-      en: "We've learned of your recent decision. Our fund cannot pursue this offer. Best of luck.",
-      es: "Nos enteramos de su reciente decisión. Nuestro fondo no puede dar curso a esta oferta. Buena suerte.", zh: "我们得知了你最近的决定。我们的基金无法继续这个报价。祝你好运。", ru: "Мы узнали о вашем недавнем решении. Наш фонд не может продолжать с этим предложением. Удачи.", it: "Abbiamo appreso della tua recente decisione. Il nostro fondo non può proseguire con questa offerta. In bocca al lupo.", de: "Wir haben von Ihrer jüngsten Entscheidung erfahren. Unser Fonds kann dieses Angebot nicht weiterverfolgen. Alles Gute.",
-    },
-  },
-  {
-    id: 'silverlion',
-    name: { fr: "Viktor Korsakov", en: "Viktor Korsakov", es: "Viktor Korsakov", zh: "维克托·科尔萨科夫", ru: "Виктор Корсаков", it: "Viktor Korsakov", de: "Viktor Korsakov" },
-    company: { fr: "SilverLion Holdings", en: "SilverLion Holdings", es: "SilverLion Holdings", zh: "SilverLion Holdings", ru: "SilverLion Holdings", it: "SilverLion Holdings", de: "SilverLion Holdings" },
-    archetype: 'speculative',
-    multiplier: 10,
-    pitch: {
-      fr: "Soyons directs. SilverLion. On achète bas, on revend haut. Vous avez de la notoriété, des produits, du momentum. Nous, on a le cash et les contacts pour vous flipper dans dix-huit mois à un acheteur stratégique pour le triple. Vous touchez maintenant, vous sortez maintenant. Pas de blabla éthique.",
-      en: "Let's be direct. SilverLion. We buy low, sell high. You have notoriety, products, momentum. We have cash and contacts to flip you in eighteen months to a strategic buyer for triple. You cash out now. No ethics talk.",
-      es: "Seamos directos. SilverLion. Compramos bajo, vendemos alto. Usted tiene notoriedad, productos, momentum. Nosotros, cash y contactos para revenderle en dieciocho meses a un comprador estratégico por el triple. Cobra ya. Sin charla ética.", zh: "直说吧。SilverLion。我们低买高卖。你有知名度、产品、势头。我们有现金和人脉，十八个月内把你以三倍转手给一个战略买家。你现在套现。不谈道德。", ru: "Давайте прямо. SilverLion. Покупаем дёшево, продаём дорого. У вас известность, продукты, импульс. У нас наличные и контакты, чтобы перепродать вас за восемнадцать месяцев стратегическому покупателю втройне. Вы кэшируетесь сейчас. Без разговоров об этике.", it: "Andiamo dritti al punto. SilverLion. Compriamo basso, vendiamo alto. Hai notorietà, prodotti, slancio. Noi abbiamo liquidità e contatti per rivenderti in diciotto mesi a un acquirente strategico al triplo. Incassi adesso. Niente discorsi sull'etica.", de: "Reden wir Klartext. SilverLion. Wir kaufen billig, verkaufen teuer. Sie haben Bekanntheit, Produkte, Momentum. Wir haben Cash und Kontakte, um Sie in achtzehn Monaten zum Dreifachen an einen strategischen Käufer weiterzureichen. Sie kassieren jetzt. Kein Ethik-Gerede.",
-    },
-    requirements: { minLevel: 24, minValuation: 2500000, minShadyCount: 1 },
-    computeBonus: (ctx) => {
-      let bonus = 0;
-      // SilverLion adore les choix shady
-      const shadyCalls = ['lobbying_pharma', 'fonds_speculatif', 'greenwashing_offer', 'sabotage_concurrent', 'whistleblower', 'actionnaire_minoritaire'];
-      const shadyCount = shadyCalls.filter(cid => ctx.completedCalls.includes(cid)).length;
-      bonus += shadyCount * 0.10; // +10% par choix shady
-      if (ctx.notoriety >= 90) bonus += 0.15;
-      return bonus;
-    },
-    shouldWithdraw: () => false,
-  },
-  {
-    id: 'pharmacold',
-    name: { fr: "Dr. Sebastian Reiss", en: "Dr. Sebastian Reiss", es: "Dr. Sebastian Reiss", zh: "塞巴斯蒂安·赖斯博士", ru: "Д-р Себастьян Райс", it: "Dott. Sebastian Reiss", de: "Dr. Sebastian Reiss" },
-    company: { fr: "PharmaCold Group", en: "PharmaCold Group", es: "PharmaCold Group", zh: "PharmaCold Group", ru: "PharmaCold Group", it: "PharmaCold Group", de: "PharmaCold Group" },
-    archetype: 'specialist',
-    multiplier: 15,
-    pitch: {
-      fr: "Dr. Reiss, PharmaCold Group. Nous sommes intéressés par votre ligne MEDIPACK exclusivement. Notre offre est généreuse, mais soyons clairs : après acquisition, nous fermerons POP ICE et FROZIO. Votre marque grand public disparaîtra. Vous deviendrez une filiale pharma. Le chèque est très conséquent. À vous de voir ce que vous valorisez.",
-      en: "Dr. Reiss, PharmaCold Group. We're interested in your MEDIPACK line exclusively. Our offer is generous, but to be clear: after acquisition, we shut down POP ICE and FROZIO. Your consumer brand disappears. You become a pharma subsidiary. The check is substantial. Up to you what you value.",
-      es: "Dr. Reiss, PharmaCold Group. Nos interesa su línea MEDIPACK exclusivamente. Nuestra oferta es generosa, pero seamos claros: tras la adquisición cerraremos POP ICE y FROZIO. Su marca de consumo desaparecerá. Se convertirá en filial farmacéutica. El cheque es contundente. Usted decide qué valora.", zh: "赖斯博士，PharmaCold Group。我们只对你的MEDIPACK产品线感兴趣。我们的报价慷慨，但说清楚：收购后，我们关停POP ICE和FROZIO。你的消费品牌消失。你变成一家医药子公司。支票数额可观。你看重什么由你决定。", ru: "Д-р Райс, PharmaCold Group. Нас интересует ваша линия MEDIPACK эксклюзивно. Наше предложение щедрое, но чтобы было ясно: после поглощения мы закрываем POP ICE и FROZIO. Ваш потребительский бренд исчезает. Вы становитесь фарма-дочкой. Чек существенный. Вам решать, что для вас ценно.", it: "Dott. Reiss, PharmaCold Group. Ci interessa la tua linea MEDIPACK in esclusiva. La nostra offerta è generosa, ma per essere chiari: dopo l'acquisizione chiudiamo POP ICE e FROZIO. Il tuo marchio di consumo sparisce. Diventi una controllata pharma. L'assegno è sostanzioso. Sta a te decidere cosa conta.", de: "Dr. Reiss, PharmaCold Group. Uns interessiert ausschließlich Ihre MEDIPACK-Linie. Unser Angebot ist großzügig, aber klar gesagt: Nach der Übernahme legen wir POP ICE und FROZIO still. Ihre Konsumentenmarke verschwindet. Sie werden eine Pharma-Tochter. Der Scheck ist beträchtlich. Was Ihnen wichtig ist, entscheiden Sie.",
-    },
-    requirements: { minLevel: 24, minValuation: 3000000 },
-    // PharmaCold a un trigger spécifique : stock MEDIPACK ≥ 200 OU un
-    // contrat MEDIPACK premium (tier ≥ 2) qui tourne et a déjà bien livré.
-    customGate: (ctx) => {
-      if (ctx.medipackStock >= 200) return true;
-      // Contrat MEDIPACK tier≥2 actif ayant déjà livré plusieurs lots :
-      // PharmaCold remarque l'entreprise quand elle opère du médical
-      // premium en continu (modèle récurrent : plus de "complété").
-      const lines = ctx.linesP4 || [];
-      const provenMed = lines.some(l => {
-        const c = P4_CONTRACT_BY_ID[l.contractId];
-        return c && c.product === 'medipack' && c.tier >= 2
-          && (l.deliveriesDone || 0) >= 3;
-      });
-      return provenMed;
-    },
-    computeBonus: (ctx) => {
-      let bonus = 0;
-      // Plus de stock MEDIPACK = plus d'intérêt
-      if (ctx.medipackStock >= 500) bonus += 0.10;
-      // Bonus si lobbying pharma accepté
-      if (ctx.completedCalls.includes('lobbying_pharma')) bonus += 0.25;
-      return bonus;
-    },
-    shouldWithdraw: () => false,
-  },
-  {
-    id: 'elias_vance',
-    name: { fr: "Elias Vance", en: "Elias Vance", es: "Elias Vance", zh: "埃利亚斯·万斯", ru: "Элиас Вэнс", it: "Elias Vance", de: "Elias Vance" },
-    company: { fr: "Vance Industries", en: "Vance Industries", es: "Vance Industries", zh: "Vance Industries", ru: "Vance Industries", it: "Vance Industries", de: "Vance Industries" },
-    archetype: 'tycoon',
-    multiplier: 25,
-    pitch: {
-      fr: "Vance. Direct. Pas d'intermédiaire. Vous m'intéressez parce que vous avez réussi sans moi, c'est rare. Marques de voitures, fusées, réseaux. J'ajoute le froid à l'écosystème. Vous serez intégrés. Vos employés restent, vos produits restent, votre nom devient sous-marque. Vous, vous devenez consultant à vie avec equity. Choisissez. Je ne reviens jamais.",
-      en: "Vance. Direct. No middleman. You interest me because you made it without me, that's rare. Car brands, rockets, networks. I'm adding cold to the ecosystem. You'll be integrated. Your people stay, your products stay, your name becomes sub-brand. You become lifetime consultant with equity. Choose. I don't come back.",
-      es: "Vance. Directo. Sin intermediario. Me interesa porque triunfó sin mí, eso es raro. Marcas de coches, cohetes, redes. Añado el frío al ecosistema. Se integrarán. Su gente se queda, sus productos se quedan, su nombre se convierte en submarca. Usted, consultor vitalicio con equity. Decida. No vuelvo.", zh: "万斯。直接。无中间人。你让我感兴趣，因为你没靠我就做成了,,这很罕见。汽车品牌、火箭、网络。我把冷加进生态系统。你会被整合。你的人留下，产品留下，你的名字变成子品牌。你成为带股权的终身顾问。选吧。我不会再来。", ru: "Вэнс. Прямо. Без посредников. Вы мне интересны, потому что вы добились без меня, это редкость. Автомобильные бренды, ракеты, сети. Я добавляю холод в экосистему. Вас интегрируют. Ваши люди остаются, продукты остаются, ваше имя становится суб-брендом. Вы становитесь пожизненным консультантом с долей. Выбирайте. Я не возвращаюсь.", it: "Vance. Diretto. Niente intermediari. Mi interessi perché ce l'hai fatta senza di me, è raro. Marchi di auto, razzi, reti. Aggiungo il freddo all'ecosistema. Sarai integrato. La tua gente resta, i tuoi prodotti restano, il tuo nome diventa sotto-marchio. Diventi consulente a vita con quote. Scegli. Non torno indietro.", de: "Vance. Direkt. Kein Mittelsmann. Sie interessieren mich, weil Sie es ohne mich geschafft haben, das ist selten. Automarken, Raketen, Netzwerke. Ich füge dem Ökosystem die Kälte hinzu. Sie werden integriert. Ihre Leute bleiben, Ihre Produkte bleiben, Ihr Name wird Submarke. Sie werden Berater auf Lebenszeit mit Beteiligung. Wählen Sie. Ich komme nicht wieder.",
-    },
-    requirements: { minLevel: 25, minValuation: 5000000, minNotoriety: 95, requires3ActiveProducts: true, requiresPriorRefusal: true },
-    computeBonus: (ctx) => {
-      // Vance offre toujours fixe : 25× CA. Pas de bonus.
-      // C'est le boss final. L'offre est massive de base.
-      return 0;
-    },
-    shouldWithdraw: () => false,
-  },
-];
-const ACQUIRERS_BY_ID = Object.fromEntries(ACQUIRERS.map(a => [a.id, a]));
-
 // === MÉDIAS & ARTICLES DE PRESSE ===
 // 6 médias fictifs avec affinité positionnement.
 // L'affinité influence l'étoile attribuée selon le positionnement actuel du joueur.
@@ -5060,9 +3668,6 @@ const PRESS_TEMPLATES = [
   { source: 'capital_hebdo', tone: 'positive', notoRange: [50, 100], tags: ['luxe'],
     title: { fr: "Glace premium : Meltdown entre dans la cour des grands", en: "Premium ice: Meltdown joins the big leagues", es: "Hielo premium: Meltdown entra en la liga mayor", zh: "高端冰：Meltdown加入大联盟", ru: "Премиум-лёд: Meltdown входит в высшую лигу", it: "Ghiaccio premium: Meltdown entra nei pezzi grossi", de: "Premium-Eis: Meltdown spielt jetzt oben mit" },
     excerpt: { fr: "Distribution sélective, montée en gamme assumée : la marque vise le segment haut.", en: "Selective distribution, deliberate upscaling: the brand targets the high end.", es: "Distribución selectiva, premiumización asumida: la marca apunta a la gama alta.", zh: "选择性分销、有意提升档次：品牌瞄准高端。", ru: "Селективная дистрибуция, намеренное повышение класса: бренд целится в высокий сегмент.", it: "Distribuzione selettiva, upgrade deliberato: il marchio punta alla fascia alta.", de: "Selektiver Vertrieb, gezieltes Aufrücken: Die Marke zielt aufs obere Segment." } },
-  { source: 'capital_hebdo', tone: 'positive', notoRange: [65, 100], tags: ['luxe', 'pro'],
-    title: { fr: "Valorisation : Meltdown attire l'attention des fonds", en: "Valuation: Meltdown catches funds' attention", es: "Valoración: Meltdown llama la atención de los fondos", zh: "估值：Meltdown引起基金注意", ru: "Оценка: Meltdown привлекает внимание фондов", it: "Valutazione: Meltdown attira l'attenzione dei fondi", de: "Bewertung: Meltdown weckt das Interesse der Fonds" },
-    excerpt: { fr: "Plusieurs acquéreurs potentiels seraient en discussion avec la direction.", en: "Several potential acquirers reportedly in talks with management.", es: "Varios posibles compradores estarían en conversaciones con la dirección.", zh: "据称多家潜在收购方正与管理层洽谈。", ru: "Несколько потенциальных покупателей якобы в переговорах с руководством.", it: "Diversi potenziali acquirenti sarebbero in trattativa con la direzione.", de: "Mehrere potenzielle Käufer angeblich in Gesprächen mit dem Management." } },
 
   // === NEUTRES ===
   { source: 'echo_frais', tone: 'neutral', notoRange: [5, 100], tags: [],
@@ -5456,21 +4061,6 @@ const STATUS_POOLS = {
     { fr: "On commence à te citer en exemple dans les écoles de commerce.", en: "Business schools are starting to cite you as an example.", es: "Las escuelas de negocio empiezan a citarte como ejemplo.", zh: "商学院开始把你当案例引用。", ru: "Бизнес-школы начинают приводить тебя в пример.", it: "Le business school iniziano a citarti come esempio.", de: "Business Schools beginnen, dich als Beispiel zu nennen." },
     { fr: "Tu tiens ton avance, mois après mois.", en: "You hold your lead, month after month.", es: "Mantienes tu ventaja, mes tras mes.", zh: "你的领先优势月复一月地保持着。", ru: "Ты держишь лидерство месяц за месяцем.", it: "Mantieni il tuo vantaggio, mese dopo mese.", de: "Du hältst deinen Vorsprung, Monat für Monat." },
   ],
-  // === PHASE 4 — Diversification, valorisation, acquisition ===
-  p4_early: [
-    { fr: "Les trois lignes tournent en parallèle, ça grogne.", en: "Three lines running in parallel, it rumbles.", es: "Tres líneas funcionando en paralelo, retumba.", zh: "三条线并行运转，轰隆作响。", ru: "Три линии работают параллельно, гудит.", it: "Tre linee in parallelo, rumoreggia.", de: "Drei Linien laufen parallel, es rumort." },
-    { fr: "POP ICE, FROZIO, MEDIPACK : trois ADN à gérer.", en: "POP ICE, FROZIO, MEDIPACK: three DNAs to manage.", es: "POP ICE, FROZIO, MEDIPACK: tres ADNs que gestionar.", zh: "POP ICE、FROZIO、MEDIPACK：三种基因要管理。", ru: "POP ICE, FROZIO, MEDIPACK: три ДНК для управления.", it: "POP ICE, FROZIO, MEDIPACK: tre DNA da gestire.", de: "POP ICE, FROZIO, MEDIPACK: drei DNAs zu managen." },
-    { fr: "Janice te montre la valorisation entreprise.", en: "Janice shows you the company valuation.", es: "Janice te muestra la valoración empresa.", zh: "贾妮丝给你看公司估值。", ru: "Дженис показывает оценку компании.", it: "Janice ti mostra la valutazione dell'azienda.", de: "Janice zeigt dir die Unternehmensbewertung." },
-    { fr: "Les premiers acquéreurs commencent à se manifester.", en: "First acquirers are starting to surface.", es: "Los primeros compradores empiezan a manifestarse.", zh: "首批收购方开始浮现。", ru: "Первые покупатели начинают всплывать.", it: "I primi acquirenti iniziano a farsi vivi.", de: "Erste Käufer tauchen langsam auf." },
-    { fr: "Le tableau de bord est devenu un cockpit.", en: "The dashboard has become a cockpit.", es: "El tablero se ha vuelto una cabina.", zh: "仪表盘变成了驾驶舱。", ru: "Панель управления стала кокпитом.", it: "La dashboard è diventata un cockpit.", de: "Das Dashboard ist zum Cockpit geworden." },
-  ],
-  p4_mid: [
-    { fr: "Un fonds d'investissement t'envoie un dossier.", en: "An investment fund sends you a file.", es: "Un fondo de inversión te envía un dossier.", zh: "一家投资基金给你寄来一份档案。", ru: "Инвестфонд присылает тебе досье.", it: "Un fondo di investimento ti manda un dossier.", de: "Ein Investmentfonds schickt dir eine Akte." },
-    { fr: "Les acquéreurs comparent ta marge à celle des concurrents.", en: "Acquirers compare your margin to competitors'.", es: "Los compradores comparan tu margen con la competencia.", zh: "收购方把你的利润率和竞争对手比。", ru: "Покупатели сравнивают твою маржу с конкурентами.", it: "Gli acquirenti confrontano il tuo margine con quello dei concorrenti.", de: "Käufer vergleichen deine Marge mit der der Konkurrenz." },
-    { fr: "Chaque choix sculpte ta valeur de sortie.", en: "Each choice sculpts your exit value.", es: "Cada elección esculpe tu valor de salida.", zh: "每个选择都在雕琢你的退出价值。", ru: "Каждый выбор лепит твою цену выхода.", it: "Ogni scelta scolpisce il tuo valore d'uscita.", de: "Jede Entscheidung formt deinen Ausstiegswert." },
-    { fr: "Tu comprends que le jeu se joue maintenant.", en: "You realize the game is being played now.", es: "Comprendes que el juego se juega ahora.", zh: "你意识到游戏现在就在进行。", ru: "Ты понимаешь, что игра разыгрывается сейчас.", it: "Capisci che la partita si gioca adesso.", de: "Dir wird klar, dass das Spiel jetzt gespielt wird." },
-    { fr: "La presse économique nationale couvre tes mouvements.", en: "National business press covers your moves.", es: "La prensa económica nacional cubre tus movimientos.", zh: "全国商业媒体报道你的动作。", ru: "Национальная деловая пресса освещает твои ходы.", it: "La stampa economica nazionale segue le tue mosse.", de: "Die nationale Wirtschaftspresse berichtet über deine Schritte." },
-  ],
 };
 
 function pickStatusMessage(ctx) {
@@ -5501,14 +4091,10 @@ function pickStatusMessage(ctx) {
     if (ctx.level <= 22) return r(STATUS_POOLS.p2_mid);
     if (ctx.level <= 24) return r(STATUS_POOLS.p2_late);
     return r(STATUS_POOLS.p2_top);
-  } else if (ctx.phase === 3) {
+  } else {
     if (ctx.level <= 30) return r(STATUS_POOLS.p3_early);
     if (ctx.level <= 34) return r(STATUS_POOLS.p3_mid);
     return r(STATUS_POOLS.p3_late);
-  } else {
-    // Phase 4
-    if (ctx.level <= 44) return r(STATUS_POOLS.p4_early);
-    return r(STATUS_POOLS.p4_mid);
   }
 }
 
@@ -5570,74 +4156,6 @@ function niceThird(maxCap) {
 }
 
 const TRUCK_IDS = ['camion_1', 'camion_2', 'camion_3', 'camion_4', 'camion_5', 'camion_6'];
-
-// === CAPACITÉ DE CONTRATS SIMULTANÉS PHASE 4 ===
-// = max(3, nb camions possédés) + bonus des paliers d'extension P4.
-// Plancher 3 : sécurité si arrivée en P4 avec peu de camions (dev/test).
-const P4_CAP_EXTENSIONS = {
-  p4_depot_regional: 3,     // Dépôt régional → +3 slots
-  p4_plateforme_log: 5,     // Plateforme logistique → +5 slots
-  p4_hub_national: 7,       // Hub national → +7 slots
-  // Total : 6 camions + 15 = 21 slots — couvre le pic estival (21 contrats
-  // simultanés possibles), pour que TOUS les contrats puissent tourner.
-};
-// Charges récurrentes semestrielles ajoutées à la charge logistique B
-// par les paliers d'infrastructure possédés (familles A et B).
-// La famille C (ouverture marchés) n'alourdit PAS B → absente d'ici.
-const P4_INFRA_UPKEEP = {
-  // Famille A — Extensions de capacité
-  p4_depot_regional: 1500,
-  p4_plateforme_log: 3000,
-  p4_hub_national: 5000,
-  // Famille B — Améliorations flotte
-  p4_flotte_refrig: 1200,
-  p4_optim_tournees: 1500,
-  p4_telematique: 2000,
-};
-
-// =========================================================================
-// === PALIERS D'INFRASTRUCTURE PHASE 4 ===
-// 3 familles. famA = extensions de capacité (slots +B). famB = flotte
-// (qualitatif +B). famC = ouverture marchés (gros coût, PAS de +B).
-// requires : id du palier prérequis (chaîne), ou null.
-// =========================================================================
-const P4_INFRA = {
-  famA: {
-    label: { fr: 'CAPACITÉ', en: 'CAPACITY', es: 'CAPACIDAD', zh: "容量", ru: "ЁМКОСТЬ", it: "CAPACITÀ", de: "KAPAZITÄT" },
-    tiers: [
-],
-  },
-  famB: {
-    label: { fr: 'FLOTTE', en: 'FLEET', es: 'FLOTA', zh: "车队", ru: "ПАРК", it: "FLOTTA", de: "FLOTTE" },
-    tiers: [
-],
-  },
-};
-const P4_INFRA_FAMS = ['famA', 'famB'];
-function computeP4MaxLines(owned) {
-  const trucks = TRUCK_IDS.filter(id => owned[id]).length;
-  let bonus = 0;
-  for (const id in P4_CAP_EXTENSIONS) {
-    if (owned[id]) bonus += P4_CAP_EXTENSIONS[id];
-  }
-  return Math.max(3, trucks) + bonus;
-}
-
-// === Effets famB (flotte) — branchés sur la mécanique P4 ===
-// Multiplicateur de vitesse des camions selon les paliers possédés.
-// optim_tournees : −20% temps cycle → ×1.25 vitesse.
-// telematique    : −30% temps cycle → ×1.43 vitesse (remplace, pas cumul,
-//   car telematique requiert optim_tournees dans la chaîne).
-function p4FleetSpeedMult(owned) {
-  if (!owned) return 1;
-  if (owned['p4_telematique']) return 1 / 0.70;   // −30%
-  if (owned['p4_optim_tournees']) return 1 / 0.80; // −20%
-  return 1;
-}
-// Facteur de risque incident chauffeur/panne (flotte réfrigérée premium).
-function p4FleetIncidentMult(owned) {
-  return (owned && owned['p4_flotte_refrig']) ? 0.5 : 1;
-}
 
 function getLennyGrade(owned) {
   const count = TRUCK_IDS.filter(id => owned[id]).length;
@@ -6227,9 +4745,6 @@ export default function App() {
   });
   const [showMarket, setShowMarket] = useState(false);
   const [contractDetailId, setContractDetailId] = useState(null);
-  const [p4ContractDetailId, setP4ContractDetailId] = useState(null);
-  // Pop-up de réparation : id du contrat dont le camion est en panne.
-  const [p4RepairPopup, setP4RepairPopup] = useState(null);
   const [lineStatusIdx, setLineStatusIdx] = useState(null); // index de ligne pour popup status
   const [statsOpen, setStatsOpen] = useState(false);
   const [personnelOpen, setPersonnelOpen] = useState(false);
@@ -6392,7 +4907,6 @@ export default function App() {
   const phase3SemestersRef = useRef(0);
   useEffect(() => { phase3SemestersRef.current = phase3Semesters; }, [phase3Semesters]);
   const [missionOpen, setMissionOpen] = useState(false);
-  const [phase4ReadyCallDone, setPhase4ReadyCallDone] = useState(false); // l'appel de Janice a déjà été déclenché
   const [exoIntroShown, setExoIntroShown] = useState(false); // message unique d'exonération 1ère année déjà affiché
   const exoIntroShownRef = useRef(false);
   useEffect(() => { exoIntroShownRef.current = exoIntroShown; }, [exoIntroShown]);
@@ -6463,226 +4977,9 @@ export default function App() {
   const [phase3TriggerStage, setPhase3TriggerStage] = useState(0); // 0=not yet, 1=Glacier call done, 2=centrale call done, 3=unlock visible
   // Délai minimal entre étapes Phase 3 (en gameTime, pour éviter le spam de messages)
   const [phase3LastStageAt, setPhase3LastStageAt] = useState(0);
-  // === Phase 4 — Diversification produit (POP ICE / FROZIO / MEDIPACK)
-  const [phase4TriggerStage, setPhase4TriggerStage] = useState(0); // 0..6 ; 6 = Phase 4 active
-  const [phase4LastStageAt, setPhase4LastStageAt] = useState(0);
-  const [phase4ModalOpen, setPhase4ModalOpen] = useState(false);
-  const [phase4SceneStep, setPhase4SceneStep] = useState(0);
-  const [phase4MeetingOpen, setPhase4MeetingOpen] = useState(false);
-  const [phase4MeetingStep, setPhase4MeetingStep] = useState(0);
-  // Stocks Phase 4 (3 produits séparés)
-  const [popIceStock, setPopIceStock] = useState(0);
-  const [frozioStock, setFrozioStock] = useState(0);
-  const [medipackStock, setMedipackStock] = useState(0);
-  // Capacité de production Phase 4 — calibrée au départ pile sur le plus gros
-  // contrat initial (centrale pharma = 200u). Augmentable via upgrades P4.
-  const [p4MaxCap, setP4MaxCap] = useState(80);
-  const p4MaxCapRef = useRef(200);
-  useEffect(() => { p4MaxCapRef.current = p4MaxCap; }, [p4MaxCap]);
-  // Objectifs de production Phase 4 : nombre d'unités/cycle voulu par
-  // produit (curseur dédié). La somme des (unités × coût W) ne peut
-  // dépasser le budget usine p4MaxCap (blocage net côté UI).
-  // Valeurs de départ modestes, dans le budget initial (200 W).
-  // Cibles de départ calées sur le budget initial de 10 W (HOMELAND).
-  // Coûts W : popice ×1, frozio ×3, medipack ×6.
-  const [p4TargetPop, setP4TargetPop] = useState(2);   // 2×1 = 2 W
-  const [p4TargetFro, setP4TargetFro] = useState(1);   // 1×3 = 3 W
-  const [p4TargetMed, setP4TargetMed] = useState(0);   // 0×6 = 0 W (à activer au besoin) → 5 W / 10
-  const p4TargetPopRef = useRef(60);
-  const p4TargetFroRef = useRef(20);
-  const p4TargetMedRef = useRef(13);
-  useEffect(() => { p4TargetPopRef.current = p4TargetPop; }, [p4TargetPop]);
-  useEffect(() => { p4TargetFroRef.current = p4TargetFro; }, [p4TargetFro]);
-  useEffect(() => { p4TargetMedRef.current = p4TargetMed; }, [p4TargetMed]);
-  // Accumulateur W consommés sur le semestre → facture énergie
-  const p4EnergyAccumRef = useRef({ sum: 0, ticks: 0 });
-  // Prix joueur (slidables)
-  const [popIcePrice, setPopIcePrice] = useState(2.40);
-  const [frozioPrice, setFrozioPrice] = useState(18.00);
-  const [medipackPrice, setMedipackPrice] = useState(45.00);
-  // CA Phase 4 cumulé (pour valorisation)
-  const [phase4Revenue, setPhase4Revenue] = useState(0);
-  const [valuationTooltipOpen, setValuationTooltipOpen] = useState(false);
-  // Produit Phase 4 actuellement focus dans la card swipeable (popice / frozio / medipack)
-  const [activeProduct, setActiveProduct] = useState('popice');
-  // Drag state pour le swipe (touch + souris)
-  const swipeStartRef = useRef({ x: 0, active: false, delta: 0 });
-  const [swipeDelta, setSwipeDelta] = useState(0);
-  const focusCardRef = useRef(null);
-  // Refs pour le tick Phase 4 (stocks 3 produits)
-  const popIceStockRef = useRef(0);
-  const frozioStockRef = useRef(0);
-  const medipackStockRef = useRef(0);
-  useEffect(() => { popIceStockRef.current = popIceStock; }, [popIceStock]);
-  useEffect(() => { frozioStockRef.current = frozioStock; }, [frozioStock]);
-  useEffect(() => { medipackStockRef.current = medipackStock; }, [medipackStock]);
-  // Refs des prix joueur (utilisées dans le tick de vente automatique Phase 4)
-  const popIcePriceRef = useRef(2.40);
-  const frozioPriceRef = useRef(18.00);
-  const medipackPriceRef = useRef(45.00);
-  useEffect(() => { popIcePriceRef.current = popIcePrice; }, [popIcePrice]);
-  useEffect(() => { frozioPriceRef.current = frozioPrice; }, [frozioPrice]);
-  useEffect(() => { medipackPriceRef.current = medipackPrice; }, [medipackPrice]);
-  // === INCIDENTS CIBLÉS PHASE 4 ===
-  // Chaque produit a sa propre vulnérabilité :
-  // - POP ICE : fonte ×2 en canicule (passive, gérée dans le tick)
-  // - FROZIO : panne cryogénique (durée 30-60s, bloque sa production)
-  // - MEDIPACK : inspection sanitaire (instantanée, détruit 25-40% du stock)
-  const [frozioLineDown, setFrozioLineDown] = useState(0); // durée restante en secondes
-  const frozioLineDownRef = useRef(0);
-  useEffect(() => { frozioLineDownRef.current = frozioLineDown; }, [frozioLineDown]);
-  const [lastFrozioPanneAt, setLastFrozioPanneAt] = useState(-9999);
-  const lastFrozioPanneAtRef = useRef(-9999);
-  useEffect(() => { lastFrozioPanneAtRef.current = lastFrozioPanneAt; }, [lastFrozioPanneAt]);
-  const [lastMedipackInspectionAt, setLastMedipackInspectionAt] = useState(-9999);
-  const lastMedipackInspectionAtRef = useRef(-9999);
-  useEffect(() => { lastMedipackInspectionAtRef.current = lastMedipackInspectionAt; }, [lastMedipackInspectionAt]);
-
-  // === CONTRATS B2B PHASE 4 ===
-  // linesP4 = camions actifs (chaque entrée représente un contrat en cours de livraison)
-  // { contractId, product, truckPhase: 'loading'|'going'|'returning', truckPos: 0-1,
-  //   deliveriesDone, deliveriesTarget, contractExpiresAt, revenueAccum }
-  const [linesP4, setLinesP4] = useState([]);
-  const linesP4Ref = useRef([]);
-  useEffect(() => { linesP4Ref.current = linesP4; }, [linesP4]);
-  // Marketplace P4 : un seul tableau, filtré par produit dans l'UI
-  // { contractId, product, expiresAt, generatedAt }
-  const [marketplaceP4, setMarketplaceP4] = useState([]);
-  const marketplaceP4Ref = useRef([]);
-  useEffect(() => { marketplaceP4Ref.current = marketplaceP4; }, [marketplaceP4]);
-  // Déblocage progressif des produits Phase 4 : au démarrage, seul MEDIPACK
-  // (Dr. Vandenberg tient son engagement). POP ICE et FROZIO se débloquent
-  // ensuite via narratif (popups séquencés).
-  const [p4UnlockedProducts, setP4UnlockedProducts] = useState(['medipack']);
-  const p4UnlockedProductsRef = useRef(['medipack']);
-  useEffect(() => { p4UnlockedProductsRef.current = p4UnlockedProducts; }, [p4UnlockedProducts]);
-  // Étapes du narratif de déblocage produit P4 : 0 = rien encore, 1 = popice débloqué, 2 = frozio débloqué
-  const [p4UnlockStage, setP4UnlockStage] = useState(0);
-  const p4UnlockStageRef = useRef(0);
-  useEffect(() => { p4UnlockStageRef.current = p4UnlockStage; }, [p4UnlockStage]);
-  // === CARTE LOGISTIQUE P4 : marchés ouverts ===
-  // Tableau de clés "PAYS:produit". HOMELAND est ouvert d'office pour les 3
-  // produits dès l'entrée en Phase 4 (l'usine y est implantée). Les autres
-  // pays s'ouvrent via appels narratifs (étape 2).
-  const P4_HOME_MARKETS = ['HOMELAND:popice', 'HOMELAND:frozio', 'HOMELAND:medipack'];
-  const [p4OpenMarkets, setP4OpenMarkets] = useState(P4_HOME_MARKETS);
-  const p4OpenMarketsRef = useRef(P4_HOME_MARKETS);
-  useEffect(() => { p4OpenMarketsRef.current = p4OpenMarkets; }, [p4OpenMarkets]);
-  // === SYSTÈME D'OUVERTURE DES PAYS (design validé 17 mai) ===
-  // Pays ouverts (HOMELAND d'office). p4UnlockedContracts = contrats
-  // individuellement débloqués (entrée via appel + suivants via Brigitte) :
-  // SEULS ces contrats peuvent apparaître en marketplace.
-  const P4_HOME_CONTRACTS = ['pm_pop_epicerie', 'pm_pop_cabane', 'pm_fro_decors', 'pm_fro_comptoir', 'pm_med_clinique', 'pm_med_biolab'];
-  const [p4OpenCountries, setP4OpenCountries] = useState(['HOMELAND']);
-  const p4OpenCountriesRef = useRef(['HOMELAND']);
-  useEffect(() => { p4OpenCountriesRef.current = p4OpenCountries; }, [p4OpenCountries]);
-  const [p4UnlockedContracts, setP4UnlockedContracts] = useState(P4_HOME_CONTRACTS);
-  const p4UnlockedContractsRef = useRef(P4_HOME_CONTRACTS);
-  useEffect(() => { p4UnlockedContractsRef.current = p4UnlockedContracts; }, [p4UnlockedContracts]);
-  // Cumul persistant des livraisons par contractId (survit au dé-signage).
-  const p4ContractDeliveriesRef = useRef({});
-  // Seuils aléatoires MÉMORISÉS : N (3-5) pour ouvrir le pays suivant,
-  // M (2-4) pour la prochaine relance Brigitte. Tirés une fois, figés.
-  const p4NextCountryThresholdRef = useRef(3 + Math.floor(Math.random() * 3)); // 3..5
-  const p4NextBrigitteThresholdRef = useRef(2 + Math.floor(Math.random() * 3)); // 2..4
-  // Anti-rejeu : appel d'ouverture déjà déclenché pour un pays (en attente
-  // d'acceptation), et index Brigitte courant par pays.
-  const p4PendingCountryCallRef = useRef(null);
-  const p4BrigitteIdxRef = useRef({}); // pays -> nb de contrats Brigitte déjà débloqués
-  // Fil d'avis clients (système fournisseurs) : avis signés par les contrats
-  // de la carte, alimenté régulièrement et discrètement. Max ~20 récents.
-  const [p4Reviews, setP4Reviews] = useState([]);
-  const p4ReviewsRef = useRef([]);
-  useEffect(() => { p4ReviewsRef.current = p4Reviews; }, [p4Reviews]);
-  // Event bandeau P4 actif : { id, startedAt, expiresAt } ou null.
-  const [p4ActiveEvent, setP4ActiveEvent] = useState(null);
-  const p4ActiveEventRef = useRef(null);
-  useEffect(() => { p4ActiveEventRef.current = p4ActiveEvent; }, [p4ActiveEvent]);
-  const p4LastEventAtRef = useRef(-9999);
-  const p4NextEventAtRef = useRef(180); // 1er event P4 pas avant 3 min
-  // Cadence des pop-ups personnages P4 (observations) : anti-spam.
-  const p4LastPopupAtRef = useRef(-9999);
-  const p4PopupSeasonCountRef = useRef(0);
-  const p4PopupSeasonRef = useRef(-1);
-  const p4PrevRepBandRef = useRef(null); // pour détecter chute de réputation
-  const p4PrevPaysCountRef = useRef(0);  // pour détecter ouverture de pays
-  // Anti-doublon : textes narratifs P4 déjà affichés (chaque texte une seule fois).
-  const p4SeenPopupTextsRef = useRef(new Set());
-  // Charge logistique B : volume livré au début du semestre courant (snapshot).
-  const p4VolumeSemStartRef = useRef(0);
-  const p4LastLogisticsSemRef = useRef(-1); // dernier semestre facturé (anti-doublon)
-  const p4LastEnergySemRef = useRef(-1); // dernier semestre facturé énergie (anti-doublon)
   // Mensualisation : dernier mois où les charges ont été prélevées
   // (anti-doublon). Un seul prélèvement groupé par mois, toutes phases.
   const lastChargeMonthRef = useRef(-1);
-  const [p4SuppliersModalOpen, setP4SuppliersModalOpen] = useState(false);
-  const [p4InfraModalOpen, setP4InfraModalOpen] = useState(false);
-  const [p4ActivatedAt, setP4ActivatedAt] = useState(0);
-  const p4ActivatedAtRef = useRef(0);
-  useEffect(() => { p4ActivatedAtRef.current = p4ActivatedAt; }, [p4ActivatedAt]);
-
-  // === ACQUÉREURS PHASE 4 ===
-  // acquirerOffers : tableau d'offres actives
-  // { id, amount, receivedAt, expiresAt, hasNegotiated }
-  const [acquirerOffers, setAcquirerOffers] = useState([]);
-  const acquirerOffersRef = useRef([]);
-  useEffect(() => { acquirerOffersRef.current = acquirerOffers; }, [acquirerOffers]);
-  // acquirerRefusals : IDs déjà refusés/retirés (ne reviennent plus)
-  const [acquirerRefusals, setAcquirerRefusals] = useState([]);
-  const acquirerRefusalsRef = useRef([]);
-  useEffect(() => { acquirerRefusalsRef.current = acquirerRefusals; }, [acquirerRefusals]);
-  // acquirerModalOpen : ouvre la modale liste des offres
-  const [acquirerModalOpen, setAcquirerModalOpen] = useState(false);
-  // Tracking des timestamps d'acceptation d'appels (pour retrait conditionnel d'offres)
-  const [callAcceptTimes, setCallAcceptTimes] = useState({});
-  const callAcceptTimesRef = useRef({});
-  useEffect(() => { callAcceptTimesRef.current = callAcceptTimes; }, [callAcceptTimes]);
-  // État final : si une offre a été acceptée → endgame
-  const [acquisitionFinalized, setAcquisitionFinalized] = useState(null); // { acquirerId, amount, finalizedAt }
-  const [endgameEpilogueStage, setEndgameEpilogueStage] = useState(0); // 0=closed, 1-3 = épilogue, 4=score
-  // Seuils Brigitte : stock minimum à garder en réserve avant de vendre en marché de masse
-  // Logique : la vente auto ne se déclenche que si stock > seuil (le surplus est vendu)
-  // À 0 (défaut), Brigitte vend tout. Plus c'est haut, plus on garde de stock pour gros contrats.
-  const [sellMinPopIce, setSellMinPopIce] = useState(0);
-  const [sellMinFrozio, setSellMinFrozio] = useState(0);
-  const [sellMinMedipack, setSellMinMedipack] = useState(0);
-  const sellMinPopIceRef = useRef(0);
-  const sellMinFrozioRef = useRef(0);
-  const sellMinMedipackRef = useRef(0);
-  useEffect(() => { sellMinPopIceRef.current = sellMinPopIce; }, [sellMinPopIce]);
-  useEffect(() => { sellMinFrozioRef.current = sellMinFrozio; }, [sellMinFrozio]);
-  useEffect(() => { sellMinMedipackRef.current = sellMinMedipack; }, [sellMinMedipack]);
-
-  // Rééquilibrage d'allocation : quand on change la part d'un produit,
-  // les 2 autres absorbent la différence proportionnellement à leur valeur actuelle.
-  // Si les 2 autres sont à 0, on les répartit 50/50 du reste.
-  // Réglage d'un objectif de production (en unités/cycle) pour un produit,
-  // avec BLOCAGE NET au budget usine : on ne peut pas monter un curseur
-  // au-delà des W encore disponibles (budget = p4MaxCap, coûts P4_PROD_W_COST).
-  const setP4Target = (productKey, newUnits) => {
-    newUnits = Math.max(0, Math.round(newUnits));
-    const budget = p4MaxCapRef.current;
-    const wCost = P4_PROD_W_COST[productKey] || 1;
-    // Curseurs INDÉPENDANTS : chaque produit se règle librement de 0 au
-    // budget TOTAL de l'usine, sans dépendre des deux autres. La somme
-    // peut dépasser le budget → la production globale est bridée par le
-    // throttle (barre « USINE SATURÉE »), mais les curseurs ne bougent
-    // plus les uns à cause des autres.
-    const maxUnitsForThis = Math.floor(budget / wCost);
-    const clamped = Math.min(newUnits, maxUnitsForThis);
-    if (productKey === 'popice') { setP4TargetPop(clamped); p4TargetPopRef.current = clamped; }
-    else if (productKey === 'frozio') { setP4TargetFro(clamped); p4TargetFroRef.current = clamped; }
-    else { setP4TargetMed(clamped); p4TargetMedRef.current = clamped; }
-  };
-  // Réglage par WATTS alloués (curseur uniforme 0→budget, 1 cran = 1 W,
-  // échelle identique pour les 3 produits). On convertit les Watts voulus
-  // en unités (watts / coût W du produit) puis on réutilise le clamp
-  // budget de setP4Target. La mécanique interne reste en unités.
-  const setP4TargetW = (productKey, watts) => {
-    const wCost = P4_PROD_W_COST[productKey] || 1;
-    const units = Math.round(Math.max(0, watts) / wCost);
-    setP4Target(productKey, units);
-  };
   const [sellThreshold, setSellThreshold] = useState(0.30);
   const [thresholdOpen, setThresholdOpen] = useState(false);
   const [tutorialDismissed, setTutorialDismissed] = useState({});
@@ -6988,19 +5285,6 @@ export default function App() {
   const revenueBufferRef = useRef([]);
   // Lot 2 — snapshot du CA cumulé au dernier prélèvement mensuel (pour les charges indexées CA).
   const lastBilledMoneyEarnedRef = useRef(0);
-  // Buffer parallèle pour le monitoring P4 : { t, gross, mat } sur 60s.
-  const p4GrossBufferRef = useRef([]);
-  // Snapshot figé de la rentabilité/coûts : moyenne glissante sur les
-  // 60 dernières secondes, rafraîchie toutes les 10 s. Évite que les
-  // chiffres sautent à vue d'œil entre deux livraisons ponctuelles.
-  const [p4MonSnapshot, setP4MonSnapshot] = useState(null);
-  const P4_MON_WINDOW = 60;  // fenêtre de moyenne (secondes)
-  const P4_MON_REFRESH = 10; // intervalle de rafraîchissement (secondes)
-  // Panne camion P4 : dette de réputation accumulée par les retards
-  // (consommée et appliquée périodiquement), et id du contrat qui vient
-  // de tomber en panne (pour la notification).
-  const p4BrokenRepDebtRef = useRef(0);
-  const p4JustBrokeRef = useRef(null);
   const birthdaysRef = useRef({});
   const hireDatesRef = useRef({});
   const lastRaiseDecisionRef = useRef({});
@@ -7025,8 +5309,6 @@ export default function App() {
   const competitorsRef = useRef(COMPETITORS.map(c => ({ key: c.key, part: c.basePart, trend: 0 })));
   const phase3TriggerStageRef = useRef(0);
   const phase3LastStageAtRef = useRef(0);
-  const phase4TriggerStageRef = useRef(0);
-  const phase4LastStageAtRef = useRef(0);
   const hdrRef = useRef(null);
   const totalsRef = useRef({
     produced: 0, sold: 0, delivered: 0, melted: 0,
@@ -7059,33 +5341,6 @@ export default function App() {
   useEffect(() => { nextCallAtRef.current = nextCallAt; }, [nextCallAt]);
   useEffect(() => { completedCallsRef.current = completedCalls; }, [completedCalls]);
   useEffect(() => { gameTimeRef.current = gameTime; }, [gameTime]);
-  // Rafraîchit le snapshot rentabilité/coûts toutes les 10 s : moyenne
-  // glissante sur les 60 dernières secondes, divisée par une durée FIXE
-  // de 60 s (et non le temps écoulé variable). Résultat : des chiffres
-  // stables qui ne chutent plus à vue d'œil entre deux livraisons.
-  useEffect(() => {
-    const computeSnapshot = () => {
-      const _gt = gameTimeRef.current;
-      const buf = p4GrossBufferRef.current || [];
-      const cut = _gt - P4_MON_WINDOW;
-      const valid = buf.filter(r => r.t >= cut);
-      const win = P4_MON_WINDOW; // dénominateur FIXE → pas de saut
-      const gSum = valid.reduce((s, r) => s + r.gross, 0);
-      const mSum = valid.reduce((s, r) => s + r.mat, 0);
-      const grossPerSec = gSum / win;
-      const matPerSec = mSum / win;
-      const perProd = {};
-      for (const pk of PRODUCT_ORDER) {
-        const g = valid.reduce((s, r) => s + ((r.gp && r.gp[pk]) || 0), 0);
-        const m = valid.reduce((s, r) => s + ((r.mp && r.mp[pk]) || 0), 0);
-        perProd[pk] = { grossPerSec: g / win, matPerSec: m / win };
-      }
-      setP4MonSnapshot({ grossPerSec, matPerSec, perProd, at: _gt });
-    };
-    computeSnapshot(); // premier calcul immédiat
-    const id = setInterval(computeSnapshot, P4_MON_REFRESH * 1000);
-    return () => clearInterval(id);
-  }, []);
   useEffect(() => { lennyBoostUntilRef.current = lennyBoostUntil; }, [lennyBoostUntil]);
   useEffect(() => { fredBoostUntilRef.current = fredBoostUntil; }, [fredBoostUntil]);
   useEffect(() => { activeEventRef.current = activeEvent; }, [activeEvent]);
@@ -8042,84 +6297,6 @@ export default function App() {
 
       // [Les blocs Robert call 1 et call 2 sont gérés dans le tick dédié plus haut]
 
-      // === [DÉSACTIVÉ palier 11] CASCADE PHASE 3 → 4 ===
-      // L'ancienne cascade Vandenberg / diversification a été supprimée :
-      // P3 = fin de jeu. La modale victoire (5 missions validées) s'occupe
-      // de tout. Le bloc ci-dessous est conservé pour rétro-compat mais
-      // ne se déclenche plus jamais.
-      const vandenbergAllMax = VANDENBERG_REQUIRED.every(id => ownedSnap[id]);
-      const vandenbergMoneyOk = moneyRef.current >= VANDENBERG_MONEY;
-      // Vérification des 5 missions Phase 4 (version "ref" pour le tick)
-      const RETAIL_IDS_M = ['hyper_sud', 'distri_national', 'maxi_hyper', 'carre_dor', 'profresh', 'bio_marche'];
-      const signedRetailersM = new Set();
-      linesRef.current.forEach(l => { if (l && l.contractId && RETAIL_IDS_M.includes(l.contractId)) signedRetailersM.add(l.contractId); });
-      const mVisibility = notorietyRef.current >= 60;
-      const mTrust = reputationRef.current >= 70;
-      const mDistribution = signedRetailersM.size >= 4;
-      const mPlayerPart = Math.min(45, 3 + (notorietyRef.current / 100) * 12);
-      const mCompetition = competitorsRef.current.filter(c => mPlayerPart > c.part).length >= competitorsRef.current.length;
-      const mPerennity = phase3SemestersRef.current >= 15;
-      const allMissionsDone = mVisibility && mTrust && mDistribution && mCompetition && mPerennity;
-      const cascadeStarted = phase4TriggerStageRef.current >= 1;
-      const cascadeStartConditionsOk = allMissionsDone && vandenbergAllMax && vandenbergMoneyOk;
-      if (false /* palier 11: P4 désactivée */ && phaseRef.current === 3 && phase4TriggerStage < 6 && !popupMessageRef.current && !currentCallRef.current
-          && cyberLockoutRef.current <= 0
-          && !cascadeStarted && cascadeStartConditionsOk) {
-        const hasLenny = !!(ownedSnap['camion_1'] || ownedSnap['camion_2'] || ownedSnap['camion_3'] || ownedSnap['camion_4'] || ownedSnap['camion_5'] || ownedSnap['camion_6']);
-        if (hasLenny && hasF && hasB && hasJ) {
-          // Conditions remplies → on ouvre LA modale "Réunion stratégique".
-          // Le joueur fait défiler les interventions à son rythme (bouton Suivant).
-          setPhase4TriggerStage(1);
-          setPhase4MeetingOpen(true);
-          setPhase4MeetingStep(0);
-          return;
-        }
-      }
-
-      // === DÉBLOCAGE PROGRESSIF DES PRODUITS PHASE 4 ===
-      // En P4, MEDIPACK est déjà actif (Vandenberg). Après un délai, Lenny
-      // puis Fred proposent d'ouvrir POP ICE puis FROZIO. Popups séquencés,
-      // chacun débloque un produit dans la marketplace.
-      if (phaseRef.current === 4 && !popupMessageRef.current && !currentCallRef.current
-          && cyberLockoutRef.current <= 0 && p4ActivatedAtRef.current > 0) {
-        const sinceP4 = curT - p4ActivatedAtRef.current;
-        const stage = p4UnlockStageRef.current;
-        if (stage === 0 && sinceP4 >= 45) {
-          // Lenny : ouvre POP ICE (grand public)
-          const msg = {
-            fr: "Patron, le contrat pharma tourne, le camion MEDIPACK livre nickel. On a la marge pour ouvrir le deuxième front : je relance mes contacts en grande surface pour POP ICE. Le rayon glace nous attend.",
-            en: "Boss, the pharma contract is running, the MEDIPACK truck delivers flawlessly. We've got the margin to open the second front: I'm calling my supermarket contacts back for POP ICE. The ice aisle is waiting for us.",
-            es: "Jefe, el contrato farma funciona, el camión MEDIPACK entrega impecable. Tenemos margen para abrir el segundo frente: retomo mis contactos en grandes superficies para POP ICE. El pasillo de helados nos espera.", zh: "老板，医药合同在运转，MEDIPACK卡车配送无可挑剔。我们有利润开第二条战线：我在重新联系超市的关系做POP ICE。冰品货架在等我们。", ru: "Босс, фарма-контракт работает, грузовик MEDIPACK доставляет безупречно. У нас есть маржа открыть второй фронт: перезваниваю контактам из супермаркетов по POP ICE. Ледовый ряд нас ждёт.", it: "Capo, il contratto pharma è in corso, il camion MEDIPACK consegna alla perfezione. Abbiamo il margine per aprire il secondo fronte: richiamo i miei contatti dei supermercati per POP ICE. Il reparto ghiaccio ci aspetta.", de: "Chef, der Pharma-Vertrag läuft, der MEDIPACK-LKW liefert tadellos. Wir haben die Marge, um die zweite Front zu öffnen: Ich rufe meine Supermarktkontakte für POP ICE zurück. Der Eisgang wartet auf uns."
-          };
-          queuePopup({ type: 'character', speaker: 'Lenny', text: msg[lang] || msg.fr });
-          setP4UnlockedProducts(prev => prev.includes('popice') ? prev : [...prev, 'popice']);
-          p4UnlockedProductsRef.current = [...new Set([...p4UnlockedProductsRef.current, 'popice'])];
-          setP4UnlockStage(1);
-          p4UnlockStageRef.current = 1;
-          return;
-        }
-        if (stage === 1 && sinceP4 >= 120) {
-          // Fred : ouvre FROZIO (neige artificielle B2B)
-          const msg = {
-            fr: "Les deux lignes tiennent la charge. J'ai fini de calibrer le module neige : FROZIO est prêt pour la production. Les stations de ski et les studios attendent déjà des devis. On ouvre le troisième marché ?",
-            en: "Both lines hold the load. I've finished calibrating the snow module: FROZIO is ready for production. Ski resorts and studios are already waiting for quotes. Do we open the third market?",
-            es: "Las dos líneas aguantan la carga. He terminado de calibrar el módulo nieve: FROZIO está listo para producción. Las estaciones de esquí y los estudios ya esperan presupuestos. ¿Abrimos el tercer mercado?", zh: "两条线都扛住了负荷。我把雪模块校准完了：FROZIO可以投产了。滑雪度假村和片厂已经在等报价。我们开第三个市场吗？", ru: "Обе линии держат нагрузку. Я закончил калибровку снежного модуля: FROZIO готов к производству. Горнолыжные курорты и студии уже ждут смет. Открываем третий рынок?", it: "Entrambe le linee reggono il carico. Ho finito di calibrare il modulo neve: FROZIO è pronto per la produzione. Le stazioni sciistiche e gli studi aspettano già i preventivi. Apriamo il terzo mercato?", de: "Beide Linien halten die Last. Ich habe das Schneemodul fertig kalibriert: FROZIO ist produktionsbereit. Skigebiete und Studios warten schon auf Angebote. Öffnen wir den dritten Markt?"
-          };
-          queuePopup({ type: 'character', speaker: 'Fred', text: msg[lang] || msg.fr });
-          setP4UnlockedProducts(prev => prev.includes('frozio') ? prev : [...prev, 'frozio']);
-          p4UnlockedProductsRef.current = [...new Set([...p4UnlockedProductsRef.current, 'frozio'])];
-          setP4UnlockStage(2);
-          p4UnlockStageRef.current = 2;
-          return;
-        }
-      }
-
-      // PHASE 4 : table rase. Le bloc de déblocage produits P4 ci-dessus
-      // est conservé (pop-ups Lenny/Fred voulus). Tout le reste de ce tick
-      // (micro-événements narratifs P1-3 : observations, lettres de fan,
-      // cadeaux anonymes, célébrations Janice...) est coupé en P4.
-      if (phaseRef.current >= 4) return;
-
       // Agence marketing : plus de célébrations narratives façon Janice (personnage retiré).
       if (false && hasJ && !janiceGrumpyRef.current && phaseRef.current >= 3
           && (curT - lastJaniceCelebrationRef.current) > 240 && Math.random() < 0.50) {
@@ -9031,8 +7208,6 @@ export default function App() {
   useEffect(() => { competitorsRef.current = competitors; }, [competitors]);
   useEffect(() => { phase3TriggerStageRef.current = phase3TriggerStage; }, [phase3TriggerStage]);
   useEffect(() => { phase3LastStageAtRef.current = phase3LastStageAt; }, [phase3LastStageAt]);
-  useEffect(() => { phase4TriggerStageRef.current = phase4TriggerStage; }, [phase4TriggerStage]);
-  useEffect(() => { phase4LastStageAtRef.current = phase4LastStageAt; }, [phase4LastStageAt]);
 
   // Mesure dynamique de la position du trait sous le header pour ancrer les notifications
   useEffect(() => {
@@ -9131,18 +7306,11 @@ export default function App() {
     if (totals.lawsuitsWon >= 1) unlockAchievement('lawsuit_won');
     // 13. SURVIVANT — 3 canicules
     if (totals.heatwavesSurvived >= 3) unlockAchievement('survivor');
-    // 14. INVINCIBLE — 3 refus
-    if (totals.refusalsCount >= 3) unlockAchievement('invincible');
-    // 15-16. Ventes par acquéreur
-    if (acquisitionFinalized) {
-      if (acquisitionFinalized.acquirerId === 'patrice_glacier') unlockAchievement('sold_patrice');
-      if (acquisitionFinalized.acquirerId === 'silverlion') unlockAchievement('sold_silverlion');
-    }
     // 17. MARQUE CULTE
     if (notoriety >= 100) unlockAchievement('cult_brand');
     // 18. EMPIRE STABLE — 50 saisons jouées
     if (gameTime >= 50 * SEASON_DURATION) unlockAchievement('stable_empire');
-  }, [money, notoriety, stock, maxCap, totals, owned, fredMoral, brigitteMoral, janiceMoral, lennyMoral, karenMoral, acquisitionFinalized, gameTime, lines]);
+  }, [money, notoriety, stock, maxCap, totals, owned, fredMoral, brigitteMoral, janiceMoral, lennyMoral, karenMoral, gameTime, lines]);
 
   // === Détection "stock insuffisant pour l'appel courant" ===
   // EXACTEMENT le même calcul que `canAccept` utilisé dans le rendu du
@@ -9153,11 +7321,8 @@ export default function App() {
     if (!callModalOpen || !currentCall) return false;
     const _c = PHONE_CALLS_BY_ID[currentCall.id];
     if (!_c || _c.narrativeOnly || !_c.needStock) return false;
-    if (_c.id === 'robert_warehouse' || _c.id === 'robert_office' || _c.id === 'phase4_vandenberg') return false;
-    const _rel = _c.product === 'popice' ? Math.ceil(popIceStock)
-      : _c.product === 'frozio' ? Math.ceil(frozioStock)
-      : _c.product === 'medipack' ? Math.ceil(medipackStock)
-      : displayStock;
+    if (_c.id === 'robert_warehouse' || _c.id === 'robert_office') return false;
+    const _rel = displayStock;
     return !(_c.needStock === 0 || _rel >= _c.needStock);
   })();
 
@@ -9366,19 +7531,6 @@ export default function App() {
   const _fredSickMult = isSickNow('fred') ? 0 : 1;
   const effectivePassive = stats.passiveProd * stats.prodSpeedMult * getDynamicProdMult(gameTime) * fredMult * teamBuildMult * moralMult * chainBreakMult * _fredSickMult;
 
-  // Effets de l'event bandeau P4 actif (1.0 = neutre si aucun event).
-  const p4Fx = (() => {
-    const ev = p4ActiveEvent && P4_EVENTS[p4ActiveEvent.id];
-    const e = ev ? (ev.effects || {}) : {};
-    return {
-      revenueMult: e.revenueMult || 1,
-      repErodeMult: e.repErodeMult || 1,
-      matCostMult: e.matCostMult || 1,
-      demandMult: e.demandMult || 1,
-      truckSpeedMult: e.truckSpeedMult || 1,
-    };
-  })();
-
   // === DÉPENSES À PROVISIONNER ===
   // Calcule les charges à venir pour aider le joueur à anticiper sa trésorerie
   const SEMESTER_DURATION = SEASON_DURATION * 2;
@@ -9442,53 +7594,8 @@ export default function App() {
   const upcomingIn = _secondsToNextMonth;
   const upNextEventIn = upcomingIn;
 
-  // === CHARGES PHASE 4 à provisionner — MENSUALISÉES ===
-  // Toutes les charges P4 (loyer, carburant, manutention, énergie,
-  // salaires) sont prélevées CHAQUE MOIS (40 s). Montants calibrés au
-  // mois = ancien montant semestriel ÷ 6 (un semestre = 6 mois) : la
-  // charge totale sur la durée est identique, simplement lissée.
-  //
-  // Volume (manutention) et conso énergie s'accumulent : on projette sur
-  // le MOIS complet à partir de l'accumulé depuis le début du mois. Le
-  // montant converge vers le vrai prélèvement à l'approche de l'échéance.
-  const _p4Provision = (() => {
-    if (phase < 4) return { loyer: 0, carburant: 0, manutention: 0, energie: 0, salaires: 0, total: 0 };
-    const _elapsed = Math.max(1, MONTH_DURATION - _secondsToNextMonth);
-    const _proj = MONTH_DURATION / _elapsed; // projection sur le mois
-    const nbContrats = (linesP4 || []).length;
-    const volNow = (totalsRef.current && totalsRef.current.p4VolumeTotal) || 0;
-    const volSoFar = Math.max(0, volNow - p4VolumeSemStartRef.current);
-    const volProjected = volSoFar * _proj; // volume projeté sur le mois
-    let chargeInfra = 0;
-    for (const id in P4_INFRA_UPKEEP) { if (owned[id]) chargeInfra += P4_INFRA_UPKEEP[id]; }
-    // Postes MENSUELS. Fixes (loyer, carburant) = ancien semestriel ÷6.
-    // LOYER = loyer de base + entretien infra, le tout mensualisé.
-    const loyer = Math.round((1500 + chargeInfra) / MONTHS_PER_SEMESTER);
-    const carburant = Math.round((500 * nbContrats) / MONTHS_PER_SEMESTER);
-    // Manutention : 0.08 €/u sur le volume du MOIS (déjà mensuel via proj).
-    const manutention = Math.round(0.08 * volProjected);
-    const _acc = p4EnergyAccumRef.current || { sum: 0, ticks: 0 };
-    const avgW = _acc.ticks > 0 ? (_acc.sum / _acc.ticks) : 0;
-    // Énergie : tarif × conso moyenne × durée du MOIS (déjà mensuel).
-    const energie = Math.round(P4_EUR_PER_W * avgW * MONTH_DURATION);
-    // Salaires : mensualisés (ancien montant semestriel ÷6).
-    const salaires = Math.round(upSalary / MONTHS_PER_SEMESTER);
-    const total = loyer + carburant + manutention + energie + salaires;
-    return { loyer, carburant, manutention, energie, salaires, total };
-  })();
-  const _p4ProvisionTotal = _p4Provision.total;
-  // Alias conservés (compat anciennes références éventuelles).
-  const _p4ChargeEstimateSemester = _p4ProvisionTotal;
-  const _p4ChargeEstimateSeason = _p4ProvisionTotal;
-  const _p4ChargeEstimate = _p4ProvisionTotal;
-  // En P4 : on affiche TOUJOURS le total qui sera prélevé au prochain
-  // MOIS, et le compteur pointe vers le MOIS (la vraie échéance).
-  const upcomingAmountDisplay = phase >= 4
-    ? _p4ProvisionTotal
-    : upcomingAmount;
-  const upcomingInDisplay = phase >= 4
-    ? _secondsToNextMonth
-    : upcomingIn;
+  const upcomingAmountDisplay = upcomingAmount;
+  const upcomingInDisplay = upcomingIn;
 
   // === RENTABILITÉ — calcul revenus glissants 60s + charges théoriques ===
   // Inclut Karen salary aussi (qui n'est pas dans upSalaryRaw)
@@ -9505,9 +7612,7 @@ export default function App() {
   const salaryPerMonth = upSalaryOffered ? 0 : Math.round(upTotalSalaries / MONTHS_PER_SEMESTER);
   // Charges du mois : en P4 = total charges P4 (loyer+carburant+
   // manutention+énergie) ; en P1-3 = facture utilities du mois.
-  const chargesPerMonth = phase >= 4
-    ? (_p4Provision.loyer + _p4Provision.carburant + _p4Provision.manutention + _p4Provision.energie)
-    : upUtilityNext;
+  const chargesPerMonth = upUtilityNext;
   // Prêt : versement mensuel.
   const loanPerMonthRaw = activeLoan ? upLoan : 0;
   // === EXONÉRATION 6 PREMIERS MOIS : aucune charge réelle prélevée ===
@@ -9849,17 +7954,6 @@ export default function App() {
     ? 1
     : Math.max(0, Math.min(1, (currentXp - prevThreshold) / (nextThreshold - prevThreshold)));
 
-  // === Valorisation entreprise (Phase 4) ===
-  // Recalcul à chaque render — pas coûteux (juste de l'arithmétique).
-  // Le joueur voit en direct l'impact de ses décisions sur sa valeur de sortie.
-  const valuation = computeCompanyValuation({
-    cash: money,
-    notoriety,
-    reputation,
-    segLuxe, segPro, segEco,
-    phase4Revenue,
-  });
-
   const demandLevel = dynamicDemand * heatDemandMult * droughtDemandMult;
   const demandFilled = Math.max(1, Math.min(DEMAND_ROWS, Math.ceil(demandLevel)));
   const isOpportune = effectiveSell >= PULSE_THRESHOLD;
@@ -9986,65 +8080,9 @@ export default function App() {
             const _p3 = s.monthlyV2 ? s.phase3Semesters : s.phase3Semesters * 3;
             setPhase3Semesters(_p3);
           }
-          if (typeof s.phase4ReadyCallDone === 'boolean') setPhase4ReadyCallDone(s.phase4ReadyCallDone);
           if (typeof s.exoIntroShown === 'boolean') setExoIntroShown(s.exoIntroShown);
           if (s.sickUntil && typeof s.sickUntil === 'object') setSickUntil(s.sickUntil);
           if (typeof s.securityIntroShown === 'boolean') setSecurityIntroShown(s.securityIntroShown);
-          if (typeof s.phase4TriggerStage === 'number') setPhase4TriggerStage(s.phase4TriggerStage);
-          if (typeof s.phase4LastStageAt === 'number') setPhase4LastStageAt(s.phase4LastStageAt);
-          if (typeof s.phase4Revenue === 'number') setPhase4Revenue(s.phase4Revenue);
-          if (typeof s.popIceStock === 'number') setPopIceStock(s.popIceStock);
-          if (typeof s.frozioStock === 'number') setFrozioStock(s.frozioStock);
-          if (typeof s.medipackStock === 'number') setMedipackStock(s.medipackStock);
-          if (typeof s.p4MaxCap === 'number') { setP4MaxCap(s.p4MaxCap); p4MaxCapRef.current = s.p4MaxCap; }
-          if (typeof s.p4TargetPop === 'number') { setP4TargetPop(s.p4TargetPop); p4TargetPopRef.current = s.p4TargetPop; }
-          if (typeof s.p4TargetFro === 'number') { setP4TargetFro(s.p4TargetFro); p4TargetFroRef.current = s.p4TargetFro; }
-          if (typeof s.p4TargetMed === 'number') { setP4TargetMed(s.p4TargetMed); p4TargetMedRef.current = s.p4TargetMed; }
-          if (typeof s.popIcePrice === 'number') setPopIcePrice(s.popIcePrice);
-          if (typeof s.frozioPrice === 'number') setFrozioPrice(s.frozioPrice);
-          if (typeof s.medipackPrice === 'number') setMedipackPrice(s.medipackPrice);
-          if (typeof s.sellMinPopIce === 'number') setSellMinPopIce(s.sellMinPopIce);
-          if (typeof s.sellMinFrozio === 'number') setSellMinFrozio(s.sellMinFrozio);
-          if (typeof s.sellMinMedipack === 'number') setSellMinMedipack(s.sellMinMedipack);
-          if (typeof s.frozioLineDown === 'number') setFrozioLineDown(s.frozioLineDown);
-          if (typeof s.lastFrozioPanneAt === 'number') setLastFrozioPanneAt(s.lastFrozioPanneAt);
-          if (typeof s.lastMedipackInspectionAt === 'number') setLastMedipackInspectionAt(s.lastMedipackInspectionAt);
-          if (Array.isArray(s.linesP4)) setLinesP4(s.linesP4.map(l => {
-            const { deliveriesTarget, contractExpiresAt, ...rest } = l || {};
-            return {
-              supplier: l.supplier || P4_SUPPLIER_DEFAULT,
-              salePrice: (l.salePrice != null) ? l.salePrice
-                : (PRODUCT_PROFILES[l.product] ? PRODUCT_PROFILES[l.product].basePrice : 1),
-              relSum: l.relSum || 0,
-              relUnits: l.relUnits || 0,
-              lastReviewAt: l.lastReviewAt || 0,
-              ...rest,
-              // Modèle récurrent : statut explicite ; un vieux contrat
-              // "completed" est réactivé (les contrats ne se terminent plus).
-              status: (l.status === 'suspended') ? 'suspended' : 'active',
-              truckPhase: (l.truckPhase === 'completed' || !l.truckPhase) ? 'loading' : l.truckPhase,
-            };
-          }));
-          if (Array.isArray(s.marketplaceP4)) setMarketplaceP4(s.marketplaceP4);
-          if (Array.isArray(s.p4UnlockedProducts)) { setP4UnlockedProducts(s.p4UnlockedProducts); p4UnlockedProductsRef.current = s.p4UnlockedProducts; }
-          if (Array.isArray(s.p4OpenMarkets)) { setP4OpenMarkets(s.p4OpenMarkets); p4OpenMarketsRef.current = s.p4OpenMarkets; }
-          if (Array.isArray(s.p4OpenCountries)) { setP4OpenCountries(s.p4OpenCountries); p4OpenCountriesRef.current = s.p4OpenCountries; }
-          if (Array.isArray(s.p4UnlockedContracts)) { setP4UnlockedContracts(s.p4UnlockedContracts); p4UnlockedContractsRef.current = s.p4UnlockedContracts; }
-          if (Array.isArray(s.p4Reviews)) { setP4Reviews(s.p4Reviews); p4ReviewsRef.current = s.p4Reviews; }
-          if (s.p4ActiveEvent && P4_EVENTS[s.p4ActiveEvent.id]) { setP4ActiveEvent(s.p4ActiveEvent); p4ActiveEventRef.current = s.p4ActiveEvent; }
-          if (typeof s.p4VolumeSemStart === 'number') p4VolumeSemStartRef.current = s.p4VolumeSemStart;
-          // Refs anti-doublon : restaurées uniquement depuis une save déjà
-          // mensuelle. Sinon (vieille save semestrielle) on laisse à -1 :
-          // elles se resynchronisent sur le mois courant au 1er tick, ce
-          // qui évite un double prélèvement ou un saut d'échéance.
-          if (s.monthlyV2 && typeof s.p4LastLogisticsSem === 'number') p4LastLogisticsSemRef.current = s.p4LastLogisticsSem;
-          if (typeof s.p4UnlockStage === 'number') { setP4UnlockStage(s.p4UnlockStage); p4UnlockStageRef.current = s.p4UnlockStage; }
-          if (typeof s.p4ActivatedAt === 'number') { setP4ActivatedAt(s.p4ActivatedAt); p4ActivatedAtRef.current = s.p4ActivatedAt; }
-          if (Array.isArray(s.acquirerOffers)) setAcquirerOffers(s.acquirerOffers);
-          if (Array.isArray(s.acquirerRefusals)) setAcquirerRefusals(s.acquirerRefusals);
-          if (s.callAcceptTimes && typeof s.callAcceptTimes === 'object') setCallAcceptTimes(s.callAcceptTimes);
-          if (s.acquisitionFinalized) setAcquisitionFinalized(s.acquisitionFinalized);
-          if (typeof s.endgameEpilogueStage === 'number') setEndgameEpilogueStage(s.endgameEpilogueStage);
           if (Array.isArray(s.achievementsUnlocked)) {
             setAchievementsUnlocked(s.achievementsUnlocked);
             achievementsUnlockedRef.current = s.achievementsUnlocked;
@@ -10233,21 +8271,9 @@ export default function App() {
       fredGrumpy, brigitteGrumpy, janiceGrumpy, lennyGrumpy, karenGrumpy, markGrumpy, sabineGrumpy,
       fredMoral, brigitteMoral, janiceMoral, lennyMoral, karenMoral, markMoral, sabineMoral,
       fredStress, brigitteStress, janiceStress, lennyStress, karenStress,
-      notoriety, glacierBeats, phase3TriggerStage, phase3Semesters, phase4ReadyCallDone, exoIntroShown, securityIntroShown, phase4TriggerStage, phase4LastStageAt, phase4Revenue,
+      notoriety, glacierBeats, phase3TriggerStage, phase3Semesters, exoIntroShown, securityIntroShown,
       sickUntil,
-      popIceStock, frozioStock, medipackStock, p4MaxCap,
-      p4TargetPop, p4TargetFro, p4TargetMed,
-      popIcePrice, frozioPrice, medipackPrice,
-      sellMinPopIce, sellMinFrozio, sellMinMedipack,
-      frozioLineDown, lastFrozioPanneAt, lastMedipackInspectionAt,
-      linesP4, marketplaceP4,
-      p4UnlockedProducts, p4UnlockStage, p4ActivatedAt, p4OpenMarkets, p4Reviews, p4ActiveEvent,
-      p4OpenCountries, p4UnlockedContracts,
-      p4VolumeSemStart: p4VolumeSemStartRef.current,
-      p4LastLogisticsSem: p4LastLogisticsSemRef.current,
       monthlyV2: true, // refonte mensuelle : marqueur de migration
-      acquirerOffers, acquirerRefusals, callAcceptTimes,
-      acquisitionFinalized, endgameEpilogueStage,
       achievementsUnlocked,
       contractRejections,
       clientLoyalty,
@@ -10315,12 +8341,12 @@ export default function App() {
     prevPhaseRef.current = phase;
   }, [phase, loaded, screen]);
 
-  // Save bonus : à chaque achat d'upgrade majeur (bail, agence, diversification, premier camion, premier Fred)
+  // Save bonus : à chaque achat d'upgrade majeur (bail, agence, premier camion, premier Fred)
   const prevOwnedKeyRef = useRef('');
   useEffect(() => {
     if (!loaded) return;
     if (screen !== 'game') return;
-    const keyUpgrades = ['rent_warehouse', 'agence_marketing', 'diversification', 'camion_1', 'fred_stage'];
+    const keyUpgrades = ['rent_warehouse', 'agence_marketing', 'camion_1', 'fred_stage'];
     const ownedKey = keyUpgrades.map(id => owned[id] ? 1 : 0).join('');
     if (ownedKey !== prevOwnedKeyRef.current && prevOwnedKeyRef.current !== '') {
       saveNowRef.current();
@@ -10943,660 +8969,6 @@ export default function App() {
       totalsRef.current.produced += prodGain;
       totalsRef.current.melted += meltLoss;
 
-      // === PHASE 4 : production répartie sur 3 produits ===
-      // Si on est en Phase 4, le `cycleBatch` n'alimente PAS `stock` (glaçon),
-      // mais est réparti entre popIce / frozio / medipack selon les allocations
-      // et modulé par la saison favorable / défavorable de chaque produit.
-      // Saison favorable → ×1.3 sur la part, défavorable → ×0.7, neutre → ×1.0
-      // Cap individuelle respectée : un produit plein n'accepte plus de prod (sa part est perdue)
-      // === PHASE 4 : production par OBJECTIFS (unités) + BUDGET W ===
-      // Le joueur fixe un nombre d'unités/cycle voulu par produit (curseurs).
-      // La somme des W (unités × coût) est plafonnée au budget usine p4MaxCap
-      // (déjà bloquée côté UI, re-sécurisée ici). cycleBatch = débit dispo
-      // ce cycle ; on le répartit pour tendre vers les cibles. Saison
-      // favorable booste la cible atteinte, défavorable la réduit.
-      if (phaseRef.current >= 4 && cycleBatch > 0) {
-        const seasonId = curSeason.id;
-        const seasonMult = (key) => {
-          const prof = PRODUCT_PROFILES[key];
-          if (prof.favorableSeasons.includes(seasonId)) return 1.3;
-          if (prof.unfavorableSeasons.includes(seasonId)) return 0.7;
-          return 1.0;
-        };
-        // Objectifs unités voulus, re-clampés au budget W (sécurité)
-        const budget = p4MaxCapRef.current;
-        let tPop = p4TargetPopRef.current;
-        let tFro = p4TargetFroRef.current;
-        let tMed = p4TargetMedRef.current;
-        let wTot = tPop * P4_PROD_W_COST.popice
-                 + tFro * P4_PROD_W_COST.frozio
-                 + tMed * P4_PROD_W_COST.medipack;
-        if (wTot > budget && wTot > 0) {
-          const k = budget / wTot;
-          tPop = Math.floor(tPop * k);
-          tFro = Math.floor(tFro * k);
-          tMed = Math.floor(tMed * k);
-        }
-        // cycleBatch = capacité de production disponible ce cycle (unités
-        // "génériques"). On l'alloue vers chaque produit à hauteur de sa
-        // cible, au prorata des cibles si le débit ne suffit pas.
-        const sumTargets = tPop + tFro + tMed;
-        const frozioBlocked = frozioLineDownRef.current > 0;
-        const caps = getProductCaps(budget);
-        if (sumTargets > 0) {
-          const share = (tgt) => cycleBatch * (tgt / sumTargets);
-          const gainPop = Math.min(tPop, share(tPop)) * seasonMult('popice');
-          const gainFro = frozioBlocked ? 0 : Math.min(tFro, share(tFro)) * seasonMult('frozio');
-          const gainMed = Math.min(tMed, share(tMed)) * seasonMult('medipack');
-          setPopIceStock(s => Math.min(caps.popice, s + gainPop));
-          setFrozioStock(s => Math.min(caps.frozio, s + gainFro));
-          setMedipackStock(s => Math.min(caps.medipack, s + gainMed));
-        }
-        // newStock reste à 0 pour le stock glaçon (qui n'existe plus en Phase 4)
-        newStock = 0;
-      }
-
-      // === PHASE 4 : incidents ciblés ===
-      // Calcul local de la 1ère année (avant la déclaration globale plus bas)
-      const isFirstYearP4 = gameTimeRef.current < SEASON_DURATION * 4;
-      if (phaseRef.current >= 4) {
-        // Accumulateur des W consommés (→ facture énergie semestrielle).
-        // W = unités cibles effectives × coût, re-clampé au budget.
-        {
-          const _b = p4MaxCapRef.current;
-          let _w = p4TargetPopRef.current * P4_PROD_W_COST.popice
-                 + p4TargetFroRef.current * P4_PROD_W_COST.frozio
-                 + p4TargetMedRef.current * P4_PROD_W_COST.medipack;
-          if (_w > _b) _w = _b;
-          p4EnergyAccumRef.current.sum += _w;
-          p4EnergyAccumRef.current.ticks += 1;
-        }
-        // === MOTEUR EVENTS BANDEAU PHASE 4 ===
-        {
-          const nowP4 = gameTimeRef.current;
-          // Expiration de l'event actif
-          const curEv = p4ActiveEventRef.current;
-          if (curEv && nowP4 >= curEv.expiresAt) {
-            setP4ActiveEvent(null);
-            p4ActiveEventRef.current = null;
-            p4LastEventAtRef.current = nowP4;
-            // prochaine fenêtre : 4 à 8 min
-            p4NextEventAtRef.current = nowP4 + 240 + Math.random() * 240;
-          }
-          // Déclenchement d'un nouvel event (si aucun actif, hors crise cyber)
-          if (!p4ActiveEventRef.current && cyberLockoutRef.current <= 0
-              && nowP4 >= p4NextEventAtRef.current
-              && (nowP4 - p4LastEventAtRef.current) >= 30) {
-            const totalW = P4_EVENT_KEYS.reduce((a, k) => a + (P4_EVENTS[k].weight || 1), 0);
-            let r = Math.random() * totalW;
-            let pickedKey = P4_EVENT_KEYS[0];
-            for (const k of P4_EVENT_KEYS) {
-              r -= (P4_EVENTS[k].weight || 1);
-              if (r <= 0) { pickedKey = k; break; }
-            }
-            const def = P4_EVENTS[pickedKey];
-            const ev = def.effects || {};
-            // Event instantané (repTest) : applique tout de suite, pas de bandeau persistant
-            if (ev.repTest) {
-              const passed = reputationRef.current >= ev.repTest.threshold;
-              const delta = passed ? ev.repTest.ok : ev.repTest.ko;
-              setReputation(rep => Math.max(0, Math.min(100, rep + delta)));
-              setEventNotif(`${localizeField(def.name, language)} · ${passed ? '+' : ''}${delta} RÉPUTATION`);
-              p4LastEventAtRef.current = nowP4;
-              p4NextEventAtRef.current = nowP4 + 240 + Math.random() * 240;
-            } else {
-              setP4ActiveEvent({ id: pickedKey, startedAt: nowP4, expiresAt: nowP4 + def.duration });
-              p4ActiveEventRef.current = { id: pickedKey, startedAt: nowP4, expiresAt: nowP4 + def.duration };
-              p4LastEventAtRef.current = nowP4;
-            }
-          }
-        }
-        // === OUVERTURE DES PAYS : déclenchée à l'achat de l'amélioration
-        // p4_market_* (voir handler d'achat), l'appel arrive 3s après. ===
-        // === MOTEUR POP-UPS PERSONNAGES PHASE 4 (observations) ===
-        {
-          const nowP = gameTimeRef.current;
-          // Quota par saison (2 max) + cooldown 75s + pas pendant un appel/cyber/popup déjà affiché
-          const seasonAbs = Math.floor(nowP / SEASON_DURATION);
-          if (seasonAbs !== p4PopupSeasonRef.current) {
-            p4PopupSeasonRef.current = seasonAbs;
-            p4PopupSeasonCountRef.current = 0;
-          }
-          const canPopup =
-            !popupMessageRef.current &&
-            !currentCallRef.current &&
-            cyberLockoutRef.current <= 0 &&
-            p4ActivatedAtRef.current > 0 &&
-            (nowP - p4ActivatedAtRef.current) > 60 &&
-            p4PopupSeasonCountRef.current < 2 &&
-            (nowP - p4LastPopupAtRef.current) > 75;
-          if (canPopup) {
-            const rep = reputationRef.current;
-            const lines = linesP4Ref.current || [];
-            const openMk = p4OpenMarketsRef.current || [];
-            // nb de pays distincts ouverts (hors HOMELAND d'office)
-            const paysOpen = new Set(openMk.map(k => k.split(':')[0]));
-            paysOpen.delete('HOMELAND');
-            const paysCount = paysOpen.size;
-            // détection : un contrat LUXE servi en éco
-            let luxeEco = false, marginNeg = false, premiumOn = false;
-            for (const l of lines) {
-              const sup = P4_SUPPLIER_BY_ID(l.product, l.supplier || 'eco');
-              const prof = p4ProfileOf(l.mapContractId);
-              if (prof && prof.id === 'LUXE' && sup && sup.q < 0.5) luxeEco = true;
-              if (sup && sup.q >= 1.0) premiumOn = true;
-              const bp = PRODUCT_PROFILES[l.product] ? PRODUCT_PROFILES[l.product].basePrice : 1;
-              const sp = (l.salePrice != null) ? l.salePrice : bp;
-              if (sup && sp < sup.cost * 1.1) marginNeg = true;
-            }
-            let speaker = null, key = null;
-            // Priorités situationnelles (du plus urgent au plus léger)
-            if (rep < 35) { speaker = 'Brigitte'; key = 'rep_low'; }
-            else if (marginNeg) { speaker = 'Brigitte'; key = 'margin_neg'; }
-            else if (luxeEco) { speaker = 'Brigitte'; key = 'luxe_eco'; }
-            else if (paysCount > p4PrevPaysCountRef.current) { speaker = 'Lenny'; key = 'pays_open'; }
-            else if (premiumOn && Math.random() < 0.5) { speaker = 'Fred'; key = 'premium_on'; }
-            else if (lines.some(l => (l.deliveriesDone || 0) >= 15) && Math.random() < 0.35) {
-              speaker = 'Lenny'; key = 'big_done';
-            } else if (Math.random() < 0.5) {
-              // observation d'ambiance : speaker au hasard parmi ceux employés
-              const _o = ownedRef.current;
-              const pool = [];
-              if (_o['fred_stage'] || _o['fred'] || _o['fred_perma'] || _o['fred_chef'] || _o['fred_dir']) pool.push('Fred');
-              if (_o['autosell'] || _o['brigitte_compta'] || _o['brigitte_ad']) pool.push('Brigitte');
-              // Agence marketing retirée du pool d'ambiance (plus de personnage Janice).
-              if (_o['lenny'] || _o['lenny_senior'] || _o['lenny_dir']) pool.push('Lenny');
-              if (pool.length) { speaker = pickUnseen(pool); key = 'ambient'; }
-            }
-            p4PrevPaysCountRef.current = paysCount;
-            if (speaker && key) {
-              // Sélectionne UNIQUEMENT parmi les textes pas encore vus
-              // (chaque réplique narrative P4 n'apparaît qu'une seule fois).
-              const sp = P4_POPUPS[speaker];
-              const bank = sp ? (sp[key] || sp.ambient) : null;
-              const arr = bank ? (bank[language] || bank.fr) : null;
-              if (arr && arr.length) {
-                const seen = p4SeenPopupTextsRef.current;
-                const unseen = arr.filter(tx => !seen.has(tx));
-                if (unseen.length && lastPopupSpeakerRef.current !== speaker) {
-                  const txt = unseen[Math.floor(Math.random() * unseen.length)];
-                  seen.add(txt);
-                  queuePopup({ type: 'character', speaker, text: txt });
-                  lastPopupSpeakerRef.current = speaker;
-                  p4LastPopupAtRef.current = nowP;
-                  p4PopupSeasonCountRef.current += 1;
-                }
-              }
-            }
-          }
-        }
-        // POP ICE : fonte renforcée en canicule (passif, ×2 sur le stock POP ICE uniquement)
-        if (heatwaveLeftRef.current > 0 && popIceStockRef.current > 0) {
-          const popIceMelt = popIceStockRef.current * 0.0008 * dt;
-          setPopIceStock(s => Math.max(0, s - popIceMelt));
-          totalsRef.current.melted += popIceMelt;
-        }
-        // FROZIO : décrémente la durée de panne en cours
-        if (frozioLineDownRef.current > 0) {
-          const newDown = Math.max(0, frozioLineDownRef.current - dt);
-          if (newDown !== frozioLineDownRef.current) {
-            setFrozioLineDown(newDown);
-            if (newDown === 0) {
-              setEventNotif(t('notif.frozio_cryo_repaired'));
-            }
-          }
-        }
-        // FROZIO : déclenchement panne aléatoire (~1× par saison = SEASON_DURATION = 120s)
-        // Garde-fou : minimum 60s entre 2 pannes
-        if (!isFirstYearP4 && frozioLineDownRef.current === 0
-            && gameTimeRef.current - lastFrozioPanneAtRef.current > 60
-            && Math.random() < 0.0008) {
-          const downDuration = 30 + Math.random() * 30;
-          setFrozioLineDown(downDuration);
-          setLastFrozioPanneAt(gameTimeRef.current);
-          setEventNotif(`${t('notif.frozio_cryo_breakdown')} ${Math.floor(downDuration)}s`);
-        }
-        // MEDIPACK : inspection sanitaire aléatoire (~1× tous les 2 semestres = 480s)
-        // Garde-fou : minimum 240s entre 2 inspections + stock minimum 100
-        if (!isFirstYearP4 && medipackStockRef.current > 100
-            && gameTimeRef.current - lastMedipackInspectionAtRef.current > 240
-            && Math.random() < 0.0003) {
-          const destroyPct = 0.25 + Math.random() * 0.15;
-          const destroyed = Math.floor(medipackStockRef.current * destroyPct);
-          setMedipackStock(s => Math.max(0, s - destroyed));
-          setLastMedipackInspectionAt(gameTimeRef.current);
-          totalsRef.current.destructions += 1;
-          setEventNotif(`${t('notif.medipack_inspection')} · −${fmtInt(destroyed)} u ${t('notif.units_destroyed')}`);
-        }
-      }
-
-      // === PHASE 4 : vente automatique sur le marché de masse (gérée par Brigitte) ===
-      // Mécaniques :
-      // - Si pas de Brigitte (tier 0) : aucune vente auto, le stock dort jusqu'à un contrat B2B
-      // - Si Brigitte présente (tier 1+) : vente continue, prix bonifié selon son tier
-      //   Niveau 1 (Admin)    : +5% prix
-      //   Niveau 2 (Comptable): +10% prix
-      //   Niveau 3 (AD)       : +15% prix
-      // - Seuils par produit : ne vend que le stock au-dessus du seuil
-      // - Si Brigitte grumpy : vente coupée (mécanique strike)
-      // PHASE 4 : la vente spot automatique est SUPPRIMÉE (voir if(false)
-      // ci-dessous). En P4, tout revenu provient EXCLUSIVEMENT des contrats
-      // livrés par camion. Le reste du bloc (acquéreurs, génération de
-      // contrats marketplace, livraisons) DOIT rester actif.
-      if (phaseRef.current >= 4) {
-        const brigitteTier = getBrigitteTierLevel(ownedRef.current);
-        const brigitteOk = brigitteTier > 0 && !brigitteGrumpyRef.current;
-        if (false && brigitteOk) {
-          const tierBonus = brigitteTier === 1 ? 1.05
-            : brigitteTier === 2 ? 1.10
-            : 1.15;
-          const seasonId = curSeason.id;
-          const noto = notorietyRef.current;
-          const productsArr = [
-            { key: 'popice', stock: popIceStockRef.current, price: popIcePriceRef.current, setStock: setPopIceStock, sellMin: sellMinPopIceRef.current },
-            { key: 'frozio', stock: frozioStockRef.current, price: frozioPriceRef.current, setStock: setFrozioStock, sellMin: sellMinFrozioRef.current },
-            { key: 'medipack', stock: medipackStockRef.current, price: medipackPriceRef.current, setStock: setMedipackStock, sellMin: sellMinMedipackRef.current },
-          ];
-          let totalRevenue = 0;
-          for (const p of productsArr) {
-            // Ne vend que le stock au-dessus du seuil de réserve
-            const sellableStock = Math.max(0, p.stock - p.sellMin);
-            if (sellableStock <= 0) continue;
-            const demandRate = computeProductDemand(p.key, seasonId, p.price, noto);
-            const unitsToSell = Math.min(sellableStock, demandRate * dt);
-            if (unitsToSell > 0) {
-              const effectivePrice = p.price * tierBonus;
-              const revenue = unitsToSell * effectivePrice;
-              p.setStock(s => Math.max(0, s - unitsToSell));
-              totalRevenue += revenue;
-              totalsRef.current.sold += unitsToSell;
-              // Mégacontrat en cours : compte les unités livrées
-              if (activeMegacontractRef.current) {
-                const mc = activeMegacontractRef.current;
-                const newDelivered = (mc.deliveredFromStart || 0) + unitsToSell;
-                if (newDelivered >= mc.requiredStock) {
-                  // Livraison réussie !
-                  setMoney(m => m + mc.rewardMoney);
-                  totalsRef.current.moneyEarned += mc.rewardMoney;
-                  const okLabel = mc.id === 'opp_festival'
-                    ? (language === 'fr' ? 'RUSH FESTIVAL LIVRÉ' : 'FESTIVAL RUSH DELIVERED')
-                    : (language === 'fr' ? 'MÉGA-CONTRAT LIVRÉ' : 'MEGA-CONTRACT DELIVERED');
-                  setEventNotif(`${okLabel} · +${mc.rewardMoney.toLocaleString()}€`);
-                  setActiveMegacontract(null);
-                } else {
-                  activeMegacontractRef.current = { ...mc, deliveredFromStart: newDelivered };
-                  setActiveMegacontract(prev => prev ? { ...prev, deliveredFromStart: newDelivered } : null);
-                }
-              }
-            }
-          }
-          if (totalRevenue > 0) {
-            setMoney(m => m + totalRevenue);
-            totalsRef.current.moneyEarned += totalRevenue;
-            recordRevenue(totalRevenue);
-          }
-        }
-        // Si pas de Brigitte ou grève : aucune vente auto. Le stock dort.
-
-        // === ACQUÉREURS PHASE 4 : éveil + expiration + retrait ===
-        // Pas d'éveil si une acquisition est déjà finalisée
-        if (!acquisitionFinalized) {
-          const now = gameTimeRef.current;
-          const curLvl = levelForXp(xpFromTotals(totalsRef.current, completedCallsRef.current.length, ownedRef.current));
-          // Construit le contexte commun pour toutes les évaluations
-          const ctx = {
-            valuation: computeCompanyValuation({
-              cash: moneyRef.current,
-              notoriety: notorietyRef.current,
-              reputation: reputationRef.current,
-              segLuxe: segLuxeRef.current,
-              segPro: segProRef.current,
-              segEco: segEcoRef.current,
-              phase4Revenue: (totalsRef.current && totalsRef.current.p4RevenueTotal) || 0,
-            }),
-            notoriety: notorietyRef.current,
-            reputation: reputationRef.current,
-            segEco: segEcoRef.current,
-            completedCalls: completedCallsRef.current,
-            callAcceptTimes: callAcceptTimesRef.current,
-            medipackStock: medipackStockRef.current,
-            popIceStock: popIceStockRef.current,
-            frozioStock: frozioStockRef.current,
-            contractsCompletedP4: (totalsRef.current.contractsCompletedP4Ids || []),
-            // Contrats P4 récurrents en cours (pour les gates basés sur
-            // l'activité courante plutôt que sur des contrats "terminés").
-            linesP4: linesP4Ref.current || [],
-          };
-          const shadyCalls = ['lobbying_pharma', 'fonds_speculatif', 'greenwashing_offer', 'sabotage_concurrent', 'whistleblower', 'actionnaire_minoritaire'];
-          const shadyCount = shadyCalls.filter(cid => ctx.completedCalls.includes(cid)).length;
-          const refusals = acquirerRefusalsRef.current;
-          const activeIds = new Set(acquirerOffersRef.current.map(o => o.id));
-          // Éveil : pour chaque acquéreur, vérifier si conditions remplies + pas déjà actif + pas refusé
-          for (const acq of ACQUIRERS) {
-            if (activeIds.has(acq.id)) continue;
-            if (refusals.includes(acq.id)) continue;
-            if (curLvl < acq.requirements.minLevel) continue;
-            if (ctx.valuation < acq.requirements.minValuation) continue;
-            if (acq.requirements.minReputation && ctx.reputation < acq.requirements.minReputation) continue;
-            if (acq.requirements.minNotoriety && ctx.notoriety < acq.requirements.minNotoriety) continue;
-            if (acq.requirements.minShadyCount && shadyCount < acq.requirements.minShadyCount) continue;
-            // EthicVest : exclus si choix shady déjà accepté
-            if (acq.id === 'ethicvest' && shadyCount > 0) continue;
-            // Vance : requiert 3 produits actifs + refus précédent
-            if (acq.requirements.requires3ActiveProducts) {
-              if (ctx.popIceStock <= 0 && ctx.frozioStock <= 0 && ctx.medipackStock <= 0) continue;
-            }
-            if (acq.requirements.requiresPriorRefusal && refusals.length === 0) continue;
-            // Custom gate (PharmaCold)
-            if (acq.customGate && !acq.customGate(ctx)) continue;
-            // Probabilité d'éveil par tick (lente pour étaler les apparitions)
-            // 0.004/tick à 10 ticks/s ≈ 1 éveil par 25s en moyenne quand éligible
-            if (Math.random() < 0.004) {
-              // Calcule l'offre : (valuation × multiplier/10) × (1 + bonus)
-              // Le /10 normalise pour que les "×5" → "×25" donnent des ordres de grandeur raisonnables
-              const bonus = acq.computeBonus ? acq.computeBonus(ctx) : 0;
-              const baseOffer = ctx.valuation * (acq.multiplier / 10);
-              const finalOffer = Math.round(baseOffer * (1 + bonus));
-              const newOffer = {
-                id: acq.id,
-                amount: finalOffer,
-                receivedAt: now,
-                expiresAt: now + 300, // 5 minutes
-                hasNegotiated: false,
-                bonus: bonus,
-                ctxSnapshot: { ...ctx, callAcceptTimes: undefined }, // snapshot léger
-              };
-              setAcquirerOffers(prev => [...prev, newOffer]);
-              setEventNotif(`NOUVELLE OFFRE D'ACQUISITION · ${localizeField(acq.company, language).toUpperCase()}`);
-              break; // un éveil max par tick
-            }
-          }
-          // Retrait : pour chaque offre active, vérifier si l'acquéreur veut se retirer
-          for (const offer of acquirerOffersRef.current) {
-            const acq = ACQUIRERS_BY_ID[offer.id];
-            if (!acq) continue;
-            if (acq.shouldWithdraw && acq.shouldWithdraw(ctx, offer.receivedAt)) {
-              setAcquirerOffers(prev => prev.filter(o => o.id !== offer.id));
-              setAcquirerRefusals(prev => prev.includes(offer.id) ? prev : [...prev, offer.id]);
-              setEventNotif(`${localizeField(acq.company, language).toUpperCase()} · OFFRE RETIRÉE`);
-            }
-          }
-          // Expiration : offres > 5 min
-          const expiredIds = acquirerOffersRef.current.filter(o => o.expiresAt <= now).map(o => o.id);
-          if (expiredIds.length > 0) {
-            setAcquirerOffers(prev => prev.filter(o => o.expiresAt > now));
-            for (const eid of expiredIds) {
-              const acq = ACQUIRERS_BY_ID[eid];
-              setAcquirerRefusals(prev => prev.includes(eid) ? prev : [...prev, eid]);
-              if (acq) setEventNotif(`${localizeField(acq.company, language).toUpperCase()} · OFFRE EXPIRÉE`);
-            }
-          }
-        }
-
-        // === MARKETPLACE PHASE 4 : génération de contrats ===
-        // Tous les ~50s, génère un nouveau contrat éligible si la marketplace en a moins de 6.
-        // demandMult (event P4) accélère la régénération (APPEL D'OFFRES / VAGUE DE DEMANDE).
-        {
-        const _evM = p4ActiveEventRef.current && P4_EVENTS[p4ActiveEventRef.current.id];
-        const _demand = (_evM && _evM.effects && _evM.effects.demandMult) || 1;
-        // Régénération accélérée si la marketplace est presque vide : évite
-        // que le joueur se retrouve sans aucun contrat à signer (surtout au
-        // démarrage P4 ou après expiration des contrats initiaux).
-        const _curLen = marketplaceP4Ref.current.length;
-        const _genRate = _curLen <= 1 ? 0.12 : _curLen <= 3 ? 0.05 : 0.018;
-        if (_curLen < 6 && Math.random() < _genRate * _demand) {
-          const curLevel = levelForXp(xpFromTotals(totalsRef.current, completedCallsRef.current.length, ownedRef.current));
-          const activeIds = new Set([
-            ...marketplaceP4Ref.current.map(m => m.contractId),
-            ...linesP4Ref.current.map(l => l.contractId),
-          ]);
-          const eligible = P4_CONTRACTS_ENRICHED.filter(c =>
-            !activeIds.has(c.id)
-            && p4UnlockedProductsRef.current.includes(c.product)
-            && p4OpenMarketsRef.current.includes(p4MarketKey(c.pays, c.product))
-            && p4UnlockedContractsRef.current.includes(c.id)
-            && p4ContractProposable(c.id, curSeason.id)
-          );
-          if (eligible.length > 0) {
-            const pick = eligible[Math.floor(Math.random() * eligible.length)];
-            setMarketplaceP4(prev => [...prev, {
-              contractId: pick.id,
-              product: pick.product,
-              expiresAt: gameTimeRef.current + 120, // expire après 2 min
-              generatedAt: gameTimeRef.current,
-            }]);
-          }
-        }
-        }
-        // Expire les contrats marketplace qui ont dépassé leur deadline
-        const now = gameTimeRef.current;
-        if (marketplaceP4Ref.current.some(m => m.expiresAt <= now)) {
-          setMarketplaceP4(prev => prev.filter(m => m.expiresAt > now));
-        }
-
-        // === LIVRAISONS PHASE 4 ===
-        // Chaque ligne représente un camion en cours. Phases :
-        // 'loading'   : on charge depuis le stock du produit (instantané si stock dispo)
-        // 'going'     : trajet aller (truckPos 0 → 1 sur deliveryTime secondes)
-        // 'returning' : trajet retour (truckPos 1 → 0 sur deliveryTime secondes)
-        // Une livraison complète = 1 cycle aller-retour, paye qty × pricePerUnit / deliveriesTarget
-        if (linesP4Ref.current.length > 0) {
-          let p4Revenue = 0;
-          // Ventilation par produit pour le monitoring (revenu brut /
-          // coût matière par produit, fenêtre 60s).
-          const p4GrossP = { popice: 0, frozio: 0, medipack: 0 };
-          const p4MatCostP = { popice: 0, frozio: 0, medipack: 0 };
-          const updated = linesP4Ref.current.map(line => {
-            const c = P4_CONTRACT_BY_ID[line.contractId];
-            if (!c) return line;
-            let newLine = { ...line };
-            // === PANNE CAMION ===
-            // Si déjà en panne : le camion est immobilisé (ne bouge plus,
-            // ne livre plus) tant que la réparation n'est pas terminée. Le
-            // contrat reste actif mais le retard érode la réputation.
-            if (line.broken) {
-              p4BrokenRepDebtRef.current += P4_BROKEN_REP_EROSION * dt;
-              // Réparation en cours : si le timer s'est écoulé → réparé.
-              // Le camion REPART D'OÙ IL ÉTAIT (truckPos/truckPhase
-              // conservés), la fonte accumulée n'est pas remise à zéro.
-              if (line.repairUntil && gameTimeRef.current >= line.repairUntil) {
-                newLine.broken = false;
-                newLine.repairUntil = 0;
-                newLine.sabotageRepair = false;
-                return newLine;
-              }
-              return newLine; // figé sur place (en panne ou en réparation)
-            }
-            // Sinon, faible chance de tomber en panne quand il roule.
-            if ((line.truckPhase === 'going' || line.truckPhase === 'returning')
-                && Math.random() < P4_TRUCK_BREAK_CHANCE) {
-              newLine.broken = true;
-              p4JustBrokeRef.current = line.contractId; // pour la notif
-              return newLine;
-            }
-            // CONTRAT RÉCURRENT : pas d'expiration par le temps. Si le contrat
-            // est suspendu (rupture qualité/prix), le camion reste à l'arrêt
-            // à l'usine — il faut renégocier via Brigitte pour le relancer.
-            if (line.status === 'suspended') {
-              return { ...newLine, truckPhase: 'loading', truckPos: 0 };
-            }
-            // HIBERNATION SAISONNIÈRE : hors saison active, le client ne
-            // commande pas. Le camion attend à l'usine (sauf s'il est déjà
-            // en route : il finit sa tournée en cours). Le contrat n'est PAS
-            // rompu — il reprend tout seul à la prochaine saison active.
-            if (!p4ContractInSeason(line.contractId, curSeason.id)
-                && line.truckPhase === 'loading') {
-              return { ...newLine, truckPhase: 'loading', truckPos: 0 };
-            }
-            if (line.truckPhase === 'loading') {
-              // Tente de charger depuis le bon stock
-              const stockKey = c.product;
-              const curStock = stockKey === 'popice' ? popIceStockRef.current
-                : stockKey === 'frozio' ? frozioStockRef.current
-                : medipackStockRef.current;
-              const batchQty = Math.ceil(c.qty / (c.batchDivisor || 5));
-              if (curStock >= batchQty) {
-                // Stock suffisant : charge et part
-                const setStockFn = stockKey === 'popice' ? setPopIceStock
-                  : stockKey === 'frozio' ? setFrozioStock
-                  : setMedipackStock;
-                setStockFn(s => Math.max(0, s - batchQty));
-                newLine.truckPhase = 'going';
-                newLine.truckPos = 0;
-              }
-              // Sinon, on attend (le camion ne bouge pas tant que pas de stock)
-            } else if (line.truckPhase === 'going') {
-              const _evG = p4ActiveEventRef.current && P4_EVENTS[p4ActiveEventRef.current.id];
-              const _spdG = ((_evG && _evG.effects && _evG.effects.truckSpeedMult) || 1) * p4FleetSpeedMult(ownedRef.current);
-              // Vitesse constante : temps = longueur courbe / P4_TRUCK_SPEED.
-              // Un point 2× plus loin → trajet 2× plus long (cohérence physique).
-              const _trajLen = p4CurveLength(P4_FACTORY, c);
-              newLine.truckPos = Math.min(1, line.truckPos + (dt * _spdG * P4_TRUCK_SPEED) / _trajLen);
-              if (newLine.truckPos >= 1) {
-                // === LIVRÉ : système fournisseurs ===
-                const batchQty = Math.ceil(c.qty / (c.batchDivisor || 5));
-                const sup = P4_SUPPLIER_BY_ID(c.product, line.supplier || 'eco');
-                const prof = p4ProfileOf(line.mapContractId);
-                const basePrice = PRODUCT_PROFILES[c.product]
-                  ? PRODUCT_PROFILES[c.product].basePrice : c.pricePerUnit;
-                const salePrice = (line.salePrice != null) ? line.salePrice : c.pricePerUnit;
-                // Effets event P4 actif
-                const _ev = p4ActiveEventRef.current && P4_EVENTS[p4ActiveEventRef.current.id];
-                const _fx = _ev ? (_ev.effects || {}) : {};
-                const fxRevenue = _fx.revenueMult || 1;
-                const fxMatCost = _fx.matCostMult || 1;
-                const fxRepErode = _fx.repErodeMult || 1;
-                // Revenu = prix de vente joueur × facteur qualité B2B
-                // (premium plein pot ; éco décote sensible)
-                const qFactorClamped = Math.max(0.78, Math.min(1.0, 0.6 + 0.4 * sup.q + 0.2));
-                const grossRevenue = batchQty * salePrice * qFactorClamped * fxRevenue;
-                // Coût matière fournisseur (majoré si pénurie)
-                const matCost = batchQty * sup.cost * fxMatCost;
-                const netRevenue = Math.max(0, grossRevenue - matCost);
-                p4Revenue += netRevenue;
-                if (p4GrossP[c.product] !== undefined) {
-                  p4GrossP[c.product] += grossRevenue;
-                  p4MatCostP[c.product] += matCost;
-                }
-                newLine.deliveriesDone += 1;
-                newLine.revenueAccum += netRevenue;
-                // Cumul du volume P4 livré (sert au calcul de la charge logistique B)
-                if (totalsRef.current.p4VolumeTotal == null) totalsRef.current.p4VolumeTotal = 0;
-                totalsRef.current.p4VolumeTotal += batchQty;
-                // === Mémoire réputation (moyenne glissante) ===
-                // prix juste pour cette qualité et ce profil de client
-                const fairPrice = basePrice * (0.5 + sup.q) * prof.priceTol;
-                // ratio d'abus : >1 si on vend trop cher pour la qualité
-                let over = salePrice / Math.max(0.01, fairPrice);
-                // un client VOLUME punit aussi le prix élevé même si qualité ok
-                if (prof.priceLow && salePrice > basePrice) {
-                  over *= 1 + 0.4 * ((salePrice / basePrice) - 1);
-                }
-                // accumulation pondérée par les unités livrées
-                newLine.relSum = (line.relSum || 0) + over * batchQty;
-                newLine.relUnits = (line.relUnits || 0) + batchQty;
-                const avgOver = newLine.relSum / Math.max(1, newLine.relUnits);
-                // érosion réput progressive (∝ carré du dépassement de la moyenne)
-                if (avgOver > 1.0) {
-                  const excess = avgOver - 1.0;
-                  const repHit = Math.min(1.2, excess * excess * 3.3) * fxRepErode;
-                  if (repHit > 0.001) {
-                    setReputation(r => Math.max(0, r - repHit));
-                  }
-                } else if (avgOver < 0.95 && sup.q >= 0.6) {
-                  // bonne came vendue à prix correct : légère hausse de réput
-                  setReputation(r => Math.min(100, r + 0.012));
-                }
-                // === AVIS CLIENT (fil signé, régulier mais discret) ===
-                // Cadence : pas plus d'un avis / 45s par contrat, et ~55% du
-                // temps (pour rester une ambiance, pas du spam).
-                const sinceReview = now - (line.lastReviewAt || 0);
-                if (sinceReview > 45 && Math.random() < 0.55) {
-                  let tone;
-                  if (avgOver > 1.22) tone = 'neg';
-                  else if (avgOver < 0.98) tone = 'pos';
-                  else tone = 'neutral';
-                  // un client LUXE servi en came médiocre râle même à prix ok
-                  if (prof.id === 'LUXE' && sup.q < 0.5 && tone !== 'neg') tone = 'neg';
-                  const cname = localizeField(c.name, language).toUpperCase();
-                  const finishTxt = localizeField(sup.finish, language);
-                  const rv = makeP4Review(cname, finishTxt, tone, language);
-                  setP4Reviews(prev => [{ ...rv, at: now }, ...prev].slice(0, 20));
-                  newLine.lastReviewAt = now;
-                }
-                // === CONTRAT RÉCURRENT : rupture si qualité/prix médiocre ===
-                // Le client cesse de commander si, durablement (au moins
-                // P4_BREAK_MIN_BATCHES lots livrés), on lui vend trop cher
-                // pour la qualité fournie (avgOver > seuil de rupture).
-                const enoughHistory = newLine.relUnits >= batchQty * P4_BREAK_MIN_BATCHES;
-                if (enoughHistory && avgOver > P4_BREAK_THRESHOLD) {
-                  newLine.status = 'suspended';
-                  newLine.suspendedAt = now;
-                  newLine.truckPhase = 'loading';
-                  newLine.truckPos = 0;
-                  const cname = localizeField(c.name, language).toUpperCase();
-                  setEventNotif(`⚠ ${cname} · ${t('notif.client_unhappy')}`);
-                  // Avis négatif marqué dans le fil
-                  const rvBreak = makeP4Review(cname, localizeField(sup.finish, language), 'neg', language);
-                  setP4Reviews(prev => [{ ...rvBreak, at: now }, ...prev].slice(0, 20));
-                } else {
-                  // Sinon : le camion repart, cycle infini (contrat récurrent)
-                  newLine.truckPhase = 'returning';
-                  newLine.truckPos = 1;
-                }
-              }
-            } else if (line.truckPhase === 'returning') {
-              const _evR = p4ActiveEventRef.current && P4_EVENTS[p4ActiveEventRef.current.id];
-              const _spdR = ((_evR && _evR.effects && _evR.effects.truckSpeedMult) || 1) * p4FleetSpeedMult(ownedRef.current);
-              const _trajLenR = p4CurveLength(P4_FACTORY, c);
-              newLine.truckPos = Math.max(0, line.truckPos - (dt * _spdR * P4_TRUCK_SPEED) / _trajLenR);
-              if (newLine.truckPos <= 0) {
-                newLine.truckPhase = 'loading';
-                newLine.truckPos = 0;
-              }
-            }
-            return newLine;
-          });
-          // Contrats récurrents : aucune ligne n'est jamais "terminée".
-          // On garde toutes les lignes (actives + suspendues). Le revenu
-          // cumulé du tick est encaissé.
-          setLinesP4(updated);
-          // Notification de panne (camion qui vient de tomber en panne)
-          if (p4JustBrokeRef.current) {
-            const _bc = P4_CONTRACT_BY_ID[p4JustBrokeRef.current];
-            const _bn = _bc ? localizeField(_bc.name, language) : '';
-            setEventNotif(t('notif.vehicle_breakdown') + (_bn ? ' · ' + _bn.toUpperCase() : ''));
-            p4JustBrokeRef.current = null;
-          }
-          // Érosion de réputation par les retards : on applique la dette
-          // accumulée quand elle dépasse 1 point (évite les micro-setState).
-          if (p4BrokenRepDebtRef.current >= 1) {
-            const _loss = Math.floor(p4BrokenRepDebtRef.current);
-            p4BrokenRepDebtRef.current -= _loss;
-            setReputation(r => Math.max(0, r - _loss));
-          }
-          if (p4Revenue > 0) {
-            setMoney(m => m + p4Revenue);
-            totalsRef.current.moneyEarned += p4Revenue;
-            recordRevenue(p4Revenue);
-          }
-          // Buffer brut + coût matière PAR PRODUIT (fenêtre 60s) pour le
-          // monitoring temps réel par produit (brut/s, matière/s, net/s).
-          const _gTot = p4GrossP.popice + p4GrossP.frozio + p4GrossP.medipack;
-          const _mTot = p4MatCostP.popice + p4MatCostP.frozio + p4MatCostP.medipack;
-          if (_gTot > 0 || _mTot > 0) {
-            const _gt = gameTimeRef.current;
-            const gb = p4GrossBufferRef.current;
-            gb.push({
-              t: _gt,
-              gross: _gTot, mat: _mTot,
-              gp: { ...p4GrossP }, mp: { ...p4MatCostP },
-            });
-            while (gb.length > 0 && gb[0].t < _gt - 60) gb.shift();
-          }
-        }
-      }
-
       // Events — désactivés pendant la 1ère année (8 min de jeu)
       const isFirstYear = gameTimeRef.current < SEASON_DURATION * 4;
 
@@ -11890,16 +9262,10 @@ export default function App() {
         for (const pd of pendingDeliveriesRef.current) {
           // Stock pertinent selon le produit du contrat (P4) ou stock
           // glaçon (P1-3 : pd.product absent).
-          const stockNow = pd.product === 'popice' ? popIceStockRef.current
-            : pd.product === 'frozio' ? frozioStockRef.current
-            : pd.product === 'medipack' ? medipackStockRef.current
-            : stockRef.current;
+          const stockNow = stockRef.current;
           if (stockNow >= pd.needStock) {
-            // Livré ! → on retire du bon stock.
-            if (pd.product === 'popice') setPopIceStock(s => Math.max(0, s - pd.needStock));
-            else if (pd.product === 'frozio') setFrozioStock(s => Math.max(0, s - pd.needStock));
-            else if (pd.product === 'medipack') setMedipackStock(s => Math.max(0, s - pd.needStock));
-            else setStock(s => Math.max(0, s - pd.needStock));
+            // Livré ! → on retire du stock.
+            setStock(s => Math.max(0, s - pd.needStock));
             totalsRef.current.sold += pd.needStock;
             if (pd.reward) {
               if (pd.reward.money) {
@@ -11960,13 +9326,6 @@ export default function App() {
         // On vide les accumulateurs P4 chaque mois même en exonération
         // pour que la 2ᵉ année reparte sur des bases propres (pas de
         // volume/conso cumulés des 12 premiers mois).
-        if (_firstYearExo && phaseRef.current >= 4) {
-          const volNow = totalsRef.current.p4VolumeTotal || 0;
-          p4VolumeSemStartRef.current = volNow;
-          p4EnergyAccumRef.current = { sum: 0, ticks: 0 };
-          p4LastLogisticsSemRef.current = prevSemester;
-          p4LastEnergySemRef.current = prevSemester;
-        }
         // 1ère année : rien n'est dû. On purge la facture utilities en
         // attente pour que la 2ᵉ année reparte propre (pas de cumul).
         if (_firstYearExo) pendingUtilityBillRef.current = 0;
@@ -11997,34 +9356,7 @@ export default function App() {
           // employé est payé à plein tarif dès le 1er mois (cohérent avec
           // la suppression globale de l'exonération).
           const totalSalary = fredSalary + brigitteSalary + janiceSalary + lennySalary + karenSalary;
-          // === CHARGES P4 du mois (intégrées au paiement GLOBAL) ===
-          // Calculées ici pour être payées EN UN SEUL bloc avec les
-          // salaires. Les anciens prélèvements séparés sont neutralisés.
           let chargesP4 = 0;
-          let _chargeLogVal = 0, _chargeEnergyVal = 0;
-          if (phaseRef.current >= 4) {
-            const _o = ownedRef.current;
-            const nbContrats = (linesP4Ref.current || []).length;
-            const volNow = totalsRef.current.p4VolumeTotal || 0;
-            const volSem = Math.max(0, volNow - p4VolumeSemStartRef.current);
-            let chargeInfra = 0;
-            for (const id in P4_INFRA_UPKEEP) { if (_o[id]) chargeInfra += P4_INFRA_UPKEEP[id]; }
-            _chargeLogVal = Math.round(
-              (1500 + 500 * nbContrats + chargeInfra) / MONTHS_PER_SEMESTER
-              + 0.08 * volSem
-            );
-            const acc = p4EnergyAccumRef.current;
-            const avgW = acc.ticks > 0 ? (acc.sum / acc.ticks) : 0;
-            _chargeEnergyVal = Math.round(P4_EUR_PER_W * avgW * MONTH_DURATION);
-            chargesP4 = Math.max(0, _chargeLogVal) + Math.max(0, _chargeEnergyVal);
-            // Consomme les accumulateurs / marqueurs (le prélèvement réel
-            // se fait ici, dans le paiement global ; les anciens blocs
-            // séparés ne font plus rien grâce à ces marqueurs).
-            p4VolumeSemStartRef.current = volNow;
-            p4EnergyAccumRef.current = { sum: 0, ticks: 0 };
-            p4LastLogisticsSemRef.current = prevSemester;
-            p4LastEnergySemRef.current = prevSemester;
-          }
           // Charges utilities P1-3 calculées dans le bloc utilities :
           // intégrées ici au paiement global (un seul prélèvement).
           const chargesUtil = (phaseRef.current < 4) ? Math.max(0, pendingUtilityBillRef.current) : 0;
@@ -12424,11 +9756,6 @@ export default function App() {
               // Accumule le revenu pour le bonus de complétion
               line.revenueAccum = (line.revenueAccum || 0) + revenue;
               line.deliveriesDone = (line.deliveriesDone || 0) + 1;
-              // Cumul persistant par contrat (pour le système d'ouverture pays)
-              {
-                const _cid = line.contractId;
-                if (_cid) p4ContractDeliveriesRef.current[_cid] = (p4ContractDeliveriesRef.current[_cid] || 0) + 1;
-              }
               const popText = meltPctInt > 0 ? `+${fmt2(revenue)}€ · −${meltPctInt}%` : `+${fmt2(revenue)}€`;
               popsToAdd.push({ id: Date.now() + Math.random() + idx * 0.01, text: popText });
               newLinePopups[idx] = { text: popText, ts: Date.now() };
@@ -13495,8 +10822,7 @@ export default function App() {
       production: ['rent_warehouse', 'cap_warehouse_50', 'cap_warehouse_100', 'cap_warehouse_200',
                    'cap_warehouse_500', 'cap_warehouse_1000', 'cap_warehouse_2000',
                    'freezer_speed_1', 'freezer_speed_2', 'freezer_speed_3', 'freezer_speed_4',
-                   'production_line_1', 'production_line_2', 'production_line_3',
-                   'diversification'],
+                   'production_line_1', 'production_line_2', 'production_line_3'],
       logistics: ['truck_std', 'truck_premium', 'truck_xl', 'fleet_4_trucks', 'fleet_5_trucks'],
     };
     if (INDUSTRIAL_UPGRADES_BY_CATEGORY.production.includes(u.id)) {
@@ -13598,104 +10924,6 @@ export default function App() {
     }, 12000);
   };
 
-  const confirmDiversification = () => {
-    const u = UPGRADES.find(x => x.id === 'diversification');
-    if (!u) { setPhase4ModalOpen(false); return; }
-    if (owned[u.id]) { setPhase4ModalOpen(false); return; }
-    // === LIQUIDATION INDUSTRIELLE ===
-    // La diversification n'est plus un achat : c'est un choix narratif assumé.
-    // 1. Le stock glaçon existant est vendu à perte (50% du prix marché de l'instant)
-    //    = "liquidation forcée pour libérer l'usine et lancer les 3 nouvelles lignes"
-    // 2. Tous les contrats B2B en cours sont arrêtés sans dédommagement
-    // 3. La marketplace glaçon est vidée
-    // 4. Les 3 stocks Phase 4 sont initialisés à 0
-    // 5. Aucune production ne démarre : le joueur lance tout lui-même.
-    const liquidationPrice = BASE_SELL_PRICE * 0.5; // 50% du prix de base = liquidation
-    const liquidationCash = Math.floor(stock * liquidationPrice);
-    setMoney(m => m + liquidationCash);
-    setPhase4ModalOpen(false);
-    setPhaseTransitionText({ dur: t('transition.dur_two_months'), later: t('transition.later_line'), main: t('transition.two_weeks_later'), sub: t('transition.diversification_done') });
-    setPhase3Transition(true);
-    // À mi-parcours, application Phase 4 + reset propre
-    setTimeout(() => {
-      setOwned(o => ({ ...o, [u.id]: true }));
-      setPhase4TriggerStage(6);
-      // Liquidation : vide stock, contrats, marketplace
-      setStock(0);
-      setLines([]);
-      setMarketplace([]);
-      // Initialise les 3 stocks Phase 4 à zéro (le joueur produira pour les remplir)
-      setPopIceStock(0);
-      setFrozioStock(0);
-      setMedipackStock(0);
-      // Budget Watts de départ P4 = 13 W. Volontairement insuffisant pour
-      // servir tout HOMELAND (~28 W au pire) : le joueur est bloqué dès
-      // Budget Watts de départ P4 = 24 W. Le curseur a déjà plusieurs
-      // crans utilisables par produit (medipack ~4). La tension de fin de
-      // jeu vient du cumul de la demande à mesure que les pays s'ouvrent
-      // (paliers 46 / 54 / 62 / 72 W via les 4 extensions). Capacité de
-      // départ généreuse : plusieurs contrats du même produit (ex. les 2
-      // medipack HOMELAND) tournent en parallèle sans étrangler la prod.
-      setP4MaxCap(80);
-      p4MaxCapRef.current = 80;
-      // Production à ZÉRO : aucune production ne démarre automatiquement.
-      // Le joueur doit consciemment régler les curseurs pour lancer l'usine.
-      setP4TargetPop(0); p4TargetPopRef.current = 0;
-      setP4TargetFro(0); p4TargetFroRef.current = 0;
-      setP4TargetMed(0); p4TargetMedRef.current = 0;
-      // Seuils Brigitte : à 0 par défaut, Brigitte vend tout
-      setSellMinPopIce(0);
-      setSellMinFrozio(0);
-      setSellMinMedipack(0);
-      // Dr. Vandenberg tient son engagement, mais son contrat n'est PAS lancé
-      // tout seul : il attend dans la marketplace MEDIPACK que le joueur le
-      // signe lui-même, en plus de deux autres contrats médicaux.
-      setLinesP4([]);
-      // Le Dr. Vandenberg propose un vrai contrat-carte HOMELAND/MEDIPACK
-      // pour les premiers essais : BIOLAB LOCAL (80u). CLINIQUE DU PARC
-      // (30u) est aussi disponible d'emblée — les 2 contrats HOMELAND
-      // MEDIPACK designés pour la carte.
-      setMarketplaceP4([
-        { contractId: 'pm_med_biolab', product: 'medipack', expiresAt: gameTimeRef.current + 900, generatedAt: gameTimeRef.current },
-        { contractId: 'pm_med_clinique', product: 'medipack', expiresAt: gameTimeRef.current + 600, generatedAt: gameTimeRef.current },
-      ]);
-      // Au démarrage, seul MEDIPACK est débloqué. POP ICE / FROZIO suivront.
-      setP4UnlockedProducts(['medipack']);
-      p4UnlockedProductsRef.current = ['medipack'];
-      setP4OpenMarkets(P4_HOME_MARKETS);
-      p4OpenMarketsRef.current = P4_HOME_MARKETS;
-      setP4Reviews([]);
-      p4ReviewsRef.current = [];
-      setP4ActiveEvent(null);
-      p4ActiveEventRef.current = null;
-      p4LastEventAtRef.current = -9999;
-      p4NextEventAtRef.current = 180;
-      p4VolumeSemStartRef.current = 0;
-      p4LastLogisticsSemRef.current = -1;
-      if (totalsRef.current) totalsRef.current.p4VolumeTotal = 0;
-      setP4UnlockStage(0);
-      p4UnlockStageRef.current = 0;
-      setP4ActivatedAt(gameTimeRef.current);
-      p4ActivatedAtRef.current = gameTimeRef.current;
-      // Nettoyage sabotage : aucun sabotage ne persiste en Phase 4
-      setCyberLockout(0); cyberLockoutRef.current = 0;
-      setStockBurnFlash(0);
-      setFakeReviewTicker(0);
-      lastSabotageAtRef.current = -9999;
-      // Reset acquéreurs (au cas où on rentrerait Phase 4 plusieurs fois via dev)
-      setAcquirerOffers([]);
-      setAcquirerRefusals([]);
-      setAcquisitionFinalized(null);
-      setEndgameEpilogueStage(0);
-      if (u.phaseUnlock) setPhase(u.phaseUnlock);
-    }, 1200);
-    setTimeout(() => {
-      setPhase3Transition(false);
-      if (u.phaseUnlock) {
-        setEventNotif(`PHASE 0${u.phaseUnlock} · LIQUIDATION +${fmtInt(liquidationCash)}€ · NOUVELLES LIGNES OUVERTES`);
-      }
-    }, 12000);
-  };
 
   const confirmAgenceMarketing = () => {
     // Achat narratif du nouveau siège : bascule P2 → P3, +500 cap, débloque familles Janice/Mark/Sabine
@@ -13777,17 +11005,6 @@ export default function App() {
         reputation: 65,
         notifText: null, // outil dev : pas de message visible joueur
       },
-      // P04 : conditions pour la cascade Vandenberg (joueur reste en P3)
-      4: {
-        phase: 3,
-        ownedSet: buildOwnedList([...ROBERT1_REQUIRED, ...ROBERT2_REQUIRED, ...VANDENBERG_REQUIRED]),
-        money: VANDENBERG_MONEY + 1000,
-        notoriety: 95, // > 90 (Cristal Royal) → bat TOUS les concurrents (n°1)
-        reputation: 78, // ≥ 70 (confiance)
-        brandPositioning: 'pro',
-        autoCompleteMissions: true, // crée 4 retailers + 5 semestres
-        notifText: null, // pas de notif visible pour le joueur (outil dev)
-      },
     };
     const plan = plans[targetPhase];
     if (!plan) return;
@@ -13797,8 +11014,6 @@ export default function App() {
     // - camion_1 minimum : pour que Lenny existe (cascade Vandenberg étape 1)
     if (targetPhase >= 3) plan.ownedSet.add('rent_warehouse');
     if (targetPhase >= 3) ['camion_1'].forEach(id => plan.ownedSet.add(id));
-    if (targetPhase >= 4) plan.ownedSet.add('agence_marketing'); // Siège acheté (cascade)
-    if (targetPhase >= 4) plan.ownedSet.add('janice_jr'); // Janice active (cascade)
 
     // Construction du nouveau owned depuis le Set généré
     const newOwned = {};
@@ -13870,16 +11085,8 @@ export default function App() {
       setRobertCall2Triggered(true);
       robertCall2TriggeredRef.current = true;
       setRobertCall2Heard(true);
-      setPhase4ReadyCallDone(false);
       setExoIntroShown(false);
       setSecurityIntroShown(false);
-      setPhase4TriggerStage(0);
-      phase4TriggerStageRef.current = 0;
-      setPhase4LastStageAt(0);
-      phase4LastStageAtRef.current = 0;
-      setPhase4MeetingOpen(false);
-      setPhase4MeetingStep(0);
-      setPhase4SceneStep(0);
     }
 
     // Set hireDates pour que les employés comptent comme embauchés depuis un moment
@@ -13940,28 +11147,6 @@ export default function App() {
         triggerLabel: { fr: 'PHASE 03', en: 'PHASE 03', es: 'FASE 03', zh: "第03阶段", ru: "ФАЗА 03", it: "FASE 03", de: "PHASE 03" },
         subLabel: { fr: 'NOTORIÉTÉ · CAMPAGNES · RETAIL', en: 'AWARENESS · CAMPAIGNS · RETAIL', es: 'NOTORIEDAD · CAMPAÑAS · RETAIL', zh: "知名度 · 活动 · 零售", ru: "ИЗВЕСТНОСТЬ · КАМПАНИИ · РОЗНИЦА", it: "NOTORIETÀ · CAMPAGNE · RETAIL", de: "BEKANNTHEIT · KAMPAGNEN · EINZELHANDEL" },
       },
-      4: {
-        money: 80000,
-        owned: ['silicone', 'mini_freezer', 'fred_stage', 'flyers', 'caisson_isotherme',
-                'cold_turbine', 'cold_water', 'conveyor_belt', 'fred', 'plateau_xl',
-                'doseur_auto', 'cuve_cryo', 'cold_tunnel', 'pro_freezer', 'autosell',
-                'preventive', 'joint_renforce', 'cold_insurance', 'machine_cafe', 'salle_repos',
-                'salle_sport', 'fred_perma', 'rent_warehouse',
-                'camion_1', 'camion_2', 'camion_3', 'camion_4', 'fast_truck', 'truck_iso', 'truck_frigo',
-                'reinforce', 'force_cadence', 'fred_chef', 'fred_dir',
-                'brigitte_compta', 'brigitte_ad',
-                'agence_marketing', 'janice_jr', 'janice_senior',
-                'karen_junior', 'karen_senior', 'plan_formation',
-                'security_camera', 'cyber_security'],
-        totals: { produced: 60000, sold: 58000, delivered: 3000, melted: 1500, moneyEarned: 180000, contractsCompleted: 80, destructions: 2, vehicleBreakdowns: 4 },
-        notoriety: 65,
-        reputation: 78,
-        brandPositioning: 'pro',
-        phaseStage: 5,
-        phase4Stage: 0,
-        triggerLabel: { fr: 'PHASE 04', en: 'PHASE 04', es: 'FASE 04', zh: "第04阶段", ru: "ФАЗА 04", it: "FASE 04", de: "PHASE 04" },
-        subLabel: { fr: 'DIVERSIFICATION · 3 PRODUITS', en: 'DIVERSIFICATION · 3 PRODUCTS', es: 'DIVERSIFICACIÓN · 3 PRODUCTOS', zh: "多元化 · 3种产品", ru: "ДИВЕРСИФИКАЦИЯ · 3 ПРОДУКТА", it: "DIVERSIFICAZIONE · 3 PRODOTTI", de: "DIVERSIFIKATION · 3 PRODUKTE" },
-      },
     };
     const plan = plans[targetPhase];
     if (!plan) return;
@@ -13988,7 +11173,6 @@ export default function App() {
       totalsRef.current = { ...plan.totals };
       setPhase(targetPhase);
       setPhase3TriggerStage(plan.phaseStage || 0);
-      if (typeof plan.phase4Stage === 'number') setPhase4TriggerStage(plan.phase4Stage);
       // Set hireDates pour que les employés "comptent" comme embauchés
       const hd = {};
       if (newOwned['fred_stage'] || newOwned['fred'] || newOwned['fred_perma'] || newOwned['fred_chef'] || newOwned['fred_dir']) hd.fred = Math.max(0, gameTimeRef.current - 240);
@@ -14002,54 +11186,6 @@ export default function App() {
       // Reset modales / events temporaires
       setLines([]);
       // Phase 4 : initialise les 3 stocks séparés à zéro pour test
-      if (targetPhase >= 4) {
-        setPopIceStock(0);
-        setFrozioStock(0);
-        setMedipackStock(0);
-        setP4MaxCap(80);
-        p4MaxCapRef.current = 80;
-        setP4TargetPop(0); p4TargetPopRef.current = 0;
-        setP4TargetFro(0); p4TargetFroRef.current = 0;
-        setP4TargetMed(0); p4TargetMedRef.current = 0;
-        setSellMinPopIce(0);
-        setSellMinFrozio(0);
-        setSellMinMedipack(0);
-        setLinesP4([]);
-        // Mêmes contrats initiaux que le vrai passage P4 (bloc diversification) :
-        // le contrat du Dr. Vandenberg + 2 autres médicaux attendent dans la
-        // marketplace MEDIPACK pour les premiers essais. Sans ça, le joueur
-        // arrive en P4 sans aucun contrat à signer (bug saut dev).
-        setMarketplaceP4([
-          { contractId: 'pm_med_biolab', product: 'medipack', expiresAt: gameTimeRef.current + 900, generatedAt: gameTimeRef.current },
-          { contractId: 'pm_med_clinique', product: 'medipack', expiresAt: gameTimeRef.current + 600, generatedAt: gameTimeRef.current },
-        ]);
-        setP4UnlockedProducts(['medipack']);
-        p4UnlockedProductsRef.current = ['medipack'];
-        setP4OpenMarkets(P4_HOME_MARKETS);
-        p4OpenMarketsRef.current = P4_HOME_MARKETS;
-        setP4Reviews([]);
-        p4ReviewsRef.current = [];
-        setP4ActiveEvent(null);
-        p4ActiveEventRef.current = null;
-        p4LastEventAtRef.current = -9999;
-        p4NextEventAtRef.current = 180;
-        p4VolumeSemStartRef.current = 0;
-        p4LastLogisticsSemRef.current = -1;
-        p4LastEnergySemRef.current = -1;
-        if (totalsRef.current) totalsRef.current.p4VolumeTotal = 0;
-        setP4UnlockStage(0);
-        p4UnlockStageRef.current = 0;
-        setP4ActivatedAt(gameTimeRef.current);
-        p4ActivatedAtRef.current = gameTimeRef.current;
-        setCyberLockout(0); cyberLockoutRef.current = 0;
-        setStockBurnFlash(0);
-        setFakeReviewTicker(0);
-        lastSabotageAtRef.current = -9999;
-        setAcquirerOffers([]);
-        setAcquirerRefusals([]);
-        setAcquisitionFinalized(null);
-        setEndgameEpilogueStage(0);
-      }
       setSalaryDebt(null);
       setWageArrears(null);
       salaryMissMonthsRef.current = [];
@@ -14059,69 +11195,12 @@ export default function App() {
       // Marque les appels narratifs Phase 1→2 et 2→3 comme déjà effectués si on saute
       if (targetPhase >= 2) setRobertCall1Triggered(true);
       if (targetPhase >= 3) { setRobertCall2Triggered(true); setRobertCall2Heard(true); }
-      if (targetPhase >= 4) setPhase4ReadyCallDone(true);
     }, 1200);
     // Fin de l'animation
     setTimeout(() => {
       setPhase3Transition(false);
       setEventNotif('SIMULATION ' + (plan.triggerLabel.fr || plan.triggerLabel) + ' · DEV');
     }, 12000);
-  };
-
-  // === Signature d'un contrat Phase 4 ===
-  // Le contrat passe de la marketplace vers linesP4, démarre en 'loading'
-  // Premier chargement = dès que le stock du produit est suffisant pour la 1ère livraison
-  // === Handlers acquéreurs Phase 4 ===
-  // Accepter une offre = déclencher l'épilogue + fin de partie
-  const handleAcceptOffer = (acquirerId) => {
-    const offer = acquirerOffersRef.current.find(o => o.id === acquirerId);
-    if (!offer) return;
-    const acq = ACQUIRERS_BY_ID[acquirerId];
-    if (!acq) return;
-    // Finalise l'acquisition
-    setAcquisitionFinalized({
-      acquirerId,
-      amount: offer.amount,
-      finalizedAt: gameTime,
-    });
-    // Crédite le cash immédiatement (le chèque tombe)
-    setMoney(m => m + offer.amount);
-    totalsRef.current.moneyEarned += offer.amount;
-    // Ferme la modale liste
-    setAcquirerModalOpen(false);
-    // Démarre l'épilogue narratif (3 étapes)
-    setEndgameEpilogueStage(1);
-    // Achievement : AUCUN LICENCIEMENT — vérifié à la fin
-    if ((totalsRef.current.firedCount || 0) === 0) {
-      unlockAchievement('no_firing');
-    }
-    setEventNotif(`${t('notif.acquisition_done')} · +${fmtInt(offer.amount)}€`);
-  };
-  // Refuser une offre = la fait disparaître définitivement
-  const handleRefuseOffer = (acquirerId) => {
-    const acq = ACQUIRERS_BY_ID[acquirerId];
-    setAcquirerOffers(prev => prev.filter(o => o.id !== acquirerId));
-    setAcquirerRefusals(prev => prev.includes(acquirerId) ? prev : [...prev, acquirerId]);
-    // Achievement counter
-    totalsRef.current = { ...totalsRef.current, refusalsCount: (totalsRef.current.refusalsCount || 0) + 1 };
-    setTotals(t => ({ ...t, refusalsCount: (t.refusalsCount || 0) + 1 }));
-    if (acq) {
-      setEventNotif(`${localizeField(acq.company, language).toUpperCase()} · OFFRE REFUSÉE`);
-    }
-  };
-  // Négocier = +10% une seule fois, possible 60s après réception
-  const handleNegotiateOffer = (acquirerId) => {
-    const offer = acquirerOffersRef.current.find(o => o.id === acquirerId);
-    if (!offer || offer.hasNegotiated) return;
-    if (gameTime - offer.receivedAt < 60) return;
-    const newAmount = Math.round(offer.amount * 1.10);
-    setAcquirerOffers(prev => prev.map(o =>
-      o.id === acquirerId ? { ...o, amount: newAmount, hasNegotiated: true } : o
-    ));
-    const acq = ACQUIRERS_BY_ID[acquirerId];
-    if (acq) {
-      setEventNotif(`${localizeField(acq.company, language).toUpperCase()} · OFFRE RÉÉVALUÉE +10%`);
-    }
   };
 
   // === RÉSOLUTION DES ÉVÉNEMENTS DE TENSION P3 ===
@@ -14448,128 +11527,6 @@ export default function App() {
     setPendingTensionEvent(null);
   };
 
-  const handleSignP4 = (contractId) => {
-    // SYSTÈME UNIFIÉ : le contrat signé EST un contrat-carte enrichi.
-    // Son point sur la carte = son propre id (plus de raccrochage au pif).
-    const c = P4_CONTRACT_BY_ID[contractId];
-    if (!c) return;
-    const MAX_P4_LINES = computeP4MaxLines(owned);
-    if (linesP4.length >= MAX_P4_LINES) {
-      setEventNotif('TROP DE CONTRATS EN COURS · ANNULE-EN UN D\'ABORD');
-      return;
-    }
-    // CONTRAT RÉCURRENT : tourne indéfiniment. Le camion boucle sans fin.
-    // Pas d'expiration par le temps. Le client ne cesse de commander que si
-    // le ratio qualité/prix devient durablement médiocre (status 'suspended'),
-    // auquel cas Brigitte doit renégocier.
-    const newLine = {
-      contractId,
-      product: c.product,
-      mapContractId: contractId, // le contrat EST son point carte
-      status: 'active',          // 'active' | 'suspended'
-      truckPhase: 'loading',
-      truckPos: 0,
-      deliveriesDone: 0,         // compteur cumulé (stat seulement)
-      contractStartedAt: gameTime,
-      revenueAccum: 0,
-      // Système fournisseurs : réglables à tout moment pendant le contrat.
-      supplier: P4_SUPPLIER_DEFAULT, // 'eco' par défaut
-      salePrice: c.pricePerUnit, // prix du contrat-carte (par profil)
-      relSum: 0,
-      relUnits: 0,
-      lastReviewAt: gameTime,
-    };
-    setLinesP4(prev => [...prev, newLine]);
-    setMarketplaceP4(prev => prev.filter(m => m.contractId !== contractId));
-    setEventNotif(`${localizeField(c.name, language).toUpperCase()} · SIGNÉ · RÉCURRENT`);
-  };
-  // Annulation d'un contrat Phase 4 en cours (pénalité de réputation)
-  const handleCancelP4 = (contractId) => {
-    setLinesP4(prev => prev.filter(l => l.contractId !== contractId));
-    setReputation(r => Math.max(0, r - 10));
-    setEventNotif(t('notif.contract_cancelled_rep'));
-  };
-  // Renégociation via Brigitte d'un contrat SUSPENDU. Le client n'accepte
-  // de reprendre QUE si l'offre actuelle (prix de vente vs qualité du
-  // fournisseur choisi) repasse sous le seuil P4_RENEG_OK. Sinon Brigitte
-  // explique qu'il faut baisser le prix ou monter en gamme fournisseur.
-  const handleRenegP4 = (contractId) => {
-    const line = linesP4.find(l => l.contractId === contractId);
-    const c = P4_CONTRACT_BY_ID[contractId];
-    if (!line || !c) return;
-    if (line.status !== 'suspended') return;
-    const sup = P4_SUPPLIER_BY_ID(c.product, line.supplier || 'eco');
-    const prof = p4ProfileOf(line.mapContractId);
-    const basePrice = PRODUCT_PROFILES[c.product]
-      ? PRODUCT_PROFILES[c.product].basePrice : c.pricePerUnit;
-    const salePrice = (line.salePrice != null) ? line.salePrice : c.pricePerUnit;
-    const fairPrice = basePrice * (0.5 + sup.q) * prof.priceTol;
-    let over = salePrice / Math.max(0.01, fairPrice);
-    if (prof.priceLow && salePrice > basePrice) {
-      over *= 1 + 0.4 * ((salePrice / basePrice) - 1);
-    }
-    if (over <= P4_RENEG_OK) {
-      // Offre redevenue compétitive : le client reprend. Compteur
-      // qualité/prix remis à zéro (nouvelle page, nouvelle moyenne).
-      setLinesP4(prev => prev.map(l => l.contractId === contractId
-        ? { ...l, status: 'active', relSum: 0, relUnits: 0,
-            truckPhase: 'loading', truckPos: 0, suspendedAt: undefined,
-            lastReviewAt: gameTime }
-        : l));
-      setReputation(r => Math.min(100, r + 1));
-      setEventNotif(`${localizeField(c.name, language).toUpperCase()} · BRIGITTE A RENÉGOCIÉ · CONTRAT RELANCÉ`);
-    } else {
-      // Pas assez : Brigitte explique ce qu'il faut faire.
-      setEventNotif(t('notif.brigitte_client_refuses'));
-    }
-  };
-  // === RÉPARATION CAMION EN PANNE (Phase 4) ===
-  // Clic sur l'étiquette réparation → lance DIRECTEMENT la réparation
-  // (pas de pop-up) : on débite et on pose un timer repairUntil. Le
-  // camion reste sur place et reprend sa tournée à la fin du timer
-  // (même logique et même durée que les phases 2/3).
-  const handleOpenRepairPopup = (contractId) => {
-    const line = linesP4.find(l => l.contractId === contractId);
-    if (!line || !line.broken) return;
-    if (line.repairUntil && line.repairUntil > gameTime) return; // déjà en cours
-    const cost = p4RepairCost(contractId);
-    if (money < cost) {
-      setEventNotif(t('notif.insufficient_repair_funds'));
-      return;
-    }
-    setMoney(m => m - cost);
-    const dur = line.sabotageRepair ? 15 : 4;
-    setLinesP4(prev => prev.map(l => l.contractId === contractId
-      ? { ...l, repairUntil: gameTime + dur }
-      : l));
-  };
-  // Réglable à tout moment ; la réputation est lissée (moyenne glissante)
-  // donc le switch opportuniste de dernière seconde ne sauve rien.
-  const handleSetP4Supplier = (contractId, supplierId) => {
-    setLinesP4(prev => prev.map(l =>
-      l.contractId === contractId ? { ...l, supplier: supplierId } : l));
-  };
-  const handleSetP4Price = (contractId, price) => {
-    setLinesP4(prev => prev.map(l =>
-      l.contractId === contractId ? { ...l, salePrice: price } : l));
-  };
-
-  // Achat d'un palier d'infrastructure P4 (familles A/B/C).
-  const handleBuyP4Infra = (tier, fam) => {
-    if (owned[tier.id]) return;
-    if (tier.requires && !owned[tier.requires]) {
-      setEventNotif('PALIER PRÉCÉDENT REQUIS D\'ABORD');
-      return;
-    }
-    if (money < tier.cost) {
-      setEventNotif('FONDS INSUFFISANTS · ' + fmt2(tier.cost) + '€');
-      return;
-    }
-    setMoney(m => m - tier.cost);
-    setOwned(o => ({ ...o, [tier.id]: true }));
-    setEventNotif(localizeField(tier.name, language).toUpperCase() + ' · ACQUIS');
-  };
-
   const handleSign = (contractId) => {
     // Calcul robuste : si `lines` est en retard sur `maxLines` (sync via useEffect),
     // on complète d'abord avec les slots manquants, puis on signe.
@@ -14696,99 +11653,8 @@ export default function App() {
       setAgenceModalOpen(true);
       return;
     }
-    if (currentCall.id === 'phase4_vandenberg') {
-      setCompletedCalls(c => [...c, currentCall.id]);
-      setCurrentCall(null);
-      setCallModalOpen(false);
-      setNextCallAt(gameTime + CALL_MIN_INTERVAL + Math.random() * (CALL_MAX_INTERVAL - CALL_MIN_INTERVAL));
-      setPhase4ModalOpen(true);
-      return;
-    }
-    // === APPEL D'OUVERTURE DE PAYS ===
-    // Accepter = le pays s'ouvre ENTIÈREMENT : tous ses contrats
-    // deviennent disponibles d'un coup (déclenché par l'amélioration).
-    if (currentCall.id && currentCall.id.indexOf('p4_open_') === 0) {
-      const country = currentCall.id.replace('p4_open_', '');
-      const opening = P4_COUNTRY_OPENING[country];
-      if (opening) {
-        // Ouvre le pays
-        if (!p4OpenCountriesRef.current.includes(country)) {
-          const nc = [...p4OpenCountriesRef.current, country];
-          p4OpenCountriesRef.current = nc;
-          setP4OpenCountries(nc);
-        }
-        // Débloque TOUS les contrats du pays
-        {
-          const countryContracts = P4_CONTRACTS.filter(c => c.pays === country).map(c => c.id);
-          const cur = new Set(p4UnlockedContractsRef.current || []);
-          const add = countryContracts.filter(cid => !cur.has(cid));
-          if (add.length) {
-            const nu = [...(p4UnlockedContractsRef.current || []), ...add];
-            p4UnlockedContractsRef.current = nu;
-            setP4UnlockedContracts(nu);
-          }
-        }
-        // Marché ouvert (compat ancien filtre PAYS:produit)
-        {
-          const prods = [...new Set(P4_CONTRACTS.filter(c => c.pays === country).map(c => c.product))];
-          const cur = new Set(p4OpenMarketsRef.current || []);
-          const add = prods.map(p => p4MarketKey(country, p)).filter(k => !cur.has(k));
-          if (add.length) {
-            const nm = [...(p4OpenMarketsRef.current || []), ...add];
-            p4OpenMarketsRef.current = nm; setP4OpenMarkets(nm);
-          }
-        }
-        p4PendingCountryCallRef.current = null;
-        setEventNotif('NOUVEAU MARCHÉ OUVERT · ' + country);
-      }
-      setCompletedCalls(c => [...c, currentCall.id]);
-      setCurrentCall(null);
-      setCallModalOpen(false);
-      setNextCallAt(gameTime + CALL_MIN_INTERVAL + Math.random() * (CALL_MAX_INTERVAL - CALL_MIN_INTERVAL));
-      return;
-    }
-    // PHASE 4 : l'activité glaçon est liquidée. Les appels P4 sont des
-    // opportunités/dilemmes ponctuels — ils se résolvent directement par
-    // leur récompense, sans consommer de stock glaçon ni créer de pending
-    // delivery glaçon (qui n'existe plus).
-    if (phaseRef.current >= 4) {
-      const reward4 = call.rewardAccept || { money: 0, rep: 0 };
-      if (reward4.money) {
-        setMoney(m => m + reward4.money);
-        totalsRef.current.moneyEarned += reward4.money;
-      }
-      let rep4 = reward4.rep || 0;
-      if (call.ethic === 'good') rep4 += 3;
-      else if (call.ethic === 'shady') rep4 -= 5;
-      if (rep4 !== 0) setReputation(r => Math.max(0, Math.min(100, r + rep4)));
-      if (call.ethic === 'good') adjustMoralAll(3);
-      else if (call.ethic === 'shady') adjustMoralAll(-5);
-      if (reward4.noto) setNotoriety(n => Math.max(0, Math.min(100, n + reward4.noto)));
-      if (!call.narrativeOnly) {
-        const parts4 = [];
-        if (reward4.money) parts4.push('+' + fmtInt(reward4.money) + '€');
-        if (rep4 > 0) parts4.push('+' + rep4 + ' ' + t('call.rep_short'));
-        else if (rep4 < 0) parts4.push(rep4 + ' ' + t('call.rep_short'));
-        const detail4 = parts4.length ? parts4.join(' · ') : localizeField(call.title, language).toUpperCase();
-        setEventNotif(t('call.deal_closed') + ' · ' + detail4);
-      }
-      setCompletedCalls(c => [...c, currentCall.id]);
-      setCurrentCall(null);
-      setCallModalOpen(false);
-      setNextCallAt(gameTime + CALL_MIN_INTERVAL + Math.random() * (CALL_MAX_INTERVAL - CALL_MIN_INTERVAL));
-      return;
-    }
-    // Stock pertinent : en P4 le contrat cible un produit (popice/
-    // frozio/medipack) → on compare au stock de CE produit, jamais au
-    // stock glaçon. Unité affichée adaptée (jamais "GL" en P4).
-    const _relStock = call.product === 'popice' ? Math.ceil(popIceStock)
-      : call.product === 'frozio' ? Math.ceil(frozioStock)
-      : call.product === 'medipack' ? Math.ceil(medipackStock)
-      : displayStock;
-    const _unit = call.product === 'popice' ? t('unit.popice')
-      : call.product === 'frozio' ? t('unit.frozio')
-      : call.product === 'medipack' ? t('unit.medipack')
-      : 'GL';
+    const _relStock = displayStock;
+    const _unit = 'GL';
     // === Stock insuffisant ? Plus de défi de livraison ===
     // On ne valide PAS sans le stock requis. L'appel reste en cours
     // (le modal ne se ferme pas, le délai normal continue de tourner via
@@ -14799,18 +11665,7 @@ export default function App() {
       return;
     }
     if (call.needStock > 0) {
-      // En P4, les contrats ciblent un produit précis (popice/frozio/
-      // medipack) → on pioche dans le bon stock, jamais dans le stock
-      // glaçon (qui n'existe plus en P4). Sinon (P1-3) : stock glaçon.
-      if (call.product === 'popice') {
-        setPopIceStock(s => Math.max(0, s - call.needStock));
-      } else if (call.product === 'frozio') {
-        setFrozioStock(s => Math.max(0, s - call.needStock));
-      } else if (call.product === 'medipack') {
-        setMedipackStock(s => Math.max(0, s - call.needStock));
-      } else {
-        setStock(s => Math.max(0, s - call.needStock));
-      }
+      setStock(s => Math.max(0, s - call.needStock));
       totalsRef.current.sold += call.needStock;
     }
     const reward = call.rewardAccept || { money: 0, rep: 0 };
@@ -14912,8 +11767,6 @@ export default function App() {
       setNotoriety(n => Math.max(0, Math.min(100, n + totalNotoDelta)));
     }
     setCompletedCalls(c => [...c, currentCall.id]);
-    // Track timestamp pour les acquéreurs Phase 4 qui peuvent se retirer
-    setCallAcceptTimes(prev => ({ ...prev, [currentCall.id]: gameTime }));
     setCurrentCall(null);
     setCallModalOpen(false);
     setNextCallAt(gameTime + CALL_MIN_INTERVAL + Math.random() * (CALL_MAX_INTERVAL - CALL_MIN_INTERVAL));
@@ -14978,10 +11831,6 @@ export default function App() {
     buf.push({ t, amt });
     // Nettoie les entrées plus vieilles que 60s
     while (buf.length > 0 && buf[0].t < t - 60) buf.shift();
-    // CA Phase 4 cumulé : alimente la valorisation entreprise
-    if (phaseRef.current >= 4) {
-      setPhase4Revenue(p => p + amt);
-    }
   };
 
   // === KAREN TEAM-BUILDING ===
@@ -15458,7 +12307,7 @@ export default function App() {
     setStock(0); setMoney(START_CASH + ngPlusCash); setOwned({});
     lastBilledMoneyEarnedRef.current = 0;
     // Réinitialise l'état de victoire/narratif pour permettre de re-gagner (et rejouer l'histoire).
-    setVictoryAchieved(false); setVictoryModalOpen(false); setVictoryTimestamp(null); setEndgameEpilogueStage(0);
+    setVictoryAchieved(false); setVictoryModalOpen(false); setVictoryTimestamp(null);
     setGlacierBeats({}); glacierFiredRef.current = {};
     setClientLoyalty({}); clientLoyaltyRef.current = {};
     contractSuccessStreakRef.current = 0;
@@ -15466,9 +12315,6 @@ export default function App() {
     setGameTime(0); setHeatwaveLeft(0); setDroughtLeft(0); setOutageLeft(0);
     setTempJitter(0);
     setPhase(1); setReputation(50); setLines([]); setMarketplace([]); setFreezingLeft(0); setFreezingTotal(0);
-    setP4MaxCap(80); p4MaxCapRef.current = 80;
-    setPopIceStock(0); setFrozioStock(0); setMedipackStock(0);
-    setP4TargetPop(0); p4TargetPopRef.current = 0; setP4TargetFro(0); p4TargetFroRef.current = 0; setP4TargetMed(0); p4TargetMedRef.current = 0;
     setFredCycleLeft(0); setFredCycleTotal(0);
     fredCycleAccumRef.current = 0;
     fredCycleLeftRef.current = 0;
@@ -15533,32 +12379,8 @@ export default function App() {
     setJaniceBurnedLock(false);
     setLennyBurnedLock(false);
     setPhase3Semesters(0);
-    setPhase4ReadyCallDone(false);
     setExoIntroShown(false);
     setSecurityIntroShown(false);
-    setPhase4TriggerStage(0);
-    setPhase4LastStageAt(0);
-    setPhase4ModalOpen(false);
-    setPhase4SceneStep(0);
-    setPhase4MeetingOpen(false);
-    setPhase4MeetingStep(0);
-    setP4UnlockedProducts(['medipack']);
-    p4UnlockedProductsRef.current = ['medipack'];
-    setP4OpenMarkets(P4_HOME_MARKETS);
-    p4OpenMarketsRef.current = P4_HOME_MARKETS;
-    setP4Reviews([]);
-    p4ReviewsRef.current = [];
-    setP4ActiveEvent(null);
-    p4ActiveEventRef.current = null;
-    p4LastEventAtRef.current = -9999;
-    p4NextEventAtRef.current = 180;
-    p4VolumeSemStartRef.current = 0;
-    p4LastLogisticsSemRef.current = -1;
-    if (totalsRef.current) totalsRef.current.p4VolumeTotal = 0;
-    setP4UnlockStage(0);
-    p4UnlockStageRef.current = 0;
-    setP4ActivatedAt(0);
-    p4ActivatedAtRef.current = 0;
     setMissionOpen(false);
     setActiveCampaign(null);
     setCampaignsOpen(false);
@@ -16148,16 +12970,13 @@ export default function App() {
 
   const renderMenuBar = () => {
     const hasAnyEmp = hasFred || hasBrigitte || hasJanice || hasLenny;
-    const canContracts = phase >= 4 ? true : (phase >= 2 && rawStats.linesBonus >= 1);
+    const canContracts = phase >= 2 && rawStats.linesBonus >= 1;
     const canBank = phase >= 2;
     const canMarketing = hasJanice;
     const hasCall = !!currentCall;
-    const marketBadge = phase >= 4 ? marketplaceP4.length : (canContracts ? feasibleMarketCount : 0);
-    const _p4MaxLines = phase >= 4 ? computeP4MaxLines(owned) : 0;
-    const hasFreeSlot = phase >= 4 ? (linesP4.length < _p4MaxLines) : (canContracts && lines.some(l => !l.contractId));
-    const contractsRinging = phase >= 4
-      ? (linesP4.length < _p4MaxLines && marketplaceP4.length > 0)
-      : (canContracts && hasFreeSlot && feasibleMarketCount > 0);
+    const marketBadge = canContracts ? feasibleMarketCount : 0;
+    const hasFreeSlot = canContracts && lines.some(l => !l.contractId);
+    const contractsRinging = canContracts && hasFreeSlot && feasibleMarketCount > 0;
     const anyStressed = fredStress >= 60 || brigitteStress >= 60 || janiceStress >= 60 || lennyStress >= 60;
     // === ALERTE MORAL : indique au joueur que des actions RH sont nécessaires ===
     // Conditions : moral moyen équipe < 50 OU au moins un employé avec moral < 30
@@ -18535,18 +15354,6 @@ export default function App() {
           from { opacity: 0; transform: translateY(6px); }
           to { opacity: 1; transform: translateY(0); }
         }
-        .phase4-liq-recap {
-          margin-top: 16px;
-          padding: 14px 16px;
-          border: 1px solid var(--fg);
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-          font-size: 11px;
-          line-height: 1.5;
-          animation: meetingTextIn 0.3s ease-out;
-        }
-        .phase4-liq-recap .agence-list-item { color: var(--fg); }
         .meeting-next {
           margin: 0 22px 22px;
           padding: 14px;
@@ -20835,1385 +17642,6 @@ export default function App() {
         .cash-mini.is-negative {
           animation: cashNegPulse 1s ease-in-out infinite;
         }
-        /* === Valorisation entreprise (Phase 4) === */
-        .valuation-band {
-          margin: 2px 0 4px;
-          padding: 3px 12px;
-          background: transparent;
-          color: var(--m1);
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          letter-spacing: 1px;
-          font-weight: 700;
-          font-size: 8.5px;
-          cursor: pointer;
-          flex: 1;
-          opacity: 0.7;
-        }
-        .valuation-band .valuation-band-val {
-          font-size: 10px;
-          color: var(--fg);
-        }
-        .valuation-band-wrap {
-          display: flex;
-          gap: 6px;
-          align-items: stretch;
-          margin: 2px 0 4px;
-        }
-        .valuation-band-wrap .valuation-band {
-          margin: 0;
-        }
-        .acquirer-floating-btn {
-          background: var(--bg);
-          color: var(--fg);
-          border: 2px solid var(--fg);
-          font-family: 'JetBrains Mono', monospace;
-          padding: 8px 12px;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-weight: 800;
-          animation: acquirerPulse 2s ease-in-out infinite;
-        }
-        .acquirer-floating-btn:hover {
-          background: var(--fg);
-          color: var(--bg);
-        }
-        .acquirer-floating-icon {
-          font-size: 14px;
-        }
-        .acquirer-floating-count {
-          font-size: 13px;
-          font-weight: 900;
-        }
-        @keyframes acquirerPulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); }
-          50%      { box-shadow: 0 0 0 4px rgba(0,0,0,0.08); }
-        }
-        /* === Modale offres d'acquisition === */
-        .acquirer-modal {
-          max-width: 92vw;
-          max-height: 85vh;
-          overflow-y: auto;
-        }
-        /* === Épilogue endgame === */
-        .endgame-overlay {
-          position: fixed;
-          inset: 0;
-          background: var(--bg);
-          z-index: 9999;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 20px;
-          animation: endgameFadeIn 0.8s ease-out;
-        }
-        @keyframes endgameFadeIn {
-          0% { opacity: 0; }
-          100% { opacity: 1; }
-        }
-        .endgame-content {
-          max-width: 480px;
-          width: 100%;
-          color: var(--fg);
-        }
-        .endgame-title {
-          font-size: 24px;
-          font-weight: 900;
-          letter-spacing: 3px;
-          margin-bottom: 28px;
-          padding-bottom: 14px;
-          border-bottom: 2px solid var(--fg);
-          text-align: center;
-        }
-        .endgame-body {
-          font-size: 14px;
-          line-height: 1.7;
-          margin-bottom: 32px;
-          text-align: justify;
-          font-style: italic;
-        }
-        .endgame-char-epilogue {
-          margin-bottom: 28px;
-          display: flex;
-          flex-direction: column;
-          gap: 18px;
-        }
-        .endgame-char-row {
-          border-left: 2px solid var(--fg);
-          padding-left: 14px;
-        }
-        .endgame-char-name {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px;
-          font-weight: 900;
-          letter-spacing: 2px;
-          margin-bottom: 6px;
-          color: var(--fg);
-        }
-        .endgame-char-text {
-          font-size: 13px;
-          line-height: 1.6;
-          font-style: italic;
-          color: var(--m1);
-        }
-        .endgame-credits {
-          margin-bottom: 32px;
-          text-align: center;
-        }
-        .endgame-credits-line {
-          font-size: 11px;
-          font-style: italic;
-          color: var(--m1);
-          margin-bottom: 24px;
-        }
-        .endgame-credits-spacer {
-          font-size: 14px;
-          color: var(--m1);
-          margin: 22px 0;
-          opacity: 0.5;
-        }
-        .endgame-credits-section {
-          margin-bottom: 20px;
-        }
-        .endgame-credits-label {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 9px;
-          font-weight: 700;
-          letter-spacing: 3px;
-          color: var(--m1);
-          margin-bottom: 6px;
-        }
-        .endgame-credits-value {
-          font-size: 13px;
-          font-weight: 700;
-          letter-spacing: 1px;
-          margin: 3px 0;
-        }
-        .endgame-credits-quote {
-          font-size: 13px;
-          font-style: italic;
-          line-height: 1.6;
-          color: var(--m1);
-          margin: 24px 16px 0;
-          padding-top: 18px;
-          border-top: 1px solid var(--line);
-        }
-        .endgame-btn {
-          display: block;
-          width: 100%;
-          padding: 14px;
-          background: var(--bg);
-          color: var(--fg);
-          border: 2px solid var(--fg);
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 12px;
-          font-weight: 900;
-          letter-spacing: 2px;
-          cursor: pointer;
-          margin-top: 8px;
-        }
-        .endgame-btn:hover { background: var(--fg); color: var(--bg); }
-        .endgame-btn-primary {
-          background: var(--fg);
-          color: var(--bg);
-        }
-        .endgame-btn-primary:hover { opacity: 0.85; }
-        .endgame-score {
-          margin-bottom: 28px;
-        }
-        .endgame-score-row {
-          display: flex;
-          justify-content: space-between;
-          padding: 8px 0;
-          border-bottom: 1px dashed var(--line);
-          font-size: 12px;
-        }
-        .endgame-score-row:last-child { border-bottom: none; }
-        .endgame-score-lbl {
-          color: var(--m1);
-          letter-spacing: 0.5px;
-        }
-        .endgame-score-val {
-          font-weight: 800;
-          font-variant-numeric: tabular-nums;
-        }
-        .endgame-score-big {
-          font-size: 16px;
-          padding: 12px 0;
-          margin: 8px 0;
-          border-top: 2px solid var(--fg);
-          border-bottom: 2px solid var(--fg);
-        }
-        .endgame-score-big .endgame-score-val { font-size: 20px; }
-        .endgame-final-actions {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 10px;
-        }
-        .endgame-final-actions .endgame-btn { margin-top: 0; }
-
-        .acquirer-empty {
-          padding: 30px;
-          text-align: center;
-          color: var(--m1);
-          letter-spacing: 1px;
-        }
-        .acquirer-card {
-          border: 1px solid var(--fg);
-          padding: 14px;
-          margin-bottom: 12px;
-        }
-        .acquirer-card-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          gap: 8px;
-          margin-bottom: 8px;
-        }
-        .acquirer-card-portrait {
-          position: static;
-          top: auto;
-          left: auto;
-          width: 52px;
-          height: 52px;
-          flex: 0 0 52px;
-          box-shadow: none;
-          object-fit: contain;
-          object-position: top center;
-        }
-        .acquirer-card-titles {
-          flex: 1;
-          min-width: 0;
-        }
-        .acquirer-card-company {
-          font-size: 13px;
-          font-weight: 800;
-          letter-spacing: 0.6px;
-        }
-        .acquirer-card-name {
-          font-size: 10px;
-          color: var(--m1);
-          margin-top: 2px;
-          letter-spacing: 0.4px;
-        }
-        .acquirer-card-archetype {
-          font-size: 8.5px;
-          letter-spacing: 1.4px;
-          font-weight: 700;
-          padding: 3px 6px;
-          background: var(--fg);
-          color: var(--bg);
-          white-space: nowrap;
-        }
-        .acquirer-card-pitch {
-          font-size: 11px;
-          font-style: italic;
-          color: var(--m1);
-          margin: 10px 0;
-          line-height: 1.5;
-          padding-left: 8px;
-          border-left: 2px solid var(--line);
-        }
-        .acquirer-card-money-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-end;
-          margin: 12px 0 6px;
-        }
-        .acquirer-card-money-val {
-          font-size: 22px;
-          font-weight: 900;
-          letter-spacing: 0.5px;
-          font-variant-numeric: tabular-nums;
-        }
-        .acquirer-card-money-vs {
-          display: block;
-          font-size: 9px;
-          color: var(--m1);
-          letter-spacing: 0.6px;
-          margin-top: 2px;
-        }
-        .acquirer-card-timer {
-          font-size: 9px;
-          color: var(--m1);
-          letter-spacing: 0.6px;
-        }
-        .acquirer-card-bonus {
-          font-size: 9.5px;
-          color: var(--fg);
-          font-weight: 700;
-          letter-spacing: 0.5px;
-          margin-bottom: 8px;
-        }
-        .acquirer-card-actions {
-          display: grid;
-          grid-template-columns: 1fr 1fr 1fr;
-          gap: 6px;
-          margin-top: 12px;
-        }
-        .acquirer-btn {
-          padding: 9px 8px;
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 10px;
-          font-weight: 800;
-          letter-spacing: 1.2px;
-          cursor: pointer;
-          border: 1px solid var(--fg);
-          background: var(--bg);
-          color: var(--fg);
-        }
-        .acquirer-btn:hover:not(:disabled) {
-          background: var(--fg);
-          color: var(--bg);
-        }
-        .acquirer-btn:disabled {
-          opacity: 0.3;
-          cursor: not-allowed;
-        }
-        .acquirer-btn-accept {
-          background: var(--fg);
-          color: var(--bg);
-        }
-        .acquirer-btn-accept:hover {
-          opacity: 0.85;
-        }
-        .acquirer-btn-refuse {
-          opacity: 0.7;
-        }
-        .valuation-band-label {
-          font-size: 8.5px;
-          letter-spacing: 1.8px;
-          font-weight: 700;
-          opacity: 0.75;
-        }
-        .valuation-band-val {
-          font-size: 17px;
-          font-weight: 800;
-          font-variant-numeric: tabular-nums;
-          letter-spacing: 0.5px;
-        }
-        .valuation-band-tooltip {
-          position: absolute;
-          background: var(--fg);
-          color: var(--bg);
-          border: 1px solid var(--bg);
-          padding: 10px 12px;
-          font-size: 10px;
-          line-height: 1.6;
-          letter-spacing: 0.4px;
-          z-index: 50;
-          min-width: 220px;
-          right: 12px;
-          margin-top: 4px;
-          box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-        }
-        .valuation-band-tooltip-row { display: flex; justify-content: space-between; gap: 12px; }
-        .valuation-band-tooltip-row.is-total { border-top: 1px dashed var(--bg); padding-top: 4px; margin-top: 4px; font-weight: 800; }
-        .valuation-band-tooltip-lbl { opacity: 0.7; }
-        .valuation-band-tooltip-val { font-variant-numeric: tabular-nums; font-weight: 700; }
-        /* === 3 mini-jauges des produits Phase 4 === */
-        .product-gauges {
-          margin: 6px 12px 0;
-          display: grid;
-          grid-template-columns: 1fr 1fr 1fr;
-          gap: 6px;
-        }
-        .product-gauge {
-          padding: 6px 8px;
-          background: var(--bg);
-          border: 1px solid var(--line);
-          cursor: pointer;
-          font-family: 'JetBrains Mono', monospace;
-          transition: border-color 0.15s;
-        }
-        .product-gauge:hover { border-color: var(--fg); }
-        .product-gauge.is-active { border-color: var(--fg); border-width: 1.5px; }
-        .product-gauge-head {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 4px;
-          margin-bottom: 4px;
-        }
-        .product-gauge-name {
-          font-size: 8.5px;
-          letter-spacing: 1.2px;
-          font-weight: 800;
-          color: var(--fg);
-        }
-        .product-gauge-emoji { font-size: 10px; }
-        .product-gauge-bar {
-          height: 4px;
-          background: var(--line);
-          position: relative;
-          overflow: hidden;
-        }
-        .product-gauge-fill {
-          position: absolute;
-          left: 0; top: 0; bottom: 0;
-          background: var(--fg);
-          transition: width 0.3s ease-out;
-        }
-        .product-gauge-vals {
-          display: flex;
-          justify-content: space-between;
-          align-items: baseline;
-          margin-top: 3px;
-          font-variant-numeric: tabular-nums;
-        }
-        .product-gauge-cur {
-          font-size: 11px;
-          font-weight: 700;
-          color: var(--fg);
-        }
-        .product-gauge-max {
-          font-size: 8.5px;
-          color: var(--m1);
-        }
-        /* Variante saison favorable : un point coloré */
-        .product-gauge.is-favorable .product-gauge-name::after {
-          content: ' ●';
-          color: var(--fg);
-          opacity: 0.6;
-        }
-        /* Incident en cours : pulsation + bordure marquée */
-        .product-gauge.is-incident {
-          border-color: var(--fg);
-          border-width: 1.5px;
-          animation: incidentPulse 1.4s ease-in-out infinite;
-        }
-        .product-gauge.is-incident .product-gauge-name::before {
-          content: '[!] ';
-          font-weight: 900;
-        }
-        @keyframes incidentPulse {
-          0%, 100% { opacity: 1; }
-          50%      { opacity: 0.7; }
-        }
-        /* === CARTE LOGISTIQUE PHASE 4 === */
-        .p4map-wrap {
-          margin: 6px 12px 0;
-        }
-        .p4map-mapblock {
-          border: 1.5px solid var(--fg); border-radius: 0;
-          overflow: hidden; margin-bottom: 4px;
-        }
-        .p4map-prodbar {
-          display: flex; align-items: center; justify-content: space-between;
-          padding: 8px 12px; background: var(--fg); color: var(--bg);
-        }
-        .p4map-nav {
-          background: none; border: none; color: var(--bg);
-          font-family: inherit; font-size: 16px; font-weight: 900;
-          cursor: pointer; padding: 2px 12px; opacity: 0.65;
-        }
-        .p4map-nav:hover { opacity: 1; }
-        .p4map-prodcenter { text-align: center; flex: 1; }
-        .p4map-prodname { font-size: 13px; font-weight: 900; letter-spacing: 3px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
-        .p4map-prodicon { display: inline-flex; align-items: center; }
-        .p4map-prodrate { font-size: 8px; letter-spacing: 1.5px; opacity: 0.75; margin-top: 2px; }
-        .p4map-monitor {
-          display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
-          background: var(--line); border: 1px solid var(--line);
-          margin: 0 0 8px 0;
-        }
-        .p4map-mon-cell {
-          display: flex; flex-direction: column; align-items: center; gap: 2px;
-          background: var(--bg); padding: 6px 2px;
-        }
-        .p4map-mon-lbl { font-size: 7px; letter-spacing: 0.5px; opacity: 0.6; text-align: center; }
-        .p4map-mon-val { font-size: 11px; }
-        .p4map-mon-thin { font-weight: 400; }
-        .p4map-mon-strong { font-weight: 900; font-size: 12px; }
-        .p4map-mon-loss { opacity: 0.85; }
-        .p4map-mon-cost { opacity: 0.65; }
-        .p4map-proddots { display: flex; gap: 5px; justify-content: center; margin-top: 5px; }
-        .p4map-pd { width: 5px; height: 5px; border: 1px solid var(--bg); }
-        .p4map-pd.on { background: var(--bg); }
-        .p4map-canvas {
-          position: relative; width: 100%; aspect-ratio: 1 / 1.04;
-          background: var(--bg); overflow: hidden;
-        }
-        .p4map-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-        .p4map-continent {
-          fill: rgba(0,0,0,0.022); stroke: var(--fg);
-          stroke-width: 1.6; stroke-linejoin: round;
-        }
-        .p4map-border {
-          fill: none; stroke: #dcdcdc; stroke-width: 1.1;
-          stroke-linejoin: round; stroke-linecap: round;
-        }
-        .p4map-locked { fill: url(#p4hatch); stroke: var(--fg); stroke-width: 1; opacity: 0.85; }
-        .p4map-country {
-          font-size: 7.5px; letter-spacing: 1.5px; fill: var(--m1);
-          font-family: inherit; font-weight: 700; opacity: 0.55; pointer-events: none;
-        }
-        .p4map-sea {
-          font-size: 11px; letter-spacing: 4px; fill: var(--m1);
-          font-family: inherit; font-weight: 800; opacity: 0.7; pointer-events: none;
-        }
-        .p4map-route {
-          fill: none; stroke: var(--fg); stroke-width: 1.2;
-          stroke-dasharray: 2 4; opacity: 0.45;
-        }
-        .p4map-route.active { opacity: 0.8; }
-        .p4map-truck { fill: var(--fg); }
-        /* Vide au retour : contour noir, intérieur blanc. Rayon réduit
-           (2.8) pour que le diamètre EXTÉRIEUR (2.8*2 + stroke 1.6 = 7.2)
-           soit identique au point plein chargé (r 3.6 → diam 7.2). */
-        .p4map-truck.is-empty {
-          fill: var(--bg); stroke: var(--fg); stroke-width: 1.6;
-          r: 2.8;
-        }
-        /* En attente de stock au dépôt : pulsation douce */
-        @keyframes p4mapTruckWait {
-          0%,100% { opacity: 1; transform-box: fill-box; transform-origin: center; transform: scale(1); }
-          50% { opacity: 0.45; transform-box: fill-box; transform-origin: center; transform: scale(1.35); }
-        }
-        .p4map-truck.is-waiting {
-          animation: p4mapTruckWait 1.2s ease-in-out infinite;
-        }
-        /* En panne : point + double anneau qui pulse autour */
-        .p4map-truck-brkdot { fill: var(--fg); }
-        .p4map-truck-brkring {
-          fill: none; stroke: var(--fg); stroke-width: 1.4;
-          transform-box: fill-box; transform-origin: center;
-        }
-        @keyframes p4mapBrkRing {
-          0% { opacity: 0.85; transform: scale(0.55); }
-          70% { opacity: 0; transform: scale(1.5); }
-          100% { opacity: 0; transform: scale(1.5); }
-        }
-        .p4map-truck-brkring { animation: p4mapBrkRing 1.3s ease-out infinite; }
-        .p4map-truck-brkring2 { animation-delay: 0.65s; }
-        .p4map-repbox {
-          fill: var(--fg); stroke: var(--bg); stroke-width: 0.6;
-          animation: p4mapRepPulse 1.4s ease-in-out infinite;
-        }
-        @keyframes p4mapRepPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.72; } }
-        .p4map-reptxt-t {
-          fill: var(--bg); font-size: 5.4px; font-weight: 800;
-          letter-spacing: 0.6px; pointer-events: none;
-        }
-        .p4map-reptxt-v {
-          fill: var(--bg); font-size: 6.4px; font-weight: 900;
-          letter-spacing: 0.3px; pointer-events: none;
-        }
-        .p4map-dot { fill: var(--bg); stroke: var(--fg); stroke-width: 1.5; }
-        .p4map-dot.prio { fill: var(--fg); }
-        .p4map-ring {
-          fill: none; stroke: var(--fg); stroke-width: 1; opacity: 0;
-          animation: p4ping 2.8s ease-out infinite;
-        }
-        @keyframes p4ping { 0% { r: 6; opacity: 0.45; } 70% { r: 14; opacity: 0; } 100% { opacity: 0; } }
-        /* Lieux de livraison = CARRÉS (distincts des camions ronds) */
-        .p4map-dot-sq { fill: var(--bg); stroke: var(--fg); stroke-width: 1.5; }
-        .p4map-dot-sq.prio { fill: var(--fg); }
-        /* Hors saison : carré inactif — atténué, contour pointillé,
-           tiret central, fond toujours vide (jamais "plein"). */
-        .p4map-dot-sq.off {
-          fill: var(--bg); stroke: var(--m1); stroke-width: 1.2;
-          stroke-dasharray: 1.6 1.4; opacity: 0.55;
-        }
-        .p4map-sq-offmark {
-          stroke: var(--m1); stroke-width: 1.4; stroke-linecap: round;
-          opacity: 0.7;
-        }
-        .p4map-clbl {
-          font-size: 7px; letter-spacing: 0.5px; fill: var(--fg);
-          font-family: inherit; font-weight: 700; pointer-events: none;
-          paint-order: stroke; stroke: var(--bg); stroke-width: 2.6px;
-        }
-        .p4map-clbl.off { fill: var(--m1); opacity: 0.6; }
-        .p4map-csub {
-          font-size: 5.5px; fill: var(--m1); font-family: inherit; pointer-events: none;
-          paint-order: stroke; stroke: var(--bg); stroke-width: 2.4px;
-        }
-        .p4map-csub.off { opacity: 0.6; font-style: italic; }
-        .p4map-cartbox { fill: var(--bg); stroke: var(--fg); stroke-width: 1.2; }
-        .p4map-cartprod {
-          font-size: 7px; letter-spacing: 1.5px; fill: var(--fg);
-          font-weight: 900; font-family: inherit; pointer-events: none;
-        }
-        .p4map-cartstock {
-          font-size: 6.5px; letter-spacing: 0.5px; fill: var(--m1);
-          font-weight: 700; font-family: inherit; pointer-events: none;
-          font-variant-numeric: tabular-nums;
-        }
-        .p4map-carttrack { fill: rgba(0,0,0,0.06); }
-        .p4map-cartfill { fill: var(--fg); transition: width 0.4s linear; }
-        .p4map-cartsep { stroke: var(--fg); stroke-width: 0.7; opacity: 0.4; }
-        .p4map-settings {
-          display: flex; flex-direction: column; gap: 6px;
-          margin: 10px 12px 0;
-          padding: 0;
-        }
-        .p4map-set-row {
-          display: flex; align-items: center; gap: 10px;
-        }
-        .p4map-set-lbl {
-          font-size: 8px; letter-spacing: 1.2px; color: var(--m1);
-          font-weight: 700; min-width: 64px;
-        }
-        .p4map-set-slider {
-          flex: 1; margin: 0; height: 12px;
-          accent-color: var(--m1); opacity: 0.55;
-          transition: opacity 0.15s ease;
-        }
-        .p4map-set-slider:hover,
-        .p4map-set-slider:active,
-        .p4map-set-slider:focus { opacity: 1; accent-color: var(--fg); }
-        .p4map-prod-row .p4map-set-slider {
-          width: 100%; display: block; opacity: 0.7; margin: 2px 0;
-        }
-        .p4map-set-val {
-          font-size: 9px; font-weight: 800; color: var(--fg);
-          font-variant-numeric: tabular-nums; min-width: 38px; text-align: right;
-        }
-        .p4map-statsbox {
-          margin: 3px 0 6px; border: 1.5px solid var(--fg);
-        }
-        .p4map-statsbox .p4map-wbudget {
-          margin: 0; border: 0; border-bottom: 1px solid var(--line);
-          border-radius: 0; padding: 9px 12px 10px;
-        }
-        .p4map-pstats {
-          display: grid; grid-template-columns: 1fr 1fr 1fr;
-        }
-        .p4map-pcol {
-          padding: 6px 6px 5px; display: flex; flex-direction: column;
-          align-items: center;
-        }
-        .p4map-pcol + .p4map-pcol { border-left: 1px solid var(--line); }
-        .p4map-pname {
-          font-size: 8px; font-weight: 800; letter-spacing: 0.5px;
-          margin-bottom: 4px; text-align: center;
-        }
-        .p4map-vbar-zone {
-          width: auto; height: 124px; position: relative;
-          display: flex; flex-direction: row; align-items: flex-end;
-          justify-content: center; gap: 8px;
-        }
-        .p4map-vbar-wrap { width: 44px; height: 104px; }
-        .p4map-vslider {
-          -webkit-appearance: slider-vertical;
-          appearance: slider-vertical;
-          writing-mode: vertical-lr;
-          direction: rtl;
-          width: 22px; height: 110px; margin: 0; padding: 0;
-          accent-color: var(--fg); cursor: pointer;
-          opacity: 0.85;
-        }
-        .p4map-vslider:hover, .p4map-vslider:active, .p4map-vslider:focus {
-          opacity: 1;
-        }
-        .p4map-vbar {
-          width: 100%; height: 100%; border: 1.5px solid var(--fg);
-          background: var(--bg); position: relative; overflow: hidden;
-        }
-        .p4map-vbar-fill {
-          position: absolute; left: 0; right: 0; bottom: 0;
-          background: var(--fg);
-        }
-        .p4map-vbar-val {
-          margin-top: 4px; font-size: 11px; font-weight: 800;
-          letter-spacing: 0.3px;
-        }
-        .p4map-vbar-cap { font-size: 8px; opacity: 0.45; font-weight: 600; }
-        .p4map-pmeta {
-          margin-top: 3px; font-size: 8px; opacity: 0.42; font-weight: 600;
-        }
-        .p4map-pmeta-throt {
-          opacity: 0.7; text-decoration: line-through;
-        }
-        .p4map-penergy {
-          margin-top: 2px; font-size: 9px; font-weight: 700;
-          opacity: 0.55; text-align: center; letter-spacing: 0.2px;
-        }
-        @keyframes p4mapBarVibe {
-          0%,100% { transform: translate(0,0); }
-          25% { transform: translate(-0.6px,0.4px); }
-          50% { transform: translate(0.6px,-0.4px); }
-          75% { transform: translate(-0.4px,0.5px); }
-        }
-        .p4map-vbar-wrap.full {
-          animation: p4mapBarVibe 0.26s linear infinite;
-        }
-        .p4map-rays {
-          position: absolute; top: 0; left: 0; right: 0; height: 20px;
-          pointer-events: none;
-        }
-        .p4map-ray {
-          position: absolute; bottom: 0; width: 2px; height: 7px;
-          background: var(--fg); opacity: 0;
-        }
-        @keyframes p4mapEvap {
-          0% { opacity: 0; transform: translateY(3px) scaleY(0.4); }
-          35% { opacity: 0.75; }
-          70% { opacity: 0.35; }
-          100% { opacity: 0; transform: translateY(-11px) scaleY(1); }
-        }
-        .p4map-ray1 { left: 11px; animation: p4mapEvap 1.2s ease-out infinite; animation-delay: 0s; }
-        .p4map-ray2 { left: 22px; height: 9px; animation: p4mapEvap 1.0s ease-out infinite; animation-delay: 0.45s; }
-        .p4map-ray3 { left: 32px; animation: p4mapEvap 1.35s ease-out infinite; animation-delay: 0.8s; }
-        .p4map-loss-tag {
-          margin-top: 4px; font-size: 8px; font-weight: 800;
-          letter-spacing: 1px;
-        }
-        .p4map-loss-tag.hidden { visibility: hidden; }
-        .p4map-wbudget {
-          margin: 4px 0 14px; padding: 12px 12px 13px;
-          border: 1.5px solid var(--fg); border-radius: 0;
-        }
-        /* >90 % : tremblement léger de la barre de remplissage */
-        @keyframes p4mapShake90 {
-          0%,100% { transform: translate(0,0); }
-          25% { transform: translate(-1px,0.5px); }
-          50% { transform: translate(1px,-0.5px); }
-          75% { transform: translate(-0.5px,1px); }
-        }
-        /* 100 % : surcharge énergétique — secousses amples + grésillement
-           néon (la barre claque blanc/noir par à-coups brutaux). */
-        @keyframes p4mapEnergyOverload {
-          0%   { transform: translate(0,0);      background: var(--fg); }
-          5%   { transform: translate(-3px,1px); background: var(--bg); }
-          7%   { background: var(--fg); }
-          9%   { transform: translate(2px,-2px); background: var(--bg); }
-          11%  { background: var(--fg); }
-          13%  { transform: translate(-2px,2px); }
-          20%  { transform: translate(3px,-1px); background: var(--fg); }
-          24%  { background: var(--bg); }
-          26%  { background: var(--fg); }
-          34%  { transform: translate(-3px,-1px); }
-          40%  { background: var(--fg); }
-          42%  { background: var(--bg); }
-          44%  { background: var(--fg); }
-          46%  { transform: translate(2px,2px); }
-          55%  { transform: translate(-2px,1px); background: var(--fg); }
-          60%  { background: var(--bg); }
-          62%  { background: var(--fg); }
-          70%  { transform: translate(3px,-2px); }
-          77%  { background: var(--fg); }
-          79%  { background: var(--bg); }
-          81%  { background: var(--fg); }
-          88%  { transform: translate(-3px,1px); }
-          100% { transform: translate(0,0);      background: var(--fg); }
-        }
-        @keyframes p4mapOverloadGlow {
-          0%,100% { box-shadow: 0 0 0 0 rgba(17,17,17,0); }
-          50%     { box-shadow: 0 0 0 2px rgba(17,17,17,0.55); }
-        }
-        @keyframes p4mapBlinkHard {
-          0%,49% { opacity: 1; }
-          50%,100% { opacity: 0.15; }
-        }
-        .p4map-wbud-fill.hot90 {
-          animation: p4mapShake90 0.45s linear infinite;
-        }
-        .p4map-wbud-fill.hot100 {
-          animation: p4mapEnergyOverload 0.5s steps(1,end) infinite;
-        }
-        .p4map-wbud-bar.hot100 {
-          animation: p4mapOverloadGlow 0.5s ease-in-out infinite;
-        }
-        .p4map-wbud-free.sat {
-          animation: p4mapBlinkHard 0.4s steps(1) infinite;
-          font-weight: 800;
-        }
-        .p4map-wbud-head {
-          display: flex; justify-content: space-between; align-items: baseline;
-        }
-        .p4map-wbud-lbl {
-          font-size: 8px; letter-spacing: 1.2px; color: var(--m1); font-weight: 700;
-        }
-        .p4map-wbud-val {
-          font-size: 11px; font-weight: 800; color: var(--fg);
-          font-variant-numeric: tabular-nums;
-        }
-        .p4map-wbud-bar {
-          margin: 6px 0 4px; height: 6px; border-radius: 3px;
-          background: var(--m3, #e8e8e8); overflow: hidden;
-        }
-        .p4map-wbud-fill {
-          height: 100%; background: var(--fg); transition: width 0.2s ease;
-        }
-        .p4map-wbud-free {
-          font-size: 8px; color: var(--m1); font-weight: 700;
-          text-align: right; margin-bottom: 8px;
-        }
-        .p4map-prod-row {
-          display: flex; align-items: center; gap: 8px;
-          margin-top: 7px;
-        }
-        .p4map-prod-row:first-of-type { margin-top: 9px; }
-        .p4map-prod-name {
-          font-size: 9px; letter-spacing: 0.4px; color: var(--fg);
-          font-weight: 800; min-width: 56px;
-        }
-        .p4map-prod-row .p4map-set-slider {
-          flex: 1; min-width: 0; opacity: 0.7; margin: 0;
-        }
-        .p4map-prod-meta {
-          font-size: 9px; color: var(--fg); font-weight: 800;
-          font-variant-numeric: tabular-nums;
-          min-width: 58px; text-align: right;
-        }
-        .p4map-prod-sub {
-          font-size: 8px; color: var(--m1); font-weight: 700;
-          font-variant-numeric: tabular-nums;
-          min-width: 30px; text-align: right;
-        }
-        .p4map-suppliers-btn {
-          width: 100%; margin: 4px 0 9px; padding: 11px 12px;
-          background: var(--fg); border: 1.5px solid var(--fg);
-          color: var(--bg); font-family: inherit; font-size: 10.5px;
-          font-weight: 800; letter-spacing: 1.2px; cursor: pointer;
-          border-radius: 3px; transition: opacity 0.15s;
-          display: flex; align-items: center; justify-content: center;
-          gap: 9px;
-        }
-        .p4map-suppliers-btn:hover { opacity: 0.82; }
-        .p4map-suppliers-btn:active { opacity: 0.7; }
-        .p4map-sup-ico, .p4map-sup-ico2 { flex-shrink: 0; }
-        .p4map-sup-txt { line-height: 1; }
-        /* === Modale FOURNISSEURS === */
-        .suppliers-modal { max-width: 560px; }
-        .suppliers-body {
-          display: flex; flex-direction: column; gap: 16px;
-          padding: 16px; overflow-y: auto; max-height: 70vh;
-        }
-        .infra-cap-line {
-          font-size: 11px; letter-spacing: 0.5px; color: var(--fg);
-          padding: 8px 10px; border: 1px solid var(--fg);
-          text-align: center;
-        }
-        .infra-cap-line b { font-size: 13px; }
-        .infra-fam { display: flex; flex-direction: column; gap: 8px; }
-        .infra-fam-label {
-          font-size: 10px; letter-spacing: 1.5px; color: var(--m1);
-          border-bottom: 1px solid var(--m2); padding-bottom: 4px;
-        }
-        .infra-tier {
-          border: 1px solid var(--m2); padding: 10px;
-          display: flex; flex-direction: column; gap: 6px;
-        }
-        .infra-tier.infra-owned { opacity: 0.5; }
-        .infra-tier-main {
-          display: flex; justify-content: space-between; align-items: baseline;
-          font-size: 12px; color: var(--fg);
-        }
-        .infra-tier-name { font-weight: 600; letter-spacing: 0.3px; }
-        .infra-tier-cost { font-size: 11px; letter-spacing: 0.5px; }
-        .infra-tier-desc { font-size: 10px; color: var(--m1); line-height: 1.5; }
-        .infra-buy-btn {
-          margin-top: 4px; padding: 7px; font-size: 10px;
-          letter-spacing: 1px; background: var(--fg); color: var(--bg);
-          border: none; cursor: pointer; font-family: inherit;
-        }
-        .infra-buy-btn:disabled {
-          background: transparent; color: var(--m2);
-          border: 1px solid var(--m2); cursor: not-allowed;
-        }
-        .suppliers-empty, .reviews-empty {
-          text-align: center; color: var(--m1); font-size: 11px;
-          padding: 18px; letter-spacing: 0.5px;
-        }
-        .suppliers-list { display: flex; flex-direction: column; gap: 14px; }
-        .supplier-card {
-          border: 1px solid var(--line); border-radius: 4px;
-          padding: 12px; display: flex; flex-direction: column; gap: 8px;
-        }
-        .supplier-card-head {
-          display: flex; justify-content: space-between; align-items: center;
-        }
-        .supplier-card-name {
-          font-size: 12px; font-weight: 900; letter-spacing: 1px; color: var(--fg);
-        }
-        .supplier-card-profile {
-          font-size: 9px; font-weight: 800; letter-spacing: 1px;
-          padding: 3px 8px; border: 1px solid var(--fg); border-radius: 2px;
-        }
-        .prof-luxe { background: var(--fg); color: var(--bg); }
-        .prof-volume { color: var(--m1); border-color: var(--m1); }
-        .prof-standard { color: var(--fg); }
-        .supplier-card-sub {
-          font-size: 9px; color: var(--m1); letter-spacing: 0.8px;
-        }
-        .supplier-tier-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-        .supplier-tier {
-          background: var(--bg); border: 1px solid var(--line);
-          padding: 7px 4px; cursor: pointer; border-radius: 3px;
-          display: flex; flex-direction: column; gap: 3px; align-items: center;
-          font-family: inherit; transition: border-color 0.15s, background 0.15s;
-        }
-        .supplier-tier:hover { border-color: var(--fg); }
-        .supplier-tier.is-active { background: var(--fg); border-color: var(--fg); }
-        .supplier-tier.is-active .supplier-tier-name,
-        .supplier-tier.is-active .supplier-tier-meta { color: var(--bg); }
-        .supplier-tier-name { font-size: 8.5px; font-weight: 800; color: var(--fg); text-align: center; letter-spacing: 0.3px; }
-        .supplier-tier-meta { font-size: 8px; color: var(--m1); font-variant-numeric: tabular-nums; }
-        .supplier-finish {
-          font-size: 9.5px; color: var(--m1); font-style: italic;
-          line-height: 1.4; padding: 2px 0;
-        }
-        .supplier-price-row { display: flex; align-items: center; gap: 10px; }
-        .supplier-price-lbl { font-size: 8px; letter-spacing: 1px; color: var(--m1); font-weight: 700; min-width: 92px; }
-        .supplier-price-slider { flex: 1; accent-color: var(--fg); height: 14px; }
-        .supplier-price-val { font-size: 11px; font-weight: 800; color: var(--fg); min-width: 46px; text-align: right; font-variant-numeric: tabular-nums; }
-        .supplier-ratio {
-          font-size: 9px; font-weight: 800; letter-spacing: 1px;
-          text-align: center; padding: 5px; border-radius: 2px;
-        }
-        .ratio-ok { color: var(--fg); border: 1px solid var(--line); }
-        .ratio-warn { color: var(--fg); border: 1px solid var(--fg); }
-        .ratio-bad { background: var(--fg); color: var(--bg); }
-        .reviews-section {
-          border-top: 1px solid var(--line); padding-top: 14px;
-          display: flex; flex-direction: column; gap: 8px;
-        }
-        .reviews-title {
-          font-size: 10px; font-weight: 900; letter-spacing: 2px; color: var(--fg);
-        }
-        .reviews-list { display: flex; flex-direction: column; gap: 8px; }
-        .review-item {
-          border-left: 2px solid var(--line); padding: 5px 0 5px 10px;
-        }
-        .review-item.tone-pos { border-left-color: var(--fg); }
-        .review-item.tone-neg { border-left-color: var(--m1); }
-        .review-from {
-          font-size: 9px; font-weight: 800; letter-spacing: 0.8px;
-          color: var(--fg); margin-bottom: 2px;
-        }
-        .review-text {
-          font-size: 10px; color: var(--m1); font-style: italic; line-height: 1.4;
-        }
-        .p4map-contracts {
-          display: flex; flex-direction: column; gap: 7px;
-          margin-bottom: 4px; padding-bottom: 8px;
-          border-bottom: 1px solid var(--line);
-        }
-        .p4map-contracts-hd {
-          display: flex; justify-content: space-between;
-          font-size: 8px; letter-spacing: 1.4px; color: var(--m1);
-          font-weight: 700;
-        }
-        .p4map-contracts-empty {
-          font-size: 9px; color: var(--m1); font-style: italic;
-          text-align: center; padding: 6px 0;
-        }
-        .p4map-cline {
-          border: 1px solid var(--line); padding: 6px 8px;
-          display: flex; flex-direction: column; gap: 4px;
-        }
-        .p4map-cline-top {
-          display: flex; justify-content: space-between; align-items: baseline;
-        }
-        .p4map-cline-name {
-          font-size: 9.5px; font-weight: 800; color: var(--fg);
-          letter-spacing: 0.4px;
-        }
-        .p4map-cline-ca {
-          font-size: 10px; font-weight: 900; color: var(--fg);
-          font-variant-numeric: tabular-nums;
-        }
-        .p4map-cline-mid, .p4map-cline-foot {
-          display: flex; justify-content: space-between;
-          font-size: 8px; color: var(--m1); letter-spacing: 0.3px;
-          font-variant-numeric: tabular-nums;
-        }
-        .p4map-prof-hi { color: var(--fg); font-weight: 800; }
-        .p4map-prof-mid { color: var(--m1); }
-        .p4map-prof-lo { color: var(--m1); font-style: italic; }
-        .p4map-cline-bar {
-          height: 4px; background: rgba(0,0,0,0.08); border-radius: 1px;
-          overflow: hidden;
-        }
-        .p4map-cline-fill {
-          height: 100%; background: var(--fg);
-          transition: width 0.4s linear;
-        }
-        .p4map-cline-urgent { color: var(--fg); font-weight: 800; }
-        .p4map-cline-susp { border: 1.5px solid var(--fg); background: rgba(0,0,0,0.04); }
-        .p4map-cline-off { opacity: 0.55; border-style: dashed; }
-        .p4map-reneg-btn {
-          width: 100%; margin-top: 6px; padding: 7px 8px;
-          background: var(--fg); color: var(--bg);
-          border: none; border-radius: 0;
-          font-family: inherit; font-size: 10px; font-weight: 800;
-          letter-spacing: 0.06em; cursor: pointer;
-        }
-        .p4map-reneg-btn:active { opacity: 0.7; }
-        /* === Card swipeable Phase 4 (détail produit actif) === */
-        .product-card-container {
-          margin: 6px 12px 0;
-          position: relative;
-          overflow: hidden;
-        }
-        .product-card-swiper {
-          display: flex;
-          transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
-          touch-action: pan-y;
-        }
-        .product-card {
-          flex: 0 0 100%;
-          padding: 10px 12px;
-          background: var(--bg);
-          border: 1px solid var(--line);
-          font-family: 'JetBrains Mono', monospace;
-          box-sizing: border-box;
-        }
-        .product-card-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 8px;
-          padding-bottom: 6px;
-          border-bottom: 1px dashed var(--line);
-          margin-bottom: 8px;
-        }
-        .product-card-title {
-          display: flex;
-          align-items: baseline;
-          gap: 7px;
-        }
-        .product-card-emoji { font-size: 15px; }
-        .product-card-name {
-          font-size: 12px;
-          font-weight: 800;
-          letter-spacing: 1.2px;
-          color: var(--fg);
-        }
-        .product-card-desc {
-          font-size: 8.5px;
-          color: var(--m1);
-          letter-spacing: 0.5px;
-        }
-        .product-card-season-badge {
-          font-size: 7.5px;
-          letter-spacing: 1px;
-          padding: 3px 6px;
-          border: 1px solid var(--fg);
-          font-weight: 700;
-          white-space: nowrap;
-        }
-        .product-card-season-badge.is-favorable {
-          background: var(--fg);
-          color: var(--bg);
-        }
-        .product-card-season-badge.is-unfavorable {
-          opacity: 0.5;
-        }
-        .product-card-incident-banner {
-          margin: 8px 0 10px;
-          padding: 6px 10px;
-          background: var(--fg);
-          color: var(--bg);
-          font-size: 9.5px;
-          letter-spacing: 1.2px;
-          font-weight: 700;
-          display: flex;
-          align-items: center;
-          animation: incidentPulse 1.4s ease-in-out infinite;
-        }
-        .product-card-stock-row {
-          display: flex;
-          align-items: baseline;
-          justify-content: space-between;
-          gap: 12px;
-          margin-bottom: 8px;
-        }
-        .product-card-stock-big {
-          font-size: 20px;
-          font-weight: 800;
-          font-variant-numeric: tabular-nums;
-          line-height: 1;
-        }
-        .product-card-stock-unit {
-          font-size: 9px;
-          color: var(--m1);
-          letter-spacing: 1px;
-          margin-left: 4px;
-        }
-        .product-card-cap {
-          font-size: 8.5px;
-          color: var(--m1);
-        }
-        .product-card-cap-bar {
-          height: 3px;
-          background: var(--line);
-          position: relative;
-          overflow: hidden;
-          margin-bottom: 12px;
-        }
-        .product-card-cap-fill {
-          position: absolute;
-          left: 0; top: 0; bottom: 0;
-          background: var(--fg);
-        }
-        .product-card-section {
-          margin-top: 10px;
-          padding-top: 8px;
-          border-top: 1px dashed var(--line);
-        }
-        .product-card-section-label {
-          font-size: 7.5px;
-          letter-spacing: 1.1px;
-          color: var(--m1);
-          font-weight: 700;
-          margin-bottom: 5px;
-          display: flex;
-          justify-content: space-between;
-        }
-        .product-card-section-val {
-          color: var(--fg);
-          font-variant-numeric: tabular-nums;
-        }
-        .product-card-slider {
-          width: 100%;
-          margin: 0;
-          accent-color: var(--m1);
-          height: 12px;
-          opacity: 0.6;
-          transition: opacity 0.15s ease;
-        }
-        .product-card-slider:hover,
-        .product-card-slider:active,
-        .product-card-slider:focus {
-          opacity: 1;
-          accent-color: var(--fg);
-        }
-        /* === 3 stats clés === */
-        .product-card-keystats {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 6px;
-          margin-top: 10px;
-        }
-        .product-card-keystat {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 2px;
-          padding: 7px 3px;
-          border: 1px solid var(--line);
-        }
-        .product-card-keystat-val {
-          font-size: 12px;
-          font-weight: 900;
-          color: var(--fg);
-          font-variant-numeric: tabular-nums;
-        }
-        .product-card-keystat-lbl {
-          font-size: 7px;
-          letter-spacing: 1.2px;
-          text-transform: uppercase;
-          color: var(--m1);
-        }
-        /* === Ligne de livraison (1 camion / contrat) === */
-        .delivery-line-wrap { position: relative; }
-        .delivery-line {
-          position: relative;
-          height: 56px;
-          margin-top: 4px;
-        }
-        .delivery-line-road {
-          position: absolute;
-          left: 6%; right: 6%;
-          bottom: 10px;
-          height: 2px;
-          background: var(--fg);
-          opacity: 0.35;
-        }
-        .delivery-line-road::after {
-          content: '';
-          position: absolute;
-          left: 0; right: 0; top: 0;
-          border-top: 2px dashed var(--fg);
-          opacity: 0.5;
-        }
-        .delivery-line-depot, .delivery-line-dest {
-          position: absolute;
-          bottom: 6px;
-          color: var(--fg);
-          background: var(--bg);
-          padding: 1px;
-        }
-        .delivery-line-depot { left: 0; }
-        .delivery-line-dest { right: 0; }
-        .delivery-truck {
-          position: absolute;
-          transform: translateX(-50%);
-          background: none;
-          border: none;
-          padding: 4px;
-          cursor: pointer;
-          color: var(--fg);
-          transition: left 0.5s linear, bottom 0.3s ease;
-          line-height: 0;
-        }
-        .delivery-truck.is-return { opacity: 0.5; transform: translateX(-50%) scaleX(-1); }
-        .delivery-truck.is-sel { color: var(--fg); }
-        .delivery-truck.is-sel svg rect,
-        .delivery-truck.is-sel svg path { fill: var(--fg); }
-        .delivery-truck.is-sel svg circle { fill: var(--bg); }
-        .delivery-line-empty {
-          font-size: 10px;
-          color: var(--m1);
-          text-align: center;
-          padding: 18px 0;
-          font-style: italic;
-        }
-        .delivery-line-overflow {
-          font-size: 8.5px;
-          color: var(--m1);
-          letter-spacing: 1px;
-          text-align: right;
-          margin-top: 2px;
-        }
-        .delivery-bubble {
-          margin-top: 8px;
-          padding: 8px 11px;
-          background: var(--fg);
-          color: var(--bg);
-          animation: deliveryBubbleIn 0.18s ease-out;
-        }
-        @keyframes deliveryBubbleIn {
-          from { opacity: 0; transform: translateY(-4px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .delivery-bubble-name {
-          font-size: 11px;
-          font-weight: 900;
-          letter-spacing: 0.5px;
-        }
-        .delivery-bubble-meta {
-          font-size: 9.5px;
-          opacity: 0.85;
-          margin-top: 2px;
-          font-variant-numeric: tabular-nums;
-        }
-        .delivery-bubble-state {
-          font-size: 9px;
-          opacity: 0.7;
-          margin-top: 3px;
-          letter-spacing: 0.5px;
-          font-variant-numeric: tabular-nums;
-        }
-        .product-card-stats {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 6px 12px;
-          margin-top: 4px;
-        }
-        .product-card-stat-row {
-          display: flex;
-          justify-content: space-between;
-          font-size: 9.5px;
-        }
-        .product-card-stat-lbl { color: var(--m1); letter-spacing: 0.4px; }
-        .product-card-stat-val { color: var(--fg); font-variant-numeric: tabular-nums; font-weight: 700; }
-        .product-card-dots {
-          display: flex;
-          justify-content: center;
-          gap: 6px;
-          padding: 8px 0 0;
-        }
-        .product-card-dot {
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          background: var(--line);
-          transition: background 0.2s;
-          cursor: pointer;
-        }
-        .product-card-dot.is-active { background: var(--fg); }
-        /* === Contrats actifs et marketplace par produit === */
-        .product-card-contract-row {
-          display: grid;
-          grid-template-columns: 1fr 60px 18px;
-          gap: 8px;
-          align-items: center;
-          padding: 6px 0;
-          border-bottom: 1px dashed var(--line);
-        }
-        .product-card-contract-row:last-child { border-bottom: none; }
-        .product-card-contract-info {
-          min-width: 0;
-        }
-        .product-card-contract-name {
-          font-size: 10px;
-          font-weight: 700;
-          color: var(--fg);
-          letter-spacing: 0.6px;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-        .product-card-contract-meta {
-          font-size: 8.5px;
-          color: var(--m1);
-          margin-top: 2px;
-          letter-spacing: 0.3px;
-        }
-        .product-card-contract-bar {
-          height: 3px;
-          background: var(--line);
-          position: relative;
-          overflow: hidden;
-        }
-        .product-card-contract-bar-fill {
-          position: absolute;
-          left: 0; top: 0; bottom: 0;
-          background: var(--fg);
-          transition: width 0.4s ease-out;
-        }
-        .product-card-contract-cancel {
-          width: 18px;
-          height: 18px;
-          background: transparent;
-          border: 1px solid var(--line);
-          color: var(--m1);
-          font-size: 11px;
-          font-weight: 700;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 0;
-        }
-        .product-card-contract-cancel:hover { border-color: var(--fg); color: var(--fg); }
-        .product-card-market-row {
-          display: grid;
-          grid-template-columns: 1fr auto;
-          gap: 8px;
-          align-items: center;
-          padding: 6px 0;
-          border-bottom: 1px dashed var(--line);
-        }
-        .product-card-market-row:last-child { border-bottom: none; }
-        .product-card-market-sign {
-          background: var(--fg);
-          color: var(--bg);
-          border: 1px solid var(--fg);
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 9px;
-          font-weight: 800;
-          letter-spacing: 1.2px;
-          padding: 5px 10px;
-          cursor: pointer;
-          white-space: nowrap;
-        }
-        .product-card-market-sign:hover { opacity: 0.85; }
-        .product-card-empty {
-          font-size: 9.5px;
-          color: var(--m1);
-          font-style: italic;
-          padding: 6px 0;
-          letter-spacing: 0.4px;
-        }
         /* Pause menu */
         .pause-menu-modal { max-width: 320px; }
         .pause-menu-actions { display: flex; flex-direction: column; gap: 0; padding: 0; }
@@ -22442,8 +17870,6 @@ export default function App() {
           .modal-btn-cancel:hover:not(:active),
           .menu-btn:hover:not(:active),
           .modal-close:hover:not(:active),
-          .acquirer-btn-refuse:hover:not(:active),
-          .acquirer-btn-negotiate:hover:not(:disabled):not(:active),
           .endgame-btn:hover:not(:active),
           .pause-menu-btn:hover:not(:active),
           .agence-decline:hover:not(:active),
@@ -22518,7 +17944,7 @@ export default function App() {
                       let hint = '';
                       if (nextLevel === 15) hint = 'Entreprise mature, fin de Phase 1';
                       else if (nextLevel === 25) hint = "Acteur établi, l'envergure Phase 3";
-                      else if (nextLevel === 38) hint = 'Groupe reconnu, vers la diversification';
+                      else if (nextLevel === 38) hint = 'Groupe reconnu, référence nationale';
                       else if (nextLevel === 50) hint = 'Empire industriel, niveau maximum';
                       return base + ` · ${toNext} pour Nv${nextLevel}${hint ? '\n→ ' + hint : ''}`;
                     })()}
@@ -22912,29 +18338,6 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* === Acquéreurs (forcer l'apparition d'une offre — P3) === */}
-                {phase >= 3 && (
-                  <div className="dev-row">
-                    <label>ACQUÉREURS</label>
-                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                      {['patrice_glacier', 'ethicvest', 'silverlion'].map(aid => {
-                        const acq = ACQUIRERS_BY_ID[aid];
-                        if (!acq) return null;
-                        const label = aid === 'patrice_glacier' ? '+Patrice' : aid === 'ethicvest' ? '+Ethic' : '+Silver';
-                        return (
-                          <button key={aid} className="dev-pill" onClick={() => {
-                            const val = computeCompanyValuation();
-                            setAcquirerOffers(prev => [...prev, {
-                              id: acq.id, amount: Math.round(val * (acq.multiplier / 10)),
-                              receivedAt: gameTime, expiresAt: gameTime + 300, hasNegotiated: false, bonus: 0,
-                            }]);
-                            setEventNotif(acq.id.toUpperCase() + ' · DEV');
-                          }}>{label}</button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
 
                 {/* === SECTION : PROGRESSION RAPIDE === */}
                 <div className="dev-section-collapsable">
@@ -23216,7 +18619,7 @@ export default function App() {
                           const speaker = speakers[Math.floor(Math.random() * speakers.length)];
                           const cats = DEV_PREVIEW_MESSAGES[speaker];
                           if (!cats) return;
-                          const catKeys = Object.keys(cats).filter(k => k !== 'phase4');
+                          const catKeys = Object.keys(cats);
                           if (catKeys.length === 0) return;
                           const cat = catKeys[Math.floor(Math.random() * catKeys.length)];
                           const msgs = cats[cat];
@@ -23243,7 +18646,7 @@ export default function App() {
                         return (
                           <div key={emp} style={{ marginBottom: 10 }}>
                             <div className="dev-section-subtitle">{speakerMap[emp].toUpperCase()}</div>
-                            {Object.entries(categories).filter(([cat]) => cat !== 'phase4').map(([cat, msgs]) => (
+                            {Object.entries(categories).map(([cat, msgs]) => (
                               <div key={cat} style={{ marginBottom: 6 }}>
                                 <div style={{ fontSize: 8, color: 'var(--m1)', letterSpacing: 1, marginBottom: 2 }}>{catLabels[cat] || cat}</div>
                                 {msgs.map((msg, i) => (
@@ -23512,9 +18915,7 @@ export default function App() {
               <div className="modal-header">
                 <Briefcase size={14} strokeWidth={2} />
                 <div className="modal-title">
-                  {phase >= 4
-                    ? `CONTRATS · ${marketplaceP4.length} DISPONIBLE${marketplaceP4.length > 1 ? 'S' : ''}`
-                    : `MARCHÉ · ${marketplace.length}/${marketTarget} CONTRAT${marketTarget > 1 ? 'S' : ''}`}
+                  {`MARCHÉ · ${marketplace.length}/${marketTarget} CONTRAT${marketTarget > 1 ? 'S' : ''}`}
                 </div>
                 <button className="modal-close" onClick={() => setShowMarket(false)} aria-label="Fermer">
                   <X size={14} strokeWidth={2} />
@@ -23536,71 +18937,6 @@ export default function App() {
                     </div>
                     <div className="cyber-lockout-txt">{t('cyber.systems_down')}</div>
                     <div className="cyber-lockout-sub">{t('cyber.reconnect_in')} {Math.ceil(cyberLockout)}s</div>
-                  </div>
-                ) : phase >= 4 ? (
-                  <div className="market-p4">
-                    {PRODUCT_ORDER.map(pkey => {
-                      const prof = PRODUCT_PROFILES[pkey];
-                      const isUnlocked = p4UnlockedProducts.includes(pkey);
-                      const list = marketplaceP4.filter(m => m.product === pkey);
-                      const signedCount = linesP4.filter(l => {
-                        const cc = P4_CONTRACT_BY_ID[l.contractId];
-                        return cc && cc.product === pkey;
-                      }).length;
-                      return (
-                        <div key={pkey} className="market-p4-group">
-                          <div className="market-p4-group-head">
-                            <span className="market-p4-group-name">
-                              <ProductIcon id={pkey} size={14} /> {localizeField(prof.name, language)}
-                            </span>
-                            <span className="market-p4-group-count">
-                              {!isUnlocked ? 'VERROUILLÉ' : `${list.length} dispo · ${signedCount} signé${signedCount > 1 ? 's' : ''}`}
-                            </span>
-                          </div>
-                          {!isUnlocked ? (
-                            <div className="market-p4-empty">
-                              {pkey === 'popice' ? 'Marché pas encore ouvert. Lenny relance ses contacts.'
-                                : pkey === 'frozio' ? 'Module neige en calibrage. Fred prépare la production.'
-                                : 'Marché pas encore ouvert.'}
-                            </div>
-                          ) : list.length === 0 ? (
-                            <div className="market-p4-empty">{t('market.p4_empty')}</div>
-                          ) : (
-                            list.map(m => {
-                              const c = P4_CONTRACT_BY_ID[m.contractId];
-                              if (!c) return null;
-                              const timeLeft = Math.max(0, Math.ceil(m.expiresAt - gameTime));
-                              const distTxt = p4DistanceLabel(c.dist || 0, language);
-                              return (
-                                <div
-                                  key={m.contractId}
-                                  className="market-p4-row market-p4-row-clickable"
-                                  onClick={() => setP4ContractDetailId(m.contractId)}
-                                >
-                                  <div className="market-p4-row-info">
-                                    <div className="market-p4-row-name">{localizeField(c.name, language)}</div>
-                                    <div className="market-p4-row-meta">{c.qty}u · {distTxt} · expire {timeLeft}s</div>
-                                  </div>
-                                  <button
-                                    className="market-p4-sign"
-                                    onClick={(e) => { e.stopPropagation(); setP4ContractDetailId(m.contractId); }}
-                                  >
-                                    VOIR
-                                  </button>
-                                </div>
-                              );
-                            })
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : marketplace.length === 0 ? (
-                  <div className="market-empty">
-                    {rawStats.truckMaxCap === 0 ? t('market.empty_no_truck') :
-                     brigitteMaxTier === 0 ? t('market.empty_no_contract') :
-                     marketTarget === 0 ? t('market.empty_lull') :
-                     t('market.empty_too_small').replace('{cap}', String(rawStats.truckMaxCap))}
                   </div>
                 ) : (
                   <div className="market-grid">
@@ -23709,149 +19045,7 @@ export default function App() {
           </div>
         )}
 
-        {p4SuppliersModalOpen && (
-          <div className="modal-backdrop" onClick={() => setP4SuppliersModalOpen(false)}>
-            <div className="modal suppliers-modal" onClick={e => e.stopPropagation()}>
-              <div className="modal-header">
-                <Truck size={14} strokeWidth={2} />
-                <div className="modal-title">FOURNISSEURS · {linesP4.length} CONTRAT{linesP4.length > 1 ? 'S' : ''}</div>
-                <button className="modal-close" onClick={() => setP4SuppliersModalOpen(false)} aria-label="Fermer">
-                  <X size={14} strokeWidth={2} />
-                </button>
-              </div>
-              <div className="suppliers-body">
-                {linesP4.length === 0 ? (
-                  <div className="suppliers-empty">AUCUN CONTRAT EN COURS · SIGNE UN CONTRAT POUR CHOISIR SON APPRO</div>
-                ) : (
-                  <div className="suppliers-list">
-                    {linesP4.map(line => {
-                      const bc = P4_CONTRACT_BY_ID[line.contractId];
-                      if (!bc) return null;
-                      const prod = line.product;
-                      const sup = P4_SUPPLIER_BY_ID(prod, line.supplier);
-                      const supDef = P4_SUPPLIERS[prod];
-                      const prof = p4ProfileOf(line.mapContractId);
-                      const basePrice = PRODUCT_PROFILES[prod] ? PRODUCT_PROFILES[prod].basePrice : 1;
-                      const cname = localizeField(bc.name, language).toUpperCase();
-                      // prix juste = basePrice × (0,5 + q) × tolérance du profil
-                      const fairPrice = basePrice * (0.5 + sup.q) * prof.priceTol;
-                      const over = line.salePrice / Math.max(0.01, fairPrice);
-                      // état du ratio : ok / tendu / abus
-                      const ratioState = over <= 1.0 ? 'ok' : over <= 1.25 ? 'warn' : 'bad';
-                      const ratioTxt = ratioState === 'ok' ? 'JUSTE'
-                        : ratioState === 'warn' ? 'TENDU' : 'ABUSIF';
-                      return (
-                        <div key={line.contractId} className="supplier-card">
-                          <div className="supplier-card-head">
-                            <span className="supplier-card-name">{cname}</span>
-                            <span className={`supplier-card-profile prof-${prof.id.toLowerCase()}`}>
-                              {localizeField(prof.label, language)}
-                            </span>
-                          </div>
-                          <div className="supplier-card-sub">
-                            {localizeField(supDef.label, language)} · QUALITÉ ATTENDUE {Math.round(prof.qExpect * 100)}%
-                          </div>
-                          <div className="supplier-tier-row">
-                            {supDef.tiers.map(ti => (
-                              <button
-                                key={ti.id}
-                                className={`supplier-tier ${line.supplier === ti.id ? 'is-active' : ''}`}
-                                onClick={() => handleSetP4Supplier(line.contractId, ti.id)}
-                              >
-                                <span className="supplier-tier-name">{localizeField(ti.name, language)}</span>
-                                <span className="supplier-tier-meta">{fmt2(ti.cost)}€/u · Q{Math.round(ti.q * 100)}</span>
-                              </button>
-                            ))}
-                          </div>
-                          <div className="supplier-finish">« {localizeField(sup.finish, language)} »</div>
-                          <div className="supplier-price-row">
-                            <span className="supplier-price-lbl">{t('ui.sale_price_per_u')}</span>
-                            <input
-                              type="range"
-                              min={basePrice * 0.5} max={basePrice * 2} step="0.10"
-                              value={line.salePrice}
-                              onChange={e => handleSetP4Price(line.contractId, parseFloat(e.target.value))}
-                              className="supplier-price-slider"
-                            />
-                            <span className="supplier-price-val">{fmt2(line.salePrice)}€</span>
-                          </div>
-                          <div className={`supplier-ratio ratio-${ratioState}`}>
-                            RAPPORT QUALITÉ / PRIX : {ratioTxt}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-                <div className="reviews-section">
-                  <div className="reviews-title">{t('ui.client_reviews')}</div>
-                  {p4Reviews.length === 0 ? (
-                    <div className="reviews-empty">{t('reviews.empty')}</div>
-                  ) : (
-                    <div className="reviews-list">
-                      {p4Reviews.slice(0, 12).map((rv, i) => (
-                        <div key={i} className={`review-item tone-${rv.tone}`}>
-                          <div className="review-from">{rv.from}</div>
-                          <div className="review-text">« {rv.text} »</div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
-        {p4InfraModalOpen && (
-          <div className="modal-backdrop" onClick={() => setP4InfraModalOpen(false)}>
-            <div className="modal suppliers-modal" onClick={e => e.stopPropagation()}>
-              <div className="modal-header">
-                <Wrench size={14} strokeWidth={2} />
-                <div className="modal-title">{t('ui.infra_markets')}</div>
-                <button className="modal-close" onClick={() => setP4InfraModalOpen(false)} aria-label="Fermer">
-                  <X size={14} strokeWidth={2} />
-                </button>
-              </div>
-              <div className="suppliers-body">
-                <div className="infra-cap-line">
-                  CONTRATS SIMULTANÉS : <b>{linesP4.length}</b> / {computeP4MaxLines(owned)}
-                </div>
-                {P4_INFRA_FAMS.map(famKey => {
-                  const fam = P4_INFRA[famKey];
-                  return (
-                    <div key={famKey} className="infra-fam">
-                      <div className="infra-fam-label">{localizeField(fam.label, language)}</div>
-                      {fam.tiers.map(tier => {
-                        const ownedTier = !!owned[tier.id];
-                        const locked = tier.requires && !owned[tier.requires];
-                        const tooPoor = money < tier.cost;
-                        return (
-                          <div key={tier.id} className={`infra-tier${ownedTier ? ' infra-owned' : ''}`}>
-                            <div className="infra-tier-main">
-                              <span className="infra-tier-name">{localizeField(tier.name, language)}</span>
-                              <span className="infra-tier-cost">{ownedTier ? '✓ ACQUIS' : fmt2(tier.cost) + '€'}</span>
-                            </div>
-                            <div className="infra-tier-desc">{localizeField(tier.desc, language)}</div>
-                            {!ownedTier && (
-                              <button
-                                className="infra-buy-btn"
-                                disabled={locked || tooPoor}
-                                onClick={() => handleBuyP4Infra(tier, famKey)}
-                              >
-                                {locked ? 'PALIER PRÉCÉDENT REQUIS' : tooPoor ? 'FONDS INSUFFISANTS' : 'ACQUÉRIR'}
-                              </button>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        )}
 
         {campaignsOpen && (() => {
           const camp = activeCampaign;
@@ -24766,410 +19960,8 @@ export default function App() {
         )}
 
         {/* === ÉPILOGUE NARRATIF + ÉCRAN DE SCORE === */}
-        {endgameEpilogueStage > 0 && acquisitionFinalized && (() => {
-          const acq = ACQUIRERS_BY_ID[acquisitionFinalized.acquirerId];
-          if (!acq) return null;
-          const stage = endgameEpilogueStage;
-          const company = localizeField(acq.company, language);
-          const finalAmount = acquisitionFinalized.amount;
-          // Calcul score final
-          const totalYears = Math.floor(gameTime / (SEASON_DURATION * 4)) + 1;
-          const moneyEarned = totalsRef.current.moneyEarned || 0;
-          const contractsTotal = totalsRef.current.contractsCompleted || 0;
-          const refusalsCount = acquirerRefusals.length;
-
-          // === ÉPILOGUES PERSONNAGES ===
-          // Détermine quels persos sont à bord à la fin et leur état (moral)
-          const epilogueChars = [];
-          // FRED — toujours présent dès P1
-          const fredTier = ['fred_dir', 'fred_chef', 'fred_perma', 'fred', 'fred_stage'].find(id => owned[id]);
-          if (fredTier) {
-            const m = fredMoral;
-            const f_fr = m >= 60
-              ? "Fred t'a pris dans ses bras pour te dire au revoir. Il garde la blouse du premier jour pliée chez lui. « Patron, t'as été un bon patron. »"
-              : m >= 30
-              ? "Fred range son bureau lentement. Il ne te regarde pas en partant. « J'ai donné ce que j'ai pu. »"
-              : "Fred ne s'est pas présenté ce matin. Brigitte t'a tendu une enveloppe : sa lettre de démission, datée d'hier soir.";
-            const f_en = m >= 60
-              ? "Fred hugged you goodbye. He still keeps his first-day overcoat folded at home. \"Boss, you've been a good boss.\""
-              : m >= 30
-              ? "Fred packs up his desk slowly. He doesn't look at you on his way out. \"I gave what I could.\""
-              : "Fred didn't show up this morning. Brigitte handed you an envelope: his resignation letter, dated last night.";
-            epilogueChars.push({ name: 'Fred', text: { fr: f_fr, en: f_en, es: f_fr, zh: f_fr, ru: f_fr, it: f_fr, de: f_fr }});
-          }
-          // BRIGITTE — présent dès P1
-          const briTier = ['brigitte_dir', 'brigitte_compta', 'autosell'].find(id => owned[id]);
-          if (briTier) {
-            const m = brigitteMoral;
-            const b_fr = m >= 60
-              ? "Brigitte a accepté un poste de DAF dans une entreprise de logistique. « Tu m'as appris à dire non. C'est pas négociable. » Elle t'envoie une carte à Noël."
-              : m >= 30
-              ? "Brigitte a quitté avant la fin officielle. Deux semaines de préavis, pile. Elle a déjà signé ailleurs. « C'est de la procédure. »"
-              : "Brigitte avait posé sa démission trois mois avant l'acquisition. Tu l'avais oublié. Elle, non.";
-            const b_en = m >= 60
-              ? "Brigitte took a CFO job at a logistics company. \"You taught me to say no. It's non-negotiable.\" She sends you a Christmas card."
-              : m >= 30
-              ? "Brigitte left before the official end. Two weeks' notice, exact. She already signed elsewhere. \"Just procedure.\""
-              : "Brigitte had handed in her resignation three months before the acquisition. You'd forgotten. She hadn't.";
-            epilogueChars.push({ name: 'Brigitte', text: { fr: b_fr, en: b_en, es: b_fr, zh: b_fr, ru: b_fr, it: b_fr, de: b_fr }});
-          }
-          // LENNY — présent dès P2
-          const lennyPresent = ['camion_1', 'camion_2', 'lenny_chef'].some(id => owned[id]);
-          if (lennyPresent) {
-            const m = lennyMoral;
-            const l_fr = m >= 60
-              ? "Lenny a monté sa propre boîte de livraison. Trois camions, sa fille au standard. Il passe te dire bonjour chaque fois qu'il livre dans le quartier. « Yo patron. »"
-              : m >= 30
-              ? "Lenny est reparti vers une autre boîte. Salaire mieux. « Pas rancunier, juste pratique. »"
-              : "Lenny a balancé tes pratiques sur un forum routier. Le post a fait 2000 partages.";
-            const l_en = m >= 60
-              ? "Lenny started his own delivery company. Three trucks, his daughter at the switchboard. He drops by to say hi whenever he delivers in the area. \"Yo boss.\""
-              : m >= 30
-              ? "Lenny left for another company. Better pay. \"No hard feelings, just practical.\""
-              : "Lenny shared your practices on a trucker forum. The post got 2000 shares.";
-            epilogueChars.push({ name: 'Lenny', text: { fr: l_fr, en: l_en, es: l_fr, zh: l_fr, ru: l_fr, it: l_fr, de: l_fr }});
-          }
-          // (Agence marketing ex-Janice : prestataire externe, pas d'épilogue personnage.)
-          // KAREN
-          if (owned['karen_junior'] || owned['karen_senior'] || owned['karen_drh']) {
-            const m = karenMoral;
-            const k_fr = m >= 60
-              ? "Karen a refusé toutes les offres. Elle accompagne maintenant la nouvelle DRH au passage de témoin. « Coucou, faut qu'on s'occupe bien des gens. »"
-              : "Karen est partie sans bruit. Tu as trouvé son post-it sur ta porte : « Prends soin de toi aussi. »";
-            const k_en = m >= 60
-              ? "Karen turned down every offer. She's now mentoring the new HR director through the handover. \"Hey, we need to take care of people properly.\""
-              : "Karen left quietly. You found her post-it on your door: \"Take care of yourself too.\"";
-            epilogueChars.push({ name: 'Karen', text: { fr: k_fr, en: k_en, es: k_fr, zh: k_fr, ru: k_fr, it: k_fr, de: k_fr }});
-          }
-          // MARK
-          if (owned['mark_jr'] || owned['mark_resp'] || owned['mark_dir']) {
-            const mk_fr = "Mark a optimisé son propre départ : prime de licenciement maximale, dégrèvement fiscal, lettres de recommandation chiffrées. « Marge nette : nickel. »";
-            const mk_en = "Mark optimized his own exit: maximum severance, tax break, recommendation letters with metrics. \"Net margin: clean.\"";
-            epilogueChars.push({ name: 'Mark', text: { fr: mk_fr, en: mk_en, es: mk_fr, zh: mk_fr, ru: mk_fr, it: mk_fr, de: mk_fr }});
-          }
-          // SABINE
-          if (owned['sabine_jr'] || owned['sabine_sr'] || owned['sabine_dg']) {
-            const sab_fr = "Sabine a négocié la clause de non-poursuite contre l'acquéreur. Elle veille. « Tout est en ordre. Je l'ai prévu. »";
-            const sab_en = "Sabine negotiated the no-suit clause against the buyer. She keeps watch. \"Everything's in order. I planned for this.\"";
-            epilogueChars.push({ name: 'Sabine', text: { fr: sab_fr, en: sab_en, es: sab_fr, zh: sab_fr, ru: sab_fr, it: sab_fr, de: sab_fr }});
-          }
-
-          // === FINS PAR ACQUÉREUR ===
-          // Texte de stage 2bis (verdict 5 mois plus tard) qui dépend de l'acquéreur choisi
-          const acqEnding = (() => {
-            if (acquisitionFinalized.acquirerId === 'patrice_glacier') {
-              return {
-                fr: "Cinq mois plus tard. Patrice est passé. Il a gardé tout le monde. La nouvelle enseigne sur le bâtiment, c'est ton ancien logo, juste retouché. Il t'a envoyé une bouteille de champagne le jour de la signature. Sur la carte : « Tu m'as vendu pas juste une boîte, tu m'as vendu une équipe. »",
-                en: "Five months later. Patrice stopped by. He kept everyone. The new sign on the building is your old logo, just refreshed. He sent you a bottle of champagne on signing day. The card read: \"You didn't just sell me a company, you sold me a team.\"",
-              };
-            }
-            if (acquisitionFinalized.acquirerId === 'ethicvest') {
-              return {
-                fr: "Cinq mois plus tard. EthicVest a intégré la boîte dans leur portefeuille « impact ». Trois certifications, deux audits sociaux. L'équipe reste, le logo aussi. Tu reçois un rapport trimestriel détaillant la \"performance ESG\". Personne ne le lit. Mais l'entreprise existe encore.",
-                en: "Five months later. EthicVest folded the company into their \"impact\" portfolio. Three certifications, two social audits. The team stays, the logo too. You receive a quarterly report detailing \"ESG performance\". Nobody reads it. But the company still exists.",
-              };
-            }
-            if (acquisitionFinalized.acquirerId === 'silverlion') {
-              return {
-                fr: "Cinq mois plus tard. SilverLion a démantelé la production. Vendu l'usine. Liquidé la marque. Brigitte t'a envoyé un SMS : « Je te l'avais dit. » Tu n'as pas répondu. Le chèque est tombé. C'est ce qui était écrit.",
-                en: "Five months later. SilverLion dismantled production. Sold the factory. Liquidated the brand. Brigitte texted you: \"Told you so.\" You didn't reply. The check cleared. That was the deal.",
-              };
-            }
-            // Défaut
-            return {
-              fr: `Cinq mois plus tard. ${company} a fait ce que ${company} fait. La boîte existe encore, sous un autre nom, avec d'autres gens. Tu n'es plus dans la boucle.`,
-              en: `Five months later. ${company} did what ${company} does. The company still exists, under another name, with different people. You're not in the loop anymore.`,
-            };
-          })();
-
-          // Texte par stage
-          const stages = {
-            1: {
-              title: language === 'fr' ? 'ACQUISITION SIGNÉE' : language === 'es' ? 'ADQUISICIÓN FIRMADA' : language === 'de' ? 'ÜBERNAHME UNTERZEICHNET' : language === 'it' ? 'ACQUISIZIONE FIRMATA' : language === 'ru' ? 'ПОГЛОЩЕНИЕ ПОДПИСАНО' : language === 'zh' ? '收购已签署' : 'ACQUISITION SIGNED',
-              body: language === 'fr'
-                ? `Tu as signé avec ${company}. Les documents sont en cours de finalisation. Brigitte débouche le champagne — elle l'avait gardé pour ce moment précis.`
-                : language === 'es'
-                ? `Has firmado con ${company}. Los documentos se están finalizando. Brigitte descorcha el champán, lo guardaba para este momento exacto.`
-                : language === 'de'
-                ? `Du hast mit ${company} unterschrieben. Die Dokumente werden gerade finalisiert. Brigitte lässt den Champagner knallen, sie hatte ihn für genau diesen Moment aufgehoben.`
-                : language === 'it'
-                ? `Hai firmato con ${company}. I documenti sono in fase di finalizzazione. Brigitte stappa lo champagne, lo teneva da parte proprio per questo momento.`
-                : language === 'ru'
-                ? `Вы подписали с ${company}. Документы финализируются. Бриджит открывает шампанское, она берегла его именно для этого момента.`
-                : language === 'zh'
-                ? `你与${company}签约了。文件正在最终敲定。布丽吉特开了香槟，她一直把它留着，就为这一刻。`
-                : `You signed with ${company}. Documents are being finalized. Brigitte pops the champagne, she'd been saving it for this exact moment.`,
-              cta: language === 'fr' ? 'CONTINUER' : language === 'es' ? 'CONTINUAR' : language === 'de' ? 'FORTSETZEN' : language === 'it' ? 'CONTINUA' : language === 'ru' ? 'ПРОДОЛЖИТЬ' : language === 'zh' ? '继续' : 'CONTINUE',
-            },
-            2: {
-              title: language === 'fr' ? 'DEUX SEMAINES PLUS TARD' : language === 'es' ? 'DOS SEMANAS DESPUÉS' : language === 'de' ? 'ZWEI WOCHEN SPÄTER' : language === 'it' ? 'DUE SETTIMANE DOPO' : language === 'ru' ? 'ДВЕ НЕДЕЛИ СПУСТЯ' : language === 'zh' ? '两周后' : 'TWO WEEKS LATER',
-              isCharEpilogue: true,
-              cta: language === 'fr' ? 'CINQ MOIS PLUS TARD' : language === 'es' ? 'CINCO MESES DESPUÉS' : language === 'de' ? 'FÜNF MONATE SPÄTER' : language === 'it' ? 'CINQUE MESI DOPO' : language === 'ru' ? 'ПЯТЬ МЕСЯЦЕВ СПУСТЯ' : language === 'zh' ? '五个月后' : 'FIVE MONTHS LATER',
-            },
-            3: {
-              title: language === 'fr' ? 'CINQ MOIS PLUS TARD' : language === 'es' ? 'CINCO MESES DESPUÉS' : language === 'de' ? 'FÜNF MONATE SPÄTER' : language === 'it' ? 'CINQUE MESI DOPO' : language === 'ru' ? 'ПЯТЬ МЕСЯЦЕВ СПУСТЯ' : language === 'zh' ? '五个月后' : 'FIVE MONTHS LATER',
-              body: language === 'fr' ? acqEnding.fr
-                : language === 'en' ? acqEnding.en
-                : acqEnding.fr,
-              cta: language === 'fr' ? 'VOIR LE BILAN' : language === 'es' ? 'VER EL BALANCE' : language === 'de' ? 'BILANZ ANSEHEN' : language === 'it' ? 'VEDI IL BILANCIO' : language === 'ru' ? 'СМОТРЕТЬ ИТОГ' : language === 'zh' ? '查看结算' : 'SEE THE SCORE',
-            },
-            4: {
-              title: language === 'fr' ? 'BILAN FINAL' : language === 'es' ? 'BALANCE FINAL' : language === 'de' ? 'ENDABRECHNUNG' : language === 'it' ? 'BILANCIO FINALE' : language === 'ru' ? 'ФИНАЛЬНЫЙ ИТОГ' : language === 'zh' ? '最终结算' : 'FINAL SCORE',
-              isScore: true,
-              cta: language === 'fr' ? 'CRÉDITS' : language === 'es' ? 'CRÉDITOS' : language === 'de' ? 'ABSPANN' : language === 'it' ? 'CREDITI' : language === 'ru' ? 'ТИТРЫ' : language === 'zh' ? '制作名单' : 'CREDITS',
-            },
-            5: {
-              title: language === 'fr' ? 'MELTDOWN' : language === 'es' ? 'MELTDOWN' : language === 'de' ? 'MELTDOWN' : language === 'it' ? 'MELTDOWN' : language === 'ru' ? 'MELTDOWN' : language === 'zh' ? 'MELTDOWN' : 'MELTDOWN',
-              isCredits: true,
-              cta: language === 'fr' ? 'TERMINER' : language === 'es' ? 'TERMINAR' : language === 'de' ? 'BEENDEN' : language === 'it' ? 'TERMINA' : language === 'ru' ? 'ЗАВЕРШИТЬ' : language === 'zh' ? '结束' : 'FINISH',
-            },
-            6: {
-              title: language === 'fr' ? 'ET ENSUITE ?' : language === 'es' ? '¿Y AHORA?' : language === 'de' ? 'UND DANN?' : language === 'it' ? 'E POI?' : language === 'ru' ? 'ЧТО ДАЛЬШЕ?' : language === 'zh' ? '接下来呢？' : 'WHAT NEXT?',
-              isFinal: true,
-            },
-          };
-          const cur = stages[stage] || stages[1];
-          return (
-            <div className="endgame-overlay">
-              <div className="endgame-content">
-                <div className="endgame-title">{cur.title}</div>
-                {cur.isScore ? (
-                  <div className="endgame-score">
-                    <div className="endgame-score-row">
-                      <span className="endgame-score-lbl">{language === 'fr' ? 'Acquéreur' : language === 'es' ? 'Adquirente' : language === 'de' ? 'Käufer' : language === 'it' ? 'Acquirente' : language === 'ru' ? 'Покупатель' : language === 'zh' ? '收购方' : 'Acquirer'}</span>
-                      <span className="endgame-score-val">{company}</span>
-                    </div>
-                    <div className="endgame-score-row endgame-score-big">
-                      <span className="endgame-score-lbl">{language === 'fr' ? 'Chèque final' : language === 'es' ? 'Cheque final' : language === 'de' ? 'Abschlussscheck' : language === 'it' ? 'Assegno finale' : language === 'ru' ? 'Финальный чек' : language === 'zh' ? '最终支票' : 'Final check'}</span>
-                      <span className="endgame-score-val">{fmtValuation(finalAmount)}</span>
-                    </div>
-                    <div className="endgame-score-row">
-                      <span className="endgame-score-lbl">{language === 'fr' ? 'Argent total gagné' : language === 'es' ? 'Dinero total ganado' : language === 'de' ? 'Insgesamt verdientes Geld' : language === 'it' ? 'Denaro totale guadagnato' : language === 'ru' ? 'Всего заработано' : language === 'zh' ? '累计收入' : 'Total earned'}</span>
-                      <span className="endgame-score-val">{fmtValuation(moneyEarned)}</span>
-                    </div>
-                    <div className="endgame-score-row">
-                      <span className="endgame-score-lbl">{language === 'fr' ? 'Années en activité' : language === 'es' ? 'Años de actividad' : language === 'de' ? 'Jahre aktiv' : language === 'it' ? 'Anni di attività' : language === 'ru' ? 'Лет активности' : language === 'zh' ? '运营年数' : 'Years active'}</span>
-                      <span className="endgame-score-val">{totalYears}</span>
-                    </div>
-                    <div className="endgame-score-row">
-                      <span className="endgame-score-lbl">{language === 'fr' ? 'Contrats livrés' : language === 'es' ? 'Contratos entregados' : language === 'de' ? 'Gelieferte Verträge' : language === 'it' ? 'Contratti consegnati' : language === 'ru' ? 'Контрактов доставлено' : language === 'zh' ? '已交付合同' : 'Contracts delivered'}</span>
-                      <span className="endgame-score-val">{contractsTotal}</span>
-                    </div>
-                    <div className="endgame-score-row">
-                      <span className="endgame-score-lbl">{language === 'fr' ? 'Notoriété finale' : language === 'es' ? 'Notoriedad final' : language === 'de' ? 'Endbekanntheit' : language === 'it' ? 'Notorietà finale' : language === 'ru' ? 'Финальная известность' : language === 'zh' ? '最终知名度' : 'Final notoriety'}</span>
-                      <span className="endgame-score-val">{Math.round(notoriety)}/100</span>
-                    </div>
-                    <div className="endgame-score-row">
-                      <span className="endgame-score-lbl">{language === 'fr' ? 'Réputation finale' : language === 'es' ? 'Reputación final' : language === 'de' ? 'Endruf' : language === 'it' ? 'Reputazione finale' : language === 'ru' ? 'Финальная репутация' : language === 'zh' ? '最终声誉' : 'Final reputation'}</span>
-                      <span className="endgame-score-val">{Math.round(reputation)}/100</span>
-                    </div>
-                    <div className="endgame-score-row">
-                      <span className="endgame-score-lbl">{language === 'fr' ? 'Offres refusées' : language === 'es' ? 'Ofertas rechazadas' : language === 'de' ? 'Abgelehnte Angebote' : language === 'it' ? 'Offerte rifiutate' : language === 'ru' ? 'Отклонённые предложения' : language === 'zh' ? '拒绝的报价' : 'Offers refused'}</span>
-                      <span className="endgame-score-val">{refusalsCount}</span>
-                    </div>
-                  </div>
-                ) : cur.isFinal ? (
-                  <div className="endgame-final">
-                    <div className="endgame-body">
-                      {language === 'fr'
-                        ? `Tu peux continuer à jouer en mode libre — la boîte appartient désormais à ${company} mais la machine tourne. Ou recommencer une nouvelle partie.`
-                        : language === 'es'
-                        ? `Puedes seguir jugando en modo libre — la empresa ahora pertenece a ${company} pero la máquina sigue. O empezar una nueva partida.`
-                        : language === 'de'
-                        ? `Du kannst im freien Modus weiterspielen — die Firma gehört jetzt ${company}, aber die Maschine läuft. Oder ein neues Spiel beginnen.`
-                        : language === 'it'
-                        ? `Puoi continuare a giocare in modalità libera — l'azienda ora appartiene a ${company} ma la macchina gira. Oppure ricominciare una nuova partita.`
-                        : language === 'ru'
-                        ? `Можно продолжить играть в свободном режиме, компания теперь принадлежит ${company}, но машина работает. Или начать новую игру.`
-                        : language === 'zh'
-                        ? `你可以在自由模式下继续玩,,公司现在属于${company}，但机器照常运转。或者开始新游戏。`
-                        : `You can keep playing in free mode, the company now belongs to ${company} but the machine keeps running. Or start a new game.`}
-                    </div>
-                    <div className="endgame-final-actions">
-                      <button
-                        className="endgame-btn endgame-btn-primary"
-                        onClick={() => {
-                          // Reset complet
-                          if (typeof localStorage !== 'undefined') {
-                            try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
-                          }
-                          window.location.reload();
-                        }}
-                      >
-                        {language === 'fr' ? 'NOUVELLE PARTIE' : language === 'es' ? 'NUEVA PARTIDA' : language === 'de' ? 'NEUES SPIEL' : language === 'it' ? 'NUOVA PARTITA' : language === 'ru' ? 'НОВАЯ ИГРА' : language === 'zh' ? '新游戏' : 'NEW GAME'}
-                      </button>
-                      <button
-                        className="endgame-btn"
-                        onClick={() => { setEndgameEpilogueStage(0); }}
-                      >
-                        {language === 'fr' ? 'MODE LIBRE' : language === 'es' ? 'MODO LIBRE' : language === 'de' ? 'FREIER MODUS' : language === 'it' ? 'MODALITÀ LIBERA' : language === 'ru' ? 'СВОБОДНЫЙ РЕЖИМ' : language === 'zh' ? '自由模式' : 'FREE MODE'}
-                      </button>
-                    </div>
-                  </div>
-                ) : cur.isCharEpilogue ? (
-                  <div className="endgame-char-epilogue">
-                    {epilogueChars.length > 0 ? epilogueChars.map((ch, i) => (
-                      <div key={i} className="endgame-char-row">
-                        <div className="endgame-char-name">{ch.name}</div>
-                        <div className="endgame-char-text">{
-                          ch.text[language] || ch.text.fr
-                        }</div>
-                      </div>
-                    )) : (
-                      <div className="endgame-body">{language === 'fr' ? "Tu as fait tout ce chemin seul. Personne ne range son bureau aujourd'hui : il n'y a personne d'autre que toi." : "You did this whole journey alone. Nobody packs up their desk today: there's no one but you."}</div>
-                    )}
-                  </div>
-                ) : cur.isCredits ? (
-                  <div className="endgame-credits">
-                    <div className="endgame-credits-line">{language === 'fr' ? 'Un jeu de simulation de gestion narrative' : 'A narrative management simulation'}</div>
-                    <div className="endgame-credits-spacer">·</div>
-                    <div className="endgame-credits-section">
-                      <div className="endgame-credits-label">{language === 'fr' ? 'JOUÉ PAR' : 'PLAYED BY'}</div>
-                      <div className="endgame-credits-value">{language === 'fr' ? 'Toi' : 'You'}</div>
-                    </div>
-                    {epilogueChars.length > 0 && (
-                      <div className="endgame-credits-section">
-                        <div className="endgame-credits-label">{language === 'fr' ? 'AVEC' : 'WITH'}</div>
-                        {epilogueChars.map((ch, i) => (
-                          <div key={i} className="endgame-credits-value">{ch.name}</div>
-                        ))}
-                      </div>
-                    )}
-                    <div className="endgame-credits-section">
-                      <div className="endgame-credits-label">{language === 'fr' ? 'MUSIQUE INTÉRIEURE' : 'INNER SOUNDTRACK'}</div>
-                      <div className="endgame-credits-value">{language === 'fr' ? 'Le bruit du congélateur' : 'The hum of the freezer'}</div>
-                    </div>
-                    <div className="endgame-credits-spacer">·</div>
-                    <div className="endgame-credits-quote">
-                      « {(() => {
-                        const quotes_fr = [
-                          "On a fait des glaçons. On a pas changé le monde. Mais on a fait des glaçons bien.",
-                          "Le froid, c'est juste de la patience.",
-                          "T'as fini par comprendre. C'est ça qui compte.",
-                          "Pas mal pour quelqu'un qui a commencé dans un garage.",
-                        ];
-                        const quotes_en = [
-                          "We made ice cubes. We didn't change the world. But we made good ice cubes.",
-                          "Cold is just patience.",
-                          "You figured it out in the end. That's what counts.",
-                          "Not bad for someone who started in a garage.",
-                        ];
-                        const q = language === 'fr' ? quotes_fr : quotes_en;
-                        return q[Math.floor(Math.random() * q.length)];
-                      })()} »
-                    </div>
-                  </div>
-                ) : (
-                  <div className="endgame-body">{cur.body}</div>
-                )}
-                {!cur.isFinal && (
-                  <button
-                    className="endgame-btn endgame-btn-primary"
-                    onClick={() => setEndgameEpilogueStage(s => s + 1)}
-                  >
-                    {cur.cta}
-                  </button>
-                )}
-              </div>
-            </div>
-          );
-        })()}
 
         {/* === MODALE LISTE DES OFFRES D'ACQUISITION === */}
-        {acquirerModalOpen && (
-          <div className="modal-overlay" onClick={() => setAcquirerModalOpen(false)}>
-            <div className="modal acquirer-modal" onClick={e => e.stopPropagation()}>
-              <div className="modal-header">
-                <span className="modal-title">OFFRES D'ACQUISITION · {acquirerOffers.length}</span>
-                <button className="modal-close" onClick={() => setAcquirerModalOpen(false)}>×</button>
-              </div>
-              <div className="modal-body">
-                {acquirerOffers.length === 0 ? (
-                  <div className="acquirer-empty">Aucune offre active.</div>
-                ) : (
-                  acquirerOffers.map(offer => {
-                    const acq = ACQUIRERS_BY_ID[offer.id];
-                    if (!acq) return null;
-                    const timeLeft = Math.max(0, Math.ceil(offer.expiresAt - gameTime));
-                    const canNegotiate = !offer.hasNegotiated && (gameTime - offer.receivedAt >= 60);
-                    const valuationPct = valuation.total > 0 ? Math.round((offer.amount / valuation.total) * 100) : 0;
-                    return (
-                      <div key={offer.id} className="acquirer-card">
-                        <div className="acquirer-card-header">
-                          {(() => {
-                            const ACQ_PORTRAIT = {
-                              patrice_glacier: 'patrice',
-                              ethicvest: 'claire',
-                              silverlion: 'viktor',
-                              pharmacold: 'reiss',
-                              elias_vance: 'vance',
-                            };
-                            const psrc = CHARACTER_PORTRAITS[ACQ_PORTRAIT[offer.id]];
-                            return psrc ? (
-                              <img
-                                src={psrc}
-                                alt=""
-                                className="popup-msg-portrait acquirer-card-portrait"
-                                aria-hidden="true"
-                              />
-                            ) : null;
-                          })()}
-                          <div className="acquirer-card-titles">
-                            <div className="acquirer-card-company">{localizeField(acq.company, language)}</div>
-                            <div className="acquirer-card-name">{localizeField(acq.name, language)}</div>
-                          </div>
-                          <div className="acquirer-card-archetype">
-                            {acq.archetype === 'rival' ? 'RIVAL' :
-                             acq.archetype === 'ethical' ? 'ÉTHIQUE' :
-                             acq.archetype === 'speculative' ? 'SPÉCULATIF' :
-                             acq.archetype === 'specialist' ? 'SPÉCIALISTE' :
-                             'MILLIARDAIRE'}
-                          </div>
-                        </div>
-                        <div className="acquirer-card-pitch">{localizeField(acq.pitch, language)}</div>
-                        <div className="acquirer-card-money-row">
-                          <div className="acquirer-card-money">
-                            <span className="acquirer-card-money-val">{fmtValuation(offer.amount)}</span>
-                            <span className="acquirer-card-money-vs">{valuationPct}% de la valorisation</span>
-                          </div>
-                          <div className="acquirer-card-timer">expire dans {timeLeft}s</div>
-                        </div>
-                        {offer.bonus > 0 && (
-                          <div className="acquirer-card-bonus">+{Math.round(offer.bonus * 100)}% bonus appliqué</div>
-                        )}
-                        {offer.hasNegotiated && (
-                          <div className="acquirer-card-bonus">Offre déjà renégociée (+10%)</div>
-                        )}
-                        <div className="acquirer-card-actions">
-                          <button
-                            className="acquirer-btn acquirer-btn-accept"
-                            onClick={() => handleAcceptOffer(offer.id)}
-                          >
-                            ACCEPTER
-                          </button>
-                          <button
-                            className="acquirer-btn acquirer-btn-negotiate"
-                            onClick={() => handleNegotiateOffer(offer.id)}
-                            disabled={!canNegotiate}
-                            title={!canNegotiate && !offer.hasNegotiated ? `Disponible dans ${60 - Math.floor(gameTime - offer.receivedAt)}s` : ''}
-                          >
-                            NÉGOCIER {offer.hasNegotiated ? '✓' : ''}
-                          </button>
-                          <button
-                            className="acquirer-btn acquirer-btn-refuse"
-                            onClick={() => handleRefuseOffer(offer.id)}
-                          >
-                            REFUSER
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-          </div>
-        )}
 
         
         
@@ -25570,13 +20362,7 @@ export default function App() {
                   <span>−{fmtInt(salaryPerMonthEff)}{t('unit.eur_month')}</span>
                 </div>
                 {/* === Décomposition adaptative selon la phase === */}
-                {phase >= 4 ? (
-                  // P4 (désactivée actuellement) : charges P4 spécifiques, on garde l'ancien comportement
-                  <div className="profit-row">
-                    <span>{t('profit.charges')}</span>
-                    <span>−{fmtInt(chargesPerMonthEff)}{t('unit.eur_month')}</span>
-                  </div>
-                ) : phase >= 3 ? (
+                {phase >= 3 ? (
                   // P3 : ventilation détaillée pour préparer Mark
                   <>
                     <div className="profit-section-title" style={{ marginTop: 14, paddingTop: 10 }}>{t('profit.subhead_purchasing')}</div>
@@ -26809,31 +21595,6 @@ export default function App() {
                         </div>
                       );
                     })()}
-                    {phase >= 4 && (() => {
-                      const m = Math.floor(_secondsToNextSemester / 60);
-                      const s = Math.floor(_secondsToNextSemester % 60);
-                      const tStr = `${m}:${s.toString().padStart(2, '0')}`;
-                      const rows = [
-                        ['provision.p4_loyer', _p4Provision.loyer],
-                        ['provision.p4_carburant', _p4Provision.carburant],
-                        ['provision.p4_manutention', _p4Provision.manutention],
-                        ['provision.p4_energie', _p4Provision.energie],
-                      ];
-                      return (
-                        <>
-                          <div className="provision-freq-note">
-                            {t('provision.p4_freq')} <b>{tStr}</b>
-                          </div>
-                          {rows.filter(([, v]) => v > 0).map(([k, v]) => (
-                            <div className="provision-row" key={k}>
-                              <span>{t(k)} {(k === 'provision.p4_manutention' || k === 'provision.p4_energie') && <span className="provision-row-mute">({t('provision.estimate')})</span>}</span>
-                              <span className="provision-row-time"></span>
-                              <span className="provision-row-amt">{fmtInt(v)}€</span>
-                            </div>
-                          ))}
-                        </>
-                      );
-                    })()}
                     {activeLoan && upLoan > 0 && (() => {
                       const m = Math.floor(_secondsToNextSemester / 60);
                       const s = Math.floor(_secondsToNextSemester % 60);
@@ -26848,7 +21609,7 @@ export default function App() {
                     <div className="provision-row provision-total-row">
                       <span>{t('provision.semester_total')}</span>
                       <span className="provision-row-time"></span>
-                      <span className="provision-row-amt"><b>{fmtInt(phase >= 4 ? (_p4Provision.total + (activeLoan && upLoan > 0 ? upLoan : 0)) : upTotal)}€</b></span>
+                      <span className="provision-row-amt"><b>{fmtInt(upTotal)}€</b></span>
                     </div>
                   </div>
 
@@ -26915,295 +21676,7 @@ export default function App() {
             </div>
           </div>
         </div>
-        {/* === CHARGES À PROVISIONNER PHASE 4 (en tête) === */}
-        {phase >= 4 && (() => {
-          const _exoFirstYear = false; // exonération supprimée
-          if (_exoFirstYear) {
-            return (
-              <div
-                className="charges-info is-exo"
-                onClick={() => (hasFred || hasBrigitte || hasJanice || hasLenny) && setPersonnelOpen(true)}
-                role="button"
-              >
-                {t('status.charges_to_provision')} <span className="charges-amt-bold">{t('status.exonerated')}</span>
-              </div>
-            );
-          }
-          if (upcomingAmountDisplay <= 0) return null;
-          const m = Math.floor(upcomingInDisplay / 60);
-          const s = Math.floor(upcomingInDisplay % 60);
-          return (
-            <div
-              className={`charges-info ${upcomingInDisplay <= 30 ? 'is-urgent' : ''}`}
-              onClick={() => (hasFred || hasBrigitte || hasJanice || hasLenny) && setPersonnelOpen(true)}
-              role="button"
-            >
-              {t('status.charges_to_provision')} <span className="charges-amt-bold">{fmt2(upcomingAmountDisplay)}€</span> {t('status.in')} {m}:{s.toString().padStart(2, '0')}
-            </div>
-          );
-        })()}
-        {/* === Bandeau valorisation entreprise (visible uniquement Phase 4) === */}
-        {phase >= 4 && (
-          <div className="valuation-band-wrap">
-            <div
-              className="valuation-band"
-              onClick={() => setValuationTooltipOpen(o => !o)}
-              title={t('ui.tt_valuation_breakdown')}
-            >
-              <span className="valuation-band-label">{t('ui.company_valuation')}</span>
-              <span className="valuation-band-val">{fmtValuation(valuation.total)}</span>
-            </div>
-            {acquirerOffers.length > 0 && (
-              <button
-                className="acquirer-floating-btn"
-                onClick={() => setAcquirerModalOpen(true)}
-                title={t('ui.tt_acquisition_offers')}
-              >
-                <span className="acquirer-floating-icon">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M5 13 l3 -3 4 2 4 -4 3 3" />
-                    <path d="M2 12 l3 1 M22 11 l-3 1" />
-                    <path d="M8 10 l-2 2 2 2 M16 8 l2 2 -2 2" />
-                  </svg>
-                </span>
-                <span className="acquirer-floating-count">{acquirerOffers.length}</span>
-              </button>
-            )}
-          </div>
-        )}
-        {phase >= 4 && valuationTooltipOpen && (
-          <div className="valuation-band-tooltip" onClick={() => setValuationTooltipOpen(false)}>
-            <div className="valuation-band-tooltip-row">
-              <span className="valuation-band-tooltip-lbl">{t('ui.val_base')}</span>
-              <span className="valuation-band-tooltip-val">+{fmtValuation(valuation.breakdown.base)}</span>
-            </div>
-            <div className="valuation-band-tooltip-row">
-              <span className="valuation-band-tooltip-lbl">{t('ui.val_cash')}</span>
-              <span className="valuation-band-tooltip-val">+{fmtValuation(valuation.breakdown.cash)}</span>
-            </div>
-            <div className="valuation-band-tooltip-row">
-              <span className="valuation-band-tooltip-lbl">{t('ui.val_noto')} ({Math.round(notoriety)})</span>
-              <span className="valuation-band-tooltip-val">+{fmtValuation(valuation.breakdown.noto)}</span>
-            </div>
-            <div className="valuation-band-tooltip-row">
-              <span className="valuation-band-tooltip-lbl">{t('ui.val_rep')} ({Math.round(reputation)})</span>
-              <span className="valuation-band-tooltip-val">+{fmtValuation(valuation.breakdown.rep)}</span>
-            </div>
-            <div className="valuation-band-tooltip-row">
-              <span className="valuation-band-tooltip-lbl">{t('ui.val_premium')}</span>
-              <span className="valuation-band-tooltip-val">+{fmtValuation(valuation.breakdown.premium)}</span>
-            </div>
-            <div className="valuation-band-tooltip-row">
-              <span className="valuation-band-tooltip-lbl">{t('ui.val_revenue_p4')}</span>
-              <span className="valuation-band-tooltip-val">+{fmtValuation(valuation.breakdown.revenue)}</span>
-            </div>
-            <div className="valuation-band-tooltip-row is-total">
-              <span>TOTAL</span>
-              <span className="valuation-band-tooltip-val">{fmtValuation(valuation.total)}</span>
-            </div>
-          </div>
-        )}
         {renderMenuBar()}
-        {/* === CARTE LOGISTIQUE PHASE 4 (remplace la visu camions) === */}
-        {phase >= 4 && (() => {
-          const caps = getProductCaps(p4MaxCap);
-          const idx = PRODUCT_ORDER.indexOf(activeProduct);
-          const stock = activeProduct === 'popice' ? popIceStock
-            : activeProduct === 'frozio' ? frozioStock : medipackStock;
-          const cap = caps[activeProduct] || 1;
-          const ratio = cap > 0 ? Math.min(1, stock / cap) : 0;
-          const prof = PRODUCT_PROFILES[activeProduct];
-          const rateTxt = `${t('rate.production_short')} ${effectivePassive.toFixed(1)}/s`;
-          // === MONITORING RENTABILITÉ P4 (snapshot figé toutes les 15 s) ===
-          // On lit le snapshot calculé par l'intervalle 15 s (moyenne sur
-          // 15 s, dénominateur fixe). Les chiffres restent stables entre
-          // deux rafraîchissements au lieu de sauter à chaque livraison.
-          const _snap = p4MonSnapshot || { grossPerSec: 0, matPerSec: 0, perProd: {} };
-          const grossPerSec = _snap.grossPerSec || 0;
-          const matPerSec = _snap.matPerSec || 0;
-          const netPerSec = Math.max(0, grossPerSec - matPerSec);
-          const _perProd = {};
-          for (const _pk of PRODUCT_ORDER) {
-            const _pp = (_snap.perProd && _snap.perProd[_pk]) || { grossPerSec: 0, matPerSec: 0 };
-            _perProd[_pk] = {
-              grossPerSec: _pp.grossPerSec || 0,
-              matPerSec: _pp.matPerSec || 0,
-              // net "matière" brut — PEUT être négatif. Le net final
-              // (énergie déduite) est recalculé dans p4ProductStats.
-              netPerSec: (_pp.grossPerSec || 0) - (_pp.matPerSec || 0),
-            };
-          }
-          const p4Monitor = {
-            grossPerSec, matPerSec, netPerSec,
-            prodRate: effectivePassive,
-            wUsed: p4WattsUsed({ popice: p4TargetPop, frozio: p4TargetFro, medipack: p4TargetMed }),
-            wBudget: p4MaxCap,
-          };
-          // === STATS PAR PRODUIT (3 produits, affichés côte à côte) ===
-          // Pour chaque produit : stock actuel / capacité, débit de
-          // production réel (cible plafonnée par le budget W partagé), et
-          // coût énergie (W consommés par ce produit = cible × coût/u).
-          const _tg = { popice: p4TargetPop, frozio: p4TargetFro, medipack: p4TargetMed };
-          const _wc = P4_PROD_W_COST;
-          const _wReqTot = _tg.popice * _wc.popice + _tg.frozio * _wc.frozio + _tg.medipack * _wc.medipack;
-          // Si la somme demandée dépasse le budget, tout est mis à l'échelle
-          // (même logique que le tick : k = budget / total).
-          const _k = (_wReqTot > p4MaxCap && _wReqTot > 0) ? p4MaxCap / _wReqTot : 1;
-          const _stockOf = { popice: popIceStock, frozio: frozioStock, medipack: medipackStock };
-          const p4ProductStats = PRODUCT_ORDER.map(pk => {
-            const realUnits = Math.floor(_tg[pk] * _k); // u/s réellement produites
-            const pp = _perProd[pk] || { grossPerSec: 0, matPerSec: 0, netPerSec: 0 };
-            const energyEurPerSec = realUnits * _wc[pk] * P4_EUR_PER_W;
-            // Marge nette RÉELLE = revenu brut − coût matière − coût énergie.
-            // Peut être négative (perte) : aucun plafonnement à zéro.
-            const netFinal = pp.grossPerSec - pp.matPerSec - energyEurPerSec;
-            return {
-              key: pk,
-              label: localizeField(PRODUCT_PROFILES[pk].name, language),
-              stock: Math.floor(_stockOf[pk]),
-              stockCap: caps[pk] || 0,
-              prodPerSec: realUnits,
-              targetUnits: _tg[pk],
-              energyW: _tg[pk] * _wc[pk],
-              wPerUnit: _wc[pk],
-              // Coût énergétique réel en €/s : Watts réellement consommés
-              // par ce produit (prod plafonnée par le budget) × prix/W.
-              energyEurPerSec,
-              throttled: _k < 1, // production bridée par le budget
-              grossPerSec: pp.grossPerSec,
-              matPerSec: pp.matPerSec,
-              netPerSec: netFinal,
-            };
-          });
-          const curPrice = activeProduct === 'popice' ? popIcePrice
-            : activeProduct === 'frozio' ? frozioPrice : medipackPrice;
-          const setCurPrice = (v) => {
-            if (activeProduct === 'popice') setPopIcePrice(v);
-            else if (activeProduct === 'frozio') setFrozioPrice(v);
-            else setMedipackPrice(v);
-          };
-          // Contrats en cours du produit actif, enrichis pour l'affichage.
-          // Contrats RÉCURRENTS : pas de progression ni de compte à rebours.
-          // On montre le statut (actif / suspendu) + le revenu cumulé.
-          const activeLines = linesP4
-            .filter(l => l.product === activeProduct)
-            .map(l => {
-              const cc = P4_CONTRACT_BY_ID[l.contractId];
-              const qty = cc ? cc.qty : 0;
-              const unitPrice = (l.salePrice != null) ? l.salePrice : (cc ? cc.pricePerUnit : curPrice);
-              const caTotal = qty * unitPrice;
-              const suspended = l.status === 'suspended';
-              const curSeasonId = SEASONS[Math.floor(gameTime / SEASON_DURATION) % 4].id;
-              const offSeason = !suspended && !p4ContractInSeason(l.contractId, curSeasonId);
-              // rentabilité indicative : prix vs prix de base du profil
-              const pr = PRODUCT_PROFILES[activeProduct];
-              const ratioP = pr.basePrice > 0 ? unitPrice / pr.basePrice : 1;
-              let profitTxt = 'STANDARD', profitClass = 'p4map-prof-mid';
-              if (ratioP >= 1.15) { profitTxt = 'TRÈS RENTABLE'; profitClass = 'p4map-prof-hi'; }
-              else if (ratioP >= 1.0) { profitTxt = 'RENTABLE'; profitClass = 'p4map-prof-hi'; }
-              else if (ratioP < 0.85) { profitTxt = 'FAIBLE MARGE'; profitClass = 'p4map-prof-lo'; }
-              const seasonShort = p4SeasonLabel(l.contractId, language);
-              return {
-                contractId: l.contractId,
-                name: cc ? localizeField(cc.name, language).toUpperCase() : l.contractId,
-                qty, price: unitPrice, caTotal,
-                suspended,
-                offSeason,
-                statusTxt: suspended
-                  ? 'SUSPENDU · À RENÉGOCIER'
-                  : offSeason
-                    ? `HORS SAISON · ${seasonShort.toUpperCase()}`
-                    : 'ACTIF · RÉCURRENT',
-                revenueAccum: Math.round(l.revenueAccum || 0),
-                deliveriesDone: l.deliveriesDone || 0,
-                profitTxt, profitClass,
-              };
-            });
-          return (
-            <P4MapView
-              activeProduct={activeProduct}
-              products={PRODUCT_ORDER}
-              productRate={rateTxt}
-              p4Monitor={p4Monitor}
-              p4ProductStats={p4ProductStats}
-              onTruckRepair={handleOpenRepairPopup}
-              stockRatio={ratio}
-              openMarkets={p4OpenMarkets}
-              signedLines={linesP4}
-              curSeasonId={SEASONS[Math.floor(gameTime / SEASON_DURATION) % 4].id}
-              language={language}
-              localizeField={localizeField}
-              t={t}
-              nowSec={gameTime}
-              productIndex={idx}
-              productCount={PRODUCT_ORDER.length}
-              fmt2={fmt2}
-              stockNow={stock}
-              stockCap={cap}
-              activeLines={activeLines}
-              onReneg={handleRenegP4}
-              fmtInt={fmtInt}
-              wCost={P4_PROD_W_COST}
-              wBudget={p4MaxCap}
-              wUsed={p4WattsUsed({ popice: p4TargetPop, frozio: p4TargetFro, medipack: p4TargetMed })}
-              targetPop={p4TargetPop}
-              targetFro={p4TargetFro}
-              targetMed={p4TargetMed}
-              onTargetSet={(key, units) => setP4Target(key, units)}
-              onTargetSetW={(key, watts) => setP4TargetW(key, watts)}
-              onOpenSuppliers={() => setP4SuppliersModalOpen(true)}
-              onOpenInfra={() => setP4InfraModalOpen(true)}
-              onPrev={() => { if (idx > 0) setActiveProduct(PRODUCT_ORDER[idx - 1]); }}
-              onNext={() => { if (idx < PRODUCT_ORDER.length - 1) setActiveProduct(PRODUCT_ORDER[idx + 1]); }}
-            />
-          );
-        })()}
-        {/* === 3 mini-jauges produits (remplacées par la carte) === */}
-        {false && phase >= 4 && (() => {
-          const caps = getProductCaps(p4MaxCap);
-          const products = [
-            { key: 'popice', stock: popIceStock, cap: caps.popice, incident: inHeatwave && popIceStock > 0 },
-            { key: 'frozio', stock: frozioStock, cap: caps.frozio, incident: frozioLineDown > 0 },
-            { key: 'medipack', stock: medipackStock, cap: caps.medipack, incident: false },
-          ];
-          return (
-            <div className="product-gauges">
-              {products.map(p => {
-                const prof = PRODUCT_PROFILES[p.key];
-                const ratio = p.cap > 0 ? Math.min(1, p.stock / p.cap) : 0;
-                const isFavorable = prof.favorableSeasons.includes(season.id);
-                return (
-                  <div
-                    key={p.key}
-                    className={`product-gauge ${activeProduct === p.key ? 'is-active' : ''} ${isFavorable ? 'is-favorable' : ''} ${p.incident ? 'is-incident' : ''}`}
-                    onClick={() => {
-                      setActiveProduct(p.key);
-                      // Ouvre le détail : fait défiler la vue vers la carte focus
-                      setTimeout(() => {
-                        if (focusCardRef.current) {
-                          focusCardRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }
-                      }, 60);
-                    }}
-                    title={`${localizeField(prof.name, language)} · ${fmtInt(p.stock)}/${fmtInt(p.cap)}${isFavorable ? ' · SAISON FAVORABLE' : ''}${p.incident ? ' · INCIDENT EN COURS' : ''}`}
-                  >
-                    <div className="product-gauge-head">
-                      <span className="product-gauge-name">{localizeField(prof.name, language)}</span>
-                      <span className="product-gauge-emoji"><ProductIcon id={p.key} size={14} /></span>
-                    </div>
-                    <div className="product-gauge-bar">
-                      <div className="product-gauge-fill" style={{ width: `${ratio * 100}%` }} />
-                    </div>
-                    <div className="product-gauge-vals">
-                      <span className="product-gauge-cur">{fmtInt(p.stock)}</span>
-                      <span className="product-gauge-max">/ {fmtInt(p.cap)}</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          );
-        })()}
         {phase < 4 && (() => {
           const _exoFirstYear = false; // exonération supprimée
           if (_exoFirstYear) {
@@ -27281,20 +21754,6 @@ export default function App() {
         </div>
         )}
 
-        {phase >= 4 && (
-        <div className="rates rates-p4">
-          <div
-            className={`rate rate-profit rate-profit-wide ${profitPerMonth < 99999999 ? 'rate-clickable' : ''}`}
-            onClick={() => setProfitDetailOpen(true)}
-            role="button"
-          >
-            <div className="rate-lbl">{t('rate.company_profit')}</div>
-            <div className={`rate-val rate-val-profit ${profitPerMonth < 0 ? 'is-negative' : ''}`}>
-              {profitPerMonth >= 0 ? '+' : ''}{fmtInt(profitPerMonth)}{t('unit.eur_month')}
-            </div>
-          </div>
-        </div>
-        )}
 
         {phase < 4 && (
         <div className="sell-rate-wrap">
@@ -27391,7 +21850,7 @@ export default function App() {
         <div className="upg-ttl">{t('ui.upgrades_title')}</div>
         <div className="upgs">
           {[...UPGRADE_FAMILIES]
-            .filter(f => phase >= 4 ? f.minPhase === 4 : f.minPhase <= phase)
+            .filter(f => f.minPhase <= phase)
             .filter(f => {
               if (!f.requireUnlock) return true;
               // Anciens flags maintenus pour rétro-compat éventuelle
@@ -27404,8 +21863,6 @@ export default function App() {
               // La carte "Bail nouveaux locaux" n'apparaît qu'APRÈS que le joueur
               // ait écouté l'appel Robert 2 (pas juste qu'il ait sonné).
               if (f.requireUnlock === 'robertCall2') return robertCall2Heard;
-              // L'upgrade diversification n'apparaît qu'après la cascade Vandenberg (stage >= 5)
-              if (f.requireUnlock === 'vandenberg') return phase4TriggerStage >= 5;
               // La filière MINÉRAUX n'apparaît qu'une fois l'eau sourcée
               // (on enrichit une eau déjà premium, pas l'eau du robinet).
               if (f.requireUnlock === 'eauSourced') return !!(owned['eau_source_filtree'] || owned['eau_source_montagne'] || owned['eau_volcanique']);
@@ -27624,10 +22081,7 @@ export default function App() {
           const call = PHONE_CALLS_BY_ID[currentCall.id];
           if (!call) return null;
           const remaining = Math.max(0, call.decisionTime - (gameTime - currentCall.startedAt));
-          const _relStockModal = call.product === 'popice' ? Math.ceil(popIceStock)
-            : call.product === 'frozio' ? Math.ceil(frozioStock)
-            : call.product === 'medipack' ? Math.ceil(medipackStock)
-            : displayStock;
+          const _relStockModal = displayStock;
           const canAccept = call.needStock === 0 || _relStockModal >= call.needStock;
           const acceptReward = call.rewardAccept || {};
           const declineReward = call.rewardDecline;
@@ -27666,10 +22120,7 @@ export default function App() {
                 {!call.narrativeOnly && (
                   <div className="modal-grid">
                     {call.needStock > 0 && (() => {
-                      const _unitModal = call.product === 'popice' ? t('unit.popice')
-                        : call.product === 'frozio' ? t('unit.frozio')
-                        : call.product === 'medipack' ? t('unit.medipack')
-                        : 'GL';
+                      const _unitModal = 'GL';
                       return (
                       <div className="modal-row">
                         <span className="modal-lbl">{t('call.demand')}</span>
@@ -27704,7 +22155,7 @@ export default function App() {
                     <button className="modal-btn modal-btn-accept" onClick={handleCallAccept} style={{ gridColumn: '1 / -1' }}>
                       OK
                     </button>
-                  ) : (call.id === 'robert_warehouse' || call.id === 'robert_office' || call.id === 'phase4_vandenberg') ? (
+                  ) : (call.id === 'robert_warehouse' || call.id === 'robert_office') ? (
                     <>
                       <button className="modal-btn modal-btn-accept" onClick={handleCallAccept}>
                         {t('call.see_offer_btn')}
