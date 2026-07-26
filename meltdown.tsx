@@ -15616,7 +15616,7 @@ export default function App() {
           background: var(--bg);
           color: var(--fg);
           border: 2px solid var(--fg);
-          border-radius: 22px;
+          border-radius: 0;
           max-width: 380px;
           width: 100%;
           font-family: 'JetBrains Mono', monospace;
@@ -15628,131 +15628,84 @@ export default function App() {
           from { opacity: 0; transform: translateY(-8px) scale(0.96); }
           to { opacity: 1; transform: translateY(0) scale(1); }
         }
-        /* Les bulles personnage ET narrateur doivent laisser dépasser leur queue */
-        .popup-msg:has(.popup-msg-character),
-        .popup-msg.popup-msg-character {
-          overflow: visible;
-          border-radius: 44px;
-        }
-        /* Style 1 : dialogue direct (personnage) — bulle BD */
+        /* Style 1 : dialogue direct (personnage) — bloc carré à bandeau titre.
+           Pas de queue ni d'arrondi : la bulle reprend la grammaire des
+           modales du jeu (cadre net + en-tête plein inversé). */
         .popup-msg-character {
-          padding: 18px 20px 20px;
-          text-align: center;
-          border-radius: 44px;
-          overflow: visible;
+          padding: 0;
+          text-align: left;
           position: relative;
         }
-        /* Queue fine identique aux bulles tutoriel : triangle contour (--fg)
-           + triangle fond (--bg) par-dessus, pointe vers le bas. */
-        .popup-msg-character::before {
-          content: "";
-          position: absolute;
-          left: 40px;
-          bottom: -8px;
-          width: 0;
-          height: 0;
-          border-left: 8px solid transparent;
-          border-right: 8px solid transparent;
-          border-top: 8px solid var(--fg);
-        }
-        .popup-msg-character::after {
-          content: "";
-          position: absolute;
-          left: 41px;
-          bottom: -5px;
-          width: 0;
-          height: 0;
-          border-left: 7px solid transparent;
-          border-right: 7px solid transparent;
-          border-top: 7px solid var(--bg);
-        }
-        .popup-msg-character .popup-msg-speaker {
-          display: inline-flex;
-          align-items: center;
-          gap: 10px;
-          background: transparent;
-          color: var(--fg);
-          padding: 0;
-          border-radius: 0;
-          font-size: 10px;
-          font-weight: 800;
-          letter-spacing: 3px;
-          text-transform: uppercase;
-          margin-bottom: 12px;
-        }
-        .popup-msg-character .popup-msg-speaker::before,
-        .popup-msg-character .popup-msg-speaker::after {
-          content: "";
-          display: inline-block;
-          width: 18px;
-          height: 1px;
-          background: var(--fg);
-        }
-        .popup-msg-character .popup-msg-body {
-          font-size: 12px;
-          line-height: 1.6;
-          letter-spacing: 0.2px;
-          text-align: left;
-        }
-        .popup-msg-character .popup-msg-body::before { content: '« '; }
-        .popup-msg-character .popup-msg-body::after { content: ' »'; }
-        /* Portrait du personnage : buste ENTIER (tête non coupée),
-           aligné AU MÊME NIVEAU que le nom dans un en-tête. Le texte
-           passe en dessous, sur toute la largeur de la bulle. */
+        /* Bandeau du locuteur : portrait + nom, fond plein inversé. */
         .popup-msg-header {
           display: flex;
           flex-direction: row;
           align-items: center;
           gap: 10px;
-          margin-bottom: 12px;
+          padding: 8px 12px;
+          background: var(--fg);
+          color: var(--bg);
         }
         .popup-msg-portrait {
           flex: 0 0 auto;
-          width: 54px;
-          height: 54px;
+          width: 34px;
+          height: 34px;
           object-fit: contain;
           object-position: top center;
         }
-        .popup-msg-header-spacer {
-          flex: 0 0 auto;
-          width: 54px;
+        .popup-msg-header .popup-msg-portrait {
+          /* Le buste est un trait sombre sur fond transparent : sur le
+             bandeau inversé il lui faut un cartouche clair pour rester
+             lisible, quel que soit le thème. */
+          background: #ffffff;
+          padding: 2px;
         }
         .popup-msg-character .popup-msg-speaker {
           flex: 1;
-          margin-bottom: 0;
-          text-align: center;
-          justify-content: center;
+          min-width: 0;
+          margin: 0;
+          padding: 0;
+          font-size: 10px;
+          font-weight: 800;
+          letter-spacing: 3px;
+          text-transform: uppercase;
+          text-align: left;
+          color: var(--bg);
         }
         .popup-msg-character .popup-msg-body {
+          padding: 16px 16px 18px;
+          font-size: 12px;
+          line-height: 1.6;
+          letter-spacing: 0.2px;
           text-align: left;
         }
-        .theme-dark .popup-msg-portrait {
-          /* Le dessin a un trait noir sur fond transparent : sur thème
-             sombre il serait invisible. On place donc un fond blanc
-             derrière le buste (petit cartouche) pour garder le trait
-             noir lisible. */
+        .theme-dark .call-narrative-portrait {
+          /* Même problème de lisibilité dans la modale d'appel, où le
+             portrait est posé sur le fond de la modale. */
           background: #ffffff;
           border-radius: 6px;
           padding: 3px;
         }
-        /* Style 2 : narrateur (observation) */
+        /* Style 2 : narrateur (observation) — même bandeau, corps en italique */
         .popup-msg-narrator {
           border-style: solid;
-          padding: 16px 22px 18px;
+          padding: 0;
         }
         .popup-msg-narrator .popup-msg-label {
-          font-size: 8px;
-          letter-spacing: 2.5px;
-          color: var(--m1);
-          font-weight: 400;
+          padding: 8px 12px;
+          background: var(--fg);
+          color: var(--bg);
+          font-size: 9px;
+          letter-spacing: 3px;
+          font-weight: 700;
           text-transform: uppercase;
-          margin-bottom: 8px;
         }
         .popup-msg-narrator .popup-msg-body-narrator {
+          padding: 16px 16px 18px;
           font-size: 12px;
           line-height: 1.7;
           font-style: italic;
-          text-align: center;
+          text-align: left;
           letter-spacing: 0.3px;
           color: var(--fg);
         }
@@ -20284,8 +20237,8 @@ export default function App() {
                     {(() => {
                       const pk = (popupMessage.speaker || '').trim().toLowerCase();
                       const src = CHARACTER_PORTRAITS[pk];
-                      // Si on a une image : portrait à gauche + nom centré + spacer à droite (compense visuellement).
-                      // Si pas d'image : juste le nom, qui prend toute la largeur et se centre naturellement.
+                      // Bandeau : portrait à gauche quand on en a un, puis le nom.
+                      // Sans image, le nom occupe seul toute la largeur du bandeau.
                       if (src) {
                         return (
                           <>
@@ -20296,7 +20249,6 @@ export default function App() {
                               aria-hidden="true"
                             />
                             <div className="popup-msg-speaker">{popupMessage.speaker}</div>
-                            <div className="popup-msg-header-spacer" aria-hidden="true" />
                           </>
                         );
                       }
@@ -20312,7 +20264,7 @@ export default function App() {
                 </>
               ) : (
                 <>
-                  <div className="popup-msg-label">— {t('popup.observation')}</div>
+                  <div className="popup-msg-label">{t('popup.observation')}</div>
                   <div className="popup-msg-body popup-msg-body-narrator">« {popupMessage.text} »</div>
                 </>
               )}
