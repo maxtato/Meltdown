@@ -422,7 +422,7 @@ const GLACIER_BEATS = [
     text: { fr: "On m'a parlé d'un type qui fait des glaçons dans le coin. Petit. Pas grand-chose. J'avais juste envie de mettre un visage sur le bruit. Bonne soirée.", en: "Someone told me there's a guy making ice cubes in the area. Small. Nothing much. I just wanted to put a face to the noise. Have a good evening.", es: "Me hablaron de un tipo que hace cubitos por la zona. Pequeño. Poca cosa. Solo quería ponerle cara al rumor. Buenas noches.", zh: "有人跟我提起这边有个家伙做冰块。规模小，没什么大不了。我只是想给这些动静配上一张脸。晚安。", ru: "Мне сказали, в районе появился парень с кубиками льда. Мелкий. Ничего особенного. Просто хотел увидеть лицо за шумом. Доброго вечера.", it: "Mi hanno parlato di un tizio che fa cubetti in zona. Piccolo. Niente di che. Volevo solo dare un volto al rumore. Buona serata.", de: "Man hat mir von einem Typen erzählt, der hier Eiswürfel macht. Klein. Nichts Großes. Ich wollte dem Geräusch nur ein Gesicht geben. Schönen Abend." } },
   // Deuxième signal : remarque sèche au passage, mi-amicale mi-menaçante.
   { id: 'g_p1_rumor2', when: s => s.gameTime > 360 && s.upgradeCount >= 5,
-    text: { fr: "Un fournisseur m'a dit que tu lui posais des questions sur les prix de gros. Curieux. Reste à ta taille, ça vaudra mieux pour toi.", en: "A supplier told me you've been asking about wholesale prices. Curious. Stay your size, it'll be better for you.", es: "Un proveedor me dijo que andas preguntando precios al por mayor. Curioso. Quédate en tu sitio, será mejor para ti.", zh: "一个供应商跟我说你在打听批发价。挺好奇的。守住你的规模，对你比较好。", ru: "Поставщик сказал, ты спрашивал об оптовых ценах. Любопытно. Оставайся в своём размере, так лучше для тебя.", it: "Un fornitore mi ha detto che chiedi i prezzi all'ingrosso. Curioso. Resta della tua taglia, sarà meglio per te.", de: "Ein Lieferant sagte mir, du fragst nach Großhandelspreisen. Interessant. Bleib bei deiner Größe, das ist besser für dich." } },
+    text: { fr: "Un fournisseur m'a dit que vous lui posiez des questions sur les prix de gros. Curieux. Restez à votre taille, ça vaudra mieux pour vous.", en: "A supplier told me you've been asking about wholesale prices. Curious. Stay your size, it'll be better for you.", es: "Un proveedor me dijo que anda preguntando precios al por mayor. Curioso. Quédese en su sitio, será mejor para usted.", zh: "一个供应商跟我说您在打听批发价。挺好奇的。守住您的规模，对您比较好。", ru: "Поставщик сказал, вы спрашивали об оптовых ценах. Любопытно. Оставайтесь в своём размере, так будет лучше для вас.", it: "Un fornitore mi ha detto che chiede i prezzi all'ingrosso. Curioso. Resti della sua taglia, sarà meglio per lei.", de: "Ein Lieferant sagte mir, Sie fragen nach Großhandelspreisen. Interessant. Bleiben Sie bei Ihrer Größe, das ist besser für Sie." } },
   // Entrée en P2 : il monte d'un cran, demi-menace.
   { id: 'g_p2_jab', when: s => s.phase >= 2 && s.contractsCompleted >= 2,
     text: { fr: "Vous quittez le quartier. Camion, contrats. C'est mignon. Mais vous entrez dans MA cour, maintenant. Je n'aime pas qu'on entre dans ma cour sans frapper.", en: "You're leaving the neighborhood. Truck, contracts. Cute. But you're stepping into MY yard now. I don't like uninvited guests in my yard.", es: "Dejas el barrio. Camión, contratos. Mono. Pero ahora entras en MI patio. No me gusta que entren en mi patio sin llamar.", zh: "你走出街区了。卡车、合同。挺可爱的。但你现在踏进了我的院子。我不喜欢有人不敲门就进我的院子。", ru: "Ты выходишь из квартала. Грузовик, контракты. Мило. Но теперь ты заходишь в МОЙ двор. Я не люблю, когда заходят в мой двор без стука.", it: "State uscendo dal quartiere. Camion, contratti. Carino. Ma ora entrate nel MIO cortile. Non amo chi entra in casa mia senza bussare.", de: "Du verlässt dein Viertel. LKW, Verträge. Niedlich. Aber jetzt betrittst du MEINEN Hof. Ich mag es nicht, wenn man meinen Hof ohne anzuklopfen betritt." } },
@@ -2966,7 +2966,7 @@ const BRIGITTE_MESSAGES = [
   { fr: "Je viens de remettre les pendules à l'heure avec un fournisseur. Il ne recommencera pas.",
     en: "Just set the record straight with a supplier. He won't pull that again.",
     es: "Acabo de poner las cosas en su sitio con un proveedor. No lo volverá a intentar.", zh: "刚把一个供应商敲打了一番。他不会再来这套了。", ru: "Только что поставила поставщика на место. Больше так не сделает.", it: "Ho appena messo le cose in chiaro con un fornitore. Non lo rifà più.", de: "Habe gerade einem Lieferanten die Meinung gegeigt. Das macht er nicht nochmal." },
-  { fr: "Je finalise les déclarations fiscales. Tu vas signer trois trucs ce soir.",
+  { fr: "Je finalise les déclarations fiscales. Vous allez signer trois trucs ce soir.",
     en: "I'm finalizing the tax filings. You'll have three things to sign tonight.",
     es: "Estoy finalizando las declaraciones fiscales. Tendrás tres cosas que firmar esta noche.", zh: "我在收尾税务申报。今晚你有三样要签。", ru: "Завершаю налоговые декларации. Вам сегодня три вещи на подпись.", it: "Sto chiudendo le dichiarazioni fiscali. Avrai tre cose da firmare stasera.", de: "Ich schließe die Steuererklärungen ab. Du hast heute Abend drei Dinge zu unterschreiben." },
   { fr: "Je boucle la TVA trimestrielle. Bonne nouvelle : on est dans les clous.",
@@ -2984,22 +2984,22 @@ const DEV_PREVIEW_MESSAGES = {
     saturation: [
       "Patron, on tourne à fond. Les bacs sont pleins, faudrait écouler.",
       "Je ne peux plus rien congeler, c'est saturé. Faut vendre, là.",
-      "Tu peux pas continuer à produire si on stocke pas plus. Faut voir l'agencement.",
+      "Vous pouvez pas continuer à produire si on stocke pas plus. Faut voir l'agencement.",
     ],
     export: [
-      "Tu sais qu'avec ce qu'on produit, on pourrait livrer en gros à des pros ?",
+      "Vous savez qu'avec ce qu'on produit, on pourrait livrer en gros à des pros ?",
       "On a de quoi faire des contrats B2B sérieux. T'as réfléchi à ça ?",
       "Les pros achètent en volume. C'est peut-être le moment de monter d'un cran.",
     ],
     record_stock: [
       "Stocks au max, patron ! On peut tenir un siège là.",
       "J'ai cadencé comme un porc. Les bacs débordent.",
-      "On a explosé le record du semestre dernier. Champagne quand tu veux.",
+      "On a explosé le record du semestre dernier. Champagne quand vous voulez.",
     ],
     motivation: [
-      "Patron, j'ai bien dormi cette nuit. Aujourd'hui je sors un record, tu vas voir.",
+      "Patron, j'ai bien dormi cette nuit. Aujourd'hui je sors un record, vous allez voir.",
       "L'ambiance est bonne en ce moment. J'ai envie de venir bosser le matin.",
-      "Je vais te dire, on est en train de construire quelque chose ici. Ça se sent.",
+      "Je vais vous dire, on est en train de construire quelque chose ici. Ça se sent.",
     ],
   },
   brigitte: {
@@ -3010,18 +3010,18 @@ const DEV_PREVIEW_MESSAGES = {
     ],
     plafonds: [
       "On peut viser plus haut, là. Les contrats locaux, c'est sympa mais ça plafonne.",
-      "Trois contrats du bas du panier en même temps ? Tu sous-utilises tes camions.",
+      "Trois contrats du bas du panier en même temps ? Vous sous-utilisez vos camions.",
       "Faut pas avoir peur de monter en gamme. Les gros clients paient mieux et plus vite.",
     ],
     advice_contrat: [
       "Patron, j'ai vu passer un contrat qui paie nettement mieux que certains qu'on traite.",
       "Y'a du juteux qui vient d'arriver. Faudrait peut-être lâcher du lest sur les contrats les moins rentables.",
-      "Le marché bouge. J'ai repéré une opportunité bien grasse, regarde.",
+      "Le marché bouge. J'ai repéré une opportunité bien grasse, regardez.",
     ],
     humor: [
       "Patron, je prends mon mardi prochain. Mon chat passe une IRM. Pas négociable.",
-      "Le café de la machine est dégueulasse. Investis dans une vraie, ça motive plus que ton sourire.",
-      "T'es là depuis ce matin sans pause. Va faire un tour, je gère.",
+      "Le café de la machine est dégueulasse. Investissez dans une vraie, ça motive plus que votre sourire.",
+      "Vous êtes là depuis ce matin sans pause. Allez faire un tour, je gère.",
     ],
   },
   lenny: {
@@ -3164,6 +3164,7 @@ const B2B_BY_ID = Object.fromEntries(B2B_CONTRACTS.map(c => [c.id, c]));
 // Le personnage explique en restant dans son ton ce qui va s'améliorer.
 const UPGRADE_THANKS = {
   // FRED — production
+  // (fred_stage n'a pas de remerciement : c'est la 1ère embauche, déjà gérée par hire_intro.fred)
   fred: { speaker: 'Fred',
     fr: "Embauché. Officiel. J'ai signé un vrai contrat et la machine m'a reconnu comme l'un des siens. 20 glaçons toutes les 4 secondes. Je ne sais pas si je progresse ou si je deviens un accessoire.",
     en: "Hired. Official. I signed a real contract and the machine recognized me as one of its own. 20 ice cubes every 4 seconds. I'm not sure if I'm progressing or becoming an accessory.",
@@ -3280,14 +3281,7 @@ const UPGRADE_THANKS = {
     it: "Direttrice HR. Ora mettiamo una vera politica sociale su un'azienda che fa cubetti sotto pressione. Morale di base +8, mediazione preventiva, azioni due volte più rapide. Cresceremo senza trasformare Fred in un mobile.",
     de: "HR-Direktorin. Jetzt legen wir eine echte Sozialpolitik über ein Unternehmen, das unter Druck Eiswürfel herstellt. Grundmoral +8, präventive Mediation, Aktionen doppelt so schnell. Wir wachsen, ohne Fred in ein Möbelstück zu verwandeln." },
   // MARK — achats
-  mark_jr: { speaker: 'Mark',
-    fr: "Acheteur Junior. Eau et énergie, je commence par les évidences. J'ai déjà trouvé deux fournisseurs qui se détestent, c'est une base saine de négociation. Prix d'achat −8 %, marge +3 %. Le froid coûte moins cher quand on insiste.",
-    en: "Junior Buyer. Water and energy, I start with the obvious. I've already found two suppliers who hate each other — that's a healthy basis for negotiation. Purchase price −8%, margin +3%. Cold gets cheaper when you insist.",
-    es: "Comprador Junior. Agua y energía, empiezo por lo obvio. Ya he encontrado dos proveedores que se odian, una base sana para negociar. Precio de compra −8 %, margen +3 %. El frío sale más barato cuando insistes.",
-    zh: "采购初级。从最显而易见的开始：水和电。我已经找到两家互相讨厌的供应商，这是健康的谈判基础。采购价−8%，利润+3%。坚持砍价，冷就便宜。",
-    ru: "Закупщик-джуниор. Вода и энергия — начинаю с очевидного. Уже нашёл двух поставщиков, которые друг друга терпеть не могут — здоровая основа для переговоров. Цена закупки −8 %, маржа +3 %. Холод дешевеет, когда настаиваешь.",
-    it: "Buyer Junior. Acqua ed energia, comincio dalle ovvietà. Ho già trovato due fornitori che si odiano, è una base sana di trattativa. Prezzo d'acquisto −8%, margine +3%. Il freddo costa meno se insisti.",
-    de: "Junior Einkäufer. Wasser und Energie, ich fange beim Offensichtlichen an. Ich habe schon zwei Lieferanten gefunden, die sich hassen — eine gesunde Verhandlungsbasis. Einkaufspreis −8 %, Marge +3 %. Kälte wird billiger, wenn man hartnäckig bleibt." },
+  // (mark_jr n'a pas de remerciement : c'est la 1ère embauche, déjà gérée par hire_intro.mark)
   mark_resp: { speaker: 'Mark',
     fr: "Responsable Achats. Emballages et logistique entrent dans mon périmètre. −20 % sur les matières, marge +5 %. Les fournisseurs vont appeler ça de la pression. Moi, j'appelle ça mardi.",
     en: "Procurement Lead. Packaging and logistics enter my scope. −20% on raw materials, margin +5%. Suppliers will call it pressure. I call it Tuesday.",
@@ -3306,14 +3300,7 @@ const UPGRADE_THANKS = {
     de: "Einkaufsdirektor. International, endlich. −35 % auf alles, Marge +18 %. Ich kenne den Wasserpreis auf drei Kontinenten und den genauen Moment, in dem ein Lieferant zu lügen anfängt." },
 
   // SABINE — juridique
-  sabine_jr: { speaker: 'Sabine',
-    fr: "Juriste Junior. Je ne suis pas encore avocate, mais je sais déjà lire une plainte sans cligner des yeux. 1 procès par an, dommages réduits de 30 %. Glissade, étouffement, glaçon suspect, je classe tout par niveau d'ennui.",
-    en: "Junior Counsel. I'm not a barrister yet, but I can already read a complaint without blinking. 1 lawsuit a year, damages reduced by 30%. Slip, choking, suspicious ice cube — I file everything by level of annoyance.",
-    es: "Jurista Junior. Todavía no soy abogada, pero ya sé leer una demanda sin parpadear. 1 juicio al año, daños reducidos un 30 %. Resbalón, atragantamiento, cubito sospechoso — lo clasifico todo por nivel de molestia.",
-    zh: "初级法务。还不是律师，但我已经能不眨眼地读完一份起诉书。每年1起诉讼，损失降30%。滑倒、噎到、可疑冰块，我按「烦人程度」归类。",
-    ru: "Юрист-джуниор. Адвокат я пока нет, но уже умею читать иск, не моргая. 1 иск в год, ущерб уменьшен на 30 %. Поскользнулся, поперхнулся, подозрительный кубик — всё классифицирую по уровню раздражения.",
-    it: "Giurista Junior. Non sono ancora avvocato, ma so già leggere una denuncia senza battere ciglio. 1 causa l'anno, danni ridotti del 30%. Scivolata, soffocamento, cubetto sospetto — archivio tutto per livello di noia.",
-    de: "Junior-Juristin. Anwältin bin ich noch nicht, aber ich kann schon eine Klage lesen, ohne zu blinzeln. 1 Klage pro Jahr, Schäden um 30 % reduziert. Sturz, Verschlucken, verdächtiger Eiswürfel — ich ordne alles nach Lästigkeitsgrad ein." },
+  // (sabine_jr n'a pas de remerciement : c'est la 1ère embauche, déjà gérée par hire_intro.sabine)
   sabine_sr: { speaker: 'Sabine',
     fr: "Avocate, désormais. Trois procès par an, dommages divisés par 2,5. Je préfère prévenir avant le tribunal, parce que le tribunal coûte cher et sent la moquette fatiguée.",
     en: "Barrister now. Three lawsuits a year, damages divided by 2.5. I'd rather prevent before court, because court is expensive and smells of tired carpet.",
@@ -3333,21 +3320,21 @@ const UPGRADE_THANKS = {
 
   // === P1 — Infra (commentaires des persos existants) ===
   voisin_jacques: { speaker: 'Fred',
-    fr: "Jacques d'à côté ? J'l'ai croisé deux fois dans l'escalier, mec sympa. Sa cuisine est nickel, on peut clairement caser tes bacs là-haut. +30 places, je monte les premiers, t'inquiète.",
+    fr: "Jacques d'à côté ? J'l'ai croisé deux fois dans l'escalier, mec sympa. Sa cuisine est nickel, on peut clairement caser vos bacs là-haut. +30 places, je monte les premiers, vous inquiétez pas.",
     en: "Jacques next door? Ran into him twice in the stairwell, nice guy. His kitchen is spotless, we can totally stash your trays up there. +30 spots, I'll carry the first ones up, no worries.",
-    es: "¿Jacques el de al lado? Me lo crucé dos veces en la escalera, buen tío. Su cocina está impecable, podemos meter tus cubetas ahí arriba. +30 plazas, las primeras las subo yo, tranqui.",
-    zh: "隔壁那个雅克？我在楼梯间碰到他两次，人不错。他的厨房很干净，咱们完全可以把你的盘子放上去。多30个位置，头几个我帮你抬上去，别担心。",
-    ru: "Жак из соседней квартиры? Сталкивался с ним пару раз на лестнице, нормальный мужик. Кухня у него чистая, твои поддоны туда вполне влезут. +30 мест, первые я тебе сам затащу, не парься.",
-    it: "Jacques della porta accanto? L'ho incrociato due volte sulle scale, tipo simpatico. La sua cucina è pulitissima, ci stiamo tranquillamente le tue vaschette. +30 posti, le prime te le porto su io, tranquillo.",
-    de: "Jacques von nebenan? Hab ihn zweimal im Treppenhaus getroffen, netter Typ. Seine Küche ist blitzblank, da kriegen wir deine Schalen locker rein. +30 Plätze, die ersten trag ich dir hoch, keine Sorge." },
+    es: "¿Jacques el de al lado? Me lo crucé dos veces en la escalera, buen tío. Su cocina está impecable, podemos meter sus cubetas ahí arriba. +30 plazas, las primeras las subo yo, no se preocupe.",
+    zh: "隔壁那个雅克？我在楼梯间碰到他两次，人不错。他的厨房很干净，咱们完全可以把您的盘子放上去。多30个位置，头几个我帮您抬上去，别担心。",
+    ru: "Жак из соседней квартиры? Сталкивался с ним пару раз на лестнице, нормальный мужик. Кухня у него чистая, ваши поддоны туда вполне влезут. +30 мест, первые я сам затащу, не переживайте.",
+    it: "Jacques della porta accanto? L'ho incrociato due volte sulle scale, tipo simpatico. La sua cucina è pulitissima, ci stanno tranquillamente le sue vaschette. +30 posti, le prime gliele porto su io, stia tranquillo.",
+    de: "Jacques von nebenan? Hab ihn zweimal im Treppenhaus getroffen, netter Typ. Seine Küche ist blitzblank, da kriegen wir Ihre Schalen locker rein. +30 Plätze, die ersten trage ich Ihnen hoch, keine Sorge." },
   canettes_fred: { speaker: 'Fred',
-    fr: "Le pack de canettes ! Patron, j't'embrasserais. Caféine + sucre, j'tiens trois cycles d'affilée sans broncher. +5% sur tout.",
+    fr: "Le pack de canettes ! Patron, j'vous embrasserais. Caféine + sucre, j'tiens trois cycles d'affilée sans broncher. +5% sur tout.",
     en: "The can pack! Boss, I could kiss you. Caffeine + sugar, I knock out three cycles in a row no problem. +5% on everything.",
-    es: "¡El pack de latas! Jefe, te besaría. Cafeína + azúcar, aguanto tres ciclos seguidos sin rechistar. +5% en todo.",
+    es: "¡El pack de latas! Jefe, le besaría. Cafeína + azúcar, aguanto tres ciclos seguidos sin rechistar. +5% en todo.",
     zh: "整箱罐装饮料！老板，我都想亲您一口。咖啡因加糖，我能连干三个周期不喘气。全线+5%。",
-    ru: "Упаковка банок! Шеф, расцеловал бы тебя. Кофеин и сахар, отрабатываю три цикла подряд и не моргаю. +5% на всё.",
-    it: "Il pack di lattine! Capo, ti bacerei. Caffeina + zucchero, reggo tre cicli di fila senza fiatare. +5% su tutto.",
-    de: "Das Dosenpaket! Chef, ich könnt dich knutschen. Koffein und Zucker, ich pack drei Zyklen am Stück ohne Mucken. +5% auf alles." },
+    ru: "Упаковка банок! Шеф, расцеловал бы вас. Кофеин и сахар, отрабатываю три цикла подряд и не моргаю. +5% на всё.",
+    it: "Il pack di lattine! Capo, la bacerei. Caffeina + zucchero, reggo tre cicli di fila senza fiatare. +5% su tutto.",
+    de: "Das Dosenpaket! Chef, ich könnt Sie knutschen. Koffein und Zucker, ich pack drei Zyklen am Stück ohne Mucken. +5% auf alles." },
   etiqueteuse: { speaker: 'Fred',
     fr: "L'étiqueteuse, ça c'est malin. Fini les feutres au pif. Les clients voient « Artisan local » et ils sortent 10% de plus, j'comprends pas pourquoi mais bon.",
     en: "The labeler, now that's smart. No more sharpie scribbles. Customers see 'Local Artisan' and they pony up 10% more, I don't get why but okay.",
@@ -3375,13 +3362,13 @@ const UPGRADE_THANKS = {
     it: "Camera bianca base, capo. Non è più un garage. Filtrazione HEPA, tuta blu, mi sembra di stare in un documentario della NASA. Prezzo +12%.",
     de: "Basis-Reinraum, Chef. Das ist keine Garage mehr. HEPA-Filtration, blauer Anzug, ich komm mir vor wie in einer NASA-Doku. Preis +12%." },
   hub_regional: { speaker: 'Lenny',
-    fr: "Hub régional, patron. Deux dépôts secondaires, je raccourcis les tournées de 33%. Mes chauffeurs voient leur famille plus souvent, t'as pas idée du bien que ça fait.",
+    fr: "Hub régional, patron. Deux dépôts secondaires, je raccourcis les tournées de 33%. Mes chauffeurs voient leur famille plus souvent, vous avez pas idée du bien que ça fait.",
     en: "Regional hub, boss. Two satellite depots, I cut routes by 33%. My drivers see their families more often, you have no idea how much that helps.",
-    es: "Hub regional, jefe. Dos depósitos secundarios, recorto las rutas un 33%. Mis chóferes ven a sus familias más a menudo, no te imaginas el bien que hace.",
-    zh: "区域枢纽，老板。两个二级仓库，路线缩短33%。我的司机们能多见家人，这种好处你想象不到。",
-    ru: "Региональный хаб, шеф. Два дополнительных склада, маршруты сокращены на 33%. Мои водители чаще видят семью, ты не представляешь, насколько это важно.",
-    it: "Hub regionale, capo. Due depositi secondari, accorcio i giri del 33%. I miei autisti vedono di più le famiglie, non hai idea di quanto faccia bene.",
-    de: "Regional-Hub, Chef. Zwei Nebenlager, ich kürze Touren um 33%. Meine Fahrer sehen öfter ihre Familien, du ahnst nicht, wieviel das bringt." },
+    es: "Hub regional, jefe. Dos depósitos secundarios, recorto las rutas un 33%. Mis chóferes ven a sus familias más a menudo, no se imagina el bien que hace.",
+    zh: "区域枢纽，老板。两个二级仓库，路线缩短33%。我的司机们能多见家人，这种好处您想象不到。",
+    ru: "Региональный хаб, шеф. Два дополнительных склада, маршруты сокращены на 33%. Мои водители чаще видят семью, вы не представляете, насколько это важно.",
+    it: "Hub regionale, capo. Due depositi secondari, accorcio i giri del 33%. I miei autisti vedono di più le famiglie, non ha idea di quanto faccia bene.",
+    de: "Regional-Hub, Chef. Zwei Nebenlager, ich kürze Touren um 33%. Meine Fahrer sehen öfter ihre Familien, Sie ahnen nicht, wieviel das bringt." },
   ligne_semi_auto: { speaker: 'Fred',
     fr: "Ligne semi-auto. Patron c'est plus le même métier. Les bacs se remplissent, gèlent, se démoulent tout seuls. Moi j'surveille les écrans et j'fais un café de temps en temps.",
     en: "Semi-auto line. Boss, this isn't the same job anymore. Trays fill up, freeze, demold by themselves. I just watch the screens and make coffee now and then.",
@@ -3441,13 +3428,13 @@ const UPGRADE_THANKS = {
     it: "Fabbrica bis! Capo due fabbriche adesso. È ufficiale, ho un clone. Beh, in realtà è solo un secondo sito, ma l'idea mi piace. Produzione ×2.",
     de: "Zweitfabrik! Chef, zwei Fabriken jetzt. Ist offiziell, ich hab 'nen Klon. Naja, eigentlich nur 'n zweiter Standort, aber die Idee gefällt mir. Produktion ×2." },
   formation_interne: { speaker: 'Fred',
-    fr: "Centre de formation interne, patron. On forme nos gens nous-mêmes, ils montent en compétence. Productivité ×1,4, moral +10. Ça paie, crois-moi.",
-    en: "In-house training center, boss. We train our people ourselves, they grow in skills. Productivity ×1.4, morale +10. It pays off, trust me.",
-    es: "Centro de formación interno, jefe. Formamos a nuestra gente nosotros mismos, crecen en competencia. Productividad ×1,4, moral +10. Vale la pena, créeme.",
+    fr: "Centre de formation interne, patron. On forme nos gens nous-mêmes, ils montent en compétence. +7 % de cadence sur toute la chaîne. Ça paie, croyez-moi.",
+    en: "In-house training center, boss. We train our people ourselves, they grow in skills. +7% pace across the whole line. It pays off, trust me.",
+    es: "Centro de formación interno, jefe. Formamos a nuestra gente nosotros mismos, crecen en competencia. +7 % de ritmo en toda la cadena. Vale la pena, créame.",
     zh: "内部培训中心，老板。我们自己培训员工，他们的技能成长。生产力×1.4，士气+10。很值，相信我。",
-    ru: "Внутренний учебный центр, шеф. Учим своих сами, они растут в компетенциях. Производительность ×1,4, мораль +10. Окупается, поверь.",
-    it: "Centro di formazione interno, capo. Formiamo i nostri da soli, crescono in competenze. Produttività ×1,4, morale +10. Rende, fidati.",
-    de: "Internes Schulungszentrum, Chef. Wir bilden unsere Leute selbst aus, sie wachsen in Kompetenz. Produktivität ×1,4, Moral +10. Es zahlt sich aus, glaub mir." },
+    ru: "Внутренний учебный центр, шеф. Учим своих сами, они растут в компетенциях. +7 % темпа по всей линии. Окупается, поверьте.",
+    it: "Centro di formazione interno, capo. Formiamo i nostri da soli, crescono in competenze. +7 % di ritmo su tutta la linea. Rende, mi creda.",
+    de: "Internes Schulungszentrum, Chef. Wir bilden unsere Leute selbst aus, sie wachsen in Kompetenz. +7 % Takt auf der ganzen Linie. Es zahlt sich aus, glauben Sie mir." },
   robotisation: { speaker: 'Fred',
     fr: "Robotisation partielle, patron. La moitié des postes remplacés, moral -15 en permanence. Nécessaire, peut-être. Mais c'est dur à encaisser.",
     en: "Partial robotization, boss. Half the jobs replaced, morale -15 permanently. Maybe necessary. But it's hard to swallow.",
@@ -3473,14 +3460,6 @@ const UPGRADE_THANKS = {
     it: "Hub nazionale. Capo, dieci camion, un deposito in ogni grande città. Consegniamo ovunque entro 24h. Non è più consegna, è logistica di guerra.",
     de: "National-Hub. Chef, zehn LKW, ein Depot in jeder Großstadt. Wir liefern überall innerhalb von 24h. Das ist keine Lieferung mehr, das ist Militärlogistik." },
 
-  fred_stage: { speaker: 'Fred',
-    fr: "Patron, merci pour la confiance. Je précise que je suis stagiaire non rémunéré devant une machine qui fait plus de bruit que mon avenir. 18 glaçons toutes les 4 secondes. Je vais appeler ça une carrière.",
-    en: "Boss, thanks for the trust. For the record, I'm an unpaid intern in front of a machine that makes more noise than my future. 18 ice cubes every 4 seconds. I'll call that a career.",
-    es: "Jefe, gracias por la confianza. Aclaro: soy becario sin sueldo frente a una máquina que hace más ruido que mi futuro. 18 cubitos cada 4 segundos. Lo voy a llamar una carrera.",
-    zh: "老板，谢谢您的信任。我先说清楚：我是无薪实习生，面前这台机器比我的未来还吵。每4秒出18块冰。我打算把这叫做一段事业。",
-    ru: "Шеф, спасибо за доверие. Уточняю: я неоплачиваемый стажёр перед машиной, которая шумит громче, чем моё будущее. 18 кубиков каждые 4 секунды. Назову это карьерой.",
-    it: "Capo, grazie per la fiducia. Preciso: sono uno stagista non pagato davanti a una macchina che fa più rumore del mio futuro. 18 cubetti ogni 4 secondi. Lo chiamerò una carriera.",
-    de: "Chef, danke für das Vertrauen. Zur Klarstellung: Ich bin unbezahlter Praktikant vor einer Maschine, die mehr Lärm macht als meine Zukunft. 18 Eiswürfel alle 4 Sekunden. Ich nenne das eine Karriere." },
   fred_legende: { speaker: 'Fred',
     fr: "Légende. Je ne sais pas qui a validé ce titre, mais il est gravé sur une plaque et personne ne discute avec une plaque. 7 lignes tournent sous mes yeux. Les glaçons sortent, les candidats arrivent, mon café gèle avant la pause.",
     en: "Legend. I don't know who signed off on this title, but it's engraved on a plaque and no one argues with a plaque. 7 lines run under my eyes. Ice cubes come out, candidates show up, my coffee freezes before the break.",
@@ -3489,14 +3468,6 @@ const UPGRADE_THANKS = {
     ru: "Легенда. Не знаю, кто утвердил этот титул, но он выгравирован на табличке, а с табличкой никто не спорит. У меня перед глазами крутятся 7 линий. Кубики выходят, кандидаты приходят, мой кофе замерзает раньше перерыва.",
     it: "Leggenda. Non so chi abbia approvato questo titolo, ma è inciso su una targa e con una targa nessuno discute. 7 linee girano davanti ai miei occhi. I cubetti escono, i candidati arrivano, il mio caffè si congela prima della pausa.",
     de: "Legende. Ich weiß nicht, wer diesen Titel abgesegnet hat, aber er steht auf einer Plakette, und mit einer Plakette diskutiert niemand. 7 Linien laufen unter meinen Augen. Die Eiswürfel kommen raus, Bewerber tauchen auf, mein Kaffee gefriert noch vor der Pause." },
-  autosell: { speaker: 'Brigitte',
-    fr: "Très bien, je prends l'administratif. À partir de maintenant, quand le stock déborde, je vends avant que tout fonde et que tu appelles ça une stratégie. Je surveille les 90 %. Tu peux continuer à appuyer sur des boutons, je ferai le reste.",
-    en: "Very well, I'll take the admin. From now on, when stock overflows, I sell before everything melts and you call it a strategy. I watch the 90%. You can keep pressing buttons, I'll do the rest.",
-    es: "Muy bien, me encargo del administrativo. A partir de ahora, cuando el stock se desborde, vendo antes de que todo se funda y tú lo llames una estrategia. Vigilo el 90 %. Tú sigue pulsando botones, yo me ocupo del resto.",
-    zh: "好，行政交给我。从现在起，库存一爆，我就抢在一切融化、你把它叫作策略之前卖掉。我盯着90%。你继续按你的按钮，剩下的我来。",
-    ru: "Хорошо, я беру административку. С этого момента, когда склад переполняется, я продаю прежде, чем всё растает и ты назовёшь это стратегией. Слежу за 90 %. Ты продолжай жать кнопки — остальное на мне.",
-    it: "Bene, prendo l'amministrazione. D'ora in poi, quando lo stock straripa, vendo prima che tutto si sciolga e tu lo chiami una strategia. Sorveglio il 90%. Tu continua a premere bottoni, al resto penso io.",
-    de: "Sehr gut, ich übernehme die Verwaltung. Ab jetzt verkaufe ich, sobald das Lager überquillt, bevor alles schmilzt und du es Strategie nennst. Ich behalte die 90 % im Auge. Drück du weiter Knöpfe, den Rest mache ich." },
   brigitte_legende: { speaker: 'Brigitte',
     fr: "Numéro 2. Enfin un titre qui correspond à mon niveau de contrôle réel. Les contrats T7 passent par moi, les clients trop confiants aussi. Prix ×1,10, contrats T7 +30 %. Je signe, je ferme la porte, je dors très bien.",
     en: "Number 2. Finally a title that matches my actual level of control. T7 contracts go through me, so do overconfident clients. Price ×1.10, T7 contracts +30%. I sign, I close the door, I sleep very well.",
@@ -3505,14 +3476,6 @@ const UPGRADE_THANKS = {
     ru: "Номер два. Наконец-то титул, соответствующий моему реальному уровню контроля. Контракты T7 идут через меня, и слишком самоуверенные клиенты тоже. Цена ×1,10, контракты T7 +30 %. Подписываю, закрываю дверь, сплю отлично.",
     it: "Numero 2. Finalmente un titolo all'altezza del mio reale livello di controllo. I contratti T7 passano da me, anche i clienti troppo sicuri di sé. Prezzo ×1,10, contratti T7 +30%. Firmo, chiudo la porta, dormo benissimo.",
     de: "Nummer 2. Endlich ein Titel, der zu meinem tatsächlichen Kontrollniveau passt. T7-Verträge laufen über mich, übermütige Kunden auch. Preis ×1,10, T7-Verträge +30 %. Ich unterschreibe, ich schließe die Tür, ich schlafe sehr gut." },
-  camion_1: { speaker: 'Lenny',
-    fr: "Je suis là, patron. J'ai l'utilitaire, les clés, et une carte routière qui ment moins que certains clients. 50 glaçons par trajet. Bars, brasseries, local. On commence petit, mais on commence roulant.",
-    en: "I'm here, boss. I've got the van, the keys, and a road map that lies less than some clients. 50 ice cubes per run. Bars, breweries, local. We start small, but we start rolling.",
-    es: "Aquí estoy, jefe. Tengo la furgoneta, las llaves y un mapa de carreteras que miente menos que algunos clientes. 50 cubitos por viaje. Bares, cervecerías, local. Empezamos pequeño, pero empezamos rodando.",
-    zh: "我来了，老板。我带着面包车、钥匙，还有一张比某些客户撒谎少得多的路线图。每趟50块冰。酒吧、啤酒厂、本地。规模小，但已经在路上了。",
-    ru: "Я тут, шеф. У меня фургон, ключи и дорожная карта, которая врёт меньше некоторых клиентов. 50 кубиков за рейс. Бары, пивоварни, локально. Начинаем по чуть-чуть, но уже на колёсах.",
-    it: "Sono qui, capo. Ho il furgone, le chiavi e una mappa stradale che mente meno di certi clienti. 50 cubetti a tratta. Bar, birrerie, locale. Iniziamo piccoli, ma su ruote.",
-    de: "Ich bin da, Chef. Ich habe den Transporter, die Schlüssel und eine Straßenkarte, die weniger lügt als manche Kunden. 50 Eiswürfel pro Fahrt. Bars, Brauereien, lokal. Wir fangen klein an, aber wir rollen schon." },
   camion_5: { speaker: 'Lenny',
     fr: "Cinquième camion ajouté. On commence à ressembler à une flotte et moins à un voisin qui rend service. 5 livraisons en parallèle. Je vais devoir nommer les camions, sinon je vais m'attacher aux mauvais.",
     en: "Fifth truck added. We're starting to look like a fleet and less like a neighbor doing a favor. 5 parallel deliveries. I'll have to name the trucks — otherwise I'll get attached to the wrong ones.",
@@ -3530,14 +3493,6 @@ const UPGRADE_THANKS = {
     it: "Sesto camion. Non è più una tratta, è una migrazione organizzata di cubetti. 6 consegne in parallelo, 16000 di capacità. Se parte tutto insieme, suda anche il planning.",
     de: "Sechster LKW. Das ist keine Tour mehr, das ist eine organisierte Migration von Eiswürfeln. 6 parallele Lieferungen, 16.000 Kapazität. Wenn alles gleichzeitig losfährt, schwitzt selbst der Plan." },
   // (janice_jr = engagement de l'agence marketing : déjà couvert par hire_intro.janice, pas de remerciement Janice)
-  karen_junior: { speaker: 'Karen',
-    fr: "RH Junior. Je vais commencer par dire bonjour aux gens avant qu'ils ne démissionnent intérieurement. Moral de base à 73. C'est discret, mais dans cette entreprise, discret peut sauver des vies sociales.",
-    en: "HR Junior. I'll start by saying hello to people before they resign on the inside. Base morale at 73. It's discreet, but in this company, discreet can save social lives.",
-    es: "RRHH Junior. Voy a empezar diciendo hola a la gente antes de que dimitan por dentro. Moral base a 73. Es discreto, pero en esta empresa lo discreto puede salvar vidas sociales.",
-    zh: "人事初级。我先从跟同事打招呼开始，趁他们还没在心里递辞呈。基础士气73。看着低调，但在这家公司，低调可以救一整条社交命。",
-    ru: "HR-джуниор. Начну с того, что буду здороваться с людьми прежде, чем они подадут заявление внутренне. Базовая мораль 73. Скромно, но в этой компании скромное может спасти социальные жизни.",
-    it: "HR Junior. Comincerò col salutare la gente prima che si dimettano interiormente. Morale di base a 73. È discreto, ma in questa azienda il discreto può salvare vite sociali.",
-    de: "HR Junior. Ich fange damit an, die Leute zu grüßen, bevor sie innerlich kündigen. Grundmoral bei 73. Es ist diskret, aber in dieser Firma kann diskret soziales Leben retten." },
 };
 
 
@@ -5941,9 +5896,8 @@ export default function App() {
     if (!loaded || screen !== 'play') return;
     const id = setInterval(() => {
       // Anti-faux-déclenchement : on ne déclenche pas en grève (arrears salariaux) déjà active
-      const stockFillRatio = (BASE_CAP + (currentStatsRef.current ? currentStatsRef.current.capBonus : 0)) > 0
-        ? (stockRef.current / (BASE_CAP + (currentStatsRef.current ? currentStatsRef.current.capBonus : 0)))
-        : 0;
+      const maxCapNow = BASE_CAP + computeStats(ownedRef.current).capBonus;
+      const stockFillRatio = maxCapNow > 0 ? (stockRef.current / maxCapNow) : 0;
       const now = gameTimeRef.current;
       // --- FRED : stock saturé > 80% pendant 60s continus
       const hasF = !!(ownedRef.current['fred_stage'] || ownedRef.current['fred'] || ownedRef.current['fred_perma'] || ownedRef.current['fred_chef'] || ownedRef.current['fred_dir']);
@@ -5955,7 +5909,7 @@ export default function App() {
           stockSaturatedSinceRef.current = null;
           // Popup explicatif
           if (!popupMessageRef.current) {
-            queuePopup({ type: 'character', speaker: 'Fred', text: "Patron, on produit pour rien. Le stock déborde depuis tout à l'heure, ça me casse les bras. Trouve des contrats ou laisse-moi souffler." });
+            queuePopup({ type: 'character', speaker: 'Fred', text: "Patron, on produit pour rien. Le stock déborde depuis tout à l'heure, ça me casse les bras. Trouvez des contrats ou laissez-moi souffler." });
           }
         }
       } else {
@@ -6289,7 +6243,7 @@ export default function App() {
             fr: [
               "Stocks au max, patron ! On peut tenir un siège là.",
               "J'ai cadencé comme un porc. Les bacs débordent.",
-              "On a explosé le record du semestre dernier. Champagne quand tu veux.",
+              "On a explosé le record du semestre dernier. Champagne quand vous voulez.",
               "Plus de place dans les frigos. C'est de la folie.",
               "Là je suis au taquet, ça tourne sans accroc depuis ce matin.",
               "Si on continue à ce rythme, faut prévoir un troisième congélateur.",
@@ -6379,13 +6333,13 @@ export default function App() {
             const plafonds = {
               fr: [
                 "On peut viser plus haut, là. Les contrats locaux, c'est sympa mais ça plafonne.",
-                "Trois contrats du bas du panier en même temps ? Tu sous-utilises tes camions.",
+                "Trois contrats du bas du panier en même temps ? Vous sous-utilisez vos camions.",
                 "Faut pas avoir peur de monter en gamme. Les gros clients paient mieux et plus vite.",
                 "À ce stade, garder que des petits contrats, c'est comme conduire une voiture de sport pour faire les courses.",
-                "Tu as débloqué le tier 4. Les contrats que tu signes valent à peine la moitié de ce que tu pourrais.",
-                "Les marges sur tes petits clients, c'est juste assez pour payer le gasoil. Vise les chaînes.",
-                "J'ai sorti la calculette : tu laisses au moins 30% de chiffre sur la table chaque mois.",
-                "Tes camions méritent mieux que des relais routiers à 200 unités. Va chercher les hypermarchés."
+                "Vous avez débloqué le tier 4. Les contrats que vous signez valent à peine la moitié de ce que vous pourriez.",
+                "Les marges sur vos petits clients, c'est juste assez pour payer le gasoil. Visez les chaînes.",
+                "J'ai sorti la calculette : vous laissez au moins 30% de chiffre sur la table chaque mois.",
+                "Vos camions méritent mieux que des relais routiers à 200 unités. Allez chercher les hypermarchés."
               ],
               en: [
                 "We can aim higher. Local contracts are nice but they're capped.",
@@ -6403,9 +6357,9 @@ export default function App() {
                 "No tengas miedo de subir de gama. Los grandes clientes pagan mejor y más rápido.",
                 "A estas alturas, solo contratos pequeños es como conducir un deportivo para la compra.",
                 "Desbloqueaste el tier 4. Los contratos que firmas valen la mitad de lo que podrían.",
-                "Los márgenes de tus clientes pequeños apenas cubren el gasoil. Apunta a las cadenas.",
+                "Los márgenes de sus clientes pequeños apenas cubren el gasoil. Apunte a las cadenas.",
                 "Saqué la calculadora: dejas al menos 30% de facturación sobre la mesa cada mes.",
-                "Tus camiones merecen más que áreas de servicio de 200 unidades. Ve a por los hipermercados."
+                "Sus camiones merecen más que áreas de servicio de 200 unidades. Vaya a por los hipermercados."
               ],
               zh: [
                 "我们能瞄得更高。本地合同不错但有上限。",
@@ -6433,7 +6387,7 @@ export default function App() {
                 "Non aver paura di salire di gamma. I grandi clienti pagano meglio e più in fretta.",
                 "A questo punto solo contratti piccoli è come guidare un'auto sportiva per fare la spesa.",
                 "Hai sbloccato il tier 4. I contratti che firmi valgono la metà di quello che potrebbero.",
-                "I margini sui clienti piccoli coprono appena la benzina. Mira alle catene.",
+                "I margini sui clienti piccoli coprono appena la benzina. Miri alle catene.",
                 "Ho fatto i conti: lasci almeno il 30% di fatturato sul tavolo ogni mese.",
                 "I tuoi camion meritano di meglio di aree di servizio da 200 unità. Vai sui supermercati."
               ],
@@ -6522,14 +6476,14 @@ export default function App() {
         const humors = {
           fr: [
             "Patron, je prends mon mardi prochain. Mon chat passe une IRM. Pas négociable.",
-            "J'ai compté : on a fait 47 contrats ce mois. Je vais demander une augmentation, prépare-toi.",
-            "Le café de la machine est dégueulasse. Investis dans une vraie, ça motive plus que ton sourire.",
-            "Si tu signes encore un contrat à 0.50€ le glaçon, je démissionne par fax.",
+            "J'ai compté : on a fait 47 contrats ce mois. Je vais demander une augmentation, préparez-vous.",
+            "Le café de la machine est dégueulasse. Investissez dans une vraie, ça motive plus que votre sourire.",
+            "Si vous signez encore un contrat à 0.50€ le glaçon, je démissionne par fax.",
             "J'ai rêvé qu'on rachetait Glacier Frères. C'était beau.",
             "Mon mari me demande pourquoi je rentre tard. Je lui ai dit : parce que c'est passionnant.",
-            "T'es là depuis ce matin sans pause. Va faire un tour, je gère.",
-            "Tu sais qu'il y a un comptable dans le quartier qui prend 800€ pour faire ce que je fais en deux heures ?",
-            "Petit conseil : ne dis jamais à un client que tu as 'plein de stock'. Dis 'capacité limitée, je vais regarder'. Ça change tout.",
+            "Vous êtes là depuis ce matin sans pause. Allez faire un tour, je gère.",
+            "Vous savez qu'il y a un comptable dans le quartier qui prend 800€ pour faire ce que je fais en deux heures ?",
+            "Petit conseil : ne dites jamais à un client que vous avez 'plein de stock'. Dites 'capacité limitée, je vais regarder'. Ça change tout.",
             "J'ai croisé l'épouse du gérant de Maxi Hyper au marché. J'ai été charmante. On en reparlera."
           ],
           en: [
@@ -6547,13 +6501,13 @@ export default function App() {
           es: [
             "Jefe, me tomo el martes libre. Mi gato se hace una resonancia. No negociable.",
             "He contado: hemos hecho 47 contratos este mes. Voy a pedir un aumento, prepárate.",
-            "El café de la máquina es asqueroso. Invierte en una de verdad, motiva más que tu sonrisa.",
+            "El café de la máquina es asqueroso. Invierta en una de verdad, motiva más que su sonrisa.",
             "Si firmas otro contrato a 0.50€ el cubito, dimito por fax.",
             "Soñé que comprábamos Glacier Frères. Era hermoso.",
             "Mi marido me pregunta por qué vuelvo tarde. Le dije: porque es apasionante.",
             "Llevas aquí desde esta mañana sin pausa. Date un paseo, yo me ocupo.",
-            "Sabes que hay un contable en el barrio que cobra 800€ por hacer lo que yo hago en dos horas?",
-            "Consejo: nunca le digas a un cliente que tienes 'mucho stock'. Di 'capacidad limitada, voy a mirar'. Cambia todo.",
+            "¿Sabe que hay un contable en el barrio que cobra 800€ por hacer lo que yo hago en dos horas?",
+            "Consejo: nunca le diga a un cliente que tiene 'mucho stock'. Diga 'capacidad limitada, voy a mirar'. Cambia todo.",
             "Me crucé con la mujer del gerente de Maxi Hyper en el mercado. Estuve encantadora. Hablaremos de eso."
           ], zh: ["老板，下周二我请假。我的猫要做核磁共振。没得商量。", "我数了：这个月我们做了47个合同。我要去要求加薪，你做好准备。", "咖啡机的咖啡难喝死了。投资台好的，比你的笑容更激励人。", "你要是再签一个每块冰€0.50的合同，我用传真递辞职信。", "我梦见我们收购了Glacier Frères。那很美。", "我老公问我为什么晚回家。我跟他说：因为这很迷人。", "你从今早起就没歇过。去散个步，这儿有我。", "你知道街区有个会计收€800做我两小时就做完的事吗？", "专业提示：永远别跟客户说你「库存充足」。说「产能有限，我查一下」。改变一切。", "在市集撞见Maxi大卖场经理的太太。我很有魅力。我们回头会用上这个。"], ru: ["Босс, беру следующий вторник выходной. Моему коту делают МРТ. Не обсуждается.", "Я посчитала: мы сделали 47 контрактов в этом месяце. Я попрошу прибавку, готовься.", "Кофе из автомата отвратителен. Вложись в настоящий, мотивирует больше твоей улыбки.", "Если подпишешь ещё один контракт по €0.50 за кубик, я увольняюсь по факсу.", "Мне снилось, что мы выкупили Glacier Frères. Это было прекрасно.", "Муж спрашивает, почему я поздно прихожу. Я сказала: потому что это увлекательно.", "Ты здесь с утра без перерыва. Иди прогуляйся, я разберусь.", "Ты знаешь, что в районе есть бухгалтер, который берёт €800 за то, что я делаю за два часа?", "Совет профи: никогда не говори клиенту, что у тебя «полно запаса». Скажи «ограниченная мощность, проверю». Меняет всё.", "Столкнулась с женой управляющего Макси-Гипера на рынке. Я была обаятельна. Мы к этому вернёмся."], it: ["Capo, martedì prossimo prendo un giorno. Il mio gatto fa una risonanza. Non negoziabile.", "Ho contato: abbiamo fatto 47 contratti questo mese. Chiederò un aumento, preparati.", "Il caffè della macchinetta è disgustoso. Investi in una vera, motiva più del tuo sorriso.", "Se firmi ancora un contratto a 0,50€ a cubetto, mi licenzio via fax.", "Ho sognato che compravamo Glacier Frères. Era bellissimo.", "Mio marito mi chiede perché torno tardi. Gli ho detto: perché è affascinante.", "Sei qui da stamattina senza pausa. Vai a fare due passi, ci penso io.", "Lo sai che c'è un contabile in zona che chiede 800€ per fare quello che faccio io in due ore?", "Consiglio da pro: non dire mai a un cliente che hai 'scorta in abbondanza'. Di' 'capacità limitata, controllo'. Cambia tutto.", "Incontrata al mercato la moglie del direttore del Maxi Iper. Sono stata affascinante. Ci torneremo."], de: ["Chef, ich nehm nächsten Dienstag frei. Meine Katze kommt ins MRT. Nicht verhandelbar.","Hab gezählt: 47 Verträge diesen Monat. Ich werde eine Gehaltserhöhung fordern, mach dich bereit.","Der Kaffee aus der Maschine ist ekelhaft. Investier in eine echte, motiviert mehr als dein Lächeln.","Wenn du noch einen Vertrag zu 0,50€ pro Eiswürfel unterschreibst, kündige ich per Fax.","Ich hab geträumt, wir hätten Glacier Frères aufgekauft. Es war schön.","Mein Mann fragt, warum ich spät heimkomme. Ich sagte: weil es faszinierend ist.","Du bist seit heute früh ohne Pause hier. Geh spazieren, ich mach das.","Weißt du, dass es im Viertel einen Buchhalter gibt, der 800€ für das nimmt, was ich in zwei Stunden mache?","Profi-Tipp: Sag einem Kunden nie, du hast „reichlich Bestand“. Sag „begrenzte Kapazität, ich prüfe“. Ändert alles.","Bin auf dem Markt der Frau des Maxi-Hyper-Managers begegnet. Ich war charmant. Darauf kommen wir zurück."]
         };
@@ -6569,17 +6523,17 @@ export default function App() {
           && (curT - lastFredRecipeRef.current) > 600 && Math.random() < 0.18) {
         const recipes = {
           fr: [
-            "Patron, j'ai bien dormi cette nuit. Aujourd'hui je sors un record, tu vas voir.",
+            "Patron, j'ai bien dormi cette nuit. Aujourd'hui je sors un record, vous allez voir.",
             "Je commence à connaître la machine par cœur. Les bons gestes rentrent tout seuls.",
             "L'ambiance est bonne en ce moment. J'ai envie de venir bosser le matin.",
-            "Tu sais, ce taff je l'avais sous-estimé. C'est plus tactique qu'on le pense.",
-            "Hier j'ai bossé en musique. J'ai cadencé deux fois plus vite. Faudrait que tu m'autorises ça plus souvent.",
-            "Je vais te dire, on est en train de construire quelque chose ici. Ça se sent.",
+            "Vous savez, ce taff je l'avais sous-estimé. C'est plus tactique qu'on le pense.",
+            "Hier j'ai bossé en musique. J'ai cadencé deux fois plus vite. Faudrait que vous m'autorisiez ça plus souvent.",
+            "Je vais vous dire, on est en train de construire quelque chose ici. Ça se sent.",
             "Je viens d'enchaîner trois cycles sans une pause. La forme est là.",
             "Ce matin j'ai croisé un ancien collègue. Il bosse encore à la chaîne. Je me sens chanceux d'être ici.",
             "Quand j'ai démarré, j'aurais jamais cru qu'on tiendrait. Et là, regarde-moi ça.",
             "Le bruit de la machine, ça me détend, c'est bête à dire.",
-            "J'ai préparé tout le poste avant ton arrivée. Comme ça, on peut attaquer direct."
+            "J'ai préparé tout le poste avant votre arrivée. Comme ça, on peut attaquer direct."
           ],
           en: [
             "Boss, slept well last night. Today I'm setting a record, you'll see.",
@@ -6598,15 +6552,15 @@ export default function App() {
             "Jefe, dormí bien anoche. Hoy bato un récord, ya verás.",
             "Empiezo a conocer la máquina al dedillo. Los buenos gestos salen solos.",
             "Hay buen ambiente últimamente. Me dan ganas de venir a currar por las mañanas.",
-            "Sabes, había subestimado este curro. Es más táctico de lo que parece.",
+            "Sabe, había subestimado este curro. Es más táctico de lo que parece.",
             "Ayer trabajé con música. Cadencié el doble de rápido. Deberías dejarme hacerlo más a menudo.",
-            "Te lo digo, estamos construyendo algo aquí. Se nota.",
+            "Se lo digo, estamos construyendo algo aquí. Se nota.",
             "Acabo de encadenar tres ciclos sin parar. Estoy en racha.",
             "Esta mañana me crucé con un antiguo compañero. Sigue en una cadena. Me siento afortunado de estar aquí.",
             "Cuando empezamos, nunca pensé que íbamos a aguantar. Y mira ahora.",
             "El ruido de la máquina, me relaja. Suena tonto, lo sé.",
             "Preparé todo el puesto antes de que llegaras. Así podemos arrancar directo."
-          ], zh: ["老板，昨晚睡得好。今天我要破纪录，你瞧着。", "我开始把机器摸得滚瓜烂熟了。对的动作自然就来。", "最近心情不错。我其实想早上来上班。", "你知道，我低估了这份活。它比人们想的更有讲究。", "昨天我开着音乐干活。节奏快了一倍。你该让我多这样。", "我跟你说，我们在这儿建立着什么。能感觉到。", "刚连着干了三个周期没歇。进入状态了。", "今早撞见一个老同事。他还在流水线上。我觉得自己来这儿很幸运。", "我刚开始时，从没想过我们能成。看看我们现在。", "机器的噪音其实让我平静。听着傻，我知道。", "在你来之前把整个工位准备好了。这样我们能立刻开干。"], ru: ["Босс, хорошо спал ночью. Сегодня поставлю рекорд, увидишь.", "Начинаю знать машину наизусть. Правильные движения приходят сами.", "В последнее время настроение хорошее. Реально хочется приходить по утрам.", "Знаешь, я недооценивал эту работу. Она тактичнее, чем кажется.", "Вчера работал под музыку. Двойной темп. Стоит позволять мне это чаще.", "Говорю тебе, мы здесь что-то строим. Это чувствуется.", "Только что сделал три цикла без перерыва. Я в потоке.", "Утром встретил старого коллегу. Он всё ещё на конвейере. Чувствую себя везунчиком, что я здесь.", "Когда я начинал, не думал, что мы справимся. А посмотри сейчас.", "Шум машины меня на самом деле успокаивает. Звучит глупо, знаю.", "Подготовил всё рабочее место до твоего прихода. Так сразу стартуем."], it: ["Capo, dormito bene stanotte. Oggi faccio un record, vedrai.", "Inizio a conoscere la macchina a memoria. I gesti giusti vengono naturali.", "Umore buono ultimamente. Ho davvero voglia di venire al mattino.", "Sai, avevo sottovalutato questo lavoro. È più tattico di quanto si pensi.", "Ieri ho lavorato con la musica. Cadenza doppia. Dovresti lasciarmelo fare più spesso.", "Te lo dico, qui stiamo costruendo qualcosa. Si sente.", "Appena concatenati tre cicli senza pausa. Sono in flow.", "Stamattina ho incontrato un vecchio collega. È ancora su una catena di montaggio. Mi sento fortunato a essere qui.", "Quando ho iniziato, non pensavo ce l'avremmo fatta. E guarda adesso.", "Il rumore della macchina in realtà mi calma. Sembra stupido, lo so.", "Ho preparato tutta la postazione prima che arrivassi. Così partiamo subito."], de: ["Chef, gut geschlafen letzte Nacht. Heute stell ich einen Rekord auf, du wirst sehen.","Ich kenn die Maschine langsam auswendig. Die richtigen Griffe kommen von selbst.","Stimmung ist gut zurzeit. Ich komm morgens echt gern.","Weißt du, ich hab den Job unterschätzt. Er ist taktischer, als man denkt.","Gestern hab ich mit Musik gearbeitet. Doppelt so schnell getaktet. Du solltest mich das öfter machen lassen.","Ich sag dir, wir bauen hier was auf. Man spürt es.","Gerade drei Zyklen ohne Pause aneinandergereiht. Hab den Flow.","Heute früh einen alten Kollegen getroffen. Steht immer noch am Fließband. Ich fühl mich glücklich, hier zu sein.","Als ich anfing, dachte ich nie, dass wir es schaffen. Und sieh uns jetzt an.","Das Maschinengeräusch beruhigt mich tatsächlich. Klingt blöd, ich weiß.","Hab die ganze Station vorbereitet, bevor du da warst. Damit wir sofort loslegen können."]
+          ], zh: ["老板，昨晚睡得好。今天我要破纪录，你瞧着。", "我开始把机器摸得滚瓜烂熟了。对的动作自然就来。", "最近心情不错。我其实想早上来上班。", "你知道，我低估了这份活。它比人们想的更有讲究。", "昨天我开着音乐干活。节奏快了一倍。你该让我多这样。", "我跟你说，我们在这儿建立着什么。能感觉到。", "刚连着干了三个周期没歇。进入状态了。", "今早撞见一个老同事。他还在流水线上。我觉得自己来这儿很幸运。", "我刚开始时，从没想过我们能成。看看我们现在。", "机器的噪音其实让我平静。听着傻，我知道。", "在你来之前把整个工位准备好了。这样我们能立刻开干。"], ru: ["Босс, хорошо спал ночью. Сегодня поставлю рекорд, увидишь.", "Начинаю знать машину наизусть. Правильные движения приходят сами.", "В последнее время настроение хорошее. Реально хочется приходить по утрам.", "Знаешь, я недооценивал эту работу. Она тактичнее, чем кажется.", "Вчера работал под музыку. Двойной темп. Стоит позволять мне это чаще.", "Говорю тебе, мы здесь что-то строим. Это чувствуется.", "Только что сделал три цикла без перерыва. Я в потоке.", "Утром встретил старого коллегу. Он всё ещё на конвейере. Чувствую себя везунчиком, что я здесь.", "Когда я начинал, не думал, что мы справимся. А посмотри сейчас.", "Шум машины меня на самом деле успокаивает. Звучит глупо, знаю.", "Подготовил всё рабочее место до твоего прихода. Так сразу стартуем."], it: ["Capo, dormito bene stanotte. Oggi faccio un record, vedrai.", "Inizio a conoscere la macchina a memoria. I gesti giusti vengono naturali.", "Umore buono ultimamente. Ho davvero voglia di venire al mattino.", "Sai, avevo sottovalutato questo lavoro. È più tattico di quanto si pensi.", "Ieri ho lavorato con la musica. Cadenza doppia. Dovresti lasciarmelo fare più spesso.", "Glielo dico, qui stiamo costruendo qualcosa. Si sente.", "Appena concatenati tre cicli senza pausa. Sono in flow.", "Stamattina ho incontrato un vecchio collega. È ancora su una catena di montaggio. Mi sento fortunato a essere qui.", "Quando ho iniziato, non pensavo ce l'avremmo fatta. E guarda adesso.", "Il rumore della macchina in realtà mi calma. Sembra stupido, lo so.", "Ho preparato tutta la postazione prima che arrivassi. Così partiamo subito."], de: ["Chef, gut geschlafen letzte Nacht. Heute stell ich einen Rekord auf, du wirst sehen.","Ich kenn die Maschine langsam auswendig. Die richtigen Griffe kommen von selbst.","Stimmung ist gut zurzeit. Ich komm morgens echt gern.","Weißt du, ich hab den Job unterschätzt. Er ist taktischer, als man denkt.","Gestern hab ich mit Musik gearbeitet. Doppelt so schnell getaktet. Du solltest mich das öfter machen lassen.","Ich sag dir, wir bauen hier was auf. Man spürt es.","Gerade drei Zyklen ohne Pause aneinandergereiht. Hab den Flow.","Heute früh einen alten Kollegen getroffen. Steht immer noch am Fließband. Ich fühl mich glücklich, hier zu sein.","Als ich anfing, dachte ich nie, dass wir es schaffen. Und sieh uns jetzt an.","Das Maschinengeräusch beruhigt mich tatsächlich. Klingt blöd, ich weiß.","Hab die ganze Station vorbereitet, bevor du da warst. Damit wir sofort loslegen können."]
         };
         const pool = recipes[lang] || recipes.fr;
         if (tryRandomPopup('Fred', pickUnseen(pool))) {
@@ -6621,11 +6575,11 @@ export default function App() {
           && (curT - lastFredFlowRef.current) > 500 && Math.random() < 0.16) {
         const flow = {
           fr: [
-            "Atelier propre, lignes propres. Quand c'est rangé, ça produit mieux, je te jure.",
+            "Atelier propre, lignes propres. Quand c'est rangé, ça produit mieux, je vous jure.",
             "J'ai recalibré la doseuse ce matin. Les écarts sur les bacs ont disparu.",
             "Le compresseur fait un bruit que j'aime pas trop. Je vais le surveiller demain.",
-            "On a un nouveau petit jeune qui rôde dehors. Si tu veux embaucher, c'est le moment, il a l'air sérieux.",
-            "T'as remarqué qu'on jette presque plus rien ? C'est nouveau, ça.",
+            "On a un nouveau petit jeune qui rôde dehors. Si vous voulez embaucher, c'est le moment, il a l'air sérieux.",
+            "Vous avez remarqué qu'on jette presque plus rien ? C'est nouveau, ça.",
             "Les palettes sont rangées comme à l'armée. Lenny râle si je laisse traîner.",
             "J'ai mis un thermomètre dans chaque congélo. On va voir si y'a une dérive sur la nuit.",
             "Le contrôle qualité hebdo, je le fais maintenant à la sortie de chaque cycle. Plus propre."
@@ -6641,10 +6595,10 @@ export default function App() {
             "Weekly quality check, I now do it after each cycle. Cleaner."
           ],
           es: [
-            "Taller limpio, líneas limpias. Cuando está ordenado, produce mejor, te lo juro.",
+            "Taller limpio, líneas limpias. Cuando está ordenado, produce mejor, se lo juro.",
             "Recalibré la dosificadora esta mañana. Las variaciones en las cubetas desaparecieron.",
             "El compresor hace un ruido que no me gusta. Lo vigilo mañana.",
-            "Hay un chaval nuevo rondando fuera. Si quieres contratar, es el momento, parece serio.",
+            "Hay un chaval nuevo rondando fuera. Si quiere contratar, es el momento, parece serio.",
             "¿Has notado que casi no tiramos nada? Eso es nuevo.",
             "Los palets están apilados al estilo militar. Lenny refunfuña si dejo cosas tiradas.",
             "Puse un termómetro en cada congelador. Vamos a ver si hay deriva nocturna.",
@@ -6671,7 +6625,7 @@ export default function App() {
             "Еженедельную проверку качества я теперь делаю после каждого цикла. Чище."
           ],
           it: [
-            "Officina pulita, linee pulite. Quando è ordinato, produce meglio, te lo giuro.",
+            "Officina pulita, linee pulite. Quando è ordinato, produce meglio, glielo giuro.",
             "Ricalibrato il dosatore stamattina. Le variazioni nelle vasche sono sparite.",
             "Il compressore fa un rumore che non mi piace. Lo tengo d'occhio domani.",
             "C'è un ragazzo nuovo che gira fuori. Se vuoi assumere, è il momento, sembra serio.",
@@ -6705,13 +6659,13 @@ export default function App() {
         const cash = {
           fr: [
             "La trésor est saine, j'aime quand c'est saine. Profite, ça durera pas toujours.",
-            "Tu sais combien on a en banque ? Assez pour tenir trois mois sans rentrer un sou. Sympa.",
-            "J'ai préparé tes échéances du mois prochain. Trois fournisseurs à payer. Rien d'inquiétant.",
-            "Petit conseil : étale tes gros achats sur deux mois. Ça lisse la trésor et ça impressionne pas les comptes.",
+            "Vous savez combien on a en banque ? Assez pour tenir trois mois sans rentrer un sou. Sympa.",
+            "J'ai préparé vos échéances du mois prochain. Trois fournisseurs à payer. Rien d'inquiétant.",
+            "Petit conseil : étalez vos gros achats sur deux mois. Ça lisse la trésor et ça impressionne pas les comptes.",
             "Le banquier a appelé. Il a vu nos flux, il propose un découvert plus large. Sympa, mais on n'en a pas besoin.",
             "J'ai relancé deux clients en retard. L'un a payé tout de suite, l'autre m'a sortie une excuse géniale.",
-            "Ton ratio d'endettement est dans le vert. Si tu veux investir lourd, c'est le moment.",
-            "Le bilan du mois est bouclé. Premier mois où je peux te dire qu'on a vraiment gagné de l'argent. Vraiment."
+            "Votre ratio d'endettement est dans le vert. Si vous voulez investir lourd, c'est le moment.",
+            "Le bilan du mois est bouclé. Premier mois où je peux vous dire qu'on a vraiment gagné de l'argent. Vraiment."
           ],
           en: [
             "Cash is healthy, I like it healthy. Enjoy, it won't last forever.",
@@ -6725,12 +6679,12 @@ export default function App() {
           ],
           es: [
             "La tesorería está sana, me gusta cuando es sana. Aprovecha, no durará siempre.",
-            "¿Sabes cuánto tenemos en el banco? Para aguantar tres meses sin un duro entrando. Buen rollo.",
-            "Te preparé los vencimientos del mes próximo. Tres proveedores a pagar. Nada inquietante.",
+            "¿Sabe cuánto tenemos en el banco? Para aguantar tres meses sin un duro entrando. Buen rollo.",
+            "Le preparé los vencimientos del mes próximo. Tres proveedores a pagar. Nada inquietante.",
             "Pequeño consejo: distribuye las compras grandes en dos meses. Suaviza la tesorería y no asusta las cuentas.",
             "El banquero llamó. Vio nuestros flujos, propone un descubierto más amplio. Amable, pero no lo necesitamos.",
             "Reclamé a dos clientes morosos. Uno pagó al instante, el otro me sacó una excusa genial.",
-            "Tu ratio de deuda está en verde. Si quieres invertir fuerte, es el momento.",
+            "Su ratio de deuda está en verde. Si quiere invertir fuerte, es el momento.",
             "El balance del mes está cerrado. Primer mes que puedo decirte que ganamos dinero de verdad. De verdad."
           ],
           zh: [
@@ -6788,7 +6742,7 @@ export default function App() {
           && (curT - lastLennyRoadRef.current) > 500 && Math.random() < 0.16) {
         const road = {
           fr: [
-            "Patron, j'ai croisé un ancien collègue à la station-service. Il bosse pour Glacier Frères. Tu veux que je tâte le terrain ?",
+            "Patron, j'ai croisé un ancien collègue à la station-service. Il bosse pour Glacier Frères. Vous voulez que je tâte le terrain ?",
             "Les routes étaient claires aujourd'hui. Pas de bouchons, livraisons à l'heure. Ça fait du bien.",
             "J'ai changé deux pneus à mes frais ce mois-ci. Je note, hein, je note.",
             "Faut qu'on parle de la clim du camion. Elle est en train de me lâcher, faut s'en occuper avant que ça pue.",
@@ -6808,7 +6762,7 @@ export default function App() {
             "Truck 1's freezer is making a weird noise at the back. Stopping by the garage tomorrow, don't want to lose a load."
           ],
           es: [
-            "Jefe, me crucé con un antiguo compañero en la gasolinera. Trabaja para Glacier Frères. ¿Quieres que tantee el terreno?",
+            "Jefe, me crucé con un antiguo compañero en la gasolinera. Trabaja para Glacier Frères. ¿Quiere que tantee el terreno?",
             "Las carreteras estaban libres hoy. Sin atascos, entregas a tiempo. Sienta bien.",
             "Cambié dos neumáticos a mi costa este mes. Lo apunto, eh, lo apunto.",
             "Hay que hablar del aire del camión. Me está fallando, hay que ocuparse antes que reviente.",
@@ -6888,11 +6842,11 @@ export default function App() {
               "Patron, j'ai un signal faible mais clair : le moral baisse. Si on n'intervient pas dans les jours qui viennent, ça va se voir sur la prod.",
               "Le climat se tend, je le sens dans les couloirs. Un petit-déj ou un afterwork bien placé, c'est l'investissement le plus rentable de la semaine.",
               "On est encore loin de la grève, mais l'équipe fatigue. Une action RH maintenant nous évite trois actions dans deux semaines.",
-              "Patron, regarde le panneau Personnel quand tu as deux minutes. Y a quelques jauges qui méritent ton attention.",
-              "Je préfère te prévenir tôt : on entre en zone tendue. Un team-building ce mois-ci, ça ferait du bien à tout le monde.",
+              "Patron, regardez le panneau Personnel quand vous avez deux minutes. Y a quelques jauges qui méritent votre attention.",
+              "Je préfère vous prévenir tôt : on entre en zone tendue. Un team-building ce mois-ci, ça ferait du bien à tout le monde.",
               "L'ambiance est descendue d'un cran cette semaine. Pas dramatique, mais ça mérite une action avant que ça s'enkyste.",
-              "Tu connais ma règle : on agit avant le rouge, pas pendant. Là on est dans le orange, c'est le bon moment.",
-              "Si tu veux le détail, ouvre Personnel, je te montre les jauges. C'est pas encore critique, mais c'est le moment de bouger."
+              "Vous connaissez ma règle : on agit avant le rouge, pas pendant. Là on est dans le orange, c'est le bon moment.",
+              "Si vous voulez le détail, ouvrez Personnel, je vous montre les jauges. C'est pas encore critique, mais c'est le moment de bouger."
             ],
             en: [
               "Boss, I've got a weak but clear signal: morale is dipping. If we don't act in the next few days, it'll show in production.",
@@ -6908,11 +6862,11 @@ export default function App() {
               "Jefe, tengo una señal débil pero clara: la moral baja. Si no intervenimos en los próximos días, se verá en la producción.",
               "El clima se tensa, lo siento en los pasillos. Un desayuno o un afterwork bien colocado es el mejor ROI de la semana.",
               "Aún estamos lejos de la huelga, pero el equipo se cansa. Una acción de RR.HH. ahora nos evita tres en dos semanas.",
-              "Jefe, mira el panel Personal cuando tengas dos minutos. Hay barras que merecen tu atención.",
-              "Prefiero avisarte pronto: entramos en zona tensa. Un team-building este mes le vendría bien a todos.",
+              "Jefe, mire el panel Personal cuando tenga dos minutos. Hay barras que merecen su atención.",
+              "Prefiero avisarle pronto: entramos en zona tensa. Un team-building este mes le vendría bien a todos.",
               "El ambiente bajó un peldaño esta semana. No es dramático, pero merece una acción antes de que se cronifique.",
               "Conoces mi regla: actuamos antes del rojo, no durante. Estamos en naranja, es el buen momento.",
-              "Si quieres el detalle, abre Personal, te muestro las barras. No es crítico aún, pero es el momento de moverse."
+              "Si quiere el detalle, abra Personal, le muestro las barras. No es crítico aún, pero es el momento de moverse."
             ],
             zh: [
               "老板，我收到一个微弱但明确的信号：士气在下滑。这几天不出手，生产线上就会看出来。",
@@ -6939,10 +6893,10 @@ export default function App() {
               "Il clima si tende, lo sento nei corridoi. Una colazione o un afterwork ben piazzato sono il ROI migliore della settimana.",
               "Siamo ancora lontani dallo sciopero, ma il team è stanco. Un'azione RU ora ne evita tre fra due settimane.",
               "Capo, dai un'occhiata al pannello Personale quando hai due minuti. Qualche barra merita la tua attenzione.",
-              "Preferisco avvisarti presto: entriamo in zona tesa. Un team-building questo mese farebbe bene a tutti.",
+              "Preferisco avvisarla presto: entriamo in zona tesa. Un team-building questo mese farebbe bene a tutti.",
               "L'atmosfera è calata di un gradino questa settimana. Non drammatico, ma merita un'azione prima che si cronicizzi.",
               "Conosci la mia regola: si agisce prima del rosso, non durante. Siamo in arancione, è la finestra giusta.",
-              "Se vuoi il dettaglio, apri Personale, ti mostro le barre. Non è critico ancora, ma è il momento di muoversi."
+              "Se vuole il dettaglio, apra Personale, le mostro le barre. Non è critico ancora, ma è il momento di muoversi."
             ],
             de: [
               "Chef, ich hab ein schwaches aber klares Signal: die Moral sinkt. Wenn wir in den nächsten Tagen nicht eingreifen, sieht man's in der Produktion.",
@@ -6973,11 +6927,11 @@ export default function App() {
             "J'ai reçu trois candidatures spontanées cette semaine. C'est nouveau. On rayonne, on dirait.",
             "L'équipe est globalement saine. Pas de drame, pas d'angélisme non plus. Le niveau normal d'une boîte qui tourne.",
             "Petit conflit entre deux personnes ce matin. J'ai géré en 15 minutes, on en reparle plus.",
-            "Tu sais que Fred est éligible à une augmentation depuis deux mois ? Je dis ça, je dis rien.",
+            "Vous savez que Fred est éligible à une augmentation depuis deux mois ? Je dis ça, je dis rien.",
             "J'ai mis en place un point hebdo informel le vendredi. Les gens partent en weekend plus zen, ça se voit.",
             "Le climat social est dans le vert. Ne change rien à ce qui marche, c'est mon conseil RH du jour.",
             "On a perdu zéro personne ce trimestre. Pour notre secteur, c'est quasi un miracle.",
-            "Quelqu'un demande à passer à 4/5 pour son enfant. C'est un bon élément, je dis oui, tu confirmes ?"
+            "Quelqu'un demande à passer à 4/5 pour son enfant. C'est un bon élément, je dis oui, vous confirmez ?"
           ],
           en: [
             "Got three unsolicited applications this week. That's new. We're glowing, apparently.",
@@ -6993,11 +6947,11 @@ export default function App() {
             "Recibí tres candidaturas espontáneas esta semana. Es nuevo. Brillamos, parece.",
             "El equipo está sano en general. Sin dramas, sin angelismo tampoco. El nivel normal de una empresa que funciona.",
             "Pequeño conflicto entre dos personas esta mañana. Resuelto en 15 minutos, no se vuelve a hablar.",
-            "¿Sabes que Fred lleva dos meses elegible para un aumento? Lo digo y no digo nada.",
+            "¿Sabe que Fred lleva dos meses elegible para un aumento? Lo digo y no digo nada.",
             "Monté una reunión informal los viernes. La gente se va al fin de semana más zen, se nota.",
             "El clima social está en verde. No cambies lo que funciona, ese es mi consejo de RR.HH. del día.",
             "Perdimos cero personas este trimestre. Para nuestro sector, es casi un milagro.",
-            "Alguien pide pasar a 4/5 por su hijo. Es un buen elemento, digo que sí, ¿confirmas?"
+            "Alguien pide pasar a 4/5 por su hijo. Es un buen elemento, digo que sí, ¿confirma?"
           ],
           zh: [
             "本周收到三份主动应聘。是新鲜事。看来我们在发光。",
@@ -9308,10 +9262,9 @@ export default function App() {
                 // dès que les fonds rentrent ; la dette reste enregistrée silencieusement.
               }
             }
-          } else if (freshNames.length > 0) {
-            // Tous les actifs sont des nouvelles embauches → semestre offert pour eux tous
-            // (pas de bandeau noir : l'info est déjà transmise via la bulle tutoriel t_utilities)
           }
+          // Si tous les actifs sont de nouvelles embauches, le semestre leur est offert :
+          // rien à afficher ici, l'info passe déjà par la bulle tutoriel t_utilities.
         } else if (prevSemester === 0) {
           // First semester just ended — offered
           // (pas de bandeau noir : l'info est déjà transmise via la bulle tutoriel t_utilities)
@@ -10005,7 +9958,8 @@ export default function App() {
             && (gameTimeRef.current - lastBrigitteAdviceRef.current) > 90) {
           const activeContracts = updated.filter(l => l.contractId).map(l => B2B_BY_ID[l.contractId]).filter(Boolean);
           if (activeContracts.length > 0) {
-            const revPerMin = (c) => (c.qty * c.pricePerCube * (1 + curBrigitteBonus)) / (c.deliveryTime * 2 + 2) * 60;
+            const adviceBrigitteBonus = getBrigitteEffectiveBonus(ownedRef.current, brigitteSalaryLevelRef.current, brigitteGrumpyRef.current);
+            const revPerMin = (c) => (c.qty * c.pricePerCube * (1 + adviceBrigitteBonus)) / (c.deliveryTime * 2 + 2) * 60;
             const worstActive = Math.min(...activeContracts.map(revPerMin));
             const newContractObjs = newlyAddedIds.map(id => B2B_BY_ID[id]).filter(Boolean);
             const bestNew = newContractObjs.reduce((best, c) => revPerMin(c) > revPerMin(best) ? c : best, newContractObjs[0]);
@@ -10013,9 +9967,9 @@ export default function App() {
               const lang = language;
               const advices = {
                 fr: [
-                  "Patron, j'ai vu passer un contrat qui paie nettement mieux que certains qu'on traite. Jette un œil au marché.",
+                  "Patron, j'ai vu passer un contrat qui paie nettement mieux que certains qu'on traite. Jetez un œil au marché.",
                   "Y'a du juteux qui vient d'arriver. Faudrait peut-être lâcher du lest sur les contrats les moins rentables.",
-                  "Le marché bouge. J'ai repéré une opportunité bien grasse, regarde."
+                  "Le marché bouge. J'ai repéré une opportunité bien grasse, regardez."
                 ],
                 en: [
                   "Boss, a new contract just popped up that pays a lot better than some we're running. Worth a look.",
