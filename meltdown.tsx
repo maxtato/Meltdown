@@ -155,6 +155,17 @@ const MARKET_MIN_LIFE = 45;
 const MARKET_MAX_LIFE = 90;
 const RESIGN_REP_LOSS = 6;
 
+// === BIEN-ÊTRE & FORMATION (P3) ===
+// Deux améliorations déplacent le niveau de base du moral, comme la crèche
+// et les paliers de Karen : le moral dérive vers ce niveau au lieu de vers 70.
+const FORMATION_INTERNE_MORAL = 10;   // on forme nos gens : ils restent
+const ROBOTISATION_MORAL = 15;        // malus : les collègues partent, ceux qui restent voient
+// La robotisation remplace la moitié des postes : la masse salariale
+// restante est divisée par deux. C'est la contrepartie financière du choc
+// de moral permanent.
+const ROBOTISATION_SALARY_MULT = 0.5;
+const salaryMult = (owned) => (owned && owned['robotisation'] ? ROBOTISATION_SALARY_MULT : 1);
+
 // === SABOTAGE PHASE 3 ===
 // Phase 3 = la guerre commence. Agressif pour pousser à investir en sécu.
 // Fréquences augmentées : le joueur DOIT voir les sabotages pour comprendre l'enjeu.
@@ -1911,10 +1922,10 @@ const UPGRADES = [
   { id: 'usine_bis', Icon: Factory, count: 1, destructible: false, phase: 3, name: { fr: 'Usine bis', en: 'Second factory', es: 'Fábrica bis', zh: "第二工厂", ru: "Вторая фабрика", it: "Fabbrica bis", de: "Zweite Fabrik" }, desc: { fr: 'prod ×1.16 · cap +6000', en: 'prod ×1.16 · cap +6000', es: 'prod ×1.16 · cap +6000', zh: "生产 ×1.16 · 容量 +6000", ru: "произв ×1.16 · ёмк +6000", it: "prod ×1.16 · cap +6000", de: "Prod ×1.16 · Kap +6000" }, cost: 2400000,
     longDesc: { fr: "Tu duplique ton site de production : deuxième usine identique sur une autre zone. Production totale ×1.16. C'est le moment où ton entreprise passe à l'échelle nationale.", en: "You duplicate your production site: second identical factory in another zone. Total production ×1.16. This is when your company scales to national.", es: "Duplicas tu sitio de producción: segunda fábrica idéntica en otra zona. Producción total ×1.16. Es el momento en que tu empresa escala a nivel nacional.", zh: "你复制生产基地：在另一区域建相同工厂。总产量 ×1.16。公司迈向全国规模。", ru: "Дублируете производственную площадку: вторая идентичная фабрика в другой зоне. Общее производство ×1.16. Момент масштабирования до национального уровня.", it: "Duplichi il tuo sito di produzione: seconda fabbrica identica in un'altra zona. Produzione totale ×1.16. È il momento in cui la tua azienda scala a livello nazionale.", de: "Du duplizierst deinen Produktionsstandort: zweite identische Fabrik in einer anderen Zone. Gesamtproduktion ×1.16. Der Moment, in dem dein Unternehmen national wächst." },
     apply: s => ({ ...s, prodSpeedMult: s.prodSpeedMult * 1.16, capBonus: s.capBonus + 6000 }) },
-  { id: 'formation_interne', Icon: GraduationCap, count: 1, destructible: false, phase: 3, name: { fr: 'Centre de formation interne', en: 'Internal training center', es: 'Centro de formación interno', zh: "内部培训中心", ru: "Внутренний учебный центр", it: "Centro formazione interno", de: "Internes Schulungszentrum" }, desc: { fr: 'prod ×1.07', en: 'prod ×1.07', es: 'prod ×1.07', zh: "生产 ×1.07", ru: "произв ×1.07", it: "prod ×1.07", de: "Prod ×1.07" }, cost: 320000,
+  { id: 'formation_interne', Icon: GraduationCap, count: 1, destructible: false, phase: 3, name: { fr: 'Centre de formation interne', en: 'Internal training center', es: 'Centro de formación interno', zh: "内部培训中心", ru: "Внутренний учебный центр", it: "Centro formazione interno", de: "Internes Schulungszentrum" }, desc: { fr: 'prod ×1.07 · moral +10', en: 'prod ×1.07 · morale +10', es: 'prod ×1.07 · moral +10', zh: "生产 ×1.07 · 士气 +10", ru: "произв ×1.07 · мораль +10", it: "prod ×1.07 · morale +10", de: "Prod ×1.07 · Moral +10" }, cost: 320000,
     longDesc: { fr: "Tu ouvres un centre de formation interne où tes équipes montent en compétence. Productivité ×1.07 sur tous les employés et moral général +10 (les gens aiment apprendre).", en: "You open an internal training center where teams build skills. Productivity ×1.07 across all employees and overall morale +10 (people love learning).", es: "Abres un centro de formación interno donde los equipos suben de nivel. Productividad ×1.07 en todos los empleados y moral general +10 (a la gente le encanta aprender).", zh: "你开设内部培训中心，团队提升技能。所有员工生产力 ×1.07，整体士气 +10（人们喜欢学习）。", ru: "Открываете внутренний учебный центр, где команды повышают квалификацию. Производительность ×1.07 у всех сотрудников и общая мораль +10 (люди любят учиться).", it: "Apri un centro di formazione interno dove i team crescono in competenze. Produttività ×1.07 su tutti i dipendenti e morale generale +10 (la gente ama imparare).", de: "Du eröffnest ein internes Schulungszentrum, in dem Teams Kompetenzen aufbauen. Produktivität ×1.07 bei allen Mitarbeitern und allgemeine Moral +10 (Menschen lieben es zu lernen)." },
     apply: s => ({ ...s, prodSpeedMult: s.prodSpeedMult * 1.07 }) },
-  { id: 'robotisation', Icon: Wrench, count: 1, destructible: false, phase: 3, name: { fr: 'Robotisation partielle', en: 'Partial robotization', es: 'Robotización parcial', zh: "部分机器人化", ru: "Частичная роботизация", it: "Robotizzazione parziale", de: "Teilrobotisierung" }, desc: { fr: 'prod ×1.07 · moral −15', en: 'prod ×1.07 · morale −15', es: 'prod ×1.07 · moral −15', zh: "生产 ×1.07 · 士气 −15", ru: "произв ×1.07 · мораль −15", it: "prod ×1.07 · morale −15", de: "Prod ×1.07 · Moral −15" }, cost: 800000,
+  { id: 'robotisation', Icon: Wrench, count: 1, destructible: false, phase: 3, name: { fr: 'Robotisation partielle', en: 'Partial robotization', es: 'Robotización parcial', zh: "部分机器人化", ru: "Частичная роботизация", it: "Robotizzazione parziale", de: "Teilrobotisierung" }, desc: { fr: 'prod ×1.07 · salaires ÷2 · moral −15', en: 'prod ×1.07 · payroll ÷2 · morale −15', es: 'prod ×1.07 · nóminas ÷2 · moral −15', zh: "生产 ×1.07 · 工资 ÷2 · 士气 −15", ru: "произв ×1.07 · зарплаты ÷2 · мораль −15", it: "prod ×1.07 · stipendi ÷2 · morale −15", de: "Prod ×1.07 · Lohnkosten ÷2 · Moral −15" }, cost: 800000,
     longDesc: { fr: "Tu remplaces une partie des employés par des robots. Tu divises tes salaires par deux, mais ceux qui restent voient leurs camarades partir. Moral général −15 permanent. Un choix moral lourd, mais financièrement imbattable.", en: "You replace part of the workforce with robots. Wages halved, but those who stay watch their coworkers leave. Permanent morale −15. A heavy ethical call, but financially unbeatable.", es: "Reemplazas parte de la plantilla por robots. Salarios a la mitad, pero los que quedan ven irse a sus compañeros. Moral general −15 permanente. Decisión ética pesada, pero financieramente imbatible.", zh: "你用机器人替换部分员工。薪资减半，但留下的人看着同事离开。永久士气 −15。沉重的道德选择，但财务上无可匹敌。", ru: "Заменяете часть персонала роботами. Зарплаты вдвое меньше, но оставшиеся видят, как уходят коллеги. Перманентно −15 морали. Тяжёлый этический выбор, но финансово непобедимый.", it: "Sostituisci parte del personale con robot. Stipendi dimezzati, ma chi resta vede partire i colleghi. Morale generale −15 permanente. Scelta etica pesante, ma finanziariamente imbattibile.", de: "Du ersetzt einen Teil der Belegschaft durch Roboter. Löhne halbiert, aber die Bleibenden sehen ihre Kollegen gehen. Dauerhaft −15 Moral. Schwere ethische Entscheidung, finanziell unschlagbar." },
     apply: s => ({ ...s, prodSpeedMult: s.prodSpeedMult * 1.07 }) },
   { id: 'predictive_analytics', Icon: BarChart3, count: 1, destructible: false, phase: 3, name: { fr: 'Analyse prédictive', en: 'Predictive analytics', es: 'Análisis predictivo', zh: "预测分析", ru: "Предиктивная аналитика", it: "Analisi predittiva", de: "Vorhersage-Analytik" }, desc: { fr: 'prix ×1.03', en: 'price ×1.03', es: 'precio ×1.03', zh: "价格 ×1.03", ru: "цена ×1.03", it: "prezzo ×1.03", de: "Preis ×1.03" }, cost: 2400000,
@@ -3428,13 +3439,13 @@ const UPGRADE_THANKS = {
     it: "Fabbrica bis! Capo due fabbriche adesso. È ufficiale, ho un clone. Beh, in realtà è solo un secondo sito, ma l'idea mi piace. Produzione ×2.",
     de: "Zweitfabrik! Chef, zwei Fabriken jetzt. Ist offiziell, ich hab 'nen Klon. Naja, eigentlich nur 'n zweiter Standort, aber die Idee gefällt mir. Produktion ×2." },
   formation_interne: { speaker: 'Fred',
-    fr: "Centre de formation interne, patron. On forme nos gens nous-mêmes, ils montent en compétence. +7 % de cadence sur toute la chaîne. Ça paie, croyez-moi.",
-    en: "In-house training center, boss. We train our people ourselves, they grow in skills. +7% pace across the whole line. It pays off, trust me.",
-    es: "Centro de formación interno, jefe. Formamos a nuestra gente nosotros mismos, crecen en competencia. +7 % de ritmo en toda la cadena. Vale la pena, créame.",
-    zh: "内部培训中心，老板。我们自己培训员工，他们的技能成长。生产力×1.4，士气+10。很值，相信我。",
-    ru: "Внутренний учебный центр, шеф. Учим своих сами, они растут в компетенциях. +7 % темпа по всей линии. Окупается, поверьте.",
-    it: "Centro di formazione interno, capo. Formiamo i nostri da soli, crescono in competenze. +7 % di ritmo su tutta la linea. Rende, mi creda.",
-    de: "Internes Schulungszentrum, Chef. Wir bilden unsere Leute selbst aus, sie wachsen in Kompetenz. +7 % Takt auf der ganzen Linie. Es zahlt sich aus, glauben Sie mir." },
+    fr: "Centre de formation interne, patron. On forme nos gens nous-mêmes, ils montent en compétence. +7 % de cadence sur toute la chaîne et +10 de moral de base. Ça paie, croyez-moi.",
+    en: "In-house training center, boss. We train our people ourselves, they grow in skills. +7% pace across the whole line and +10 baseline morale. It pays off, trust me.",
+    es: "Centro de formación interno, jefe. Formamos a nuestra gente nosotros mismos, crecen en competencia. +7 % de ritmo en toda la cadena y +10 de moral de base. Vale la pena, créame.",
+    zh: "内部培训中心，老板。我们自己培训员工，他们的技能成长。基础士气+10。生产力×1.4，士气+10。很值，相信我。",
+    ru: "Внутренний учебный центр, шеф. Учим своих сами, они растут в компетенциях. +7 % темпа по всей линии и +10 к базовой морали. Окупается, поверьте.",
+    it: "Centro di formazione interno, capo. Formiamo i nostri da soli, crescono in competenze. +7 % di ritmo su tutta la linea e +10 di morale di base. Rende, mi creda.",
+    de: "Internes Schulungszentrum, Chef. Wir bilden unsere Leute selbst aus, sie wachsen in Kompetenz. +7 % Takt auf der ganzen Linie und +10 Grundmoral. Es zahlt sich aus, glauben Sie mir." },
   robotisation: { speaker: 'Fred',
     fr: "Robotisation partielle, patron. La moitié des postes remplacés, moral -15 en permanence. Nécessaire, peut-être. Mais c'est dur à encaisser.",
     en: "Partial robotization, boss. Half the jobs replaced, morale -15 permanently. Maybe necessary. But it's hard to swallow.",
@@ -5822,8 +5833,13 @@ export default function App() {
         // augmentations, etc.).
         const karenMitigation = ownedSnap['karen_drh'] ? 0.70 : ownedSnap['karen_senior'] ? 0.55 : ownedSnap['karen_junior'] ? 0.35 : 0;
         d -= baseDrain + (sizeDrain + upgradeDrain) * (1 - karenMitigation);
-        // Crèche : baseline 75 au lieu de 70 (cumul avec Karen)
-        const baseline = (ownedSnap['creche_entreprise'] ? 75 : 70) + karenBaselineBoost;
+        // Crèche : baseline 75 au lieu de 70 (cumul avec Karen).
+        // Formation interne et robotisation déplacent aussi ce niveau de base,
+        // dans un sens et dans l'autre, de façon permanente.
+        const baseline = (ownedSnap['creche_entreprise'] ? 75 : 70)
+          + karenBaselineBoost
+          + (ownedSnap['formation_interne'] ? FORMATION_INTERNE_MORAL : 0)
+          - (ownedSnap['robotisation'] ? ROBOTISATION_MORAL : 0);
         // Régénération naturelle AFFAIBLIE : ne se déclenche que si le moral
         // est vraiment bas, et plus lentement (ne neutralise plus le drain).
         const recovMult = ownedSnap['salle_repos'] ? 1.5 : 1;
@@ -7386,7 +7402,9 @@ export default function App() {
   // L'agence marketing est un déblocage payant unique, pas un·e salarié·e : aucun salaire mensuel.
   const upJaniceSalary = 0;
   const upLennySalary = hasLenny ? lennyGrade.salary[lennySalaryLevel] : 0;
-  const upSalaryRaw = upFredSalary + upBrigitteSalary + upJaniceSalary + upLennySalary;
+  // La robotisation allège la masse salariale de moitié : la projection doit
+  // refléter ce qui sera réellement prélevé.
+  const upSalaryRaw = Math.round((upFredSalary + upBrigitteSalary + upJaniceSalary + upLennySalary) * salaryMult(owned));
   // 6 PREMIERS MOIS offerts (équivalent ancien 1er semestre).
   const upSalaryOffered = _currentMonthNum < MONTHS_PER_SEMESTER;
   const upSalary = upSalaryOffered ? 0 : Math.round(upSalaryRaw / MONTHS_PER_SEMESTER);
@@ -7439,7 +7457,7 @@ export default function App() {
     const karenTier = ['karen_drh', 'karen_senior', 'karen_junior'].find(id => owned[id]);
     if (!karenTier) return 0;
     const u = UPGRADES.find(uu => uu.id === karenTier);
-    return u ? u.salary[karenSalaryLevel] : 0;
+    return u ? Math.round(u.salary[karenSalaryLevel] * salaryMult(owned)) : 0;
   })();
   const upTotalSalaries = upSalaryRaw + upKarenSalary;
   // === RENTABILITÉ MENSUELLE ===
@@ -9167,20 +9185,22 @@ export default function App() {
           const fredTierIds = ['fred_stage', 'fred', 'fred_perma', 'fred_chef', 'fred_dir'];
           const curFredTier = [...fredTierIds].reverse().find(id => ownedRef.current[id]);
           const curFredUpg = curFredTier ? UPGRADES.find(u => u.id === curFredTier) : null;
-          let fredSalary = curFredUpg ? Math.round(curFredUpg.salary[fredSalaryLevelRef.current] / MONTHS_PER_SEMESTER) : 0;
+          // La robotisation réduit de moitié la masse salariale versée.
+          const _salaryMult = salaryMult(ownedRef.current);
+          let fredSalary = curFredUpg ? Math.round(curFredUpg.salary[fredSalaryLevelRef.current] * _salaryMult / MONTHS_PER_SEMESTER) : 0;
           const brigitteTierIds = ['autosell', 'brigitte_compta', 'brigitte_ad'];
           const curBrigitteTier = [...brigitteTierIds].reverse().find(id => ownedRef.current[id]);
           const brigitteUpg = curBrigitteTier ? UPGRADES.find(u => u.id === curBrigitteTier) : null;
-          let brigitteSalary = brigitteUpg ? Math.round(brigitteUpg.salary[brigitteSalaryLevelRef.current] / MONTHS_PER_SEMESTER) : 0;
+          let brigitteSalary = brigitteUpg ? Math.round(brigitteUpg.salary[brigitteSalaryLevelRef.current] * _salaryMult / MONTHS_PER_SEMESTER) : 0;
           // L'agence marketing est un déblocage payant + campagnes payées à l'unité,
           // pas un·e salarié·e : aucun salaire mensuel récurrent.
           let janiceSalary = 0;
           const lennyGr = getLennyGrade(ownedRef.current);
-          let lennySalary = lennyGr ? Math.round(lennyGr.salary[lennySalaryLevelRef.current] / MONTHS_PER_SEMESTER) : 0;
+          let lennySalary = lennyGr ? Math.round(lennyGr.salary[lennySalaryLevelRef.current] * _salaryMult / MONTHS_PER_SEMESTER) : 0;
           const karenTierIds = ['karen_junior', 'karen_senior', 'karen_drh'];
           const curKarenTier = [...karenTierIds].reverse().find(id => ownedRef.current[id]);
           const karenUpg = curKarenTier ? UPGRADES.find(u => u.id === curKarenTier) : null;
-          let karenSalary = karenUpg ? Math.round(karenUpg.salary[karenSalaryLevelRef.current] / MONTHS_PER_SEMESTER) : 0;
+          let karenSalary = karenUpg ? Math.round(karenUpg.salary[karenSalaryLevelRef.current] * _salaryMult / MONTHS_PER_SEMESTER) : 0;
           // Période d'essai des 6 mois post-embauche supprimée : chaque
           // employé est payé à plein tarif dès le 1er mois (cohérent avec
           // la suppression globale de l'exonération).
@@ -10661,6 +10681,15 @@ export default function App() {
       }
       setEventNotif(t('notif.fleet_expanded'));
     }
+    // ROBOTISATION : la moitié des postes disparaît. Le niveau de base du
+    // moral baisse durablement (voir ROBOTISATION_MORAL dans computeDelta) ;
+    // on encaisse le choc tout de suite plutôt que d'attendre la dérive, pour
+    // que la conséquence soit lisible au moment de la décision.
+    if (u.id === 'robotisation') {
+      const hit = m => Math.max(0, m - ROBOTISATION_MORAL);
+      setFredMoral(hit); setBrigitteMoral(hit); setLennyMoral(hit);
+      setKarenMoral(hit); setMarkMoral(hit); setSabineMoral(hit);
+    }
     // Track hire dates for first-tier purchases
     const BIRTHDAY_OFFSET_MIN = 480; // ~8 min après embauche
     const BIRTHDAY_OFFSET_RANGE = 240; // ±4 min de variabilité
@@ -11882,6 +11911,9 @@ export default function App() {
   const BONUS_MORAL_BOOST = 20;
   const BONUS_COST_MULT = 2;
   const BONUS_COOLDOWN_SEC = 120;
+  // Salaire individuel du grade en cours. La robotisation allège la masse
+  // salariale globale, pas la rémunération d'une personne : primes et
+  // augmentations restent calculées sur ce montant.
   const getEmpSalary = (emp) => {
     if (emp === 'fred')     return currentFredUpgrade     ? currentFredUpgrade.salary[fredSalaryLevel]         : 0;
     if (emp === 'brigitte') return currentBrigitteUpgrade ? currentBrigitteUpgrade.salary[brigitteSalaryLevel] : 0;
@@ -13484,6 +13516,7 @@ export default function App() {
         .provision-freq-note { font-size: 9px; color: var(--m2); margin-bottom: 5px; font-style: italic; }
         .provision-row { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; font-size: 10px; font-variant-numeric: tabular-nums; color: var(--m1); }
         .provision-row-time { color: var(--m2); font-size: 9px; }
+        .provision-note { color: var(--m2); font-size: 9px; letter-spacing: 0.5px; }
         .provision-row-amt { color: var(--fg); font-weight: 700; }
         .provision-row-mute { color: var(--m2); }
         .provision-total-row { padding-top: 6px; border-top: 1px solid var(--line); margin-top: 4px; }
@@ -20971,25 +21004,29 @@ export default function App() {
           const semProgress = gameTime % semDur;
           const semLeft = semDur - semProgress;
           const semNum = Math.floor(gameTime / semDur);
-          const fredSalary = currentFredUpgrade ? currentFredUpgrade.salary[fredSalaryLevel] : 0;
-          const brigitteSalary = hasBrigitte ? currentBrigitteUpgrade.salary[brigitteSalaryLevel] : 0;
+          // Affichage aligné sur ce qui est réellement prélevé : la
+          // robotisation divise la masse salariale par deux.
+          const _salMult = salaryMult(owned);
+          const _sal = (v) => Math.round(v * _salMult);
+          const fredSalary = currentFredUpgrade ? _sal(currentFredUpgrade.salary[fredSalaryLevel]) : 0;
+          const brigitteSalary = hasBrigitte ? _sal(currentBrigitteUpgrade.salary[brigitteSalaryLevel]) : 0;
           const janiceSalary = 0; // agence marketing : pas de salaire
-          const lennySalary = hasLenny ? lennyGrade.salary[lennySalaryLevel] : 0;
+          const lennySalary = hasLenny ? _sal(lennyGrade.salary[lennySalaryLevel]) : 0;
           // Karen
           const karenTierId = ['karen_drh', 'karen_senior', 'karen_junior'].find(id => owned[id]);
           const karenUpg = karenTierId ? UPGRADES.find(u => u.id === karenTierId) : null;
           const hasKaren = !!karenUpg;
-          const karenSalary = hasKaren ? karenUpg.salary[karenSalaryLevel] : 0;
+          const karenSalary = hasKaren ? _sal(karenUpg.salary[karenSalaryLevel]) : 0;
           // Mark
           const markTierId = ['mark_dir', 'mark_resp', 'mark_jr'].find(id => owned[id]);
           const markUpg = markTierId ? UPGRADES.find(u => u.id === markTierId) : null;
           const hasMark = !!markUpg;
-          const markSalary = hasMark ? markUpg.salary[markSalaryLevel] : 0;
+          const markSalary = hasMark ? _sal(markUpg.salary[markSalaryLevel]) : 0;
           // Sabine
           const sabineTierId = ['sabine_dg', 'sabine_sr', 'sabine_jr'].find(id => owned[id]);
           const sabineUpg = sabineTierId ? UPGRADES.find(u => u.id === sabineTierId) : null;
           const hasSabine = !!sabineUpg;
-          const sabineSalary = hasSabine ? sabineUpg.salary[sabineSalaryLevel] : 0;
+          const sabineSalary = hasSabine ? _sal(sabineUpg.salary[sabineSalaryLevel]) : 0;
           const totalSalary = fredSalary + brigitteSalary + janiceSalary + lennySalary + karenSalary + markSalary + sabineSalary;
           const mins = Math.floor(semLeft / 60);
           const secs = Math.floor(semLeft % 60);
@@ -21323,7 +21360,10 @@ export default function App() {
                 </div>
                 <div className="personnel-footer">
                   <div>{t('provision.next_pay_in')} <b>{timeStr}</b></div>
-                  <div>{t('provision.semester_total')} : <b>{fmtInt(totalSalary)}€</b></div>
+                  <div>
+                    {t('provision.semester_total')} : <b>{fmtInt(totalSalary)}€</b>
+                    {owned['robotisation'] && <span className="provision-note"> · {t('provision.robotisation')}</span>}
+                  </div>
 
                   {/* Prochaines dépenses détaillées */}
                   <div className="provision-section">

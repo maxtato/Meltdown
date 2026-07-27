@@ -964,6 +964,7 @@ export const TRANSLATIONS = {
   // Personnel footer / provisions
   'provision.next_pay_in': { fr: 'Prochaine paie dans', en: 'Next payday in', es: 'Próxima paga en', de: "Nächster Zahltag in" , it: "Prossima paga tra", ru: "Следующая выплата через", zh: "下次发薪于"},
   'provision.semester_total': { fr: 'Total mois', en: 'Monthly total', es: 'Total mes', de: "Monatssumme" , it: "Totale mensile", ru: "Месячный итог", zh: "月度总额"},
+  'provision.robotisation': { fr: 'robotisation −50 %', en: 'robotization −50%', es: 'robotización −50 %', de: "Robotisierung −50 %", it: "robotizzazione −50 %", ru: "роботизация −50 %", zh: "机器人化 −50%"},
   'provision.upcoming_title': { fr: 'PROCHAINES DÉPENSES', en: 'UPCOMING EXPENSES', es: 'PRÓXIMOS GASTOS', de: "ANSTEHENDE KOSTEN" , it: "SPESE IMMINENTI", ru: "ПРЕДСТОЯЩИЕ РАСХОДЫ", zh: "即将到来的费用"},
   'provision.salaries': { fr: 'Salaires', en: 'Salaries', es: 'Salarios', de: "Gehälter" , it: "Stipendi", ru: "Зарплаты", zh: "工资"},
   'provision.offered': { fr: 'offerts', en: 'free', es: 'gratis', de: "gratis" , it: "gratis", ru: "бесплатно", zh: "免费"},
