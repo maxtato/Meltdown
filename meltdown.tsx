@@ -6596,10 +6596,17 @@ export default function App() {
   };
 
   const maxCap = BASE_CAP + rawStats.capBonus;
+  // Capacité RÉELLEMENT utilisable : une friction de type dégât des eaux
+  // condamne une partie des bacs. Le tick de production plafonne déjà le stock
+  // à cette valeur ; l'interface doit en tenir compte, sinon le joueur voit
+  // seulement un stock qui cesse de monter sans savoir pourquoi.
+  const capMultNow = aggregateFrictionEffects(activeFrictions, gameTime).capMult;
+  const usableCap = Math.max(1, Math.floor(maxCap * capMultNow));
+  const capReduced = usableCap < maxCap;
   const stolenEff = Math.min(stolenTrucks, rawStats.linesBonus);
   const maxLines = Math.max(0, BASE_LINES + rawStats.linesBonus - stolenEff);
   const displayStock = Math.ceil(stock);
-  const atCap = displayStock >= maxCap;
+  const atCap = displayStock >= usableCap;
 
   // === DÉTECTEUR ACHIEVEMENTS — surveille les états et débloque les trophées ===
   // Doit être déclaré APRÈS maxCap (qui est un const dérivé de rawStats).
@@ -6759,6 +6766,9 @@ export default function App() {
   const currentFredTier = [...fredTiers].reverse().find(id => owned[id]);
   const currentFredUpgrade = currentFredTier ? UPGRADES.find(u => u.id === currentFredTier) : null;
   const hasFred = !!currentFredTier;
+  // Arrêt maladie de Fred : sa production passive tombe à zéro (voir
+  // _fredSickMult et fredCycleBlocked). L'interface repasse donc en mode manuel.
+  const fredSick = isSickNow('fred');
 
   // Sync Fred tier ref + auto-relance le cycle quand Fred est embauché ou promu
   useEffect(() => {
@@ -7260,17 +7270,18 @@ export default function App() {
   const dynamicTemp = getDynamicTemp(gameTime);
   const displayTemp = dynamicTemp + (inHeatwave ? 9 : 0) + (inDrought ? 3 : 0) + tempJitter;
 
-  const fillRatio = maxCap > 0 ? Math.min(1, displayStock / maxCap) : 0;
+  // La jauge se remplit par rapport à la capacité utilisable : à capacité
+  // rabotée, le stock atteint bien le haut de la zone encore disponible.
+  const fillRatio = usableCap > 0 ? Math.min(1, displayStock / usableCap) : 0;
   const stockTier = fillRatio < 0.30 ? 'low' : fillRatio < 0.75 ? 'mid' : 'high';
-  const filledCubes = Math.floor(fillRatio * STOCK_SIZE);
-  // === Sabotage frigo : 2/3 de la capacité condamnés pendant 30s ===
-  // Pendant burnFlashActive : la capacité utile est limitée à 1/3 (zone basse),
-  // les 2/3 du haut sont hachurés et inutilisables (pas de stockage ni vente auto).
+  // === Zone condamnée : sabotage frigo (2/3, 30s) ou friction de capacité ===
+  // Les deux se rendent pareil — cubes hachurés en haut de la grille — pour que
+  // « je ne peux plus stocker » soit lisible d'un coup d'œil dans les deux cas.
   const burnFlashActive = stockBurnFlash > 0 && (gameTime - stockBurnFlash) < 30;
-  // Nombre de cubes encore utilisables (1/3 du bas) pendant le sabotage
-  const usableCubes = burnFlashActive ? Math.ceil(STOCK_SIZE / 3) : STOCK_SIZE;
-  // Cubes condamnés = les 2/3 du haut
-  const burnedZoneStart = burnFlashActive ? usableCubes : STOCK_SIZE;
+  const usableRatio = burnFlashActive ? (1 / 3) : (capReduced ? capMultNow : 1);
+  const usableCubes = Math.max(1, Math.ceil(STOCK_SIZE * usableRatio));
+  const burnedZoneStart = usableCubes < STOCK_SIZE ? usableCubes : STOCK_SIZE;
+  const filledCubes = Math.floor(fillRatio * usableCubes);
   const currentXp = xpFromTotals(totals, completedCalls.length, owned);
   const currentLevel = levelForXp(currentXp);
   const nextThreshold = LEVEL_THRESHOLDS[currentLevel] || LEVEL_THRESHOLDS[LEVEL_THRESHOLDS.length - 1];
@@ -9821,10 +9832,12 @@ export default function App() {
       const curStock = stockRef.current;
       const curSell = effectiveSellRef.current;
       const curStats = computeStats(ownedRef.current);
-      const curMaxCap = BASE_CAP + curStats.capBonus;
       // === Friction : Brigitte en pause (Bug ERP/CRM) ===
       const fricBrig = aggregateFrictionEffects(activeFrictionsRef.current, gameTimeRef.current);
       if (fricBrig.pauseBrigitte) return;
+      // Le seuil de saturation suit la capacité RÉELLEMENT utilisable : sinon,
+      // capacité rabotée, le stock plafonne sous les 90 % et rien ne s'écoule.
+      const curMaxCap = Math.max(1, Math.floor((BASE_CAP + curStats.capBonus) * fricBrig.capMult));
       // === Gestion de la surproduction (toutes phases) ===
       // Brigitte vend UNIQUEMENT quand le stock arrive à saturation
       // (≥ 90% de la capacité) pour éviter la fonte massive ou la perte de production.
@@ -11991,9 +12004,9 @@ export default function App() {
                         // Petit re-render forcé via state pour rafraîchir le bouton.
                         setLines(prev => prev.slice());
                       }}
-                      title="Envoyer le camion (Lenny est en arrêt)"
+                      title={t('truck.dispatch_hint')}
                     >
-                      ENVOYER
+                      {t('truck.dispatch')}
                     </button>
                   )}
                 </div>
@@ -12362,18 +12375,18 @@ export default function App() {
             </div>
           )}
           <div className="side-lbl">{t('side.stock')}</div>
-          <div className={`stock-grid ${atCap ? 'full' : ''} ${burnFlashActive ? 'burn-flash' : ''}`}>
+          <div className={`stock-grid ${atCap ? 'full' : ''} ${burnFlashActive ? 'burn-flash' : ''} ${capReduced && !burnFlashActive ? 'cap-reduced' : ''}`}>
             {Array.from({ length: STOCK_SIZE }).map((_, p) => {
               const row = Math.floor(p / STOCK_COLS);
               const col = p % STOCK_COLS;
               const idx = (STOCK_ROWS - 1 - row) * STOCK_COLS + col;
-              // Pendant le sabotage : les 2/3 du haut (idx >= burnedZoneStart) sont condamnés.
-              const isCondemned = burnFlashActive && idx >= burnedZoneStart;
+              // Zone condamnée (sabotage ou capacité rabotée) : cubes du haut.
+              const isCondemned = idx >= burnedZoneStart;
               const isFilled = !isCondemned && idx < filledCubes;
               return <div key={p} className={`cube ${isFilled ? 'filled' : ''} ${isCondemned ? 'burned' : ''}`} />;
             })}
           </div>
-          {(!hasFred || fredGrumpy) && (() => {
+          {(!hasFred || fredGrumpy || fredSick) && (() => {
             const fricProdEffects = fricVis.prod && FRICTION_EVENTS[fricVis.prod.id].effects;
             const fricBlocked = fricProdEffects && fricProdEffects.prodBlock;
             const fricSlowed = fricProdEffects && fricProdEffects.prodMult && fricProdEffects.prodMult < 1;
@@ -14160,6 +14173,9 @@ export default function App() {
           0%, 100% { opacity: 0.55; }
           50% { opacity: 0.25; }
         }
+        /* Capacité rabotée par une friction (dégât des eaux…) : même hachure
+           que le sabotage, mais fixe — c'est un état durable, pas une alerte. */
+        .stock-grid.cap-reduced .cube.burned { animation: none; opacity: 0.4; }
         .stock-grid.burn-flash { animation: burnShake 0.16s steps(2) 6; }
         @keyframes burnShake {
           0% { transform: translate(0,0); }
@@ -20468,7 +20484,10 @@ export default function App() {
 
         {phase < 4 && (
         <div className={`acts ${phase >= 2 ? 'acts-phase2' : ''}`}>
-          {hasFred && !fredGrumpy ? (
+          {/* Fred absent, en grève ou en arrêt maladie : sa production passive
+              est coupée, donc on rend au joueur le bouton de production manuelle
+              du début de partie plutôt que de le laisser sans prise. */}
+          {hasFred && !fredGrumpy && !fredSick ? (
             renderBoostBtn({
               emp: 'fred',
               action: t('boost.act.production'),
