@@ -1043,7 +1043,7 @@ const FRICTION_EVENTS = {
   fric_classaction: {
     id: 'fric_classaction', iconKey: 'file_text', minPhase: 3, maxPhase: 3, weight: 0.3, duration: 1,
     name: { fr: 'PROCÈS COLLECTIF EMPLOYÉS', en: 'EMPLOYEE CLASS ACTION' },
-    sub:  { fr: 'forfait selon Sabine', en: 'lump sum depending on Sabine' },
+    sub:  { fr: 'forfait selon l\'avocat choisi', en: 'lump sum depending on the chosen lawyer' },
     effects: { oneShotClassAction: true },
     requires: (ctx) => ctx.employeeCount >= 3,
   },
@@ -1132,149 +1132,19 @@ function getDynamicProdMult(gameTime) {
 const UTIL_BASE_PER_FREEZER = 2;     // €/freezer/saison (avant 5 → −60%)
 const UTIL_PROD_PER_GL = 0.015;      // €/glaçon produit (avant 0.048 → −69%)
 const UTIL_FUEL_PER_GL_S = 0.0008;   // €/(GL × seconde de trajet) (avant 0.002 → −60%)
-// === CURSEURS ACHATS — système Mark (Phase 2/3) ===
-// Chaque curseur a 5 positions : 0 = Premium, 1 = Standard+, 2 = Standard, 3 = Éco, 4 = Limite légale
-// Effets : costMult (sur la facture utilities mensuelle) + notoMonthly (sur la notoriété mensuelle)
-//          + riskMonthly (probabilité de procès lié, utilisé plus tard avec le système juridique)
-const PURCHASE_SLIDERS = {
-  eau: {
-    name: { fr: 'Eau', en: 'Water', es: 'Agua', zh: "水", ru: "Вода", it: "Acqua", de: "Wasser" },
-    unlockMin: 'mark_jr', // Mark Junior débloque Eau + Énergie
-    positions: [
-      { id: 'premium',  costMult: 1.20, notoMonthly: +2, riskMonthly: 0,    label: { fr: 'Source garantie', en: 'Spring source', es: 'Manantial', zh: "山泉水", ru: "Родниковая", it: "Sorgente", de: "Quellwasser" } },
-      { id: 'premium_minus', costMult: 1.08, notoMonthly: +1, riskMonthly: 0, label: { fr: 'Filtrée premium', en: 'Premium filtered', es: 'Filtrada premium', zh: "高级过滤", ru: "Премиум фильтр.", it: "Filtrata premium", de: "Premium gefiltert" } },
-      { id: 'standard', costMult: 1.00, notoMonthly: 0,  riskMonthly: 0,    label: { fr: 'Standard', en: 'Standard', es: 'Estándar', zh: "标准", ru: "Стандарт", it: "Standard", de: "Standard" } },
-      { id: 'eco',      costMult: 0.78, notoMonthly: -2, riskMonthly: 0.04, label: { fr: 'Pré-traitée', en: 'Pre-treated', es: 'Pretratada', zh: "预处理", ru: "Предв. обраб.", it: "Pre-trattata", de: "Vorbehandelt" } },
-      { id: 'limit',    costMult: 0.55, notoMonthly: -7, riskMonthly: 0.18, label: { fr: 'Recyclée non filtrée', en: 'Unfiltered recycled', es: 'Reciclada s/filtro', zh: "未过滤再生", ru: "Нефильтр. оборот", it: "Riciclata non filt.", de: "Ungefilt. Recyc." } },
-    ],
-  },
-  energie: {
-    name: { fr: 'Énergie', en: 'Energy', es: 'Energía', zh: "能源", ru: "Энергия", it: "Energia", de: "Energie" },
-    unlockMin: 'mark_jr',
-    positions: [
-      { id: 'premium',  costMult: 1.30, notoMonthly: +3, riskMonthly: 0,    label: { fr: '100% renouvelable', en: '100% renewable', es: '100% renovable', zh: "100%可再生", ru: "100% возобн.", it: "100% rinnovabile", de: "100% erneuerbar" } },
-      { id: 'premium_minus', costMult: 1.10, notoMonthly: +1, riskMonthly: 0, label: { fr: 'Mix vert', en: 'Green mix', es: 'Mix verde', zh: "绿色组合", ru: "Зелёный микс", it: "Mix verde", de: "Grüner Mix" } },
-      { id: 'standard', costMult: 1.00, notoMonthly: 0,  riskMonthly: 0,    label: { fr: 'Standard EDF', en: 'Standard grid', es: 'Estándar red', zh: "标准电网", ru: "Стандартная сеть", it: "Rete standard", de: "Standard-Netz" } },
-      { id: 'eco',      costMult: 0.72, notoMonthly: -3, riskMonthly: 0.02, label: { fr: 'Charbon imposé', en: 'Imported coal', es: 'Carbón importado', zh: "进口煤", ru: "Импорт. уголь", it: "Carbone importato", de: "Importkohle" } },
-      { id: 'limit',    costMult: 0.50, notoMonthly: -10, riskMonthly: 0.12, label: { fr: 'Offshore opaque', en: 'Offshore opaque', es: 'Offshore opaco', zh: "不透明离岸", ru: "Непрозр. оффшор", it: "Offshore opaco", de: "Intransp. Offshore" } },
-    ],
-  },
-  emballages: {
-    name: { fr: 'Emballages', en: 'Packaging', es: 'Embalajes', zh: "包装", ru: "Упаковка", it: "Imballaggi", de: "Verpackung" },
-    unlockMin: 'mark_resp',
-    positions: [
-      { id: 'premium',  costMult: 1.18, notoMonthly: +2, riskMonthly: 0,    label: { fr: 'Carton recyclé', en: 'Recycled cardboard', es: 'Cartón reciclado', zh: "回收纸板", ru: "Перераб. картон", it: "Cartone riciclato", de: "Recyc.-Karton" } },
-      { id: 'premium_minus', costMult: 1.05, notoMonthly: +1, riskMonthly: 0, label: { fr: 'Plastique bio', en: 'Bio plastic', es: 'Plástico bio', zh: "生物塑料", ru: "Био-пластик", it: "Plastica bio", de: "Bio-Kunststoff" } },
-      { id: 'standard', costMult: 1.00, notoMonthly: 0,  riskMonthly: 0,    label: { fr: 'Plastique std', en: 'Standard plastic', es: 'Plástico std', zh: "标准塑料", ru: "Станд. пластик", it: "Plastica standard", de: "Standard-Kunststoff" } },
-      { id: 'eco',      costMult: 0.78, notoMonthly: -2, riskMonthly: 0.06, label: { fr: 'Plastique low-cost', en: 'Low-cost plastic', es: 'Plástico low-cost', zh: "廉价塑料", ru: "Дешёвый пластик", it: "Plastica low-cost", de: "Billig-Kunststoff" } },
-      { id: 'limit',    costMult: 0.58, notoMonthly: -8, riskMonthly: 0.28, label: { fr: 'Non conforme', en: 'Non-compliant', es: 'No conforme', zh: "不合规", ru: "Несоотв. норм.", it: "Non conforme", de: "Nicht konform" } },
-    ],
-  },
-  logistique: {
-    name: { fr: 'Logistique', en: 'Logistics', es: 'Logística', zh: "物流", ru: "Логистика", it: "Logistica", de: "Logistik" },
-    unlockMin: 'mark_resp',
-    positions: [
-      { id: 'premium',  costMult: 1.32, notoMonthly: +3, riskMonthly: 0,    label: { fr: 'Camions hydro/élec', en: 'Hydro/elec trucks', es: 'Camiones hidro/eléc', zh: "氢/电动卡车", ru: "Водород/электро", it: "Camion idro/elett", de: "H2/E-LKW" } },
-      { id: 'premium_minus', costMult: 1.10, notoMonthly: +1, riskMonthly: 0, label: { fr: 'Diesel Euro 6', en: 'Diesel Euro 6', es: 'Diésel Euro 6', zh: "欧6柴油", ru: "Дизель Евро 6", it: "Diesel Euro 6", de: "Diesel Euro 6" } },
-      { id: 'standard', costMult: 1.00, notoMonthly: 0,  riskMonthly: 0,    label: { fr: 'Diesel standard', en: 'Standard diesel', es: 'Diésel estándar', zh: "标准柴油", ru: "Дизель станд.", it: "Diesel standard", de: "Standard-Diesel" } },
-      { id: 'eco',      costMult: 0.78, notoMonthly: -3, riskMonthly: 0.04, label: { fr: 'Vieux diesel', en: 'Old diesel', es: 'Diésel viejo', zh: "旧柴油车", ru: "Старый дизель", it: "Diesel vecchio", de: "Alter Diesel" } },
-      { id: 'limit',    costMult: 0.58, notoMonthly: -9, riskMonthly: 0.22, label: { fr: 'Non homologué', en: 'Non-certified', es: 'No homologado', zh: "未认证", ru: "Несертифициров.", it: "Non omologato", de: "Nicht zugelassen" } },
-    ],
-  },
-  fournisseurs: {
-    name: { fr: 'Fournisseurs', en: 'Suppliers', es: 'Proveedores', zh: "供应商", ru: "Поставщики", it: "Fornitori", de: "Lieferanten" },
-    unlockMin: 'mark_dir',
-    positions: [
-      { id: 'premium',  costMult: 1.28, notoMonthly: +4, riskMonthly: 0,    label: { fr: 'Locaux certifiés', en: 'Local certified', es: 'Locales certif.', zh: "本地认证", ru: "Местные сертиф.", it: "Locali certificati", de: "Lokal zertifiziert" } },
-      { id: 'premium_minus', costMult: 1.12, notoMonthly: +2, riskMonthly: 0, label: { fr: 'Nationaux', en: 'National', es: 'Nacionales', zh: "国内", ru: "Национальные", it: "Nazionali", de: "National" } },
-      { id: 'standard', costMult: 1.00, notoMonthly: 0,  riskMonthly: 0,    label: { fr: 'UE standard', en: 'EU standard', es: 'UE estándar', zh: "欧盟标准", ru: "ЕС стандарт", it: "UE standard", de: "EU-Standard" } },
-      { id: 'eco',      costMult: 0.70, notoMonthly: -5, riskMonthly: 0.10, label: { fr: 'Offshore low-cost', en: 'Offshore low-cost', es: 'Offshore low-cost', zh: "离岸低成本", ru: "Дешёвый оффшор", it: "Offshore low-cost", de: "Billig-Offshore" } },
-      { id: 'limit',    costMult: 0.50, notoMonthly: -14, riskMonthly: 0.35, label: { fr: 'Sous-traitance opaque', en: 'Opaque subcontracting', es: 'Subcont. opaca', zh: "不透明分包", ru: "Непрозр. субподр.", it: "Subappalto opaco", de: "Intransp. Unterauftrag" } },
-    ],
-  },
-};
-const PURCHASE_SLIDER_KEYS = ['eau', 'energie', 'emballages', 'logistique', 'fournisseurs'];
 
-// Renvoie le multiplicateur global appliqué à la facture utilities mensuelle
-// en fonction de l'état des curseurs et du palier Mark.
-function computePurchaseCostMult(purchaseSliders, owned, markSick) {
-  // Arrêt maladie Mark : ses négociations ne s'appliquent plus, on revient
-  // au prix de base (mult = 1).
-  if (markSick) return 1;
-  if (!purchaseSliders) return 1;
-  let mult = 1;
-  for (const key of PURCHASE_SLIDER_KEYS) {
-    const slider = PURCHASE_SLIDERS[key];
-    // Vérifie que le curseur est débloqué (Mark Jr ou un palier supérieur)
-    const hasJr = owned['mark_jr'] || owned['mark_resp'] || owned['mark_dir'];
-    const hasResp = owned['mark_resp'] || owned['mark_dir'];
-    const hasDir = owned['mark_dir'];
-    let unlocked = false;
-    if (slider.unlockMin === 'mark_jr')   unlocked = hasJr;
-    if (slider.unlockMin === 'mark_resp') unlocked = hasResp;
-    if (slider.unlockMin === 'mark_dir')  unlocked = hasDir;
-    if (!unlocked) continue;
-    const posIdx = purchaseSliders[key] != null ? purchaseSliders[key] : 2;
-    const pos = slider.positions[posIdx] || slider.positions[2];
-    mult *= pos.costMult;
-  }
-  return mult;
-}
-
-// Renvoie le delta de notoriété mensuel cumulé issu des curseurs (positif = brand boost, négatif = scandale lent).
-function computePurchaseNotoDelta(purchaseSliders, owned) {
-  if (!purchaseSliders) return 0;
-  let delta = 0;
-  for (const key of PURCHASE_SLIDER_KEYS) {
-    const slider = PURCHASE_SLIDERS[key];
-    const hasJr = owned['mark_jr'] || owned['mark_resp'] || owned['mark_dir'];
-    const hasResp = owned['mark_resp'] || owned['mark_dir'];
-    const hasDir = owned['mark_dir'];
-    let unlocked = false;
-    if (slider.unlockMin === 'mark_jr')   unlocked = hasJr;
-    if (slider.unlockMin === 'mark_resp') unlocked = hasResp;
-    if (slider.unlockMin === 'mark_dir')  unlocked = hasDir;
-    if (!unlocked) continue;
-    const posIdx = purchaseSliders[key] != null ? purchaseSliders[key] : 2;
-    const pos = slider.positions[posIdx] || slider.positions[2];
-    delta += (pos.notoMonthly || 0);
-  }
-  return delta;
-}
-
-// Risque procès cumulé mensuel (sera utilisé par le système Sabine en palier 4).
-function computePurchaseRiskMonthly(purchaseSliders, owned) {
-  if (!purchaseSliders) return 0;
-  let risk = 0;
-  for (const key of PURCHASE_SLIDER_KEYS) {
-    const slider = PURCHASE_SLIDERS[key];
-    const hasJr = owned['mark_jr'] || owned['mark_resp'] || owned['mark_dir'];
-    const hasResp = owned['mark_resp'] || owned['mark_dir'];
-    const hasDir = owned['mark_dir'];
-    let unlocked = false;
-    if (slider.unlockMin === 'mark_jr')   unlocked = hasJr;
-    if (slider.unlockMin === 'mark_resp') unlocked = hasResp;
-    if (slider.unlockMin === 'mark_dir')  unlocked = hasDir;
-    if (!unlocked) continue;
-    const posIdx = purchaseSliders[key] != null ? purchaseSliders[key] : 2;
-    const pos = slider.positions[posIdx] || slider.positions[2];
-    risk += (pos.riskMonthly || 0);
-  }
-  return risk;
-}
-
-// === SYSTÈME DE PROCÈS — Sabine (Phase 2/3) ===
+// === SYSTÈME DE PROCÈS (Phase 2/3) ===
 // 16 types de procès organisés en 6 catégories.
 // Probabilité de déclenchement mensuel = computePurchaseRiskMonthly()
 // La catégorie tirée dépend du curseur Achats le plus rouge (mapping ci-dessous).
 //
 // Dommages = perte cash + perte notoriété
-// Sabine réduit les dommages selon son palier :
+// L'avocat choisi réduit les dommages selon son tarif :
 //   Junior (1 procès/an) : dommages × 0.70 (-30%)
 //   Senior (3 procès/an) : dommages × 0.40 (-60%) + prévention (popup d'alerte)
 //   DG     (illimité)    : dommages × 0.10 (-90%) + immunité quasi totale
 //
-// Sans Sabine ou quota dépassé : popup avec choix joueur (Défendre / Régler / Ignorer)
+// Chaque procès ouvre un popup avec choix joueur (Défendre / Régler / Ignorer)
 const LAWSUITS = [
   // === SANITAIRES (curseur EAU dangereux) ===
   { id: 'etouffement', category: 'sanitaire', sliderTrigger: 'eau',
@@ -1354,208 +1224,21 @@ const LAWSUITS = [
 ];
 const LAWSUITS_BY_ID = Object.fromEntries(LAWSUITS.map(l => [l.id, l]));
 
-// === ACTIONS STRATÉGIQUES JANICE (Phase 3) ===
-// 7 actions déclenchables manuellement par le joueur. Contrairement aux campagnes
-// qui sont des "investissements continus", ce sont des coups tactiques :
-//   - One-shot (jamais réutilisable une fois lancé)
-//   - Cooldown en mois (durée avant nouvelle activation)
-// Débloquées par paliers de Janice (Senior ou Directrice).
-const JANICE_ACTIONS = [
-  // === JANICE SENIOR ===
-  { id: 'campagne_digitale', tier: 'janice_senior', cost: 25000, cooldownMonths: 2,
-    Icon: 'BarChart3',
-    effects: { notoInstant: 8 },
-    title: { fr: 'Campagne digitale ciblée', en: 'Targeted digital campaign', es: 'Campaña digital dirigida', de: 'Gezielte Digitalkampagne', it: 'Campagna digitale mirata', ru: 'Целевая digital-кампания', zh: '精准数字营销' },
-    fx: { fr: 'Noto +8 · cooldown 2 mois', en: 'Awareness +8 · 2-month cooldown', es: 'Notor. +8 · cd 2 meses', de: 'Bekanntheit +8 · CD 2 Mon', it: 'Notorietà +8 · cd 2 mesi', ru: 'Известность +8 · кд 2 мес', zh: '知名度 +8 · 冷却2月' },
-    desc: { fr: "Ads sur réseaux sociaux + Google Search + retargeting. Petite enveloppe, ROI rapide.", en: "Social ads + Google Search + retargeting. Small budget, quick ROI.", es: "Ads en redes + Google Search + retargeting. Presupuesto bajo, ROI rápido.", de: "Social Ads + Google Search + Retargeting. Kleines Budget, schneller ROI.", it: "Ads social + Google Search + retargeting. Budget piccolo, ROI rapido.", ru: "Соцреклама + Google Search + ретаргетинг. Малый бюджет, быстрый ROI.", zh: "社媒+Google搜索+再营销。预算小，回报快。" } },
-  { id: 'operation_rse', tier: 'janice_senior', cost: 30000, cooldownMonths: 4,
-    Icon: 'Leaf',
-    effects: { repInstant: 15 },
-    title: { fr: 'Opération RSE', en: 'CSR operation', es: 'Operación RSC', de: 'CSR-Aktion', it: 'Operazione CSR', ru: 'CSR-операция', zh: '企业社会责任行动' },
-    fx: { fr: 'Réputation +15 · cd 4 mois', en: 'Reputation +15 · 4-month cooldown', es: 'Reputación +15 · cd 4 meses', de: 'Reputation +15 · CD 4 Mon', it: 'Reputazione +15 · cd 4 mesi', ru: 'Репутация +15 · кд 4 мес', zh: '声誉 +15 · 冷却4月' },
-    desc: { fr: "Plantation d'arbres sponsorisée, communiqué « neutralité carbone d'ici 2050 », photos d'équipe en gilet de bénévole. L'image se répare — le glacier, lui, fond toujours.", en: "Sponsored tree-planting, a \"carbon neutral by 2050\" press release, team photos in volunteer vests. The image gets patched up — the glacier keeps melting all the same.", es: "Plantación de árboles patrocinada, comunicado «neutralidad de carbono para 2050», fotos del equipo con chalecos de voluntario. La imagen se repara — el glaciar sigue derritiéndose igual.", de: "Gesponserte Baumpflanzung, Pressemitteilung „klimaneutral bis 2050\", Teamfotos in Freiwilligenwesten. Das Image wird geflickt — der Gletscher schmilzt trotzdem weiter.", it: "Piantumazione sponsorizzata, comunicato «neutralità carbonica entro il 2050», foto del team in pettorina da volontario. L'immagine si ripara — il ghiacciaio continua a sciogliersi.", ru: "Спонсорская посадка деревьев, пресс-релиз «углеродная нейтральность к 2050», фото команды в волонтёрских жилетах. Имидж латается — ледник всё равно тает.", zh: "赞助植树、发布「2050碳中和」公告、团队穿志愿者背心拍照。形象修好了——冰川照样在融。" } },
-  { id: 'pub_tv_regionale', tier: 'janice_senior', cost: 80000, cooldownMonths: 6,
-    Icon: 'Megaphone',
-    effects: { notoInstant: 20, sellBoostFactor: 1.30, sellBoostMonths: 1 },
-    title: { fr: 'Pub TV régionale', en: 'Regional TV ad', es: 'Anuncio TV regional', de: 'Regionaler TV-Spot', it: 'Spot TV regionale', ru: 'Региональная ТВ-реклама', zh: '地区电视广告' },
-    fx: { fr: 'Noto +20 · prix ×1.30 (1 mois) · cd 6 mois', en: 'Awareness +20 · price ×1.30 (1mo) · cd 6mo', es: 'Notor. +20 · precio ×1.30 (1mes) · cd 6m', de: 'Bekanntheit +20 · Preis ×1.30 (1 Mon) · CD 6 Mon', it: 'Notorietà +20 · prezzo ×1.30 (1m) · cd 6 mesi', ru: 'Известность +20 · цена ×1.30 (1мес) · кд 6мес', zh: '知名度 +20 · 价格 ×1.30（1月）· 冷却6月' },
-    desc: { fr: "Spot 30s en prime time sur les chaînes régionales. Boost de demande immédiat pendant 1 mois.", en: "30s spot in prime time on regional channels. Immediate 1-month demand boost.", es: "Cuña 30s prime time en cadenas regionales. Boost de demanda 1 mes.", de: "30s-Spot zur Prime Time auf Regionalsendern. 1-Monats-Nachfrageboost.", it: "Spot 30s in prime time su canali regionali. Boost domanda 1 mese.", ru: "30с спот в прайм-тайм на региональных каналах. Бум спроса на 1 месяц.", zh: "地区频道黄金时段30秒广告。1个月需求大涨。" } },
 
-  // === JANICE DIRECTRICE ===
-  { id: 'influenceurs_galaxy', tier: 'janice_dir', cost: 60000, cooldownMonths: 3,
-    Icon: 'MessageCircle',
-    effects: { notoInstant: 15, sellBoostFactor: 1.15, sellBoostMonths: 1 },
-    title: { fr: 'Partenariat influenceurs', en: 'Influencer partnership', es: 'Partnership influencers', de: 'Influencer-Partnerschaft', it: 'Partnership influencer', ru: 'Партнёрство с инфлюенсерами', zh: '网红合作' },
-    fx: { fr: 'Noto +15 · prix ×1.15 (1 mois) · cd 3 mois', en: 'Awareness +15 · price ×1.15 (1mo) · cd 3mo', es: 'Notor. +15 · precio ×1.15 (1m) · cd 3m', de: 'Bekanntheit +15 · Preis ×1.15 (1 Mon) · CD 3 Mon', it: 'Notorietà +15 · prezzo ×1.15 (1m) · cd 3m', ru: 'Известность +15 · цена ×1.15 (1мес) · кд 3мес', zh: '知名度 +15 · 价格 ×1.15（1月）· 冷却3月' },
-    desc: { fr: "Tu équipes 12 influenceurs lifestyle. La marque devient virale chez les jeunes urbains.", en: "You partner with 12 lifestyle influencers. The brand goes viral with young urbans.", es: "Te asocias con 12 influencers lifestyle. La marca se vuelve viral entre urbanos jóvenes.", de: "Du arbeitest mit 12 Lifestyle-Influencern. Die Marke wird viral bei Jung-Urbanen.", it: "Collabori con 12 influencer lifestyle. Il marchio diventa virale tra i giovani urbani.", ru: "Сотрудничаешь с 12 лайфстайл-инфлюенсерами. Бренд становится вирусным у молодых горожан.", zh: "与12位生活方式网红合作。品牌在都市年轻人中爆红。" } },
-  { id: 'mecenat_climat', tier: 'janice_dir', cost: 120000, cooldownMonths: 8,
-    Icon: 'Leaf',
-    effects: { repInstant: 30 },
-    title: { fr: 'Mécénat & engagement climat', en: 'Climate patronage & pledge', es: 'Mecenazgo y compromiso climático', de: 'Klima-Mäzenatentum & Pledge', it: 'Mecenatismo e impegno clima', ru: 'Климатическое меценатство', zh: '气候赞助与承诺' },
-    fx: { fr: 'Réputation +30 · cd 8 mois', en: 'Reputation +30 · 8-month cooldown', es: 'Reputación +30 · cd 8 meses', de: 'Reputation +30 · CD 8 Mon', it: 'Reputazione +30 · cd 8 mesi', ru: 'Репутация +30 · кд 8 мес', zh: '声誉 +30 · 冷却8月' },
-    desc: { fr: "Don retentissant à une ONG triée sur le volet, label éthique acheté, grand discours du PDG sur « la transition ». La réputation remonte fort — la sincérité reste optionnelle.", en: "A loud donation to a hand-picked NGO, a bought ethics label, a grand CEO speech on \"the transition.\" Reputation bounces back hard — sincerity stays optional.", es: "Donación sonada a una ONG escogida, sello ético comprado, gran discurso del CEO sobre «la transición». La reputación sube fuerte — la sinceridad es opcional.", de: "Eine laute Spende an eine handverlesene NGO, ein gekauftes Ethik-Siegel, eine große CEO-Rede über „die Transformation\". Die Reputation springt stark zurück — Aufrichtigkeit bleibt optional.", it: "Donazione clamorosa a una ONG selezionata, label etico comprato, grande discorso del CEO sulla «transizione». La reputazione risale forte — la sincerità resta opzionale.", ru: "Громкое пожертвование избранной НКО, купленный этический лейбл, большая речь гендира о «переходе». Репутация резко растёт — искренность опциональна.", zh: "向精挑细选的NGO高调捐款、买来道德标签、CEO发表「转型」长篇演讲。声誉大幅回升——真诚与否可选。" } },
-  { id: 'sponsoring_sport', tier: 'janice_dir', cost: 150000, cooldownMonths: 12,
-    Icon: 'Dumbbell',
-    effects: { notoInstant: 30, sellPermaBonus: 0.05 },
-    title: { fr: 'Sponsoring sport', en: 'Sports sponsorship', es: 'Patrocinio deportivo', de: 'Sport-Sponsoring', it: 'Sponsorizzazione sport', ru: 'Спортивное спонсорство', zh: '体育赞助' },
-    fx: { fr: 'Noto +30 · prix +5% perma · cd 12 mois', en: 'Awareness +30 · price +5% perma · cd 12mo', es: 'Notor. +30 · precio +5% perma · cd 12m', de: 'Bekanntheit +30 · Preis +5% dauerhaft · CD 12 Mon', it: 'Notorietà +30 · prezzo +5% perma · cd 12m', ru: 'Известность +30 · цена +5% перм. · кд 12мес', zh: '知名度 +30 · 价格 +5% 永久 · 冷却12月' },
-    desc: { fr: "Tu sponsorises un grand club de foot ou un athlète médaillé. Visibilité massive et bonus perma sur le prix.", en: "You sponsor a top-flight football club or a medal-winning athlete. Massive visibility and permanent price bonus.", es: "Patrocinas un club de primera división o un atleta medallista. Visibilidad masiva y bonus perma de precio.", de: "Du sponserst einen Erstliga-Club oder einen Medaillen-Athleten. Massive Sichtbarkeit und dauerhafter Preisbonus.", it: "Sponsorizzi un club di prima divisione o un atleta medagliato. Visibilità massiccia e bonus prezzo perma.", ru: "Спонсируете клуб высшей лиги или титулованного атлета. Массовая видимость и постоянный бонус к цене.", zh: "赞助一支顶级联赛球队或夺牌运动员。海量曝光，价格永久加成。" } },
-];
 
-// Helper : palier Janice du joueur
-function getJanicePeakTier(owned) {
-  if (owned['janice_dir']) return 'janice_dir';
-  if (owned['janice_senior']) return 'janice_senior';
-  return null;
-}
-
-// Helper : action disponible ou en cooldown
-function getJaniceActionStatus(action, janiceActionState, gameTime, owned, money) {
-  const peak = getJanicePeakTier(owned);
-  // Vérifier le palier requis
-  let tierOk = false;
-  if (action.tier === 'janice_senior') tierOk = peak === 'janice_senior' || peak === 'janice_dir';
-  if (action.tier === 'janice_dir') tierOk = peak === 'janice_dir';
-  if (!tierOk) return { available: false, locked: true, reason: 'tier' };
-  const st = janiceActionState[action.id];
-  // One-shot déjà utilisé ?
-  if (action.oneShot && st && st.used) return { available: false, locked: true, reason: 'oneshot' };
-  // Cooldown actif ?
-  if (st && action.cooldownMonths > 0) {
-    const elapsedSec = gameTime - st.lastUsedTs;
-    const cooldownSec = action.cooldownMonths * MONTH_DURATION;
-    if (elapsedSec < cooldownSec) {
-      const leftSec = cooldownSec - elapsedSec;
-      const leftMonths = Math.ceil(leftSec / MONTH_DURATION);
-      return { available: false, locked: false, reason: 'cooldown', cooldownLeftMonths: leftMonths };
-    }
-  }
-  // Cash suffisant ?
-  if (money < action.cost) return { available: false, locked: false, reason: 'funds' };
-  return { available: true, locked: false };
-}
-
-// === ACTIONS MARK (Achats) ===
-// Boucle active pour Mark : actions stratégiques payantes à cooldown, sur le
-// modèle des actions Janice. Mark/Sabine n'ont pas de système de stress (pas de
-// bouton boost « classique ») — on leur donne donc une boucle d'actions payantes
-// qui agit sur les charges (renégociation) et le prix de vente (audit qualité).
-const MARK_TIER_ORDER = ['mark_jr', 'mark_resp', 'mark_dir'];
-const MARK_ACTIONS = [
-  { id: 'renego_fournisseurs', tier: 'mark_jr', cost: 20000, cooldownMonths: 4,
-    Icon: 'Handshake',
-    effects: { billDiscountFactor: 0.65, billDiscountMonths: 3 },
-    title: { fr: 'Renégociation fournisseurs', en: 'Supplier renegotiation', es: 'Renegociación proveedores', de: 'Lieferanten-Neuverhandlung', it: 'Rinegoziazione fornitori', ru: 'Пересмотр контрактов с поставщиками', zh: '供应商重新谈判' },
-    fx: { fr: 'Charges −35% · 3 mois · cd 4 mois', en: 'Bills −35% · 3 mo · cd 4 mo', es: 'Gastos −35% · 3 meses · cd 4 m', de: 'Kosten −35% · 3 Mon · CD 4 Mon', it: 'Spese −35% · 3 mesi · cd 4 m', ru: 'Расходы −35% · 3 мес · кд 4 мес', zh: '开支 −35% · 3月 · 冷却4月' },
-    desc: { fr: "Mark coince trois fournisseurs en réunion, agite un concurrent moins cher et arrache une ristourne « exceptionnelle ». Les charges fondent 3 mois — eux, ils se rattraperont plus tard.", en: "Mark corners three suppliers in a meeting, waves a cheaper competitor and wrings out an \"exceptional\" rebate. Bills drop for 3 months — they'll claw it back later.", es: "Mark acorrala a tres proveedores en una reunión, agita un competidor más barato y arranca un descuento «excepcional». Los gastos bajan 3 meses — ya se cobrarán después.", de: "Mark stellt drei Lieferanten in einem Meeting in die Ecke, schwenkt einen billigeren Wettbewerber und erpresst einen „außergewöhnlichen\" Rabatt. Die Kosten sinken 3 Monate — die holen es sich später zurück.", it: "Mark mette all'angolo tre fornitori in riunione, agita un concorrente più economico e strappa uno sconto «eccezionale». Le spese calano 3 mesi — si rifaranno dopo.", ru: "Марк зажимает трёх поставщиков на встрече, машет более дешёвым конкурентом и выбивает «исключительную» скидку. Расходы падают на 3 месяца — потом отыграются.", zh: "马克在会上逼住三家供应商，亮出更便宜的竞争者，硬抠出「特别」折扣。开支降3个月——他们日后会找补回来。" } },
-  { id: 'audit_qualite', tier: 'mark_resp', cost: 45000, cooldownMonths: 5,
-    Icon: 'Sparkles',
-    effects: { sellBoostFactor: 1.20, sellBoostMonths: 2 },
-    title: { fr: 'Audit qualité éclair', en: 'Flash quality audit', es: 'Auditoría de calidad exprés', de: 'Blitz-Qualitätsaudit', it: 'Audit qualità lampo', ru: 'Экспресс-аудит качества', zh: '闪电质量审计' },
-    fx: { fr: 'Prix ×1.20 · 2 mois · cd 5 mois', en: 'Price ×1.20 · 2 mo · cd 5 mo', es: 'Precio ×1.20 · 2 meses · cd 5 m', de: 'Preis ×1.20 · 2 Mon · CD 5 Mon', it: 'Prezzo ×1.20 · 2 mesi · cd 5 m', ru: 'Цена ×1.20 · 2 мес · кд 5 мес', zh: '价格 ×1.20 · 2月 · 冷却5月' },
-    desc: { fr: "Mark fait venir un cabinet d'audit, colle un label « qualité premium certifiée » sur les sachets et augmente les prix dans la foulée. Le glaçon n'a pas changé — l'étiquette, si.", en: "Mark brings in an audit firm, slaps a \"certified premium quality\" label on the bags and raises prices right after. The ice cube hasn't changed — the label has.", es: "Mark trae una firma de auditoría, pega un sello «calidad premium certificada» en las bolsas y sube los precios acto seguido. El cubito no ha cambiado — la etiqueta sí.", de: "Mark holt eine Prüffirma, klebt ein „zertifizierte Premium-Qualität\"-Label auf die Tüten und erhöht gleich darauf die Preise. Der Eiswürfel ist gleich geblieben — das Etikett nicht.", it: "Mark chiama una società di audit, appiccica un'etichetta «qualità premium certificata» sui sacchetti e alza subito i prezzi. Il cubetto è lo stesso — l'etichetta no.", ru: "Марк зовёт аудиторскую фирму, лепит на пакеты ярлык «сертифицированное премиум-качество» и тут же поднимает цены. Кубик не изменился — этикетка изменилась.", zh: "马克请来审计公司，在包装贴上「认证高端品质」标签，随即涨价。冰块没变——标签变了。" } },
-  { id: 'centrale_achat', tier: 'mark_dir', cost: 110000, cooldownMonths: 8,
-    Icon: 'Boxes',
-    effects: { billDiscountFactor: 0.50, billDiscountMonths: 4 },
-    title: { fr: "Centrale d'achat mondiale", en: 'Global purchasing hub', es: 'Central de compras global', de: 'Globale Einkaufszentrale', it: 'Centrale acquisti globale', ru: 'Глобальный закупочный хаб', zh: '全球采购中心' },
-    fx: { fr: 'Charges −50% · 4 mois · cd 8 mois', en: 'Bills −50% · 4 mo · cd 8 mo', es: 'Gastos −50% · 4 meses · cd 8 m', de: 'Kosten −50% · 4 Mon · CD 8 Mon', it: 'Spese −50% · 4 mesi · cd 8 m', ru: 'Расходы −50% · 4 мес · кд 8 мес', zh: '开支 −50% · 4月 · 冷却8月' },
-    desc: { fr: "Mark centralise tous les achats via une filiale offshore qui négocie en volume à l'échelle mondiale. Charges divisées par deux 4 mois. On évite la question de savoir qui produit, et comment.", en: "Mark routes all purchasing through an offshore subsidiary that negotiates in volume worldwide. Bills halved for 4 months. Best not to ask who produces it, or how.", es: "Mark centraliza todas las compras vía una filial offshore que negocia en volumen a escala mundial. Gastos a la mitad 4 meses. Mejor no preguntar quién lo produce, ni cómo.", de: "Mark bündelt den gesamten Einkauf über eine Offshore-Tochter, die weltweit in Volumen verhandelt. Kosten 4 Monate halbiert. Besser nicht fragen, wer es produziert, und wie.", it: "Mark centralizza tutti gli acquisti tramite una controllata offshore che negozia a volume su scala mondiale. Spese dimezzate 4 mesi. Meglio non chiedere chi produce, né come.", ru: "Марк сводит все закупки через офшорную «дочку», которая торгуется объёмом по всему миру. Расходы вдвое меньше на 4 месяца. Лучше не спрашивать, кто это производит и как.", zh: "马克通过一家离岸子公司集中所有采购，在全球范围按量议价。开支4个月减半。最好别问是谁生产的、怎么生产的。" } },
-];
-function getMarkPeakTier(owned) {
-  if (owned['mark_dir']) return 'mark_dir';
-  if (owned['mark_resp']) return 'mark_resp';
-  if (owned['mark_jr']) return 'mark_jr';
-  return null;
-}
-
-// === ACTIONS SABINE (Juridique) ===
-// Boucle active pour Sabine : actions de conformité / lobbying payantes à cooldown.
-// Elles agissent sur le risque de procès (réduction temporaire) et relient Sabine
-// aux curseurs Achats de Mark (le lobbying autorise de pousser les curseurs au max
-// sans déclencher de procès pendant un temps).
-const SABINE_TIER_ORDER = ['sabine_jr', 'sabine_sr', 'sabine_dg'];
-const SABINE_ACTIONS = [
-  { id: 'mise_en_conformite', tier: 'sabine_jr', cost: 25000, cooldownMonths: 5,
-    Icon: 'ShieldCheck',
-    effects: { lawRiskMult: 0.30, lawRiskMonths: 3 },
-    title: { fr: 'Mise en conformité', en: 'Compliance overhaul', es: 'Puesta en conformidad', de: 'Compliance-Offensive', it: 'Messa a norma', ru: 'Приведение в соответствие', zh: '合规整改' },
-    fx: { fr: 'Risque procès ×0.30 · 3 mois · cd 5 mois', en: 'Lawsuit risk ×0.30 · 3 mo · cd 5 mo', es: 'Riesgo de demanda ×0.30 · 3 meses · cd 5 m', de: 'Klagerisiko ×0.30 · 3 Mon · CD 5 Mon', it: 'Rischio cause ×0.30 · 3 mesi · cd 5 m', ru: 'Риск исков ×0.30 · 3 мес · кд 5 мес', zh: '诉讼风险 ×0.30 · 3月 · 冷却5月' },
-    desc: { fr: "Sabine déploie chartes, registres et formations obligatoires « éthique & sécurité ». Rien ne change sur le terrain, mais les dossiers sont en règle : les plaintes glissent 3 mois.", en: "Sabine rolls out charters, registries and mandatory \"ethics & safety\" training. Nothing changes on the ground, but the paperwork is airtight: complaints slide off for 3 months.", es: "Sabine despliega cartas, registros y formaciones obligatorias «ética y seguridad». Nada cambia en el terreno, pero los expedientes están en regla: las demandas resbalan 3 meses.", de: "Sabine rollt Chartas, Register und Pflichtschulungen „Ethik & Sicherheit\" aus. Vor Ort ändert sich nichts, aber die Akten sind sauber: Klagen prallen 3 Monate ab.", it: "Sabine dispiega carte, registri e formazioni obbligatorie «etica e sicurezza». Sul campo non cambia nulla, ma i fascicoli sono in regola: le denunce scivolano 3 mesi.", ru: "Сабин разворачивает хартии, реестры и обязательные тренинги «этика и безопасность». На местах ничего не меняется, но бумаги в порядке: иски соскальзывают 3 месяца.", zh: "萨宾推出章程、登记册和强制「道德与安全」培训。现场毫无改变，但文件无懈可击：投诉滑落3个月。" } },
-  { id: 'lobbying', tier: 'sabine_sr', cost: 60000, cooldownMonths: 8,
-    Icon: 'Landmark',
-    effects: { lawSliderImmuneMonths: 4 },
-    title: { fr: 'Lobbying réglementaire', en: 'Regulatory lobbying', es: 'Lobby regulatorio', de: 'Regulatorisches Lobbying', it: 'Lobbying normativo', ru: 'Регуляторное лоббирование', zh: '监管游说' },
-    fx: { fr: 'Curseurs Achats sans risque · 4 mois · cd 8 mois', en: 'Purchasing sliders risk-free · 4 mo · cd 8 mo', es: 'Sliders de compras sin riesgo · 4 meses · cd 8 m', de: 'Einkaufsregler risikofrei · 4 Mon · CD 8 Mon', it: 'Slider acquisti senza rischio · 4 mesi · cd 8 m', ru: 'Слайдеры закупок без риска · 4 мес · кд 8 мес', zh: '采购滑杆无风险 · 4月 · 冷却8月' },
-    desc: { fr: "Sabine paie quelques « déjeuners de travail » aux bons députés et un cabinet de relations institutionnelles. Les normes s'assouplissent pile pour vous : pousse les curseurs de Mark à fond sans craindre le moindre procès, 4 mois.", en: "Sabine buys a few \"working lunches\" for the right lawmakers and an institutional-relations firm. Regulations soften just for you: push Mark's sliders to the max with zero lawsuit risk, 4 months.", es: "Sabine paga algunos «almuerzos de trabajo» a los diputados adecuados y un gabinete de relaciones institucionales. Las normas se flexibilizan justo para ti: lleva los sliders de Mark al máximo sin riesgo de demanda, 4 meses.", de: "Sabine zahlt ein paar „Arbeitsessen\" für die richtigen Abgeordneten und eine Agentur für institutionelle Beziehungen. Die Normen lockern sich genau für dich: Schiebe Marks Regler ans Maximum ohne Klagerisiko, 4 Monate.", it: "Sabine paga qualche «pranzo di lavoro» ai deputati giusti e uno studio di relazioni istituzionali. Le norme si ammorbidiscono apposta per te: spingi gli slider di Mark al massimo senza rischio cause, 4 mesi.", ru: "Сабин оплачивает пару «рабочих обедов» нужным депутатам и агентство по связям с госорганами. Нормы смягчаются именно для вас: выкручивай слайдеры Марка на максимум без риска исков, 4 месяца.", zh: "萨宾给对的议员买几顿「工作午餐」，再请一家政企关系公司。规则恰好为你松动：把马克的滑杆拉满也零诉讼风险，4个月。" } },
-  { id: 'blanchiment_juridique', tier: 'sabine_dg', cost: 150000, cooldownMonths: 12,
-    Icon: 'Gavel',
-    effects: { lawRiskMult: 0.0, lawRiskMonths: 3 },
-    title: { fr: 'Bouclier juridique total', en: 'Total legal shield', es: 'Escudo jurídico total', de: 'Totaler Rechtsschild', it: 'Scudo legale totale', ru: 'Тотальный юридический щит', zh: '全面法律护盾' },
-    fx: { fr: 'Aucun procès · 3 mois · cd 12 mois', en: 'No lawsuits · 3 mo · cd 12 mo', es: 'Ninguna demanda · 3 meses · cd 12 m', de: 'Keine Klagen · 3 Mon · CD 12 Mon', it: 'Nessuna causa · 3 mesi · cd 12 m', ru: 'Никаких исков · 3 мес · кд 12 мес', zh: '零诉讼 · 3月 · 冷却12月' },
-    desc: { fr: "Sabine verrouille tout : clauses d'arbitrage privé, holdings en cascade, avocats les plus chers du marché. Pendant 3 mois, aucune plainte n'arrive jusqu'à vous. La justice existe encore — juste pas pour cette entreprise.", en: "Sabine locks everything down: private arbitration clauses, cascading holdings, the priciest lawyers around. For 3 months, no complaint reaches you. Justice still exists — just not for this company.", es: "Sabine lo blinda todo: cláusulas de arbitraje privado, holdings en cascada, los abogados más caros del mercado. Durante 3 meses, ninguna denuncia llega a ti. La justicia aún existe — solo que no para esta empresa.", de: "Sabine riegelt alles ab: private Schiedsklauseln, kaskadierende Holdings, die teuersten Anwälte am Markt. 3 Monate lang erreicht dich keine Klage. Gerechtigkeit gibt es noch — nur nicht für dieses Unternehmen.", it: "Sabine blinda tutto: clausole di arbitrato privato, holding a cascata, gli avvocati più cari sul mercato. Per 3 mesi nessuna denuncia ti raggiunge. La giustizia esiste ancora — solo non per questa azienda.", ru: "Сабин запирает всё: оговорки о частном арбитраже, каскад холдингов, самые дорогие юристы рынка. 3 месяца ни одна жалоба до вас не доходит. Правосудие ещё существует — просто не для этой компании.", zh: "萨宾把一切锁死：私人仲裁条款、层层叠叠的控股架构、市场上最贵的律师。3个月内，没有任何投诉能找上你。正义仍然存在——只是不为这家公司。" } },
-];
-function getSabinePeakTier(owned) {
-  if (owned['sabine_dg']) return 'sabine_dg';
-  if (owned['sabine_sr']) return 'sabine_sr';
-  if (owned['sabine_jr']) return 'sabine_jr';
-  return null;
-}
-
-// Helper générique : statut d'une action Mark/Sabine (palier, one-shot, cooldown, fonds)
-function getEmpActionStatus(action, actionState, gameTime, peak, tierOrder, money) {
-  if (!peak || tierOrder.indexOf(peak) < tierOrder.indexOf(action.tier)) {
-    return { available: false, locked: true, reason: 'tier' };
-  }
-  const st = actionState[action.id];
-  if (action.oneShot && st && st.used) return { available: false, locked: true, reason: 'oneshot' };
-  if (st && action.cooldownMonths > 0) {
-    const elapsedSec = gameTime - st.lastUsedTs;
-    const cooldownSec = action.cooldownMonths * MONTH_DURATION;
-    if (elapsedSec < cooldownSec) {
-      const leftMonths = Math.ceil((cooldownSec - elapsedSec) / MONTH_DURATION);
-      return { available: false, locked: false, reason: 'cooldown', cooldownLeftMonths: leftMonths };
-    }
-  }
-  if (money < action.cost) return { available: false, locked: false, reason: 'funds' };
-  return { available: true, locked: false };
-}
-function getMarkActionStatus(action, markActionState, gameTime, owned, money) {
-  return getEmpActionStatus(action, markActionState, gameTime, getMarkPeakTier(owned), MARK_TIER_ORDER, money);
-}
-function getSabineActionStatus(action, sabineActionState, gameTime, owned, money) {
-  return getEmpActionStatus(action, sabineActionState, gameTime, getSabinePeakTier(owned), SABINE_TIER_ORDER, money);
-}
 
 
 // === HELPERS PROCÈS ===
 
-// Quota annuel selon palier Sabine (aligné avec les apply: des upgrades)
-function getSabineYearlyQuota(owned) {
-  if (owned['sabine_dg']) return 3;
-  if (owned['sabine_sr']) return 2;
-  if (owned['sabine_jr']) return 1;
-  return 0;
-}
-// Multiplicateur de dommages selon palier Sabine (aligné avec les apply: des upgrades)
-function getSabineDamageMult(owned) {
-  if (owned['sabine_dg']) return 0.20;
-  if (owned['sabine_sr']) return 0.40;
-  if (owned['sabine_jr']) return 0.65;
-  return 1.00;
-}
-// Tire un procès basé sur l'état des curseurs Achats
-function rollLawsuit(purchaseSliders, owned) {
-  // Mapping curseur → catégories de procès susceptibles
-  // Plus un slider est en "Limite légale" (idx 4), plus il pèse dans le tirage de sa catégorie
+// Il n'y a pas de juriste interne : aucun procès n'est absorbé
+// automatiquement et les dommages ne sont pas atténués en amont. Le joueur
+// choisit un avocat pour chaque affaire depuis l'écran JURIDIQUE.
+function rollLawsuit(owned) {
+  // Les procès ne dépendent plus d'arbitrages d'achats : toutes les
+  // catégories liées aux matières partent d'un poids nul.
   const sliderTriggerWeights = {
     eau: 0, energie: 0, emballages: 0, logistique: 0, fournisseurs: 0,
   };
-  if (purchaseSliders) {
-    for (const key of PURCHASE_SLIDER_KEYS) {
-      const idx = purchaseSliders[key] != null ? purchaseSliders[key] : 2;
-      if (idx >= 3) sliderTriggerWeights[key] = (idx - 2) * 2; // 2 ou 4 selon Eco/Limite
-    }
-  }
   const conformWeight = 0.5; // Toujours un peu de risque conformité (cotisations/fiscal)
   // Pondération par procès en fonction du slider qui le déclenche
   const weighted = [];
@@ -1825,14 +1508,6 @@ const UPGRADES = [
     longDesc: { fr: "Fred atteint son palier ultime : Directeur des Opérations. Cycles de 2s qui sortent 66 glaçons d'un coup, le top de la hiérarchie opérationnelle.", en: "Fred reaches his ultimate tier: Operations Director. 2-second cycles outputting 66 ice cubes at a time, the top of the operational hierarchy.", es: "Fred alcanza su nivel máximo: Director de Operaciones. Ciclos de 2s que sacan 66 cubitos a la vez, el tope de la jerarquía operacional.", zh: "弗雷德达到最高级别：运营总监。2秒周期，每次出66块冰,,运营层级的顶峰。", ru: "Фред достигает высшего уровня: Операционный директор. 2-секундные циклы, выдающие по 66 кубиков за раз, вершина операционной иерархии.", it: "Fred raggiunge il suo livello finale: Direttore Operativo. Cicli da 2 secondi che producono 66 cubetti alla volta, il vertice della gerarchia operativa.", de: "Fred erreicht seine höchste Stufe: Betriebsdirektor. 2-Sekunden-Zyklen mit je 66 Eiswürfeln, die Spitze der operativen Hierarchie." },
     apply: s => ({ ...s, passiveProd: s.passiveProd + 12 }) },
   // === PHASE 2 — MARK · DIRECTEUR DES ACHATS ===
-  { id: 'mark_jr',         Icon: ShoppingCart, count: 1, destructible: false, phase: 2, name: { fr: 'Mark Acheteur Junior', en: 'Mark Junior Buyer', es: 'Mark Comprador Junior', zh: "马克, 初级采购员", ru: "Марк, Младший закупщик", it: "Mark Acquirente Junior", de: "Mark Junior-Einkäufer" }, desc: { fr: 'matières −10% · prix ×1.06', en: 'materials −10% · price ×1.06', es: 'materias −10% · precio ×1.06', zh: "原料 −10% · 价格 ×1.06", ru: "материалы −10% · цена ×1.06", it: "materie −10% · prezzo ×1.06", de: "Material −10% · Preis ×1.06" }, cost: 24000,
-    salary: { bas: 45, std: 90, haut: 135 }, salaryRole: 'mark', gradeName: { fr: "Acheteur Junior", en: "Junior Buyer", es: "Comprador Junior", zh: "初级采购员", ru: "Младший закупщик", it: "Acquirente Junior", de: "Junior-Einkäufer" },
-    longDesc: { fr: "Mark débarque avec une calculette et une logique implacable. Il négocie tes premiers contrats fournisseurs et débloque deux curseurs : eau et énergie. Tu peux désormais choisir entre la qualité (cher mais image) et l'économie (cash rapide mais risque réputation).", en: "Mark arrives with a calculator and ruthless logic. He negotiates your first supplier contracts and unlocks two sliders: water and energy. You can now choose between quality (expensive but image) and economy (quick cash but reputation risk).", es: "Mark llega con una calculadora y una lógica implacable. Negocia tus primeros contratos con proveedores y desbloquea dos cursores: agua y energía. Ahora puedes elegir entre calidad (caro pero imagen) y economía (cash rápido pero riesgo reputación).", zh: "马克带着计算器和无情的逻辑登场。他谈下你的首批供应商合同，并解锁两个滑块：水和能源。你现在可以在质量（贵但形象好）和经济（快速现金但有声誉风险）之间选择。", ru: "Марк приходит с калькулятором и беспощадной логикой. Он договаривается о ваших первых поставщиках и открывает два ползунка: вода и энергия. Теперь вы можете выбирать между качеством (дорого, но имидж) и экономией (быстрый кэш, но риск для репутации).", it: "Mark arriva con una calcolatrice e una logica spietata. Negozia i tuoi primi contratti con i fornitori e sblocca due slider: acqua ed energia. Ora puoi scegliere tra qualità (costosa ma immagine) ed economia (cash veloce ma rischio reputazione).", de: "Mark kommt mit Taschenrechner und gnadenloser Logik. Er verhandelt deine ersten Lieferantenverträge und schaltet zwei Schieber frei: Wasser und Energie. Du kannst jetzt zwischen Qualität (teuer aber Image) und Ökonomie (schnelles Cash aber Reputationsrisiko) wählen." },
-    apply: s => ({ ...s, sellMult: s.sellMult * 1.06 }) },
-  { id: 'mark_resp',       Icon: ShoppingCart, count: 2, destructible: false, phase: 3, name: { fr: 'Mark Responsable Achats', en: 'Mark Purchasing Manager', es: 'Mark Responsable de Compras', zh: "马克, 采购经理", ru: "Марк, Менеджер по закупкам", it: "Mark Responsabile Acquisti", de: "Mark Einkaufsleiter" }, desc: { fr: 'matières −20% · prix ×1.10', en: 'materials −20% · price ×1.10', es: 'materias −20% · precio ×1.10', zh: "原料 −20% · 价格 ×1.10", ru: "материалы −20% · цена ×1.10", it: "materie −20% · prezzo ×1.10", de: "Material −20% · Preis ×1.10" }, cost: 160000,
-    salary: { bas: 250, std: 500, haut: 750 }, salaryRole: 'mark', gradeName: { fr: "Responsable Achats", en: "Purchasing Manager", es: "Responsable de Compras", zh: "采购经理", ru: "Менеджер по закупкам", it: "Responsabile Acquisti", de: "Einkaufsleiter" },
-    longDesc: { fr: "Mark prend les rênes du service achats. Il négocie en gros, joue les fournisseurs les uns contre les autres, et débloque deux nouveaux curseurs : emballages et logistique. Les économies grimpent mais les risques aussi.", en: "Mark takes the reins of the purchasing department. He buys in bulk, plays suppliers off against each other, and unlocks two new sliders: packaging and logistics. Savings climb but so do risks.", es: "Mark toma las riendas del departamento de compras. Compra al por mayor, enfrenta a los proveedores entre sí y desbloquea dos cursores: embalajes y logística. Los ahorros suben pero los riesgos también.", zh: "马克接管采购部门。他大批量采购，让供应商互相竞争，并解锁两个新滑块：包装和物流。节省增加，但风险也随之上升。", ru: "Марк берёт бразды правления закупками. Он покупает оптом, стравливает поставщиков и открывает два новых ползунка: упаковка и логистика. Экономия растёт, но и риски тоже.", it: "Mark prende le redini dell'ufficio acquisti. Compra in grande, mette i fornitori uno contro l'altro e sblocca due nuovi slider: imballaggi e logistica. I risparmi salgono ma anche i rischi.", de: "Mark übernimmt die Leitung des Einkaufs. Er kauft in großen Mengen, spielt Lieferanten gegeneinander aus und schaltet zwei neue Schieber frei: Verpackung und Logistik. Die Einsparungen steigen, aber auch die Risiken." },
-    apply: s => ({ ...s, sellMult: s.sellMult * 1.10 }) },
   { id: 'comptable_senior', Icon: Briefcase, count: 1, destructible: false, phase: 2, name: { fr: 'Comptable senior', en: 'Senior accountant', es: 'Contable senior', zh: "高级会计", ru: "Старший бухгалтер", it: "Contabile senior", de: "Senior-Buchhalter" }, desc: { fr: 'prix ×1.05 · charges ×0.8', en: 'price ×1.05 · costs ×0.8', es: 'precio ×1.05 · cargas ×0.8', zh: "价格 ×1.05 · 费用 ×0.8", ru: "цена ×1.05 · расходы ×0.8", it: "prezzo ×1.05 · spese ×0.8", de: "Preis ×1.05 · Kosten ×0.8" }, cost: 56000,
     longDesc: { fr: "Un vrai comptable qui sait optimiser tes charges, anticiper les échéances, ouvrir les bons comptes. Tes coûts administratifs sont divisés par deux et ta marge nette gagne 5 points.", en: "A real accountant who knows how to optimize charges, anticipate deadlines, open the right accounts. Your admin costs are halved and your net margin gains 5 points.", es: "Un contable de verdad que sabe optimizar tus cargas, anticipar plazos, abrir las cuentas correctas. Tus costes administrativos se reducen a la mitad y tu margen neto gana 5 puntos.", zh: "一位真正的会计师，懂得优化开支、预判到期日、开对账户。你的行政成本减半，净利润率上升5点。", ru: "Настоящий бухгалтер, который умеет оптимизировать расходы, предвидеть сроки, открывать правильные счета. Ваши административные расходы уменьшаются вдвое, чистая маржа растёт на 5 пунктов.", it: "Un vero contabile che sa ottimizzare gli oneri, anticipare le scadenze, aprire i conti giusti. I tuoi costi amministrativi si dimezzano e il margine netto guadagna 5 punti.", de: "Ein echter Buchhalter, der Lasten optimiert, Fristen vorausplant, die richtigen Konten eröffnet. Deine Verwaltungskosten halbieren sich und deine Nettomarge gewinnt 5 Punkte." },
     apply: s => ({ ...s, sellMult: s.sellMult * 1.05, utilityCostMult: (s.utilityCostMult || 1) * 0.80 }) },
@@ -1864,14 +1539,6 @@ const UPGRADES = [
     longDesc: { fr: "Tu doubles ta zone de dépôt avec un hub secondaire. La capacité totale de ta flotte est multipliée par 1.5, et tu débloques un emplacement camion supplémentaire pour les contrats parallèles.", en: "You double your depot zone with a secondary hub. Total fleet capacity is multiplied by 1.5, and you unlock an extra truck slot for parallel contracts.", es: "Duplicas tu zona de depósito con un hub secundario. La capacidad total de tu flota se multiplica por 1.5 y desbloqueas un espacio de camión extra para contratos paralelos.", zh: "你用第二枢纽扩展仓储区域。车队总容量 ×1.5，解锁额外卡车位以处理并行合同。", ru: "Удваиваете зону склада вторичным хабом. Общая ёмкость парка ×1.5, открываете дополнительный слот грузовика для параллельных контрактов.", it: "Raddoppi la zona deposito con un hub secondario. La capacità totale della flotta ×1.5, sblocchi uno slot camion in più per contratti paralleli.", de: "Du verdoppelst deine Depotzone mit einem Sekundärhub. Gesamtflottenkapazität ×1.5, du schaltest einen zusätzlichen LKW-Slot für parallele Verträge frei." },
     apply: s => ({ ...s, linesBonus: s.linesBonus + 1 }) },
   // === PHASE 2 — SABINE · JURIDIQUE ===
-  { id: 'sabine_jr',       Icon: Scale,        count: 1, destructible: false, phase: 2, name: { fr: 'Sabine Juriste Junior', en: 'Sabine Junior Lawyer', es: 'Sabine Jurista Junior', zh: "萨宾, 初级法务", ru: "Сабина, Младший юрист", it: "Sabine Giurista Junior", de: "Sabine Junior-Juristin" }, desc: { fr: 'Gère 1 procès/an · dommages −35%', en: 'Handles 1 lawsuit/year · damages −35%', es: 'Gestiona 1 juicio/año · daños −35%', zh: "每年处理1起诉讼 · 损失 −35%", ru: "Ведёт 1 иск/год · ущерб −35%", it: "Gestisce 1 causa/anno · danni −35%", de: "Behandelt 1 Klage/Jahr · Schäden −35%" }, cost: 56000,
-    salary: { bas: 50, std: 100, haut: 150 }, salaryRole: 'sabine', gradeName: { fr: "Juriste Junior", en: "Junior Lawyer", es: "Jurista Junior", zh: "初级法务", ru: "Младший юрист", it: "Giurista Junior", de: "Junior-Juristin" },
-    longDesc: { fr: "Sabine arrive direct de la fac de droit, pas encore tout vu mais déjà mordante. Elle gère 1 procès par an : glissade sur glaçon, étouffement, allergie, tout ce qui peut t'arriver. Dommages divisés par 1.4 quand elle s'en occupe.", en: "Sabine straight out of law school, hasn't seen it all yet but already sharp. She handles 1 lawsuit a year: slip on an ice cube, choking, allergy, anything that can happen. Damages divided by 1.4 when she's on it.", es: "Sabine sale directa de la facultad de derecho, no lo ha visto todo aún pero ya muerde. Gestiona 1 juicio al año: resbalón con cubito, atragantamiento, alergia, todo lo que pueda pasar. Daños divididos por 1.4 cuando se encarga.", zh: "萨宾刚从法学院毕业，见识还不多但已经锋利。她每年处理1起诉讼：踩到冰块滑倒、噎到、过敏，凡是可能发生的。她处理时损失除以1.4。", ru: "Сабина прямо из юрфака, ещё не всё повидала, но уже зубастая. Она ведёт 1 иск в год: поскальзывание на кубике льда, удушение, аллергия, всё что может случиться. Ущерб делится на 1.4, когда она занимается.", it: "Sabine appena uscita dalla facoltà di legge, non ha ancora visto tutto ma morde già. Gestisce 1 causa l'anno: scivolata su cubetto, soffocamento, allergia, tutto ciò che può capitare. Danni divisi per 1.4 quando se ne occupa.", de: "Sabine direkt aus der Jurafakultät, hat noch nicht alles gesehen, aber schon zupackend. Sie kümmert sich um 1 Klage pro Jahr: Ausrutschen auf Eiswürfel, Ersticken, Allergie, alles was passieren kann. Schäden geteilt durch 1.4, wenn sie dran ist." },
-    apply: s => ({ ...s, sabineLawsuitsPerYear: 1, sabineDamageMult: 0.65 }) },
-  { id: 'sabine_sr',       Icon: Scale,        count: 2, destructible: false, phase: 3, name: { fr: 'Sabine Avocate Senior', en: 'Sabine Senior Lawyer', es: 'Sabine Abogada Senior', zh: "萨宾, 高级律师", ru: "Сабина, Старший юрист", it: "Sabine Avvocata Senior", de: "Sabine Senior-Anwältin" }, desc: { fr: 'Gère 2 procès/an · dommages −60%', en: 'Handles 2 lawsuits/year · damages −60%', es: 'Gestiona 2 juicios/año · daños −60%', zh: "每年处理2起诉讼 · 损失 −60%", ru: "Ведёт 2 иска/год · ущерб −60%", it: "Gestisce 2 cause/anno · danni −60%", de: "Behandelt 2 Klagen/Jahr · Schäden −60%" }, cost: 240000,
-    salary: { bas: 250, std: 500, haut: 750 }, salaryRole: 'sabine', gradeName: { fr: "Avocate Senior", en: "Senior Lawyer", es: "Abogada Senior", zh: "高级律师", ru: "Старший юрист", it: "Avvocata Senior", de: "Senior-Anwältin" },
-    longDesc: { fr: "Sabine passe le barreau et devient ta vraie avocate. Elle gère 3 procès par an, divise les dommages par 2.5, et anticipe les emmerdes : si tu pousses tes curseurs achats au rouge, elle t'alerte avant que ça parte en cour.", en: "Sabine passes the bar and becomes your real lawyer. She handles 3 lawsuits a year, divides damages by 2.5, and anticipates trouble: if you push your purchase sliders into the red, she warns you before it ends up in court.", es: "Sabine pasa el examen y se convierte en tu verdadera abogada. Gestiona 3 juicios al año, divide los daños por 2.5 y anticipa problemas: si pones tus cursores de compras en rojo, te avisa antes de que llegue a juicio.", zh: "萨宾通过律师资格考试，成为你真正的律师。每年处理3起诉讼，损失除以2.5，并预判麻烦：如果你把采购滑块推到红区，她会在事情上法庭之前警告你。", ru: "Сабина сдаёт адвокатский экзамен и становится вашим настоящим адвокатом. Ведёт 3 иска в год, делит ущерб на 2.5, предвидит проблемы: если толкаете ползунки закупок в красную зону, она предупреждает до суда.", it: "Sabine passa l'esame da avvocato e diventa la tua vera avvocata. Gestisce 3 cause l'anno, divide i danni per 2.5 e anticipa i guai: se spingi i tuoi slider acquisti nel rosso, ti avverte prima che finisca in tribunale.", de: "Sabine besteht die Anwaltsprüfung und wird deine echte Anwältin. Sie behandelt 3 Klagen pro Jahr, teilt die Schäden durch 2.5 und antizipiert Ärger: Schiebst du deine Einkaufs-Schieber in den roten Bereich, warnt sie dich, bevor es vor Gericht endet." },
-    apply: s => ({ ...s, sabineLawsuitsPerYear: 2, sabineDamageMult: 0.4 }) },
   // === PHASE 3 — LA MARQUE ===
   { id: 'agence_marketing', Icon: Building2, count: 1, destructible: false, phase: 2, phaseUnlock: 3, requireUnlock: 'robertCall2', name: { fr: 'Nouveau siège social', en: 'New headquarters', es: 'Nueva sede social', zh: "新总部", ru: "Новая штаб-квартира", it: "Nuova sede", de: "Neue Firmenzentrale" }, desc: { fr: '→ PHASE 03 · Bureaux · cap +2500', en: '→ PHASE 03 · Offices · cap +2500', es: '→ FASE 03 · Oficinas · cap +2500', zh: "→ 第03阶段 · 办公室 · 容量 +2500", ru: "→ ФАЗА 03 · Офисы · ёмк +2500", it: "→ FASE 03 · Uffici · cap +2500", de: "→ PHASE 03 · Büros · Kap +2500" }, cost: 80000,
     longDesc: { fr: "Tu signes le bail d'un véritable siège social : trois niveaux, production au rez-de-chaussée, bureaux marketing-ventes au premier, administration et juridique au second. Capacité de stockage augmentée de 2500 GL grâce aux espaces auxiliaires. Cette installation débloque la Phase 03 et ouvre l'horizon : tu peux désormais structurer ta marque, ton marketing et tes fonctions support depuis de vrais bureaux.", en: "You sign the lease on a real headquarters: three floors, production on the ground floor, marketing-sales offices on the first, administration and legal on the second. Storage capacity increased by 2500 IC thanks to auxiliary spaces. This move unlocks Phase 03 and opens the horizon: you can now structure your brand, your marketing and your support functions from real offices.", es: "Firmas el contrato de una verdadera sede: tres niveles, producción en planta baja, oficinas marketing-ventas en el primero, administración y jurídico en el segundo. Capacidad de almacenamiento aumentada en 2500 CB gracias a los espacios auxiliares. Esta instalación desbloquea la Fase 03 y abre el horizonte: ahora puedes estructurar tu marca, tu marketing y tus funciones de apoyo desde oficinas de verdad.", zh: "你签下真正总部的租约：三层楼，一楼生产，一楼营销与销售办公室，二楼行政与法务。辅助空间让仓储容量增加2500冰块。这次搬迁解锁第03阶段并打开了视野：你现在可以在真正的办公室里构建你的品牌、营销和支持职能。", ru: "Вы подписываете аренду настоящей штаб-квартиры: три уровня — производство на первом, маркетинг-продажи на втором, администрация и юрист на третьем. Ёмкость хранения увеличена на 2500 К благодаря вспомогательным помещениям. Это переселение открывает Фазу 03 и расширяет горизонт: теперь можно выстроить бренд, маркетинг и вспомогательные функции в настоящих офисах.", it: "Firmi il contratto di una vera sede: tre piani, produzione al piano terra, uffici marketing-vendite al primo, amministrazione e legale al secondo. Capacità di stoccaggio aumentata di 2500 CB grazie agli spazi ausiliari. Questo trasloco sblocca la Fase 03 e apre l'orizzonte: ora puoi strutturare il tuo marchio, il tuo marketing e le tue funzioni di supporto da veri uffici.", de: "Du unterschreibst den Mietvertrag für eine echte Firmenzentrale: drei Ebenen, Produktion im Erdgeschoss, Marketing-Vertriebsbüros im ersten Stock, Verwaltung und Recht im zweiten. Lagerkapazität um 2500 EW erhöht dank Nebenräume. Dieser Umzug schaltet Phase 03 frei und öffnet den Horizont: Du kannst jetzt deine Marke, dein Marketing und deine Support-Funktionen aus echten Büros heraus aufbauen." },
@@ -1892,10 +1559,6 @@ const UPGRADES = [
     longDesc: { fr: "Karen devient DRH. Niveau de base moral +8 pour toute l'équipe. Le récupération du team-building tombe à 120s (au lieu de 240s). C'est le top de la pyramide : ton équipe est devenue une vraie communauté.", en: "Karen becomes HR Director. Morale base level +8 for the entire team. Team-building recovery drops to 120s (instead of 240s). Top of the pyramid: your team has become a real community.", es: "Karen se vuelve DRH. Nivel base moral +8 para todo el equipo. El recuperación del team-building baja a 120s (en vez de 240s). Tope de la pirámide: tu equipo se ha convertido en una verdadera comunidad.", zh: "凯伦成为人事总监。全团队士气基线 +8。团建冷却降至120秒（而非240秒）。金字塔顶端：你的团队已成为一个真正的集体。", ru: "Карен становится HR-директором. Базовая мораль +8 для всей команды. Перезарядка тимбилдинга падает до 120с (вместо 240с). Вершина пирамиды: ваша команда стала настоящим сообществом.", it: "Karen diventa Direttrice RU. Livello base morale +8 per tutto il team. La ricarica del team-building scende a 120s (invece di 240s). Vertice della piramide: il tuo team è diventato una vera comunità.", de: "Karen wird HR-Direktorin. Moral-Basis +8 fürs ganze Team. Teambuilding-Abklingzeit sinkt auf 120s (statt 240s). Spitze der Pyramide: Dein Team ist eine echte Gemeinschaft geworden." },
     apply: s => ({ ...s }) },
   // === PHASE 3 — MARK · DIRECTEUR ACHATS ===
-  { id: 'mark_dir',        Icon: ShoppingCart, count: 3, destructible: false, phase: 3, name: { fr: 'Mark Directeur des Achats', en: 'Mark Purchasing Director', es: 'Mark Director de Compras', zh: "马克, 采购总监", ru: "Марк, Директор по закупкам", it: "Mark Direttore Acquisti", de: "Mark Einkaufsdirektor" }, desc: { fr: 'matières −35% · prix ×1.15', en: 'materials −35% · price ×1.15', es: 'materias −35% · precio ×1.15', zh: "原料 −35% · 价格 ×1.15", ru: "материалы −35% · цена ×1.15", it: "materie −35% · prezzo ×1.15", de: "Material −35% · Preis ×1.15" }, cost: 610000,
-    salary: { bas: 1385, std: 2100, haut: 3275 }, salaryRole: 'mark', gradeName: { fr: "Directeur des Achats", en: "Purchasing Director", es: "Director de Compras", zh: "采购总监", ru: "Директор по закупкам", it: "Direttore Acquisti", de: "Einkaufsdirektor" },
-    longDesc: { fr: "Mark devient Directeur des Achats. Il débloque le curseur fournisseurs (locaux, UE, offshore) et la négociation grands volumes : −35% sur tout. Il connait par cœur le prix de chaque ingrédient sur les cinq continents.", en: "Mark becomes Purchasing Director. He unlocks the supplier slider (local, EU, offshore) and large-volume negotiation: −35% on everything. He knows the price of every ingredient on all five continents by heart.", es: "Mark se vuelve Director de Compras. Desbloquea el cursor proveedores (locales, UE, offshore) y negociación de grandes volúmenes: −35% en todo. Se sabe de memoria el precio de cada ingrediente en los cinco continentes.", zh: "马克成为采购总监。他解锁供应商滑块（本地、欧盟、离岸）和大批量议价：全线 −35%。五大洲每一种原料的价格他都倒背如流。", ru: "Марк становится Директором по закупкам. Открывает ползунок поставщики (локальные, ЕС, оффшорные) и переговоры по большим объёмам: −35% на всё. Знает наизусть цену каждого ингредиента на пяти континентах.", it: "Mark diventa Direttore Acquisti. Sblocca lo slider fornitori (locali, UE, offshore) e la negoziazione grandi volumi: −35% su tutto. Conosce a memoria il prezzo di ogni ingrediente nei cinque continenti.", de: "Mark wird Einkaufsdirektor. Schaltet den Lieferanten-Schieber (lokal, EU, Offshore) und Großvolumen-Verhandlung frei: −35% auf alles. Er kennt den Preis jeder Zutat auf allen fünf Kontinenten auswendig." },
-    apply: s => ({ ...s, sellMult: s.sellMult * 1.15 }) },
   // === PHASE 3 — MEGA-UPGRADES TIER 1 ===
   { id: 'usine_etendue', Icon: Factory, count: 1, destructible: false, phase: 3, name: { fr: 'Usine étendue', en: 'Extended factory', es: 'Fábrica ampliada', zh: "扩建工厂", ru: "Расширенная фабрика", it: "Fabbrica estesa", de: "Erweiterte Fabrik" }, desc: { fr: 'cap +3000 · prod ×1.07', en: 'cap +3000 · prod ×1.07', es: 'cap +3000 · prod ×1.07', zh: "容量 +3000 · 生产 ×1.07", ru: "ёмк +3000 · произв ×1.07", it: "cap +3000 · prod ×1.07", de: "Kap +3000 · Prod ×1.07" }, cost: 320000,
     longDesc: { fr: "Tu rachètes l'entrepôt mitoyen et tu casses le mur. L'espace s'étend : capacité +3000 et production +7%. Premier vrai saut industriel.", en: "You buy the adjacent warehouse and knock down the wall. Space expands: capacity +3000 and production +7%. First real industrial leap.", es: "Compras el almacén contiguo y derribas el muro. El espacio se amplía: capacidad +3000 y producción +7%. Primer salto industrial real.", zh: "你买下隔壁仓库并打通墙壁。空间扩展：容量 +3000，产量 +7%。第一次真正的工业飞跃。", ru: "Покупаешь соседний склад и сносишь стену. Пространство расширяется: ёмкость +3000, производство +7%. Первый настоящий промышленный скачок.", it: "Compri il magazzino adiacente e abbatti il muro. Lo spazio si amplia: capacità +3000 e produzione +7%. Primo vero salto industriale.", de: "Du kaufst das angrenzende Lager und reißt die Wand ein. Der Raum erweitert sich: Kapazität +3000 und Produktion +7%. Erster echter Industriesprung." },
@@ -1942,10 +1605,6 @@ const UPGRADES = [
     longDesc: { fr: "Une flotte de 10 camions et un réseau de dépôts dans toutes les grandes villes du pays. Tu peux livrer n'importe où sous 24h. Le maillage complet qui te rend incontournable.", en: "A 10-truck fleet and a depot network in every major city. You can deliver anywhere within 24h. The complete coverage that makes you essential.", es: "Una flota de 10 camiones y una red de depósitos en todas las grandes ciudades. Puedes entregar en cualquier lugar en 24h. La cobertura completa que te hace imprescindible.", zh: "10辆卡车车队加全国大城市的仓库网络。24小时内可送达任何地方。完整覆盖让你不可或缺。", ru: "Парк из 10 грузовиков и сеть складов во всех крупных городах. Доставка куда угодно за 24ч. Полное покрытие делает вас незаменимым.", it: "Flotta di 10 camion e rete depositi in tutte le grandi città. Consegna ovunque entro 24h. La copertura completa che ti rende indispensabile.", de: "Eine 10-LKW-Flotte und ein Depot-Netzwerk in allen Großstädten. Lieferung überall innerhalb 24h. Die komplette Abdeckung macht dich unverzichtbar." },
     apply: s => ({ ...s, linesBonus: s.linesBonus + 4, truckColdMult: s.truckColdMult * 0.5 }) },
   // === PHASE 3 — SABINE · DG JURIDIQUE ===
-  { id: 'sabine_dg',       Icon: Scale,        count: 3, destructible: false, phase: 3, name: { fr: 'Sabine DG Juridique', en: 'Sabine Chief Legal Officer', es: 'Sabine DG Jurídico', zh: "萨宾, 法务总监", ru: "Сабина, Главный юрисконсульт", it: "Sabine DG Legale", de: "Sabine Chefjuristin" }, desc: { fr: 'Gère 3 procès/an · dommages −80%', en: 'Handles 3 lawsuits/year · damages −80%', es: 'Gestiona 3 juicios/año · daños −80%', zh: "每年处理3起诉讼 · 损失 −80%", ru: "Ведёт 3 иска/год · ущерб −80%", it: "Gestisce 3 cause/anno · danni −80%", de: "Behandelt 3 Klagen/Jahr · Schäden −80%" }, cost: 560000,
-    salary: { bas: 1620, std: 2470, haut: 3850 }, salaryRole: 'sabine', gradeName: { fr: "DG Juridique", en: "Chief Legal Officer", es: "DG Jurídico", zh: "法务总监", ru: "Главный юрисконсульт", it: "DG Legale", de: "Chefjuristin" },
-    longDesc: { fr: "Sabine devient Directrice Générale du Juridique. Plus rien ne te touche : tous les procès sont gérés, dommages divisés par 10. Elle débloque les contrats sensibles : hôpitaux, gouvernement, événements de prestige où aucune erreur n'est tolérée mais où l'argent coule à flots.", en: "Sabine becomes Chief Legal Officer. Nothing touches you anymore: all lawsuits handled, damages divided by 10. She unlocks sensitive contracts: hospitals, government, prestige events where no error is tolerated but the money flows.", es: "Sabine se vuelve Directora General Jurídica. Ya nada te toca: todos los juicios gestionados, daños divididos por 10. Desbloquea contratos sensibles: hospitales, gobierno, eventos de prestigio donde no se tolera error pero el dinero corre.", zh: "萨宾成为法务总监。再没什么能碰到你：所有诉讼都被处理，损失除以10。她解锁敏感合同：医院、政府、不容错误但金钱滚滚的高端活动。", ru: "Сабина становится Главным юрисконсультом. Вас больше ничто не трогает: все иски ведутся, ущерб делится на 10. Открывает чувствительные контракты: больницы, правительство, престижные мероприятия, где не терпят ошибок, но деньги текут рекой.", it: "Sabine diventa Direttrice Generale Legale. Più nulla ti tocca: tutte le cause gestite, danni divisi per 10. Sblocca i contratti sensibili: ospedali, governo, eventi di prestigio dove nessun errore è tollerato ma il denaro scorre.", de: "Sabine wird Chefjuristin. Nichts trifft dich mehr: alle Klagen werden bearbeitet, Schäden durch 10 geteilt. Sie schaltet sensible Verträge frei: Krankenhäuser, Regierung, Prestige-Events, bei denen kein Fehler toleriert wird, aber das Geld fließt." },
-    apply: s => ({ ...s, sabineLawsuitsPerYear: 3, sabineDamageMult: 0.2, notoBonus: (s.notoBonus || 0) + 10 }) },
   { id: 'camion_4',        Icon: Truck,     count: 4, destructible: false, phase: 3, requireUnlock: 'camion_1', name: { fr: 'Promouvoir Lenny · Directeur Logistique', en: 'Promote Lenny · Logistics Director', es: 'Promover a Lenny · Director Logística', zh: "晋升莱尼 · 物流总监", ru: "Повысить Ленни · Директор логистики", it: "Promuovi Lenny · Direttore Logistica", de: "Lenny befördern · Logistikdirektor" }, desc: { fr: '+1 semi · cap livr. 6000', en: '+1 semi-trailer · cap 6000', es: '+1 semirremolque · cap 6000', zh: "+1辆半挂车 · 容量6000", ru: "+1 полуприцеп · ёмк 6000", it: "+1 semirimorchio · cap 6000", de: "+1 Sattelzug · Kap 6000" }, cost: 43000,
     longDesc: { fr: "Tu achètes un 4e camion et Lenny atteint son palier ultime : Directeur Logistique. Tu peux paralléliser 4 livraisons retail simultanées.", en: "You buy a 4th truck and Lenny reaches his ultimate tier: Logistics Director. You can run 4 simultaneous retail deliveries in parallel.", es: "Compras un 4º camión y Lenny alcanza su nivel máximo: Director de Logística. Puedes paralelizar 4 entregas retail simultáneas.", zh: "你购买第4辆卡车，莱尼达到最高级别：物流总监。可以并行运行4个同时的零售配送。", ru: "Вы покупаете 4-й грузовик, и Ленни достигает высшего уровня: Директор логистики. Можно вести 4 одновременные розничные доставки параллельно.", it: "Compri un 4° camion e Lenny raggiunge il suo livello finale: Direttore Logistica. Puoi gestire 4 consegne retail simultanee in parallelo.", de: "Du kaufst einen 4. LKW und Lenny erreicht seine höchste Stufe: Logistikdirektor. Du kannst 4 Einzelhandelslieferungen gleichzeitig parallel fahren." },
     apply: s => ({ ...s, linesBonus: s.linesBonus + 1, truckMaxCap: Math.max(s.truckMaxCap, 6000) }) },
@@ -2850,34 +2509,6 @@ const BONUS_THANKS = {
       { fr: "Ça compte. L'équipe va le sentir, crois-moi.", en: "It matters. The team will feel it, trust me.", es: "Importa. El equipo lo notará, créeme.", zh: "这很重要。团队会感受到的，相信我。", ru: "Это важно. Команда это почувствует, поверь.", it: "Conta. La squadra lo sentirà, fidati.", de: "Das zählt. Das Team wird es spüren, glaub mir." },
     ],
   },
-  mark: {
-    sarcastic: [
-      { fr: "Une prime. J'aurais négocié mieux, mais je prends.", en: "A bonus. I'd have negotiated better, but I'll take it.", es: "Una prima. Habría negociado mejor, pero la cojo.", zh: "奖金。我本可以谈得更好，但我收下。", ru: "Бонус. Я бы выторговал больше, но возьму.", it: "Un bonus. Avrei trattato meglio, ma lo prendo.", de: "Eine Prämie. Ich hätte besser verhandelt, aber ich nehm's." },
-      { fr: "Tu paies enfin le prix du marché. Pour moi.", en: "You're finally paying market price. For me.", es: "Por fin pagas precio de mercado. Por mí.", zh: "你终于按市场价付了。为我。", ru: "Наконец-то платишь рыночную цену. За меня.", it: "Finalmente paghi il prezzo di mercato. Per me.", de: "Du zahlst endlich Marktpreis. Für mich." },
-    ],
-    lukewarm: [
-      { fr: "Ok, merci. Bon calcul.", en: "Ok, thanks. Good call.", es: "Vale, gracias. Buen cálculo.", zh: "好，谢谢。算得不错。", ru: "Ок, спасибо. Верный расчёт.", it: "Ok, grazie. Buon calcolo.", de: "Ok, danke. Gute Rechnung." },
-      { fr: "Apprécié. Je retourne aux fournisseurs.", en: "Appreciated. Back to the suppliers.", es: "Apreciado. Vuelvo con los proveedores.", zh: "感激。回去找供应商了。", ru: "Ценю. Обратно к поставщикам.", it: "Apprezzato. Torno dai fornitori.", de: "Geschätzt. Zurück zu den Lieferanten." },
-    ],
-    sincere: [
-      { fr: "Merci. Je vais te trouver de meilleures marges en échange.", en: "Thanks. I'll find you better margins in return.", es: "Gracias. Te conseguiré mejores márgenes a cambio.", zh: "谢谢。作为回报，我给你找更好的利润率。", ru: "Спасибо. Взамен найду тебе маржу получше.", it: "Grazie. In cambio ti troverò margini migliori.", de: "Danke. Dafür hole ich dir bessere Margen raus." },
-      { fr: "Bien joué. C'est le genre de deal que j'aime.", en: "Well played. That's the kind of deal I like.", es: "Bien jugado. Ese es el tipo de trato que me gusta.", zh: "干得好。这才是我喜欢的交易。", ru: "Хорошо сыграно. Вот такие сделки я люблю.", it: "Ben fatto. È il tipo di accordo che mi piace.", de: "Gut gespielt. Das ist die Art Deal, die ich mag." },
-    ],
-  },
-  sabine: {
-    sarcastic: [
-      { fr: "Une prime. Sans clause cachée ? J'ai un doute.", en: "A bonus. No hidden clause? I have doubts.", es: "Una prima. ¿Sin cláusula oculta? Lo dudo.", zh: "奖金。没有隐藏条款？我表示怀疑。", ru: "Бонус. Без скрытых пунктов? Сомневаюсь.", it: "Un bonus. Senza clausole nascoste? Ho dei dubbi.", de: "Eine Prämie. Ohne versteckte Klausel? Ich zweifle." },
-      { fr: "Je lis tout, même les primes. Celle-ci passe. De justesse.", en: "I read everything, even bonuses. This one passes. Barely.", es: "Lo leo todo, hasta las primas. Esta pasa. Por poco.", zh: "我什么都读，连奖金也是。这个通过了。勉强。", ru: "Я читаю всё, даже бонусы. Этот проходит. Едва.", it: "Leggo tutto, anche i bonus. Questo passa. Per un pelo.", de: "Ich lese alles, sogar Prämien. Die hier geht durch. Knapp." },
-    ],
-    lukewarm: [
-      { fr: "Merci. C'est dûment enregistré.", en: "Thanks. Duly recorded.", es: "Gracias. Debidamente registrado.", zh: "谢谢。已正式记录。", ru: "Спасибо. Должным образом зафиксировано.", it: "Grazie. Debitamente registrato.", de: "Danke. Ordnungsgemäß erfasst." },
-      { fr: "Correct. Je retourne aux dossiers.", en: "Fair. Back to the files.", es: "Correcto. Vuelvo a los expedientes.", zh: "可以。回去看卷宗了。", ru: "Справедливо. Обратно к делам.", it: "Corretto. Torno ai fascicoli.", de: "In Ordnung. Zurück zu den Akten." },
-    ],
-    sincere: [
-      { fr: "Merci. Ce genre de geste, ça crée de la loyauté. Légalement et sincèrement.", en: "Thanks. Gestures like this build loyalty. Legally and sincerely.", es: "Gracias. Estos gestos crean lealtad. Legal y sinceramente.", zh: "谢谢。这种举动能建立忠诚。无论法律上还是真心上。", ru: "Спасибо. Такие жесты создают лояльность. Юридически и искренне.", it: "Grazie. Gesti così creano lealtà. Legalmente e sinceramente.", de: "Danke. Solche Gesten schaffen Loyalität. Rechtlich und ehrlich." },
-      { fr: "Apprécié. Je blinderai tes contrats encore mieux.", en: "Appreciated. I'll bulletproof your contracts even better.", es: "Apreciado. Blindaré tus contratos aún mejor.", zh: "感激。我会把你的合同做得更滴水不漏。", ru: "Ценю. Защищу твои контракты ещё надёжнее.", it: "Apprezzato. Blinderò i tuoi contratti ancora meglio.", de: "Geschätzt. Ich mache deine Verträge noch wasserdichter." },
-    ],
-  },
 };
 
 const MORAL_WARNINGS = {
@@ -3292,42 +2923,8 @@ const UPGRADE_THANKS = {
     it: "Direttrice HR. Ora mettiamo una vera politica sociale su un'azienda che fa cubetti sotto pressione. Morale di base +8, mediazione preventiva, azioni due volte più rapide. Cresceremo senza trasformare Fred in un mobile.",
     de: "HR-Direktorin. Jetzt legen wir eine echte Sozialpolitik über ein Unternehmen, das unter Druck Eiswürfel herstellt. Grundmoral +8, präventive Mediation, Aktionen doppelt so schnell. Wir wachsen, ohne Fred in ein Möbelstück zu verwandeln." },
   // MARK — achats
-  // (mark_jr n'a pas de remerciement : c'est la 1ère embauche, déjà gérée par hire_intro.mark)
-  mark_resp: { speaker: 'Mark',
-    fr: "Responsable Achats. Emballages et logistique entrent dans mon périmètre. −20 % sur les matières, marge +5 %. Les fournisseurs vont appeler ça de la pression. Moi, j'appelle ça mardi.",
-    en: "Procurement Lead. Packaging and logistics enter my scope. −20% on raw materials, margin +5%. Suppliers will call it pressure. I call it Tuesday.",
-    es: "Responsable de Compras. Embalajes y logística entran en mi perímetro. −20 % en materias, margen +5 %. Los proveedores lo llamarán presión. Yo lo llamo martes.",
-    zh: "采购主管。包装和物流也归我管。原料−20%，利润+5%。供应商管这叫施压。我管这叫周二。",
-    ru: "Руководитель закупок. Упаковка и логистика теперь в моём периметре. −20 % на материалы, маржа +5 %. Поставщики назовут это давлением. Я называю это вторником.",
-    it: "Responsabile Acquisti. Imballaggi e logistica entrano nel mio perimetro. −20% sulle materie, margine +5%. I fornitori la chiameranno pressione. Io la chiamo martedì.",
-    de: "Einkaufsleiter. Verpackungen und Logistik kommen in meinen Bereich. −20 % auf Rohstoffe, Marge +5 %. Lieferanten werden es Druck nennen. Ich nenne es Dienstag." },
-  mark_dir: { speaker: 'Mark',
-    fr: "Directeur des Achats. International, enfin. −35 % sur tout, marge +18 %. Je connais le prix de l'eau sur trois continents et le moment exact où un fournisseur commence à mentir.",
-    en: "Procurement Director. International, finally. −35% on everything, margin +18%. I know the price of water on three continents and the exact moment a supplier starts lying.",
-    es: "Director de Compras. Internacional, por fin. −35 % en todo, margen +18 %. Conozco el precio del agua en tres continentes y el momento exacto en que un proveedor empieza a mentir.",
-    zh: "采购总监。终于做到国际了。一切−35%，利润+18%。我知道三个大洲的水价，也知道一个供应商开始撒谎的精确瞬间。",
-    ru: "Директор по закупкам. Международный уровень, наконец. −35 % на всё, маржа +18 %. Я знаю цену воды на трёх континентах и точный момент, когда поставщик начинает врать.",
-    it: "Direttore Acquisti. Internazionale, finalmente. −35% su tutto, margine +18%. Conosco il prezzo dell'acqua su tre continenti e il momento esatto in cui un fornitore comincia a mentire.",
-    de: "Einkaufsdirektor. International, endlich. −35 % auf alles, Marge +18 %. Ich kenne den Wasserpreis auf drei Kontinenten und den genauen Moment, in dem ein Lieferant zu lügen anfängt." },
 
   // SABINE — juridique
-  // (sabine_jr n'a pas de remerciement : c'est la 1ère embauche, déjà gérée par hire_intro.sabine)
-  sabine_sr: { speaker: 'Sabine',
-    fr: "Avocate, désormais. Trois procès par an, dommages divisés par 2,5. Je préfère prévenir avant le tribunal, parce que le tribunal coûte cher et sent la moquette fatiguée.",
-    en: "Barrister now. Three lawsuits a year, damages divided by 2.5. I'd rather prevent before court, because court is expensive and smells of tired carpet.",
-    es: "Ya soy abogada. Tres juicios al año, daños divididos por 2,5. Prefiero prevenir antes del tribunal, porque el tribunal cuesta caro y huele a moqueta cansada.",
-    zh: "现在是律师了。每年3起诉讼，损失÷2.5。我更喜欢在上法庭之前就处理掉，因为法庭又贵，又一股累瘫的地毯味。",
-    ru: "Теперь адвокат. Три иска в год, ущерб делится на 2,5. Предпочитаю предотвращать до суда, потому что суд дорог и пахнет уставшим ковролином.",
-    it: "Avvocato, ora. Tre cause l'anno, danni divisi per 2,5. Preferisco prevenire prima del tribunale, perché il tribunale costa caro e sa di moquette stanca.",
-    de: "Jetzt Anwältin. Drei Klagen pro Jahr, Schäden durch 2,5 geteilt. Ich beuge lieber vor dem Gericht vor, denn das Gericht ist teuer und riecht nach müdem Teppich." },
-  sabine_dg: { speaker: 'Sabine',
-    fr: "Directrice Générale du Juridique. Tous les procès gérés, dommages réduits de 90 %. À ce niveau, le risque existe encore, mais il porte une cravate et demande mon autorisation avant d'entrer.",
-    en: "Chief Legal Officer. All lawsuits handled, damages reduced by 90%. At this level, risk still exists, but it wears a tie and asks my permission before entering.",
-    es: "Directora General Jurídica. Todos los juicios gestionados, daños reducidos un 90 %. A este nivel el riesgo sigue existiendo, pero lleva corbata y pide mi permiso antes de entrar.",
-    zh: "法务总监。所有诉讼接管，损失减少90%。到这层级，风险依然存在——只是它戴着领带，进门之前会先问我能不能进。",
-    ru: "Главный юридический директор. Все иски ведутся, ущерб уменьшен на 90 %. На этом уровне риск ещё существует — но он в галстуке и спрашивает моего разрешения войти.",
-    it: "Direttrice Generale Legale. Tutte le cause gestite, danni ridotti del 90%. A questo livello il rischio esiste ancora, ma porta una cravatta e chiede il mio permesso prima di entrare.",
-    de: "Chief Legal Officer. Alle Klagen behandelt, Schäden um 90 % reduziert. Auf diesem Level existiert das Risiko noch — aber es trägt Krawatte und bittet um meine Erlaubnis, bevor es eintritt." },
 
   // === P1 — Infra (commentaires des persos existants) ===
   voisin_jacques: { speaker: 'Fred',
@@ -4111,7 +3708,7 @@ const INCIDENT_VARIANTS = {
 
 const randomLife = () => MARKET_MIN_LIFE + Math.random() * (MARKET_MAX_LIFE - MARKET_MIN_LIFE);
 
-function makeInitialMarketplace(brigitteMaxTier, maxCap, truckMaxCap, notoriety, excludeIds = [], targetSize = null, currentPhase = 1, rejections = {}, currentGameTime = 0, owned = {}, purchaseSliders = null) {
+function makeInitialMarketplace(brigitteMaxTier, maxCap, truckMaxCap, notoriety, excludeIds = [], targetSize = null, currentPhase = 1, rejections = {}, currentGameTime = 0, owned = {}) {
   if (brigitteMaxTier === 0 || truckMaxCap === 0) return [];
   const eligible = B2B_CONTRACTS.filter(c =>
     c.brigitteTier <= brigitteMaxTier &&
@@ -4130,7 +3727,7 @@ function makeInitialMarketplace(brigitteMaxTier, maxCap, truckMaxCap, notoriety,
     // côté qualité — évite la "zone morte" où ces contrats n'apparaissaient nulle part.
     const midB2B = eligible.filter(c => c.archetype !== 'RETAIL'
       && (c.brigitteTier || 0) >= 3 && (c.brigitteTier || 0) < 5
-      && isContractQualityFeasible(c, owned, 0, purchaseSliders));
+      && isContractQualityFeasible(c, owned, 0));
     const result = [];
     const shuffledRetail = [...retail].sort(() => Math.random() - 0.5);
     const shuffledPremium = [...premiumB2B].sort(() => Math.random() - 0.5);
@@ -4164,7 +3761,7 @@ function makeInitialMarketplace(brigitteMaxTier, maxCap, truckMaxCap, notoriety,
   // Phase 1-2 : on ne propose QUE des contrats réalisables avec la qualité
   // actuelle. Les contrats exigeant de la qualité (PREMIUM/LUXE/RETAIL) sont
   // ainsi réservés à la Phase 3, quand les upgrades qualité existent.
-  const feasible = eligible.filter(c => isContractQualityFeasible(c, owned, 0, purchaseSliders));
+  const feasible = eligible.filter(c => isContractQualityFeasible(c, owned, 0));
   const slots = Math.min(target, MARKETPLACE_SIZE);
   // Biais vers les contrats rémunérateurs (gros VOLUME / tier élevé) pour
   // densifier le revenu de la Phase 2 maintenant que le premium est verrouillé.
@@ -4227,7 +3824,7 @@ function getArchetypeProfile(c) {
 // base de 0.25 (eau du robinet, freezer correct). Cela permet de signer les
 // contrats LOCAL et VOLUME dès la P2 sans avoir investi dans la qualité.
 const QUALITY_BASE = 0.25;
-function computeQualityScore(owned, purchaseSliders = null) {
+function computeQualityScore(owned) {
   if (!owned) return QUALITY_BASE;
   let points = 0;
   // Provenance eau : 0/15/35/55
@@ -4247,31 +3844,13 @@ function computeQualityScore(owned, purchaseSliders = null) {
   // Score normalisé sur 100 puis ramené à 0..1, avec une base de 0.25.
   // Avec toutes les upgrades : 0.25 + 150/150 = 1.0
   let score = Math.min(1, QUALITY_BASE + points / 200);
-  // === Influence des curseurs Achats de Mark (qualité MATIÈRE) ===
-  // Unifie la "qualité matière" (curseurs) avec la "qualité produit" qui gate les contrats.
-  // Premium → qualité ↑ ; Limite légale → qualité ↓ (gouger sur les matières fait perdre des contrats).
-  if (purchaseSliders) {
-    const QUAL_DELTA = [0.06, 0.03, 0, -0.05, -0.10]; // premium → limite
-    let delta = 0;
-    for (const key of PURCHASE_SLIDER_KEYS) {
-      const slider = PURCHASE_SLIDERS[key];
-      const unlocked = slider.unlockMin === 'mark_jr'   ? (owned.mark_jr || owned.mark_resp || owned.mark_dir)
-                     : slider.unlockMin === 'mark_resp' ? (owned.mark_resp || owned.mark_dir)
-                     : slider.unlockMin === 'mark_dir'  ? owned.mark_dir
-                     : false;
-      if (!unlocked) continue;
-      const idx = purchaseSliders[key] != null ? purchaseSliders[key] : 2;
-      delta += (QUAL_DELTA[idx] != null ? QUAL_DELTA[idx] : 0);
-    }
-    score = Math.max(0, Math.min(1, score + delta));
-  }
   return score;
 }
 
 // Faisabilité qualité d'un contrat (le client refuse si la qualité est trop basse).
-function isContractQualityFeasible(c, owned, slack = 0, purchaseSliders = null) {
+function isContractQualityFeasible(c, owned, slack = 0) {
   const prof = getArchetypeProfile(c);
-  return computeQualityScore(owned, purchaseSliders) + slack >= (prof.qExpect - 0.15);
+  return computeQualityScore(owned) + slack >= (prof.qExpect - 0.15);
 }
 
 // === FIDÉLITÉ CLIENT ===
@@ -4285,10 +3864,10 @@ function loyaltyPriceMult(completions) {
 // === DYNAMIQUE DU CONTRAT ===
 // Renvoie un contrat enrichi avec qty/pricePerCube ajustés selon noto+qualité+priceAdjust.
 // priceAdjust : multiplicateur de prix entre 0.8 (−20%) et 1.2 (+20%), défaut 1.0.
-function applyContractDynamics(c, owned, notoriety, priceAdjust = 1.0, purchaseSliders = null) {
+function applyContractDynamics(c, owned, notoriety, priceAdjust = 1.0) {
   if (!c) return null;
   const prof = getArchetypeProfile(c);
-  const quality = computeQualityScore(owned, purchaseSliders);
+  const quality = computeQualityScore(owned);
   const notoFactor01 = Math.min(1, (notoriety || 0) / 100);
 
   // === Volume ===
@@ -4536,6 +4115,8 @@ export default function App() {
   const [reputation, setReputation] = useState(50);
   const [lines, setLines] = useState([]);
   const [marketplace, setMarketplace] = useState([]);
+  const marketplaceRef = useRef([]);
+  useEffect(() => { marketplaceRef.current = marketplace; }, [marketplace]);
   // Mémorisation des refus qualité/prix : { contractId: { rejectedAt, quarantineSeasons } }
   const [contractRejections, setContractRejections] = useState({});
   const contractRejectionsRef = useRef({});
@@ -4628,21 +4209,15 @@ export default function App() {
   const [brigitteSalaryLevel, setBrigitteSalaryLevel] = useState('bas');
   const [lennySalaryLevel, setLennySalaryLevel] = useState('bas');
   const [karenSalaryLevel, setKarenSalaryLevel] = useState('bas');
-  const [markSalaryLevel, setMarkSalaryLevel] = useState('bas');
-  const [sabineSalaryLevel, setSabineSalaryLevel] = useState('bas');
   const [fredGrumpy, setFredGrumpy] = useState(false);
   const [brigitteGrumpy, setBrigitteGrumpy] = useState(false);
   const [janiceGrumpy, setJaniceGrumpy] = useState(false);
   const [lennyGrumpy, setLennyGrumpy] = useState(false);
   const [karenGrumpy, setKarenGrumpy] = useState(false);
-  const [markGrumpy, setMarkGrumpy] = useState(false);
-  const [sabineGrumpy, setSabineGrumpy] = useState(false);
   const [fredMoral, setFredMoral] = useState(70);
   const [brigitteMoral, setBrigitteMoral] = useState(70);
   const [lennyMoral, setLennyMoral] = useState(70);
   const [karenMoral, setKarenMoral] = useState(70);
-  const [markMoral, setMarkMoral] = useState(70);
-  const [sabineMoral, setSabineMoral] = useState(70);
   // Phase 2+ — Stress per employee (0-100). Boost actions add stress, time decays it.
   const [fredStress, setFredStress] = useState(0);
   const [brigitteStress, setBrigitteStress] = useState(0);
@@ -4666,15 +4241,8 @@ export default function App() {
   // Jauge "Capacité RH" 0-100, remplie à 100 par chaque action, draine -1/3s normalement
   // Boost Karen accélère le drain à -5/3s pendant 20s (+stress sur Karen)
   const [rhOpen, setRhOpen] = useState(false);
-  const [achatsOpen, setAchatsOpen] = useState(false);
-  // Curseurs Achats Mark : 5 valeurs entre 0 (Premium) et 4 (Limite légale). Standard = 2.
-  const [purchaseSliders, setPurchaseSliders] = useState({
-    eau: 2, energie: 2, emballages: 2, logistique: 2, fournisseurs: 2
-  });
-  const purchaseSlidersRef = useRef(purchaseSliders);
-  useEffect(() => { purchaseSlidersRef.current = purchaseSliders; }, [purchaseSliders]);
   const [juridiqueOpen, setJuridiqueOpen] = useState(false);
-  // Procès actifs (en attente de décision joueur si Sabine absente/saturée)
+  // Procès actifs (en attente de décision du joueur)
   const [activeLawsuits, setActiveLawsuits] = useState([]);
   const activeLawsuitsRef = useRef([]);
   useEffect(() => { activeLawsuitsRef.current = activeLawsuits; }, [activeLawsuits]);
@@ -4682,41 +4250,13 @@ export default function App() {
   const [lawsuitHistory, setLawsuitHistory] = useState([]);
   const lawsuitHistoryRef = useRef([]);
   useEffect(() => { lawsuitHistoryRef.current = lawsuitHistory; }, [lawsuitHistory]);
-  // Compteur de procès gérés par Sabine cette année (reset annuel)
-  const [sabineYearCount, setSabineYearCount] = useState(0);
-  const sabineYearCountRef = useRef(0);
-  useEffect(() => { sabineYearCountRef.current = sabineYearCount; }, [sabineYearCount]);
+  // Année du dernier procès (remise à zéro annuelle)
   const lastLawsuitYearRef = useRef(-1);
-  // === ACTIONS JANICE ===
-  // Stocke pour chaque action : { lastUsedTs: number, used: boolean (one-shot) }
-  const [janiceActionState, setJaniceActionState] = useState({});
   // Boosts actifs issus des actions Janice
-  const [janicePermaSellBonus, setJanicePermaSellBonus] = useState(1.0); // cumul perma
-  const [janiceTempSellBoost, setJaniceTempSellBoost] = useState({ factor: 1.0, until: 0 });
-  const janiceTempSellBoostRef = useRef(janiceTempSellBoost);
-  useEffect(() => { janiceTempSellBoostRef.current = janiceTempSellBoost; }, [janiceTempSellBoost]);
-  const [janiceLegendeUnlocked, setJaniceLegendeUnlocked] = useState(false);
   // === ACTIONS MARK (Achats) ===
   // Boucle active : actions stratégiques payantes à cooldown (cf. MARK_ACTIONS).
-  const [markActionState, setMarkActionState] = useState({});
   // Boost temporaire prix de vente (audit qualité) — miroir de janiceTempSellBoost.
-  const [markTempSellBoost, setMarkTempSellBoost] = useState({ factor: 1.0, until: 0 });
-  const markTempSellBoostRef = useRef(markTempSellBoost);
-  useEffect(() => { markTempSellBoostRef.current = markTempSellBoost; }, [markTempSellBoost]);
   // Réduction temporaire des charges (renégociation fournisseurs / centrale d'achat).
-  const [markBillDiscount, setMarkBillDiscount] = useState({ factor: 1.0, until: 0 });
-  const markBillDiscountRef = useRef(markBillDiscount);
-  useEffect(() => { markBillDiscountRef.current = markBillDiscount; }, [markBillDiscount]);
-  // === ACTIONS SABINE (Juridique) ===
-  const [sabineActionState, setSabineActionState] = useState({});
-  // Mise en conformité / bouclier : multiplie le risque total de procès pendant N mois.
-  const [sabineCompliance, setSabineCompliance] = useState({ factor: 1.0, until: 0 });
-  const sabineComplianceRef = useRef(sabineCompliance);
-  useEffect(() => { sabineComplianceRef.current = sabineCompliance; }, [sabineCompliance]);
-  // Lobbying : annule le risque lié aux curseurs Achats de Mark pendant N mois.
-  const [sabineLobbyUntil, setSabineLobbyUntil] = useState(0);
-  const sabineLobbyUntilRef = useRef(0);
-  useEffect(() => { sabineLobbyUntilRef.current = sabineLobbyUntil; }, [sabineLobbyUntil]);
   // === VICTOIRE FIN DE JEU ===
   // Déclenchée quand les 5 missions P3 sont validées. Reste possible de continuer
   // à jouer après (mode sandbox). Le joueur peut rouvrir la modale via le bouton MISSIONS.
@@ -4803,6 +4343,8 @@ export default function App() {
   // Phase 3+ — Campagne FLASH générée par boost Janice (éphémère, 60s)
   const [campaignsLaunched, setCampaignsLaunched] = useState(0);
   const [marketTarget, setMarketTarget] = useState(2);
+  const marketTargetRef = useRef(2);
+  useEffect(() => { marketTargetRef.current = marketTarget; }, [marketTarget]);
   const [nextMarketReroll, setNextMarketReroll] = useState(0);
   const [cyberLockout, setCyberLockout] = useState(0); // secondes restantes
   const [stockBurnFlash, setStockBurnFlash] = useState(0); // gameTime du dernier sabotage frigo (flash visuel)
@@ -4929,7 +4471,7 @@ export default function App() {
   const activeFrictionsRef = useRef({});
   useEffect(() => { activeFrictionsRef.current = activeFrictions; }, [activeFrictions]);
   // === ARRÊTS MALADIE ===
-  // sickUntil: { fred?: gameTimeExpires, brigitte?: ..., janice?: ..., lenny?: ..., karen?: ..., mark?: ..., sabine?: ... }
+  // sickUntil: { fred?: gameTimeExpires, brigitte?: ..., lenny?: ..., karen?: ... }
   // Quand un perso est malade, son effet auto est désactivé pendant la durée.
   // Le joueur doit reprendre son boulot (CONGELER pour Fred, VENDRE pour Brigitte,
   // ENVOYER pour Lenny). Les autres voient simplement leur bonus disparaître.
@@ -5036,7 +4578,6 @@ export default function App() {
   const phaseRef = useRef(1);
   const linesRef = useRef([]);
   const isPausedRef = useRef(false);
-  const marketplaceRef = useRef([]);
   const reputationRef = useRef(50);
   const seasonIdxRef = useRef(0);
   const freezingLeftRef = useRef(0);
@@ -5087,21 +4628,15 @@ export default function App() {
   const brigitteSalaryLevelRef = useRef('bas');
   const lennySalaryLevelRef = useRef('bas');
   const karenSalaryLevelRef = useRef('bas');
-  const markSalaryLevelRef = useRef('bas');
-  const sabineSalaryLevelRef = useRef('bas');
   const fredGrumpyRef = useRef(false);
   const brigitteGrumpyRef = useRef(false);
   const janiceGrumpyRef = useRef(false);
   const lennyGrumpyRef = useRef(false);
   const karenGrumpyRef = useRef(false);
-  const markGrumpyRef = useRef(false);
-  const sabineGrumpyRef = useRef(false);
   const fredMoralRef = useRef(70);
   const brigitteMoralRef = useRef(70);
   const lennyMoralRef = useRef(70);
   const karenMoralRef = useRef(70);
-  const markMoralRef = useRef(70);
-  const sabineMoralRef = useRef(70);
   const karenTeamBuildUntilRef = useRef(0);
   const karenTeamBuildCooldownUntilRef = useRef(0);
   const popupMessageRef = useRef(null);
@@ -5155,7 +4690,6 @@ export default function App() {
   const lastRaiseDecisionRef = useRef({});
   const raiseRequestRef = useRef(null);
   const activeCampaignRef = useRef(null);
-  const marketTargetRef = useRef(2);
   const nextMarketRerollRef = useRef(0);
   const cyberLockoutRef = useRef(0);
   const poachingRequestRef = useRef(null);
@@ -5197,7 +4731,6 @@ export default function App() {
   useEffect(() => { isPausedRef.current = isPaused; }, [isPaused]);
   useEffect(() => { try { localStorage.setItem('meltdown:lang', language); } catch (e) {} }, [language]);
   const t = tFor(language);
-  useEffect(() => { marketplaceRef.current = marketplace; }, [marketplace]);
   useEffect(() => { reputationRef.current = reputation; }, [reputation]);
   useEffect(() => { freezingLeftRef.current = freezingLeft; }, [freezingLeft]);
   useEffect(() => { autumnRushLeftRef.current = autumnRushLeft; }, [autumnRushLeft]);
@@ -5216,18 +4749,12 @@ export default function App() {
   useEffect(() => { brigitteSalaryLevelRef.current = brigitteSalaryLevel; }, [brigitteSalaryLevel]);
   useEffect(() => { lennySalaryLevelRef.current = lennySalaryLevel; }, [lennySalaryLevel]);
   useEffect(() => { karenSalaryLevelRef.current = karenSalaryLevel; }, [karenSalaryLevel]);
-  useEffect(() => { markSalaryLevelRef.current = markSalaryLevel; }, [markSalaryLevel]);
-  useEffect(() => { sabineSalaryLevelRef.current = sabineSalaryLevel; }, [sabineSalaryLevel]);
   useEffect(() => { fredGrumpyRef.current = fredGrumpy; }, [fredGrumpy]);
   useEffect(() => { fredMoralRef.current = fredMoral; }, [fredMoral]);
   useEffect(() => { brigitteMoralRef.current = brigitteMoral; }, [brigitteMoral]);
   useEffect(() => { lennyMoralRef.current = lennyMoral; }, [lennyMoral]);
   useEffect(() => { karenMoralRef.current = karenMoral; }, [karenMoral]);
-  useEffect(() => { markMoralRef.current = markMoral; }, [markMoral]);
-  useEffect(() => { sabineMoralRef.current = sabineMoral; }, [sabineMoral]);
   useEffect(() => { karenGrumpyRef.current = karenGrumpy; }, [karenGrumpy]);
-  useEffect(() => { markGrumpyRef.current = markGrumpy; }, [markGrumpy]);
-  useEffect(() => { sabineGrumpyRef.current = sabineGrumpy; }, [sabineGrumpy]);
   useEffect(() => { karenTeamBuildUntilRef.current = karenTeamBuildUntil; }, [karenTeamBuildUntil]);
   useEffect(() => { karenTeamBuildCooldownUntilRef.current = karenTeamBuildCooldownUntil; }, [karenTeamBuildCooldownUntil]);
   useEffect(() => { rhFatigueRef.current = rhFatigue; }, [rhFatigue]);
@@ -5889,16 +5416,6 @@ export default function App() {
         const d = computeDelta('karen', karenSalaryLevelRef.current, karenMoralRef.current);
         if (d !== 0) setKarenMoral(m => Math.max(0, Math.min(100, m + d)));
       }
-      const hasM = !!(ownedSnap['mark_jr'] || ownedSnap['mark_resp'] || ownedSnap['mark_dir']);
-      if (hasM) {
-        const d = computeDelta('mark', markSalaryLevelRef.current, markMoralRef.current);
-        if (d !== 0) setMarkMoral(m => Math.max(0, Math.min(100, m + d)));
-      }
-      const hasS = !!(ownedSnap['sabine_jr'] || ownedSnap['sabine_sr'] || ownedSnap['sabine_dg']);
-      if (hasS) {
-        const d = computeDelta('sabine', sabineSalaryLevelRef.current, sabineMoralRef.current);
-        if (d !== 0) setSabineMoral(m => Math.max(0, Math.min(100, m + d)));
-      }
     };
     const id = setInterval(tick, 30000); // every 30s real-time
     return () => clearInterval(id);
@@ -5930,41 +5447,6 @@ export default function App() {
         }
       } else {
         stockSaturatedSinceRef.current = null;
-      }
-      // --- JANICE : Score Qualité < 50 + notoriété > 60 pendant 60s
-      // Score Qualité = moyenne pondérée des positions curseurs Mark (0 = ECO, 4 = LIMITE)
-      // → score = 100 quand tout en PREMIUM (idx 0 = eco mais notoBonus haut)
-      // Ici on inverse : positions hautes = qualité basse car curseurs eco/limit
-      // L'agence marketing ne fait plus « grève » sur la qualité (mécanique Janice retirée).
-      const hasJ = false;
-      if (hasJ && notorietyRef.current > 60) {
-        const sl = purchaseSlidersRef.current || {};
-        // Position 2 = standard (neutre). 0-1 = premium (qualité haute). 3-4 = eco/limite (qualité basse).
-        const slKeys = ['eau', 'energie', 'emballages', 'logistique', 'fournisseurs'];
-        let qualitySum = 0;
-        let qualityCount = 0;
-        for (const k of slKeys) {
-          if (typeof sl[k] === 'number') {
-            // 0=premium top, 4=limite bottom → qualité = 100 - (sl[k] * 25)
-            qualitySum += (100 - sl[k] * 25);
-            qualityCount++;
-          }
-        }
-        const qualityScore = qualityCount > 0 ? qualitySum / qualityCount : 50;
-        if (qualityScore < 50) {
-          if (qualityRiskSinceRef.current == null) qualityRiskSinceRef.current = now;
-          else if (now - qualityRiskSinceRef.current >= 60 && !janiceGrumpyRef.current && !wageArrearsRef.current) {
-            setJaniceGrumpy(true);
-            qualityRiskSinceRef.current = null;
-            if (!popupMessageRef.current) {
-              queuePopup({ type: 'character', speaker: t('agency.speaker'), text: t('agency.warn_quality') });
-            }
-          }
-        } else {
-          qualityRiskSinceRef.current = null;
-        }
-      } else {
-        qualityRiskSinceRef.current = null;
       }
     }, 5000); // check every 5s
     return () => clearInterval(id);
@@ -7047,7 +6529,6 @@ export default function App() {
   useEffect(() => { lastRaiseDecisionRef.current = lastRaiseDecision; }, [lastRaiseDecision]);
   useEffect(() => { raiseRequestRef.current = raiseRequest; }, [raiseRequest]);
   useEffect(() => { activeCampaignRef.current = activeCampaign; }, [activeCampaign]);
-  useEffect(() => { marketTargetRef.current = marketTarget; }, [marketTarget]);
   useEffect(() => { nextMarketRerollRef.current = nextMarketReroll; }, [nextMarketReroll]);
   useEffect(() => { cyberLockoutRef.current = cyberLockout; }, [cyberLockout]);
   useEffect(() => { poachingRequestRef.current = poachingRequest; }, [poachingRequest]);
@@ -7115,10 +6596,21 @@ export default function App() {
   };
 
   const maxCap = BASE_CAP + rawStats.capBonus;
+  // Capacité RÉELLEMENT utilisable. Deux causes se cumulent, exactement comme
+  // dans le tick de production : une friction (dégât des eaux) rabote la
+  // capacité, et le sabotage du groupe froid condamne les 2/3 restants pendant
+  // 30 s. Sans ça l'interface montre un stock qui cesse de monter sans raison.
+  const capMultNow = aggregateFrictionEffects(activeFrictions, gameTime).capMult;
+  const burnFlashActive = stockBurnFlash > 0 && (gameTime - stockBurnFlash) < 30;
+  const _rawUsableCap = maxCap * capMultNow;
+  const usableCap = Math.max(1, burnFlashActive
+    ? Math.ceil(_rawUsableCap / 3)
+    : Math.floor(_rawUsableCap));
+  const capReduced = usableCap < maxCap;
   const stolenEff = Math.min(stolenTrucks, rawStats.linesBonus);
   const maxLines = Math.max(0, BASE_LINES + rawStats.linesBonus - stolenEff);
   const displayStock = Math.ceil(stock);
-  const atCap = displayStock >= maxCap;
+  const atCap = displayStock >= usableCap;
 
   // === DÉTECTEUR ACHIEVEMENTS — surveille les états et débloque les trophées ===
   // Doit être déclaré APRÈS maxCap (qui est un const dérivé de rawStats).
@@ -7149,7 +6641,7 @@ export default function App() {
       if (goodCount >= 4) unlockAchievement('harmony');
     }
     // 8. MENTOR — un perso au tier Directeur
-    if (owned['fred_dir'] || owned['brigitte_dir'] || owned['janice_dir'] || owned['karen_drh'] || owned['mark_dir'] || owned['sabine_dg'] || owned['lenny_chef']) {
+    if (owned['fred_dir'] || owned['brigitte_dir'] || owned['karen_drh'] || owned['lenny_chef']) {
       unlockAchievement('mentor');
     }
     // 10. FRED DIRECTEUR
@@ -7278,6 +6770,9 @@ export default function App() {
   const currentFredTier = [...fredTiers].reverse().find(id => owned[id]);
   const currentFredUpgrade = currentFredTier ? UPGRADES.find(u => u.id === currentFredTier) : null;
   const hasFred = !!currentFredTier;
+  // Arrêt maladie de Fred : sa production passive tombe à zéro (voir
+  // _fredSickMult et fredCycleBlocked). L'interface repasse donc en mode manuel.
+  const fredSick = isSickNow('fred');
 
   // Sync Fred tier ref + auto-relance le cycle quand Fred est embauché ou promu
   useEffect(() => {
@@ -7339,8 +6834,6 @@ export default function App() {
       brigitte: brigitteEfficiency(moralValue),
       lenny:    lennyEfficiency(moralValue),
       karen:    karenEfficiency(moralValue),
-      mark:     moralValue >= 50 ? 1.0 : moralValue >= 30 ? 0.85 : 0.65,
-      sabine:   moralValue >= 50 ? 1.0 : moralValue >= 30 ? 0.85 : 0.65,
     };
     const eff = effMap[role] || 1.0;
     const pct = Math.round((1 - eff) * 100);
@@ -7420,11 +6913,10 @@ export default function App() {
   const upUtilityNextRaw = computeUtilitiesBill(_freezerCount, _projectedFullProd, _projectedFullFuel, season.utilMult);
   // Multiplicateur upgrade (ex: comptable_senior -20%) appliqué globalement.
   const _upgUtilMult = stats.utilityCostMult || 1;
-  const upUtilityNext = Math.max(0, upUtilityNextRaw * computePurchaseCostMult(purchaseSliders, owned, isSickNow('mark')) * _upgUtilMult);
+  const upUtilityNext = Math.max(0, upUtilityNextRaw * _upgUtilMult);
   // Ventilation détaillée pour la modale RENTABILITÉ en P3 (loyer/énergie/carburant séparés).
-  // Le multiplicateur des sliders d'achat s'applique aussi à chaque composante.
   const _utilityBreakdownRaw = computeUtilitiesBreakdown(_freezerCount, _projectedFullProd, _projectedFullFuel, season.utilMult);
-  const _utilMult = computePurchaseCostMult(purchaseSliders, owned, isSickNow('mark')) * _upgUtilMult;
+  const _utilMult = _upgUtilMult;
   const upUtilityBreakdown = {
     base: _utilityBreakdownRaw.base * _utilMult,
     energy: _utilityBreakdownRaw.energy * _utilMult,
@@ -7741,17 +7233,10 @@ export default function App() {
   const dynamicDemand = getDynamicDemandMult(gameTime);
   const campaignBonuses = getCampaignMultipliers(activeCampaign, gameTime, stats.marketingMult, janiceGrumpy);
   // Multiplicateur Janice : perma (sponsoring sport) + temp (boosts de pubs)
-  const janiceTempActive = gameTime < janiceTempSellBoost.until;
-  const janiceTempMult = janiceTempActive ? janiceTempSellBoost.factor : 1.0;
-  // Arrêt maladie Janice : ses bonus de vente (perma + temp boosts) sont
-  // suspendus pendant la durée de l'arrêt.
-  const janiceMultTotal = isSickNow('janice') ? 1.0 : (janicePermaSellBonus * janiceTempMult);
-  // Boost prix temporaire de Mark (action « Audit qualité éclair »).
-  // Suspendu si Mark est en arrêt maladie.
-  const markTempSellActive = gameTime < markTempSellBoost.until;
-  const markSellMult = (markTempSellActive && !isSickNow('mark')) ? markTempSellBoost.factor : 1.0;
-  // Bonus de demande Janice Directrice : +15% (s'éteint si Janice grumpy)
-  const janiceDemandMult = (stats.janiceDemandBonus && !janiceGrumpy) ? (1 + stats.janiceDemandBonus) : 1;
+  // L'agence n'a plus de paliers : aucun multiplicateur de vente ni de demande
+  // ne dépend d'elle, seul le gel des campagnes subsiste.
+  const janiceMultTotal = 1.0;
+  const janiceDemandMult = 1;
   // Effet durable d'événement de tension (crise médiatique, rappel sanitaire, ou bonus interview TV)
   const tensionSellMult = (activeTensionEffect && Number.isFinite(activeTensionEffect.sellMult)) ? activeTensionEffect.sellMult : 1.0;
   // === RÉÉQUILIBRAGE P2+ ===
@@ -7780,7 +7265,7 @@ export default function App() {
     premiumWater: visibleFrictions.find(f => f.effects && f.effects.disablePremium),
   };
   const fricDirectDemMult = fricForSell.directDemMult;
-  const _rawEffectiveSell = BASE_SELL_PRICE * directSellMultEffective * (fricForSell.disablePremium ? 1 : getPremiumWaterMult(owned)) * dynamicDemand * heatDemandMult * droughtDemandMult * autumnRushMult * campaignBonuses.spotMult * janiceMultTotal * janiceDemandMult * tensionSellMult * fricDirectDemMult * markSellMult;
+  const _rawEffectiveSell = BASE_SELL_PRICE * directSellMultEffective * (fricForSell.disablePremium ? 1 : getPremiumWaterMult(owned)) * dynamicDemand * heatDemandMult * droughtDemandMult * autumnRushMult * campaignBonuses.spotMult * janiceMultTotal * janiceDemandMult * tensionSellMult * fricDirectDemMult;
   // Garde-fou anti-NaN au point de convergence : si un multiplicateur amont
   // devient invalide (NaN/Infinity/négatif), on retombe sur le prix de base
   // plutôt que de propager un NaN qui afficherait « NaN€ » et bloquerait les ventes.
@@ -7789,17 +7274,17 @@ export default function App() {
   const dynamicTemp = getDynamicTemp(gameTime);
   const displayTemp = dynamicTemp + (inHeatwave ? 9 : 0) + (inDrought ? 3 : 0) + tempJitter;
 
-  const fillRatio = maxCap > 0 ? Math.min(1, displayStock / maxCap) : 0;
+  // La jauge se remplit par rapport à la capacité utilisable : à capacité
+  // rabotée, le stock atteint bien le haut de la zone encore disponible.
+  const fillRatio = usableCap > 0 ? Math.min(1, displayStock / usableCap) : 0;
   const stockTier = fillRatio < 0.30 ? 'low' : fillRatio < 0.75 ? 'mid' : 'high';
-  const filledCubes = Math.floor(fillRatio * STOCK_SIZE);
-  // === Sabotage frigo : 2/3 de la capacité condamnés pendant 30s ===
-  // Pendant burnFlashActive : la capacité utile est limitée à 1/3 (zone basse),
-  // les 2/3 du haut sont hachurés et inutilisables (pas de stockage ni vente auto).
-  const burnFlashActive = stockBurnFlash > 0 && (gameTime - stockBurnFlash) < 30;
-  // Nombre de cubes encore utilisables (1/3 du bas) pendant le sabotage
-  const usableCubes = burnFlashActive ? Math.ceil(STOCK_SIZE / 3) : STOCK_SIZE;
-  // Cubes condamnés = les 2/3 du haut
-  const burnedZoneStart = burnFlashActive ? usableCubes : STOCK_SIZE;
+  // === Zone condamnée : sabotage frigo (2/3, 30s) et/ou friction de capacité ===
+  // Les deux se rendent pareil — cubes hachurés en haut de la grille — pour que
+  // « je ne peux plus stocker » soit lisible d'un coup d'œil dans les deux cas.
+  const usableRatio = maxCap > 0 ? Math.min(1, usableCap / maxCap) : 1;
+  const usableCubes = Math.max(1, Math.ceil(STOCK_SIZE * usableRatio));
+  const burnedZoneStart = usableCubes < STOCK_SIZE ? usableCubes : STOCK_SIZE;
+  const filledCubes = Math.floor(fillRatio * usableCubes);
   const currentXp = xpFromTotals(totals, completedCalls.length, owned);
   const currentLevel = levelForXp(currentXp);
   const nextThreshold = LEVEL_THRESHOLDS[currentLevel] || LEVEL_THRESHOLDS[LEVEL_THRESHOLDS.length - 1];
@@ -7888,16 +7373,10 @@ export default function App() {
           if (s.janiceGrumpy) setJaniceGrumpy(true);
           if (s.lennyGrumpy) setLennyGrumpy(true);
           if (s.karenGrumpy) setKarenGrumpy(true);
-          if (s.markGrumpy) setMarkGrumpy(true);
-          if (s.sabineGrumpy) setSabineGrumpy(true);
           if (typeof s.fredMoral === 'number') setFredMoral(s.fredMoral);
           if (typeof s.brigitteMoral === 'number') setBrigitteMoral(s.brigitteMoral);
           if (typeof s.lennyMoral === 'number') setLennyMoral(s.lennyMoral);
           if (typeof s.karenMoral === 'number') setKarenMoral(s.karenMoral);
-          if (typeof s.markMoral === 'number') setMarkMoral(s.markMoral);
-          if (typeof s.sabineMoral === 'number') setSabineMoral(s.sabineMoral);
-          if (typeof s.markSalaryLevel === 'string') setMarkSalaryLevel(s.markSalaryLevel);
-          if (typeof s.sabineSalaryLevel === 'string') setSabineSalaryLevel(s.sabineSalaryLevel);
           if (typeof s.fredStress === 'number') setFredStress(s.fredStress);
           if (typeof s.brigitteStress === 'number') setBrigitteStress(s.brigitteStress);
           if (typeof s.lennyStress === 'number') setLennyStress(s.lennyStress);
@@ -7955,28 +7434,8 @@ export default function App() {
           if (s.birthdays && typeof s.birthdays === 'object') setBirthdays(s.birthdays);
           if (s.salaryDebt && typeof s.salaryDebt === 'object') setSalaryDebt(s.salaryDebt);
           if (s.wageArrears && typeof s.wageArrears === 'object') setWageArrears(s.wageArrears);
-          if (s.purchaseSliders && typeof s.purchaseSliders === 'object') {
-            setPurchaseSliders({
-              eau: typeof s.purchaseSliders.eau === 'number' ? s.purchaseSliders.eau : 2,
-              energie: typeof s.purchaseSliders.energie === 'number' ? s.purchaseSliders.energie : 2,
-              emballages: typeof s.purchaseSliders.emballages === 'number' ? s.purchaseSliders.emballages : 2,
-              logistique: typeof s.purchaseSliders.logistique === 'number' ? s.purchaseSliders.logistique : 2,
-              fournisseurs: typeof s.purchaseSliders.fournisseurs === 'number' ? s.purchaseSliders.fournisseurs : 2,
-            });
-          }
           if (Array.isArray(s.activeLawsuits)) setActiveLawsuits(s.activeLawsuits);
           if (Array.isArray(s.lawsuitHistory)) setLawsuitHistory(s.lawsuitHistory);
-          if (typeof s.sabineYearCount === 'number') setSabineYearCount(s.sabineYearCount);
-          if (s.janiceActionState && typeof s.janiceActionState === 'object') setJaniceActionState(s.janiceActionState);
-          if (typeof s.janicePermaSellBonus === 'number') setJanicePermaSellBonus(s.janicePermaSellBonus);
-          if (s.janiceTempSellBoost && typeof s.janiceTempSellBoost === 'object') setJaniceTempSellBoost(s.janiceTempSellBoost);
-          if (typeof s.janiceLegendeUnlocked === 'boolean') setJaniceLegendeUnlocked(s.janiceLegendeUnlocked);
-          if (s.markActionState && typeof s.markActionState === 'object') setMarkActionState(s.markActionState);
-          if (s.markTempSellBoost && typeof s.markTempSellBoost === 'object') setMarkTempSellBoost(s.markTempSellBoost);
-          if (s.markBillDiscount && typeof s.markBillDiscount === 'object') setMarkBillDiscount(s.markBillDiscount);
-          if (s.sabineActionState && typeof s.sabineActionState === 'object') setSabineActionState(s.sabineActionState);
-          if (s.sabineCompliance && typeof s.sabineCompliance === 'object') setSabineCompliance(s.sabineCompliance);
-          if (typeof s.sabineLobbyUntil === 'number') setSabineLobbyUntil(s.sabineLobbyUntil);
           if (typeof s.victoryAchieved === 'boolean') setVictoryAchieved(s.victoryAchieved);
           if (s.glacierBeats && typeof s.glacierBeats === 'object') setGlacierBeats(s.glacierBeats);
           if (typeof s.victoryTimestamp === 'number') setVictoryTimestamp(s.victoryTimestamp);
@@ -7996,7 +7455,6 @@ export default function App() {
           if (s.lastBonusAt && typeof s.lastBonusAt === 'object') setLastBonusAt(s.lastBonusAt);
           if (s.activeCampaign && typeof s.activeCampaign === 'object') setActiveCampaign(s.activeCampaign);
           if (typeof s.campaignsLaunched === 'number') setCampaignsLaunched(s.campaignsLaunched);
-          if (typeof s.marketTarget === 'number') setMarketTarget(s.marketTarget);
           if (typeof s.nextMarketReroll === 'number') setNextMarketReroll(s.nextMarketReroll);
           if (typeof s.cyberLockout === 'number') setCyberLockout(s.cyberLockout);
           if (s.activeLoan) setActiveLoan(s.activeLoan);
@@ -8118,9 +7576,9 @@ export default function App() {
       stock, money, owned, gameTime, phase, reputation, lines, marketplace, freezingLeft, freezingTotal, fredCycleLeft, fredCycleTotal,
       fredCycleAccum: fredCycleAccumRef.current,
       totals, lastInsuranceCancel, completedCalls, nextCallAt, meltTutorialShown,
-      fredSalaryLevel, brigitteSalaryLevel, lennySalaryLevel, karenSalaryLevel, markSalaryLevel, sabineSalaryLevel,
-      fredGrumpy, brigitteGrumpy, janiceGrumpy, lennyGrumpy, karenGrumpy, markGrumpy, sabineGrumpy,
-      fredMoral, brigitteMoral, lennyMoral, karenMoral, markMoral, sabineMoral,
+      fredSalaryLevel, brigitteSalaryLevel, lennySalaryLevel, karenSalaryLevel,
+      fredGrumpy, brigitteGrumpy, janiceGrumpy, lennyGrumpy, karenGrumpy,
+      fredMoral, brigitteMoral, lennyMoral, karenMoral,
       fredStress, brigitteStress, lennyStress, karenStress,
       notoriety, glacierBeats, phase3TriggerStage, phase3Semesters, exoIntroShown, securityIntroShown,
       sickUntil,
@@ -8134,11 +7592,7 @@ export default function App() {
       notorietyHistory, pressArticles,
       hireDates, lastRaiseDecision, lastBonusAt, birthdays, salaryDebt, showProfitability, devUnlocked,
       wageArrears, salaryMissMonths: salaryMissMonthsRef.current,
-      purchaseSliders,
-      activeLawsuits, lawsuitHistory, sabineYearCount,
-      janiceActionState, janicePermaSellBonus, janiceTempSellBoost, janiceLegendeUnlocked,
-      markActionState, markTempSellBoost, markBillDiscount,
-      sabineActionState, sabineCompliance, sabineLobbyUntil,
+      activeLawsuits, lawsuitHistory,
       victoryAchieved, victoryTimestamp,
       trialAnnounced: trialAnnouncedRef.current,
       rhFatigue, rhActionsUsed, rhActionsYearIdx, rhBoostUntil,
@@ -8208,7 +7662,7 @@ export default function App() {
   useEffect(() => {
     if (phase >= 2 && marketplace.length === 0 && brigitteMaxTier > 0 && rawStats.truckMaxCap > 0) {
       const signedIds = lines.map(l => l.contractId).filter(Boolean);
-      setMarketplace(makeInitialMarketplace(brigitteMaxTier, maxCap, rawStats.truckMaxCap, notoriety, signedIds, null, phase, contractRejections, gameTime, owned, purchaseSlidersRef.current));
+      setMarketplace(makeInitialMarketplace(brigitteMaxTier, maxCap, rawStats.truckMaxCap, notoriety, signedIds, null, phase, contractRejections, gameTime, owned));
     }
   }, [phase, owned, brigitteMaxTier, maxCap, rawStats.truckMaxCap, notoriety]);
 
@@ -8572,8 +8026,6 @@ export default function App() {
         const trucksActiveCount = linesRef.current.filter(l => l && l.contractId && !l.broken).length;
         const contractsActiveCount = linesRef.current.filter(l => l && l.contractId).length;
         const empCount = (hasFredForCtx ? 1 : 0) + (hasBrigitteForCtx ? 1 : 0) + (hasJaniceForCtx ? 1 : 0) + (hasLenny ? 1 : 0)
-          + (curOwn['mark_jr'] || curOwn['mark_resp'] || curOwn['mark_dir'] ? 1 : 0)
-          + (curOwn['sabine_jr'] || curOwn['sabine_sr'] || curOwn['sabine_dg'] ? 1 : 0)
           + (curOwn['karen_junior'] || curOwn['karen_drh'] ? 1 : 0);
         const hasPremWater = !!(curOwn['eau_source_filtree'] || curOwn['eau_source_montagne'] || curOwn['eau_volcanique']);
         const ctx = {
@@ -8628,12 +8080,9 @@ export default function App() {
             const pool = [];
             if (ctx.hasFred) pool.push('fred');
             if (ctx.hasBrigitte) pool.push('brigitte');
-            if (ctx.hasJanice) pool.push('janice');
             if (ctx.hasLenny) pool.push('lenny');
             const ownedSnap = ownedRef.current;
             if (ownedSnap['karen_junior'] || ownedSnap['karen_senior'] || ownedSnap['karen_drh']) pool.push('karen');
-            if (ownedSnap['mark_jr'] || ownedSnap['mark_resp'] || ownedSnap['mark_dir']) pool.push('mark');
-            if (ownedSnap['sabine_jr'] || ownedSnap['sabine_sr'] || ownedSnap['sabine_dg']) pool.push('sabine');
             if (pool.length > 0) {
               _sickPickedRole = pool[Math.floor(Math.random() * pool.length)];
               const expiresAt = gameTimeRef.current + picked.duration;
@@ -8658,20 +8107,14 @@ export default function App() {
             setBrigitteMoral(m => Math.max(0, Math.min(100, m + d)));
             setLennyMoral(m => Math.max(0, Math.min(100, m + d)));
             setKarenMoral(m => Math.max(0, Math.min(100, m + d)));
-            setMarkMoral(m => Math.max(0, Math.min(100, m + d)));
-            setSabineMoral(m => Math.max(0, Math.min(100, m + d)));
           }
           if (typeof e.oneShotNotoriety === 'number') {
             setNotoriety(n => Math.max(0, Math.min(100, n + e.oneShotNotoriety)));
           }
           if (e.oneShotClassAction) {
-            // Procès collectif : amende fonction de Sabine
-            const hasSabineDg = !!ownedRef.current['sabine_dg'];
-            const hasSabineSr = !!ownedRef.current['sabine_sr'];
-            const hasSabineJr = !!ownedRef.current['sabine_jr'];
+            // Procès collectif : plus de juriste interne pour amortir l'amende.
             const baseFine = 8000;
-            const mult = hasSabineDg ? 0.2 : hasSabineSr ? 0.4 : hasSabineJr ? 0.65 : 3.0;
-            setMoney(m => m - baseFine * mult);
+            setMoney(m => m - baseFine * 3.0);
           }
           // Friction durable → bandeau persistant (nom + timer + effet).
           const durableFriction = picked.duration > 1;
@@ -8834,22 +8277,11 @@ export default function App() {
         const seasonProd = Math.max(0, totalsRef.current.produced - start.produced);
         const freezerCount = 1 + (ownedRef.current['mini_freezer'] ? 1 : 0) + (ownedRef.current['pro_freezer'] ? 2 : 0);
         const bill0 = computeUtilitiesBill(freezerCount, seasonProd, seasonFuelRef.current, prevSeason.utilMult);
-        // Multiplicateur lié aux curseurs Achats Mark (charges allégées si curseurs vers la droite, alourdies si Premium)
-        // Réduction temporaire des charges via une action Mark (renégociation / centrale d'achat).
-        const markBillFactor = (markBillDiscountRef.current.until > gameTimeRef.current && !isSickNow('mark'))
-          ? markBillDiscountRef.current.factor : 1.0;
-        const bill = Math.max(0, bill0 * computePurchaseCostMult(purchaseSlidersRef.current, ownedRef.current, isSickNow('mark')) * markBillFactor);
+        const bill = Math.max(0, bill0);
         if (bill > 0 && !isFirstYear) {
           // Cumule (au cas où plusieurs mois passent d'un coup).
           pendingUtilityBillRef.current += bill;
           setLastUtilBill(bill);
-        }
-        // === EFFET MENSUEL DES CURSEURS ACHATS SUR LA NOTORIÉTÉ ===
-        // Premium → légère hausse continue (image éco / éthique)
-        // Limite légale → effritement progressif de la réputation
-        const notoDelta = computePurchaseNotoDelta(purchaseSlidersRef.current, ownedRef.current);
-        if (notoDelta !== 0 && !isFirstYear) {
-          setNotoriety(n => Math.max(0, Math.min(100, (n || 0) + notoDelta)));
         }
         // === TIRAGE D'UN PROCÈS ÉVENTUEL (accidents, incidents, conformité) ===
         // Plus de gestion automatique : tout procès tombe en file et c'est au
@@ -8859,7 +8291,7 @@ export default function App() {
           const baseRisk = phaseRef.current >= 3 ? 0.035 : 0.015;
           const totalRisk = Math.min(0.85, baseRisk);
           if (Math.random() < totalRisk) {
-            const lsTemplate = rollLawsuit(purchaseSlidersRef.current, ownedRef.current);
+            const lsTemplate = rollLawsuit(ownedRef.current);
             if (lsTemplate) {
               const ls = {
                 uid: `ls_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
@@ -9878,7 +9310,7 @@ export default function App() {
           (typeof segNowR[c.targetSegment] === 'number' && segNowR[c.targetSegment] >= c.minSegment);
         // "Faisable maintenant" = segment cible atteint ET qualité suffisante.
         // (slot camion / réputation sont des blocages runtime, pas intrinsèques.)
-        const isFeasibleNow = (c) => segMet(c) && isContractQualityFeasible(c, ownedRef.current, 0, purchaseSlidersRef.current);
+        const isFeasibleNow = (c) => segMet(c) && isContractQualityFeasible(c, ownedRef.current, 0);
         while (refreshed.length < marketTargetRef.current) {
           const usedIds = new Set([...signedIds, ...refreshed.map(m => m.contractId)]);
           const curMaxTier = getBrigitteMaxContractTier(ownedRef.current, brigitteSalaryLevelRef.current, brigitteGrumpyRef.current);
@@ -10395,18 +9827,22 @@ export default function App() {
       if (phaseRef.current >= 4) return;
       // ARRÊT MALADIE Brigitte : auto-vente coupée, le joueur doit vendre manuellement.
       if (isSickNow('brigitte')) return;
-      // L'auto-vente continue pendant la cyberattaque (seuls contrats/téléphone coupés),
-      // MAIS elle est paralysée pendant le sabotage du groupe froid (30s).
+      // L'auto-vente continue pendant la cyberattaque (seuls contrats/téléphone
+      // coupés) ET pendant le sabotage du groupe froid : une capacité réduite
+      // n'empêche pas de vendre, elle rend même l'écoulement plus urgent.
       const stockSabActive = stockBurnFlashRef.current > 0
         && (gameTimeRef.current - stockBurnFlashRef.current) < 30;
-      if (stockSabActive) return;
       const curStock = stockRef.current;
       const curSell = effectiveSellRef.current;
       const curStats = computeStats(ownedRef.current);
-      const curMaxCap = BASE_CAP + curStats.capBonus;
       // === Friction : Brigitte en pause (Bug ERP/CRM) ===
       const fricBrig = aggregateFrictionEffects(activeFrictionsRef.current, gameTimeRef.current);
       if (fricBrig.pauseBrigitte) return;
+      // Le seuil de saturation suit la capacité RÉELLEMENT utilisable — friction
+      // et sabotage cumulés, comme dans le tick. Sinon, capacité rabotée, le
+      // stock plafonne sous les 90 % et plus rien ne s'écoule.
+      const _rawCap = (BASE_CAP + curStats.capBonus) * fricBrig.capMult;
+      const curMaxCap = Math.max(1, stockSabActive ? Math.ceil(_rawCap / 3) : Math.floor(_rawCap));
       // === Gestion de la surproduction (toutes phases) ===
       // Brigitte vend UNIQUEMENT quand le stock arrive à saturation
       // (≥ 90% de la capacité) pour éviter la fonte massive ou la perte de production.
@@ -10688,7 +10124,7 @@ export default function App() {
     if (u.id === 'robotisation') {
       const hit = m => Math.max(0, m - ROBOTISATION_MORAL);
       setFredMoral(hit); setBrigitteMoral(hit); setLennyMoral(hit);
-      setKarenMoral(hit); setMarkMoral(hit); setSabineMoral(hit);
+      setKarenMoral(hit);
     }
     // Track hire dates for first-tier purchases
     const BIRTHDAY_OFFSET_MIN = 480; // ~8 min après embauche
@@ -10699,38 +10135,15 @@ export default function App() {
     if (u.id === 'janice_jr' && !hireDates.janice) { setHireDates(prev => ({ ...prev, janice: gameTime })); queuePopup({ type: 'character', speaker: t('agency.speaker'), text: t('hire_intro.janice') }); }
     if (u.id === 'camion_1' && !hireDates.lenny) { setHireDates(prev => ({ ...prev, lenny: gameTime })); setBirthdays(prev => ({ ...prev, lenny: genBirthday() })); queuePopup({ type: 'character', speaker: 'Lenny', text: t('hire_intro.lenny') }); }
     if (u.id === 'karen_junior' && !hireDates.karen) { setHireDates(prev => ({ ...prev, karen: gameTime })); setBirthdays(prev => ({ ...prev, karen: genBirthday() })); queuePopup({ type: 'character', speaker: 'Karen', text: t('hire_intro.karen') }); }
-    // Présentation Mark à l'embauche (Mark Jr) + avertissement Brigitte sur le risque juridique des curseurs Achats
-    if (u.id === 'mark_jr' && !hireDates.mark) {
-      setHireDates(prev => ({ ...prev, mark: gameTime }));
-      setBirthdays(prev => ({ ...prev, mark: genBirthday() }));
-      // Mark se présente d'abord
-      queuePopup({ type: 'character', speaker: 'Mark', text: t('hire_intro.mark') });
-      // Puis Brigitte avertit du risque juridique des curseurs Achats
-      setTimeout(() => {
-        queuePopup({ type: 'character', speaker: 'Brigitte', text: t('p2.mark_law_warning') });
-      }, 1200);
-    }
-    // Présentation Sabine à l'embauche
-    if (u.id === 'sabine_jr' && !hireDates.sabine) {
-      setHireDates(prev => ({ ...prev, sabine: gameTime }));
-      setBirthdays(prev => ({ ...prev, sabine: genBirthday() }));
-      queuePopup({ type: 'character', speaker: 'Sabine', text: t('hire_intro.sabine') });
-    }
     // Moral: promotion d'employé → +30
     const FRED_TIERS = ['fred_stage', 'fred', 'fred_perma', 'fred_chef', 'fred_dir'];
     const BRIGITTE_TIERS = ['autosell', 'brigitte_compta', 'brigitte_ad'];
-    const JANICE_TIERS = ['janice_jr', 'janice_senior', 'janice_dir'];
     const LENNY_TIERS = ['camion_1', 'camion_2', 'camion_3', 'camion_4'];
     const KAREN_TIERS = ['karen_junior', 'karen_senior', 'karen_drh'];
-    const MARK_TIERS = ['mark_jr', 'mark_resp', 'mark_dir'];
-    const SABINE_TIERS = ['sabine_jr', 'sabine_sr', 'sabine_dg'];
     if (FRED_TIERS.includes(u.id)) adjustMoralFor('fred', 30);
     else if (BRIGITTE_TIERS.includes(u.id)) adjustMoralFor('brigitte', 30);
-    else if (JANICE_TIERS.includes(u.id)) adjustMoralFor('janice', 30);
     else if (LENNY_TIERS.includes(u.id)) adjustMoralFor('lenny', 30);
     else if (KAREN_TIERS.includes(u.id)) adjustMoralFor('karen', 30);
-    else if (MARK_TIERS.includes(u.id)) adjustMoralFor('mark', 30);
-    else if (SABINE_TIERS.includes(u.id)) adjustMoralFor('sabine', 30);
     if (u.phaseUnlock) {
       setPhase(u.phaseUnlock);
       setEventNotif('PHASE 0' + u.phaseUnlock + ' ' + t('notif.phase_unlocked'));
@@ -10775,7 +10188,7 @@ export default function App() {
 
 
   const confirmAgenceMarketing = () => {
-    // Achat narratif du nouveau siège : bascule P2 → P3, +500 cap, débloque familles Janice/Mark/Sabine
+    // Achat narratif du nouveau siège : bascule P2 → P3, +500 cap, débloque l'agence marketing
     const u = UPGRADES.find(x => x.id === 'agence_marketing');
     if (!u) { setAgenceModalOpen(false); return; }
     if (owned[u.id]) { setAgenceModalOpen(false); return; }
@@ -11381,7 +10794,7 @@ export default function App() {
     const cBase = B2B_BY_ID[contractId];
     if (!cBase) return;
     // Applique les dynamiques (noto + qualité, priceAdjust=1 par défaut)
-    const c = applyContractDynamics(cBase, owned, notoriety, 1.0, purchaseSliders);
+    const c = applyContractDynamics(cBase, owned, notoriety, 1.0);
     const profile = getContractProfile(c);
     // Fidélité : un client déjà honoré paie une prime à la re-signature.
     const loyaltyCount = clientLoyaltyRef.current[contractId] || 0;
@@ -11666,8 +11079,6 @@ export default function App() {
     else if (emp === 'brigitte') setBrigitteMoral(clamp);
     else if (emp === 'lenny') setLennyMoral(clamp);
     else if (emp === 'karen') setKarenMoral(clamp);
-    else if (emp === 'mark') setMarkMoral(clamp);
-    else if (emp === 'sabine') setSabineMoral(clamp);
   };
 
   // === RENTABILITÉ — buffer revenus 60s ===
@@ -11713,97 +11124,6 @@ export default function App() {
     if (usedCount >= maxUses) return false;
     const cost = RH_ACTION_COST[kind] || 0;
     if (moneyRef.current < cost) return false;
-    return true;
-  };
-  // === HANDLER ACTIONS JANICE ===
-  // Déclenche une action stratégique : applique tous ses effets et bloque
-  // l'action selon le cooldown ou marque comme one-shot.
-  const triggerJaniceAction = (actionId) => {
-    const action = JANICE_ACTIONS.find(a => a.id === actionId);
-    if (!action) return false;
-    const status = getJaniceActionStatus(action, janiceActionState, gameTime, owned, money);
-    if (!status.available) return false;
-    // Débite le coût
-    setMoney(m => m - action.cost);
-    // Marque comme utilisée (one-shot ou lastUsedTs pour cooldown)
-    setJaniceActionState(prev => ({
-      ...prev,
-      [action.id]: {
-        used: !!action.oneShot,
-        lastUsedTs: gameTime,
-        count: (prev[action.id]?.count || 0) + 1,
-      },
-    }));
-    // === Effets ===
-    const eff = action.effects;
-    // Notoriété instantanée
-    if (eff.notoInstant) {
-      setNotoriety(n => Math.min(100, (n || 0) + eff.notoInstant));
-    }
-    // Réputation instantanée (actions de réparation d'image / RSE)
-    if (eff.repInstant) {
-      setReputation(r => Math.min(100, (r || 0) + eff.repInstant));
-    }
-    // Bonus prix permanent
-    if (eff.sellPermaBonus) {
-      setJanicePermaSellBonus(b => b * (1 + eff.sellPermaBonus));
-    }
-    // Boost prix temporaire (en mois → en secondes)
-    if (eff.sellBoostFactor && eff.sellBoostMonths) {
-      const untilTs = gameTime + (eff.sellBoostMonths * MONTH_DURATION);
-      setJaniceTempSellBoost({ factor: eff.sellBoostFactor, until: untilTs });
-    }
-    // Débloque palier Légende (pour système de marque futur)
-    if (eff.legendeUnlocked) {
-      setJaniceLegendeUnlocked(true);
-    }
-    // Popup narrative de Janice
-    queuePopup({ type: 'character', speaker: 'Agence marketing',
-      text: `${localizeField(action.title, language)} lancée. ${localizeField(action.fx, language)}.` });
-    return true;
-  };
-
-  const triggerMarkAction = (actionId) => {
-    const action = MARK_ACTIONS.find(a => a.id === actionId);
-    if (!action) return false;
-    const status = getMarkActionStatus(action, markActionState, gameTime, owned, money);
-    if (!status.available) return false;
-    setMoney(m => m - action.cost);
-    setMarkActionState(prev => ({
-      ...prev,
-      [action.id]: { used: !!action.oneShot, lastUsedTs: gameTime, count: (prev[action.id]?.count || 0) + 1 },
-    }));
-    const eff = action.effects;
-    if (eff.billDiscountFactor && eff.billDiscountMonths) {
-      setMarkBillDiscount({ factor: eff.billDiscountFactor, until: gameTime + eff.billDiscountMonths * MONTH_DURATION });
-    }
-    if (eff.sellBoostFactor && eff.sellBoostMonths) {
-      setMarkTempSellBoost({ factor: eff.sellBoostFactor, until: gameTime + eff.sellBoostMonths * MONTH_DURATION });
-    }
-    queuePopup({ type: 'character', speaker: 'Mark',
-      text: `${localizeField(action.title, language)} lancée. ${localizeField(action.fx, language)}.` });
-    return true;
-  };
-
-  const triggerSabineAction = (actionId) => {
-    const action = SABINE_ACTIONS.find(a => a.id === actionId);
-    if (!action) return false;
-    const status = getSabineActionStatus(action, sabineActionState, gameTime, owned, money);
-    if (!status.available) return false;
-    setMoney(m => m - action.cost);
-    setSabineActionState(prev => ({
-      ...prev,
-      [action.id]: { used: !!action.oneShot, lastUsedTs: gameTime, count: (prev[action.id]?.count || 0) + 1 },
-    }));
-    const eff = action.effects;
-    if (eff.lawRiskMult != null && eff.lawRiskMonths) {
-      setSabineCompliance({ factor: eff.lawRiskMult, until: gameTime + eff.lawRiskMonths * MONTH_DURATION });
-    }
-    if (eff.lawSliderImmuneMonths) {
-      setSabineLobbyUntil(gameTime + eff.lawSliderImmuneMonths * MONTH_DURATION);
-    }
-    queuePopup({ type: 'character', speaker: 'Sabine',
-      text: `${localizeField(action.title, language)} lancée. ${localizeField(action.fx, language)}.` });
     return true;
   };
 
@@ -11920,8 +11240,6 @@ export default function App() {
     if (emp === 'janice')   return 0; // agence marketing : pas de salaire (déblocage + campagnes payées)
     if (emp === 'lenny')    return lennyGrade             ? lennyGrade.salary[lennySalaryLevel]                : 0;
     if (emp === 'karen')  { const id = ['karen_drh','karen_senior','karen_junior'].find(i => owned[i]); const u = id ? UPGRADES.find(x => x.id === id) : null; return u ? u.salary[karenSalaryLevel] : 0; }
-    if (emp === 'mark')   { const id = ['mark_dir','mark_resp','mark_jr'].find(i => owned[i]);          const u = id ? UPGRADES.find(x => x.id === id) : null; return u ? u.salary[markSalaryLevel] : 0; }
-    if (emp === 'sabine') { const id = ['sabine_dg','sabine_sr','sabine_jr'].find(i => owned[i]);       const u = id ? UPGRADES.find(x => x.id === id) : null; return u ? u.salary[sabineSalaryLevel] : 0; }
     return 0;
   };
   const getBonusCost = (emp) => getEmpSalary(emp) * BONUS_COST_MULT;
@@ -11941,8 +11259,6 @@ export default function App() {
       emp === 'fred' ? fredMoral :
       emp === 'brigitte' ? brigitteMoral :
       emp === 'karen' ? karenMoral :
-      emp === 'mark' ? markMoral :
-      emp === 'sabine' ? sabineMoral :
       lennyMoral;
     setMoney(m => m - cost);
     adjustMoralFor(emp, BONUS_MORAL_BOOST);
@@ -12226,13 +11542,6 @@ export default function App() {
     setActiveCampaign(null);
     setCampaignsOpen(false);
     setCampaignsLaunched(0);
-    // Actions Mark / Sabine : état + effets temporaires
-    setMarkActionState({});
-    setMarkTempSellBoost({ factor: 1.0, until: 0 }); markTempSellBoostRef.current = { factor: 1.0, until: 0 };
-    setMarkBillDiscount({ factor: 1.0, until: 0 }); markBillDiscountRef.current = { factor: 1.0, until: 0 };
-    setSabineActionState({});
-    setSabineCompliance({ factor: 1.0, until: 0 }); sabineComplianceRef.current = { factor: 1.0, until: 0 };
-    setSabineLobbyUntil(0); sabineLobbyUntilRef.current = 0;
     setMarketTarget(2);
     setNextMarketReroll(0);
     setCyberLockout(0);
@@ -12700,9 +12009,9 @@ export default function App() {
                         // Petit re-render forcé via state pour rafraîchir le bouton.
                         setLines(prev => prev.slice());
                       }}
-                      title="Envoyer le camion (Lenny est en arrêt)"
+                      title={t('truck.dispatch_hint')}
                     >
-                      ENVOYER
+                      {t('truck.dispatch')}
                     </button>
                   )}
                 </div>
@@ -12800,7 +12109,7 @@ export default function App() {
   const feasibleMarketCount = marketplace.reduce((n, item) => {
     const cBase = B2B_BY_ID[item.contractId];
     if (!cBase) return n;
-    const c = applyContractDynamics(cBase, owned, notoriety, 1.0, purchaseSliders);
+    const c = applyContractDynamics(cBase, owned, notoriety, 1.0);
     const avail = getContractAvailability(c, {
       noSlot: false,
       reputation,
@@ -13071,18 +12380,18 @@ export default function App() {
             </div>
           )}
           <div className="side-lbl">{t('side.stock')}</div>
-          <div className={`stock-grid ${atCap ? 'full' : ''} ${burnFlashActive ? 'burn-flash' : ''}`}>
+          <div className={`stock-grid ${atCap ? 'full' : ''} ${burnFlashActive ? 'burn-flash' : ''} ${capReduced && !burnFlashActive ? 'cap-reduced' : ''}`}>
             {Array.from({ length: STOCK_SIZE }).map((_, p) => {
               const row = Math.floor(p / STOCK_COLS);
               const col = p % STOCK_COLS;
               const idx = (STOCK_ROWS - 1 - row) * STOCK_COLS + col;
-              // Pendant le sabotage : les 2/3 du haut (idx >= burnedZoneStart) sont condamnés.
-              const isCondemned = burnFlashActive && idx >= burnedZoneStart;
+              // Zone condamnée (sabotage ou capacité rabotée) : cubes du haut.
+              const isCondemned = idx >= burnedZoneStart;
               const isFilled = !isCondemned && idx < filledCubes;
               return <div key={p} className={`cube ${isFilled ? 'filled' : ''} ${isCondemned ? 'burned' : ''}`} />;
             })}
           </div>
-          {(!hasFred || fredGrumpy) && (() => {
+          {(!hasFred || fredGrumpy || fredSick) && (() => {
             const fricProdEffects = fricVis.prod && FRICTION_EVENTS[fricVis.prod.id].effects;
             const fricBlocked = fricProdEffects && fricProdEffects.prodBlock;
             const fricSlowed = fricProdEffects && fricProdEffects.prodMult && fricProdEffects.prodMult < 1;
@@ -14869,6 +14178,9 @@ export default function App() {
           0%, 100% { opacity: 0.55; }
           50% { opacity: 0.25; }
         }
+        /* Capacité rabotée par une friction (dégât des eaux…) : même hachure
+           que le sabotage, mais fixe — c'est un état durable, pas une alerte. */
+        .stock-grid.cap-reduced .cube.burned { animation: none; opacity: 0.4; }
         .stock-grid.burn-flash { animation: burnShake 0.16s steps(2) 6; }
         @keyframes burnShake {
           0% { transform: translate(0,0); }
@@ -16993,68 +16305,6 @@ export default function App() {
         }
 
         /* === ACTIONS JANICE (panel marketing) === */
-        .janice-actions-section {
-          margin-bottom: 18px;
-          padding-bottom: 14px;
-          border-bottom: 1px dashed var(--line);
-        }
-        .janice-actions-title {
-          font-size: 9px; letter-spacing: 2.5px; font-weight: 900;
-          text-transform: uppercase; color: var(--fg);
-          margin-bottom: 6px;
-        }
-        .janice-actions-intro {
-          font-size: 9px; color: var(--m1); line-height: 1.5;
-          margin-bottom: 12px;
-        }
-        .janice-actions-grid {
-          display: grid; grid-template-columns: 1fr 1fr;
-          gap: 6px;
-        }
-        .janice-action-card {
-          background: var(--bg);
-          color: var(--fg);
-          border: 1px solid var(--fg);
-          padding: 8px 8px;
-          font-family: inherit;
-          cursor: pointer;
-          display: flex; flex-direction: column; gap: 3px;
-          text-align: left;
-          position: relative;
-        }
-        .janice-action-card:hover:not(:disabled) { background: var(--fg); color: var(--bg); }
-        .janice-action-card.is-disabled,
-        .janice-action-card:disabled {
-          opacity: 0.45;
-          cursor: not-allowed;
-        }
-        .janice-action-card.is-oneshot { border-style: double; border-width: 3px; }
-        .janice-action-label {
-          font-size: 9px; font-weight: 900; letter-spacing: 0.5px;
-          line-height: 1.3;
-        }
-        .janice-action-cost {
-          font-size: 10px; font-weight: 900; font-variant-numeric: tabular-nums;
-        }
-        .janice-action-fx {
-          font-size: 7.5px; color: var(--m1); line-height: 1.3;
-          letter-spacing: 0.2px;
-        }
-        .janice-action-card:hover:not(:disabled) .janice-action-fx { color: var(--bg); opacity: 0.85; }
-        .janice-action-state {
-          font-size: 7px; letter-spacing: 1px; text-transform: uppercase;
-          margin-top: 3px; font-weight: 700;
-          padding-top: 3px; border-top: 1px dashed var(--line);
-        }
-        .janice-action-tag {
-          position: absolute; top: -6px; right: -2px;
-          background: var(--fg); color: var(--bg);
-          font-size: 6px; padding: 1px 4px;
-          letter-spacing: 0.5px; font-weight: 900;
-        }
-        .janice-action-card.is-oneshot:hover:not(:disabled) .janice-action-tag {
-          background: var(--bg); color: var(--fg);
-        }
         .janice-boost-active,
         .janice-perma-active {
           margin-top: 10px;
@@ -17070,7 +16320,7 @@ export default function App() {
         }
         .janice-perma-active { background: var(--bg); color: var(--fg); }
 
-        /* === Modale JURIDIQUE (Sabine) === */
+        /* === Modale JURIDIQUE === */
         .juridique-modal { max-width: 480px; }
         .juridique-body { padding: 16px 18px 18px; }
         .juridique-intro { font-size: 10px; color: var(--m1); line-height: 1.6; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px dashed var(--line); }
@@ -17141,55 +16391,6 @@ export default function App() {
         .lawyer-fee { font-size: 10px; font-weight: 900; font-variant-numeric: tabular-nums; white-space: nowrap; }
         .lawyer-blurb { font-size: 8px; line-height: 1.35; opacity: 0.78; }
         .juridique-empty { font-size: 10px; color: var(--m2); text-align: center; padding: 16px; border: 1px dashed var(--line); letter-spacing: 1px; }
-
-        /* === Modale ACHATS (Mark) === */
-        .achats-modal { max-width: 480px; }
-        .achats-body { padding: 16px 18px 18px; }
-        .achats-intro { font-size: 10px; color: var(--m1); line-height: 1.6; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px dashed var(--line); }
-        .achats-summary {
-          display: grid; grid-template-columns: repeat(3, 1fr);
-          gap: 6px; margin-bottom: 18px;
-          padding: 10px; border: 1.5px solid var(--fg);
-        }
-        .achats-summary-cell { display: flex; flex-direction: column; align-items: center; gap: 3px; }
-        .achats-summary-lbl { font-size: 7.5px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--m1); }
-        .achats-summary-val { font-size: 14px; font-weight: 900; letter-spacing: 0.5px; font-variant-numeric: tabular-nums; }
-        .achats-summary-val.is-neg { color: var(--fg); }
-        .achats-summary-val.is-pos { color: var(--fg); }
-        .achats-sliders-list { display: flex; flex-direction: column; gap: 14px; margin-bottom: 14px; }
-        .achats-slider-block {
-          border: 1px solid var(--line);
-          padding: 10px 12px;
-          background: var(--bg);
-        }
-        .achats-slider-block.is-locked { opacity: 0.4; }
-        .achats-slider-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
-        .achats-slider-lbl { font-size: 10px; font-weight: 900; letter-spacing: 1.5px; }
-        .achats-slider-current { font-size: 8.5px; color: var(--m1); letter-spacing: 0.5px; }
-        .achats-slider-current.is-warn { color: var(--fg); font-weight: 900; }
-        .achats-slider-current.is-warn::before { content: '⚠ '; }
-        .achats-slider-track { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; height: 14px; margin-bottom: 4px; }
-        .achats-slider-step {
-          background: var(--line);
-          border: 0;
-          cursor: pointer;
-          padding: 0;
-          transition: background 0.15s;
-        }
-        .achats-slider-step.is-active { background: var(--fg); }
-        .achats-slider-step.is-risk:not(.is-active):hover { background: var(--m2); }
-        .achats-slider-step:not(:disabled):hover:not(.is-active) { background: var(--m2); }
-        .achats-slider-step:disabled { cursor: not-allowed; opacity: 0.5; }
-        .achats-slider-effects {
-          display: flex; justify-content: space-between;
-          font-size: 8px; color: var(--m1); margin-top: 6px;
-          letter-spacing: 0.3px;
-        }
-        .achats-slider-effects b { color: var(--fg); font-weight: 900; }
-        .achats-slider-effects b.is-neg { color: var(--fg); font-weight: 900; }
-        .achats-slider-effects b.is-pos { color: var(--fg); font-weight: 900; }
-        .achats-slider-unlock-hint { font-size: 8px; color: var(--m2); font-style: italic; margin-top: 5px; }
-        .achats-foot { font-size: 8.5px; color: var(--m2); padding-top: 10px; border-top: 1px dashed var(--line); text-align: center; }
 
         /* === Modale RH === */
         .rh-modal { max-width: 480px; }
@@ -17855,7 +17056,7 @@ export default function App() {
               const names = [];
               if (fredGrumpy) names.push('Fred');
               if (brigitteGrumpy) names.push('Brigitte');
-              if (janiceGrumpy) names.push('Janice');
+              if (janiceGrumpy) names.push(t('agency.speaker'));
               if (lennyGrumpy) names.push('Lenny');
               if (karenGrumpy) names.push('Karen');
               return (
@@ -18109,7 +17310,7 @@ export default function App() {
                   <label>PHASE</label>
                   <div style={{ display: 'flex', gap: 4 }}>
                     <button className={`dev-pill ${phase === 1 ? 'on' : ''}`} onClick={() => setPhase(1)}>01</button>
-                    <button className={`dev-pill ${phase === 2 ? 'on' : ''}`} onClick={() => { setPhase(2); if (marketplace.length === 0) setMarketplace(makeInitialMarketplace(brigitteMaxTier, maxCap, rawStats.truckMaxCap, notoriety, [], null, 2, contractRejections, gameTime, owned, purchaseSliders)); }}>02</button>
+                    <button className={`dev-pill ${phase === 2 ? 'on' : ''}`} onClick={() => { setPhase(2); if (marketplace.length === 0) setMarketplace(makeInitialMarketplace(brigitteMaxTier, maxCap, rawStats.truckMaxCap, notoriety, [], null, 2, contractRejections, gameTime, owned)); }}>02</button>
                     <button className={`dev-pill ${phase === 3 ? 'on' : ''}`} onClick={() => { setPhase(3); setPhase3TriggerStage(3); }}>03</button>
                   </div>
                 </div>
@@ -18284,18 +17485,13 @@ export default function App() {
                                 setBrigitteMoral(m => Math.max(0, Math.min(100, m + d)));
                                 setLennyMoral(m => Math.max(0, Math.min(100, m + d)));
                                 setKarenMoral(m => Math.max(0, Math.min(100, m + d)));
-                                setMarkMoral(m => Math.max(0, Math.min(100, m + d)));
-                                setSabineMoral(m => Math.max(0, Math.min(100, m + d)));
                               }
                               if (typeof e.oneShotNotoriety === 'number') {
                                 setNotoriety(n => Math.max(0, Math.min(100, n + e.oneShotNotoriety)));
                               }
                               if (e.oneShotClassAction) {
-                                const hasSabineDg = !!ownedRef.current['sabine_dg'];
-                                const hasSabineSr = !!ownedRef.current['sabine_sr'];
-                                const hasSabineJr = !!ownedRef.current['sabine_jr'];
                                 const baseFine = 8000;
-                                const mult = hasSabineDg ? 0.2 : hasSabineSr ? 0.4 : hasSabineJr ? 0.65 : 3.0;
+                                const mult = 3.0;
                                 setMoney(m => m - baseFine * mult);
                               }
                               // Durable
@@ -18626,7 +17822,7 @@ export default function App() {
                             setEventNotif('AUCUN EMPLOYÉ');
                           }
                         }}>FORCE DÉBAUCH.</button>
-                        <button className="dev-btn" onClick={() => setMarketplace(makeInitialMarketplace(brigitteMaxTier, maxCap, rawStats.truckMaxCap, notoriety, lines.map(l => l.contractId).filter(Boolean), null, phase, contractRejections, gameTime, owned, purchaseSliders))}>RESET MARKET</button>
+                        <button className="dev-btn" onClick={() => setMarketplace(makeInitialMarketplace(brigitteMaxTier, maxCap, rawStats.truckMaxCap, notoriety, lines.map(l => l.contractId).filter(Boolean), null, phase, contractRejections, gameTime, owned))}>RESET MARKET</button>
                         <button className="dev-btn" onClick={() => setPopupMessage({ type: 'narrator', text: 'Le téléphone sonne. Personne ne répond.' })}>POPUP NARR. TEST</button>
                         <button className="dev-btn" onClick={() => {
                           // Force un procès lambda pour tester juridique
@@ -18734,7 +17930,7 @@ export default function App() {
                       const cBase = B2B_BY_ID[item.contractId];
                       if (!cBase) return null;
                       // Applique les dynamiques noto+qualité (priceAdjust=1 par défaut)
-                      const c = applyContractDynamics(cBase, owned, notoriety, 1.0, purchaseSliders);
+                      const c = applyContractDynamics(cBase, owned, notoriety, 1.0);
                       // Fidélité : prime de prix affichée si le client a déjà été honoré.
                       const loyCount = clientLoyalty[item.contractId] || 0;
                       const loyMult = loyaltyPriceMult(loyCount);
@@ -18821,7 +18017,7 @@ export default function App() {
                         const signedIds = lines.map(l => l.contractId).filter(Boolean);
                         const newSize = Math.max(marketTarget, Math.min(MARKETPLACE_SIZE, marketTarget + 2));
                         const fresh = makeInitialMarketplace(
-                          brigitteMaxTier, maxCap, rawStats.truckMaxCap, notoriety, signedIds, newSize, phase, contractRejections, gameTime, owned, purchaseSliders
+                          brigitteMaxTier, maxCap, rawStats.truckMaxCap, notoriety, signedIds, newSize, phase, contractRejections, gameTime, owned
                         );
                         setMarketplace(fresh);
                         setMarketTarget(fresh.length);
@@ -18856,54 +18052,6 @@ export default function App() {
                   <button className="modal-close" onClick={() => setCampaignsOpen(false)}><X size={14} strokeWidth={2} /></button>
                 </div>
                 <div className="campaigns-body">
-                  {/* === ACTIONS STRATÉGIQUES JANICE (P3+) === */}
-                  {getJanicePeakTier(owned) && (
-                    <div className="janice-actions-section">
-                      <div className="janice-actions-title">{t('janice.actions_title')}</div>
-                      <div className="janice-actions-intro">{t('janice.actions_intro')}</div>
-                      <div className="janice-actions-grid">
-                        {JANICE_ACTIONS.filter(a => {
-                          const peak = getJanicePeakTier(owned);
-                          if (a.tier === 'janice_senior') return peak === 'janice_senior' || peak === 'janice_dir';
-                          if (a.tier === 'janice_dir') return peak === 'janice_dir';
-                          return false;
-                        }).map(action => {
-                          const status = getJaniceActionStatus(action, janiceActionState, gameTime, owned, money);
-                          const st = janiceActionState[action.id];
-                          let stateLabel = '';
-                          if (status.reason === 'oneshot') stateLabel = t('janice.act_done');
-                          else if (status.reason === 'cooldown') stateLabel = `${t('janice.act_cd')} ${status.cooldownLeftMonths}${t('janice.month_short')}`;
-                          else if (status.reason === 'funds') stateLabel = t('janice.act_no_funds');
-                          return (
-                            <button
-                              key={action.id}
-                              className={`janice-action-card ${!status.available ? 'is-disabled' : ''} ${action.oneShot ? 'is-oneshot' : ''}`}
-                              disabled={!status.available}
-                              onClick={() => triggerJaniceAction(action.id)}
-                            >
-                              <div className="janice-action-label">{localizeField(action.title, language)}</div>
-                              <div className="janice-action-cost">{fmtInt(action.cost)}€</div>
-                              <div className="janice-action-fx">{localizeField(action.fx, language)}</div>
-                              {stateLabel && <div className="janice-action-state">{stateLabel}</div>}
-                              {action.oneShot && <div className="janice-action-tag">{t('janice.tag_oneshot')}</div>}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      {/* Boost actif visible si en cours */}
-                      {gameTime < janiceTempSellBoost.until && (
-                        <div className="janice-boost-active">
-                          <Zap size={10} strokeWidth={2} /> {t('janice.boost_active')} ×{janiceTempSellBoost.factor.toFixed(2)} ·
-                          {' '}{Math.ceil((janiceTempSellBoost.until - gameTime) / MONTH_DURATION)} {t('janice.months_short')}
-                        </div>
-                      )}
-                      {janicePermaSellBonus > 1.001 && (
-                        <div className="janice-perma-active">
-                          {t('janice.perma_bonus')} +{Math.round((janicePermaSellBonus - 1) * 100)}%
-                        </div>
-                      )}
-                    </div>
-                  )}
                   {camp && activeC && (
                     <div className="campaigns-active">
                       <div className="campaigns-active-name">{t('campaign.active')} · {localizeField(activeC.name, language).toUpperCase()}</div>
@@ -19310,7 +18458,7 @@ export default function App() {
           const cBase = B2B_BY_ID[line.contractId];
           if (!cBase) return null;
           // Mêmes dynamiques que le modal marketplace pour cohérence d'affichage.
-          const c0 = applyContractDynamics(cBase, owned, notoriety, 1.0, purchaseSliders);
+          const c0 = applyContractDynamics(cBase, owned, notoriety, 1.0);
           const loyCount = clientLoyalty[line.contractId] || 0;
           const loyMult = loyaltyPriceMult(loyCount);
           const c = loyCount > 0 ? { ...c0, pricePerCube: c0.pricePerCube * loyMult } : c0;
@@ -19437,7 +18585,7 @@ export default function App() {
           const cBase = B2B_BY_ID[contractDetailId];
           if (!cBase) return null;
           // Applique les dynamiques noto + qualité (preview à priceAdjust=1)
-          const c0 = applyContractDynamics(cBase, owned, notoriety, 1.0, purchaseSliders);
+          const c0 = applyContractDynamics(cBase, owned, notoriety, 1.0);
           // Fidélité : prime de prix si le client a déjà été honoré (reflétée dans tout l'affichage).
           const loyCount = clientLoyalty[contractDetailId] || 0;
           const loyMult = loyaltyPriceMult(loyCount);
@@ -20113,8 +19261,8 @@ export default function App() {
         )}
 
         {profitDetailOpen && (() => {
-          // Ventilation des charges courantes : en P3, on sépare énergie/carburant/loyer base
-          // pour préparer l'arrivée de Mark (Acheteur). En P1-P2 on reste groupé pour ne pas surcharger.
+          // Ventilation des charges courantes : en P3 on sépare énergie/carburant/loyer
+          // de base. En P1-P2 on reste groupé pour ne pas surcharger.
           // Toutes les valeurs respectent l'exonération de la 1ère année.
           const _expMult = _exoFirstYearProfit ? 0 : 1;
           const monthFactor = chargesPerMonthEff > 0 && chargesPerMonth > 0 ? (chargesPerMonthEff / chargesPerMonth) : (_exoFirstYearProfit ? 0 : 1);
@@ -20123,8 +19271,6 @@ export default function App() {
           const utilBase = upUtilityBreakdown.base * monthFactor;
           const utilEnergy = upUtilityBreakdown.energy * monthFactor;
           const utilFuel = upUtilityBreakdown.fuel * monthFactor;
-          // Détection : Mark est-il embauché ?
-          const hasMark = !!(owned['mark_jr'] || owned['mark_resp'] || owned['mark_dir']);
           return (
           <div className="modal-backdrop" onClick={() => setProfitDetailOpen(false)}>
             <div className="modal" onClick={e => e.stopPropagation()}>
@@ -20153,7 +19299,7 @@ export default function App() {
                 </div>
                 {/* === Décomposition adaptative selon la phase === */}
                 {phase >= 3 ? (
-                  // P3 : ventilation détaillée pour préparer Mark
+                  // P3 : ventilation détaillée
                   <>
                     <div className="profit-section-title" style={{ marginTop: 14, paddingTop: 10 }}>{t('profit.subhead_purchasing')}</div>
                     <div className="profit-row">
@@ -20168,11 +19314,6 @@ export default function App() {
                       <span>{t('profit.base')}</span>
                       <span>−{fmtInt(utilBase)}{t('unit.eur_month')}</span>
                     </div>
-                    {!hasMark && !_exoFirstYearProfit && (
-                      <div className="profit-row" style={{ opacity: 0.6, fontStyle: 'italic', fontSize: '10px', paddingTop: 6 }}>
-                        <span>→ {t('profit.mark_hint')}</span>
-                      </div>
-                    )}
                   </>
                 ) : phase >= 2 ? (
                   // P2 : groupé "loyer & utilities" (le joueur ne peut pas agir dessus encore)
@@ -20390,7 +19531,6 @@ export default function App() {
           const empData = {
             fred: { name: 'Fred', narrative: { fr: "Patron, ça fait deux ans que je donne tout pour la production. Je veux passer en", en: "Boss, two years giving everything to production. I want to move up to", es: "Jefe, llevo dos años dándolo todo por la producción. Quiero pasar a", zh: "老板，两年把一切都给了生产。我想升到", ru: "Босс, два года отдаю всё производству. Хочу подняться до", it: "Capo, due anni a dare tutto alla produzione. Voglio salire a", de: "Chef, zwei Jahre alles für die Produktion gegeben. Ich will aufsteigen zu" }, strikeImpact: { fr: "production stoppée", en: "production halted", es: "producción detenida", zh: "生产停止", ru: "производство остановлено", it: "produzione ferma", de: "Produktion gestoppt" } },
             brigitte: { name: 'Brigitte', narrative: { fr: "Bonjour. Cela fait quelques années que je suis ici et je pense mériter une revalorisation à", en: "Hello. I've been here for a few years and I think I deserve an upgrade to", es: "Hola. Llevo unos años aquí y creo que merezco una revalorización a", zh: "你好。我在这儿几年了，我觉得我配得上升到", ru: "Здравствуйте. Я здесь уже несколько лет и думаю, что заслуживаю повышения до", it: "Salve. Sono qui da qualche anno e credo di meritare un avanzamento a", de: "Hallo. Ich bin seit ein paar Jahren hier und finde, ich habe einen Aufstieg verdient zu" }, strikeImpact: { fr: "auto-vente coupée + contrats plafonnés", en: "auto-sell cut + contracts capped", es: "auto-venta cortada + contratos limitados", zh: "自动销售削减 + 合同受限", ru: "автопродажа урезана + контракты ограничены", it: "vendita auto tagliata + contratti limitati", de: "Auto-Verkauf gestoppt + Verträge gedeckelt" } },
-            janice: { name: 'Agence marketing', narrative: { fr: "Bon, on en parle ? J'ai construit cette marque. Je veux passer en", en: "OK, can we talk? I built this brand. I want to move up to", es: "Bueno, ¿hablamos? Yo construí esta marca. Quiero pasar a", zh: "好，能谈谈吗？这个品牌是我建的。我想升到", ru: "Ладно, можем поговорить? Я построила этот бренд. Хочу подняться до", it: "OK, possiamo parlare? Ho costruito questo marchio. Voglio salire a", de: "OK, können wir reden? Ich habe diese Marke aufgebaut. Ich will aufsteigen zu" }, strikeImpact: { fr: "notoriété figée", en: "notoriety frozen", es: "notoriedad congelada", zh: "知名度冻结", ru: "известность заморожена", it: "notorietà congelata", de: "Bekanntheit eingefroren" } },
             lenny: { name: 'Lenny', narrative: { fr: "Hé, le patron ! J'fais les trajets jour et nuit. Tu me passes en", en: "Hey, boss! I drive day and night. Move me up to", es: "¡Eh, jefe! Hago los viajes día y noche. Me pasas a", zh: "嘿，老板！我日夜开车。把我升到", ru: "Эй, босс! Я вожу день и ночь. Подними меня до", it: "Ehi, capo! Guido giorno e notte. Fammi salire a", de: "Hey, Chef! Ich fahre Tag und Nacht. Befördere mich zu" }, strikeImpact: { fr: "camions à l'arrêt", en: "trucks stopped", es: "camiones parados", zh: "卡车停摆", ru: "грузовики стоят", it: "camion fermi", de: "LKW gestoppt" } },
           }[req.employee];
           // Compute new salary from current grade
@@ -20558,7 +19698,6 @@ export default function App() {
           const finalEmployees = [
             owned['fred_stage'], owned['autosell'], owned['camion_1'],
             owned['janice_jr'], owned['karen_junior'],
-            owned['mark_jr'], owned['sabine_jr'],
           ].filter(Boolean).length;
           const ngPct = getPrestigeBonusPct();
           const ngCash = prestigeRuns * PRESTIGE_START_CASH;
@@ -20768,149 +19907,6 @@ export default function App() {
           );
         })()}
 
-        {/* === PANEL ACHATS (clic sur le bouton ACHATS du HUD) === */}
-        {achatsOpen && (() => {
-          const hasMarkJr = !!(owned['mark_jr'] || owned['mark_resp'] || owned['mark_dir']);
-          if (!hasMarkJr) return null;
-          const hasMarkResp = !!(owned['mark_resp'] || owned['mark_dir']);
-          const hasMarkDir = !!owned['mark_dir'];
-          const sliderKeys = ['eau', 'energie', 'emballages', 'logistique', 'fournisseurs'];
-          // Calculs bilan
-          const globalCostMult = computePurchaseCostMult(purchaseSliders, owned, isSickNow('mark'));
-          const costPct = Math.round((globalCostMult - 1) * 100);
-          // Score qualité produit : EXACTEMENT le même que celui affiché sur les
-          // contrats (computeQualityScore = upgrades qualité + curseurs Mark),
-          // pour éviter toute divergence entre la carte ACHATS et les contrats.
-          const qualityScore = Math.round(computeQualityScore(owned, purchaseSliders) * 100);
-          const qCls = qualityScore >= 70 ? 'is-pos' : qualityScore >= 40 ? '' : 'is-neg';
-          return (
-            <div className="modal-backdrop" onClick={() => setAchatsOpen(false)}>
-              <div className="modal achats-modal" onClick={e => e.stopPropagation()}>
-                <div className="modal-header">
-                  <ShoppingCart size={14} strokeWidth={2} />
-                  <div className="modal-title">{t('achats.modal_title')}</div>
-                  <button className="modal-close" onClick={() => setAchatsOpen(false)}>
-                    <X size={14} strokeWidth={2} />
-                  </button>
-                </div>
-                <div className="achats-body">
-                  <div className="achats-intro">{t('achats.intro')}</div>
-                  {/* Bilan global en haut : uniquement € et qualité.
-                      Le risque noto / réputation reste appliqué en arrière-plan
-                      mais n'est plus affiché ici, à la demande de Mark. */}
-                  <div className="achats-summary">
-                    <div className="achats-summary-cell">
-                      <span className="achats-summary-lbl">{t('achats.summary_cost')}</span>
-                      <span className={`achats-summary-val ${costPct < 0 ? 'is-neg' : costPct > 0 ? 'is-pos' : ''}`}>
-                        {costPct >= 0 ? '+' : ''}{costPct}%
-                      </span>
-                    </div>
-                    {qualityScore != null && (
-                      <div className="achats-summary-cell">
-                        <span className="achats-summary-lbl">{t('achats.summary_quality')}</span>
-                        <span className={`achats-summary-val ${qCls}`}>
-                          {qualityScore}<span style={{ fontSize: '0.7em', opacity: 0.6 }}>/100</span>
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  {/* === ACTIONS STRATÉGIQUES MARK === */}
-                  {getMarkPeakTier(owned) && (
-                    <div className="janice-actions-section">
-                      <div className="janice-actions-title">{t('mark.actions_title')}</div>
-                      <div className="janice-actions-intro">{t('mark.actions_intro')}</div>
-                      <div className="janice-actions-grid">
-                        {MARK_ACTIONS.filter(a => {
-                          const peak = getMarkPeakTier(owned);
-                          return peak && MARK_TIER_ORDER.indexOf(peak) >= MARK_TIER_ORDER.indexOf(a.tier);
-                        }).map(action => {
-                          const status = getMarkActionStatus(action, markActionState, gameTime, owned, money);
-                          let stateLabel = '';
-                          if (status.reason === 'oneshot') stateLabel = t('janice.act_done');
-                          else if (status.reason === 'cooldown') stateLabel = `${t('janice.act_cd')} ${status.cooldownLeftMonths}${t('janice.month_short')}`;
-                          else if (status.reason === 'funds') stateLabel = t('janice.act_no_funds');
-                          return (
-                            <button
-                              key={action.id}
-                              className={`janice-action-card ${!status.available ? 'is-disabled' : ''}`}
-                              disabled={!status.available}
-                              onClick={() => triggerMarkAction(action.id)}
-                            >
-                              <div className="janice-action-label">{localizeField(action.title, language)}</div>
-                              <div className="janice-action-cost">{fmtInt(action.cost)}€</div>
-                              <div className="janice-action-fx">{localizeField(action.fx, language)}</div>
-                              {stateLabel && <div className="janice-action-state">{stateLabel}</div>}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      {markBillDiscount.until > gameTime && (
-                        <div className="janice-boost-active">
-                          <Zap size={10} strokeWidth={2} /> {t('mark.bill_discount_active')} ×{markBillDiscount.factor.toFixed(2)} ·
-                          {' '}{Math.ceil((markBillDiscount.until - gameTime) / MONTH_DURATION)} {t('janice.months_short')}
-                        </div>
-                      )}
-                      {markTempSellBoost.until > gameTime && (
-                        <div className="janice-boost-active">
-                          <Zap size={10} strokeWidth={2} /> {t('mark.sell_boost_active')} ×{markTempSellBoost.factor.toFixed(2)} ·
-                          {' '}{Math.ceil((markTempSellBoost.until - gameTime) / MONTH_DURATION)} {t('janice.months_short')}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  {/* Liste des curseurs */}
-                  <div className="achats-sliders-list">
-                    {sliderKeys.map(key => {
-                      const slider = PURCHASE_SLIDERS[key];
-                      // Détermine si débloqué selon palier Mark
-                      let unlocked = false;
-                      if (slider.unlockMin === 'mark_jr') unlocked = hasMarkJr;
-                      if (slider.unlockMin === 'mark_resp') unlocked = hasMarkResp;
-                      if (slider.unlockMin === 'mark_dir') unlocked = hasMarkDir;
-                      const curIdx = purchaseSliders[key] != null ? purchaseSliders[key] : 2;
-                      const curPos = slider.positions[curIdx];
-                      const cm = Math.round((curPos.costMult - 1) * 100);
-                      return (
-                        <div key={key} className={`achats-slider-block ${unlocked ? '' : 'is-locked'}`}>
-                          <div className="achats-slider-head">
-                            <span className="achats-slider-lbl">{localizeField(slider.name, language).toUpperCase()}</span>
-                            <span className={`achats-slider-current ${curIdx >= 3 ? 'is-warn' : ''}`}>
-                              {unlocked ? localizeField(curPos.label, language) : t('achats.locked_label')}
-                            </span>
-                          </div>
-                          {/* Track 5 positions */}
-                          <div className="achats-slider-track">
-                            {slider.positions.map((pos, idx) => (
-                              <button
-                                key={idx}
-                                className={`achats-slider-step ${idx === curIdx ? 'is-active' : ''} ${idx >= 3 ? 'is-risk' : ''}`}
-                                disabled={!unlocked}
-                                onClick={() => unlocked && setPurchaseSliders(s => ({ ...s, [key]: idx }))}
-                                aria-label={localizeField(pos.label, language)}
-                              />
-                            ))}
-                          </div>
-                          {/* Effets de la position actuelle : € uniquement
-                              (noto/risque masqués à la demande, restent
-                              appliqués en arrière-plan). */}
-                          {unlocked && (
-                            <div className="achats-slider-effects">
-                              <span>{t('achats.eff_cost')} <b className={cm < 0 ? 'is-neg' : cm > 0 ? 'is-pos' : ''}>{cm >= 0 ? '+' : ''}{cm}%</b></span>
-                            </div>
-                          )}
-                          {!unlocked && (
-                            <div className="achats-slider-unlock-hint">{t('achats.unlock_hint')}</div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div className="achats-foot">{t('achats.foot_hint')}</div>
-                </div>
-              </div>
-            </div>
-          );
-        })()}
 
         {rhOpen && (() => {
           const fatiguePct = Math.round(rhFatigue);
@@ -20999,7 +19995,7 @@ export default function App() {
           );
         })()}
 
-        {personnelOpen && (hasFred || hasBrigitte || hasJanice || hasLenny || !!(owned['karen_junior'] || owned['karen_senior'] || owned['karen_drh']) || !!(owned['mark_jr'] || owned['mark_resp'] || owned['mark_dir']) || !!(owned['sabine_jr'] || owned['sabine_sr'] || owned['sabine_dg'])) && (() => {
+        {personnelOpen && (hasFred || hasBrigitte || hasJanice || hasLenny || !!(owned['karen_junior'] || owned['karen_senior'] || owned['karen_drh'])) && (() => {
           const semDur = SEASON_DURATION * 2;
           const semProgress = gameTime % semDur;
           const semLeft = semDur - semProgress;
@@ -21017,17 +20013,7 @@ export default function App() {
           const karenUpg = karenTierId ? UPGRADES.find(u => u.id === karenTierId) : null;
           const hasKaren = !!karenUpg;
           const karenSalary = hasKaren ? _sal(karenUpg.salary[karenSalaryLevel]) : 0;
-          // Mark
-          const markTierId = ['mark_dir', 'mark_resp', 'mark_jr'].find(id => owned[id]);
-          const markUpg = markTierId ? UPGRADES.find(u => u.id === markTierId) : null;
-          const hasMark = !!markUpg;
-          const markSalary = hasMark ? _sal(markUpg.salary[markSalaryLevel]) : 0;
-          // Sabine
-          const sabineTierId = ['sabine_dg', 'sabine_sr', 'sabine_jr'].find(id => owned[id]);
-          const sabineUpg = sabineTierId ? UPGRADES.find(u => u.id === sabineTierId) : null;
-          const hasSabine = !!sabineUpg;
-          const sabineSalary = hasSabine ? _sal(sabineUpg.salary[sabineSalaryLevel]) : 0;
-          const totalSalary = fredSalary + brigitteSalary + janiceSalary + lennySalary + karenSalary + markSalary + sabineSalary;
+          const totalSalary = fredSalary + brigitteSalary + janiceSalary + lennySalary + karenSalary;
           const mins = Math.floor(semLeft / 60);
           const secs = Math.floor(semLeft % 60);
           const timeStr = `${mins}:${secs.toString().padStart(2, '0')}`;
@@ -21065,11 +20051,9 @@ export default function App() {
                     if (hasBrigitte) morals.push(brigitteMoral);
                     if (hasLenny) morals.push(lennyMoral);
                     if (!!(owned['karen_junior'] || owned['karen_senior'] || owned['karen_drh'])) morals.push(karenMoral);
-                    if (!!(owned['mark_jr'] || owned['mark_resp'] || owned['mark_dir'])) morals.push(markMoral);
-                    if (!!(owned['sabine_jr'] || owned['sabine_sr'] || owned['sabine_dg'])) morals.push(sabineMoral);
                     const avgMoral = morals.length > 0 ? Math.round(morals.reduce((a, b) => a + b, 0) / morals.length) : 0;
                     const moralCls = avgMoral >= 70 ? 'high' : avgMoral >= 40 ? 'mid' : 'low';
-                    // SCORE QUALITÉ déplacé dans la fenêtre ACHATS (Mark)
+                    // SCORE QUALITÉ : voir les améliorations de traitement de l'eau
                     // pour ne pas mélanger métriques équipe et métriques achats.
                     return (
                       <div className="team-summary">
@@ -21299,64 +20283,6 @@ export default function App() {
                       </div>
                     );
                   })()}
-                  {hasMark && (() => {
-                    return (
-                      <div className="personnel-section">
-                        <div className="personnel-name">
-                          <span className="personnel-name-left">
-                            <span className="personnel-firstname">Mark</span> · {localizeField(markUpg.gradeName, language)}
-                            {markGrumpy && <span className="personnel-grumpy"> · {t('staff.on_strike')}</span>}
-                          </span>
-                          {(() => { const p = getMoralPenaltyLabel('mark', markMoral); return p ? <span className={`personnel-status ${p.mood === 'crit' ? 'is-crit' : ''}`}>{p.label}</span> : null; })()}
-                        </div>
-                        <span className="personnel-moral"><span className="moral-bar-label">{t('staff.moral')}</span><span className="moral-bar-value">{Math.round(markMoral)}</span><div className="moral-bar-vertical"><div className={`moral-bar-fill moral-${markMoral >= 80 ? 'high' : markMoral >= 50 ? 'mid' : markMoral >= 30 ? 'low' : 'crit'}`} style={{ height: `${Math.max(2, Math.min(100, markMoral))}%` }} /></div></span>{renderEcouterBtn('mark', markMoral, setMarkMoral)}
-                        <div className="salary-slider-wrap">
-                          <div className="salary-slider-labels">
-                            <span className={markSalaryLevel === 'bas' ? 'active' : ''} onClick={() => setMarkSalaryLevel('bas')}>{t('staff.salary_low')}</span>
-                            <span className={markSalaryLevel === 'std' ? 'active' : ''} onClick={() => setMarkSalaryLevel('std')}>{t('staff.salary_std')}</span>
-                            <span className={markSalaryLevel === 'haut' ? 'active' : ''} onClick={() => setMarkSalaryLevel('haut')}>{t('staff.salary_high')}</span>
-                          </div>
-                          <div className="salary-slider-row">
-                            <button className="salary-slider-arrow" disabled={markSalaryLevel === 'bas'} onClick={() => setMarkSalaryLevel(markSalaryLevel === 'haut' ? 'std' : 'bas')} aria-label="−"><ChevronLeft size={12} strokeWidth={2.5} /></button>
-                            <input type="range" min="0" max="2" step="1" value={markSalaryLevel === 'bas' ? 0 : markSalaryLevel === 'std' ? 1 : 2} onChange={e => setMarkSalaryLevel(['bas', 'std', 'haut'][+e.target.value])} className="salary-slider" />
-                            <button className="salary-slider-arrow" disabled={markSalaryLevel === 'haut'} onClick={() => setMarkSalaryLevel(markSalaryLevel === 'bas' ? 'std' : 'haut')} aria-label="+"><ChevronRight size={12} strokeWidth={2.5} /></button>
-                          </div>
-                          <div className="salary-slider-amount">{fmtInt(markUpg.salary[markSalaryLevel])}€</div>
-                        </div>
-                        <div className="personnel-info">{localizeField(markUpg.desc, language)}</div>
-                        {renderBonusBtn('mark')}
-                      </div>
-                    );
-                  })()}
-                  {hasSabine && (() => {
-                    return (
-                      <div className="personnel-section">
-                        <div className="personnel-name">
-                          <span className="personnel-name-left">
-                            <span className="personnel-firstname">Sabine</span> · {localizeField(sabineUpg.gradeName, language)}
-                            {sabineGrumpy && <span className="personnel-grumpy"> · {t('staff.on_strike')}</span>}
-                          </span>
-                          {(() => { const p = getMoralPenaltyLabel('sabine', sabineMoral); return p ? <span className={`personnel-status ${p.mood === 'crit' ? 'is-crit' : ''}`}>{p.label}</span> : null; })()}
-                        </div>
-                        <span className="personnel-moral"><span className="moral-bar-label">{t('staff.moral')}</span><span className="moral-bar-value">{Math.round(sabineMoral)}</span><div className="moral-bar-vertical"><div className={`moral-bar-fill moral-${sabineMoral >= 80 ? 'high' : sabineMoral >= 50 ? 'mid' : sabineMoral >= 30 ? 'low' : 'crit'}`} style={{ height: `${Math.max(2, Math.min(100, sabineMoral))}%` }} /></div></span>{renderEcouterBtn('sabine', sabineMoral, setSabineMoral)}
-                        <div className="salary-slider-wrap">
-                          <div className="salary-slider-labels">
-                            <span className={sabineSalaryLevel === 'bas' ? 'active' : ''} onClick={() => setSabineSalaryLevel('bas')}>{t('staff.salary_low')}</span>
-                            <span className={sabineSalaryLevel === 'std' ? 'active' : ''} onClick={() => setSabineSalaryLevel('std')}>{t('staff.salary_std')}</span>
-                            <span className={sabineSalaryLevel === 'haut' ? 'active' : ''} onClick={() => setSabineSalaryLevel('haut')}>{t('staff.salary_high')}</span>
-                          </div>
-                          <div className="salary-slider-row">
-                            <button className="salary-slider-arrow" disabled={sabineSalaryLevel === 'bas'} onClick={() => setSabineSalaryLevel(sabineSalaryLevel === 'haut' ? 'std' : 'bas')} aria-label="−"><ChevronLeft size={12} strokeWidth={2.5} /></button>
-                            <input type="range" min="0" max="2" step="1" value={sabineSalaryLevel === 'bas' ? 0 : sabineSalaryLevel === 'std' ? 1 : 2} onChange={e => setSabineSalaryLevel(['bas', 'std', 'haut'][+e.target.value])} className="salary-slider" />
-                            <button className="salary-slider-arrow" disabled={sabineSalaryLevel === 'haut'} onClick={() => setSabineSalaryLevel(sabineSalaryLevel === 'bas' ? 'std' : 'haut')} aria-label="+"><ChevronRight size={12} strokeWidth={2.5} /></button>
-                          </div>
-                          <div className="salary-slider-amount">{fmtInt(sabineUpg.salary[sabineSalaryLevel])}€</div>
-                        </div>
-                        <div className="personnel-info">{localizeField(sabineUpg.desc, language)}</div>
-                        {renderBonusBtn('sabine')}
-                      </div>
-                    );
-                  })()}
                 </div>
                 <div className="personnel-footer">
                   <div>{t('provision.next_pay_in')} <b>{timeStr}</b></div>
@@ -21563,7 +20489,10 @@ export default function App() {
 
         {phase < 4 && (
         <div className={`acts ${phase >= 2 ? 'acts-phase2' : ''}`}>
-          {hasFred && !fredGrumpy ? (
+          {/* Fred absent, en grève ou en arrêt maladie : sa production passive
+              est coupée, donc on rend au joueur le bouton de production manuelle
+              du début de partie plutôt que de le laisser sans prise. */}
+          {hasFred && !fredGrumpy && !fredSick ? (
             renderBoostBtn({
               emp: 'fred',
               action: t('boost.act.production'),
@@ -21650,7 +20579,7 @@ export default function App() {
               if (!f.requireUnlock) return true;
               // Anciens flags maintenus pour rétro-compat éventuelle
               if (f.requireUnlock === 'phase3') return phase3TriggerStage >= 5;
-              // Les familles Janice / Mark / Sabine ne s'affichent qu'après l'achat du nouveau siège (agence_marketing).
+              // La famille Agence marketing ne s'affiche qu'après l'achat du nouveau siège.
               if (f.requireUnlock === 'headquarters') return !!owned['agence_marketing'];
               // === Nouveaux flags Robert / Vandenberg ===
               // L'upgrade rent_warehouse n'apparaît qu'après l'appel de Robert call 1
