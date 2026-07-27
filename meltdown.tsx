@@ -12184,7 +12184,7 @@ export default function App() {
         </button>
         {phase >= 3 && hasJanice && (
           <button
-            className={`menu-btn menu-btn-marketing ${canMarketing && cyberLockout <= 0 ? '' : 'locked'} ${cyberLockout > 0 ? 'cyber-disabled' : ''} ${canMarketing && cyberLockout <= 0 && !activeCampaign ? 'alert' : ''}`}
+            className={`menu-btn menu-btn-marketing ${canMarketing && cyberLockout <= 0 ? '' : 'locked'} ${cyberLockout > 0 ? 'cyber-disabled' : ''} ${janiceGrumpy ? 'is-frozen' : ''} ${canMarketing && cyberLockout <= 0 && !activeCampaign ? 'alert' : ''}`}
             data-alert={canMarketing && cyberLockout <= 0 && !activeCampaign ? 'phone' : undefined}
             onClick={(canMarketing && cyberLockout <= 0) ? () => setCampaignsOpen(true) : undefined}
             disabled={!canMarketing || cyberLockout > 0}
@@ -12302,7 +12302,7 @@ export default function App() {
         </button>
         {/* === Bouton MARKETING : toujours visible, locked si pas Janice === */}
         <button
-          className={`menu-btn menu-btn-marketing ${canMarketing && cyberLockout <= 0 ? '' : 'locked'} ${cyberLockout > 0 ? 'cyber-disabled' : ''} ${canMarketing && cyberLockout <= 0 && !activeCampaign ? 'alert' : ''}`}
+          className={`menu-btn menu-btn-marketing ${canMarketing && cyberLockout <= 0 ? '' : 'locked'} ${cyberLockout > 0 ? 'cyber-disabled' : ''} ${janiceGrumpy ? 'is-frozen' : ''} ${canMarketing && cyberLockout <= 0 && !activeCampaign ? 'alert' : ''}`}
           data-alert={canMarketing && cyberLockout <= 0 && !activeCampaign ? 'phone' : undefined}
           onClick={(canMarketing && cyberLockout <= 0) ? () => setCampaignsOpen(true) : undefined}
           disabled={!canMarketing || cyberLockout > 0}
@@ -12377,7 +12377,10 @@ export default function App() {
       )}
       {phase < 4 && (
       <div className="hero-grid">
-        <div className="stock-side">
+        <div className={`stock-side ${inHeatwave ? 'is-heatwave' : ''} ${inDrought ? 'is-drought' : ''}`}>
+          {inHeatwave && (
+            <div className="heat-waves" aria-hidden="true"><i /><i /><i /><i /></div>
+          )}
           {/* Anciens hero-actions désactivés : remplacés par la grande menu-bar visible dès P1 */}
           {false && phase < 3 && (
             <div className="hero-actions">
@@ -12418,8 +12421,16 @@ export default function App() {
             const fricMelting = fricProdEffects && fricProdEffects.meltMult && fricProdEffects.meltMult > 1;
             return (
               <>
-                <div className={`freeze-bar ${(inOutage || inDrought) && freezingLeft > 0 ? 'is-locked' : ''} ${fricBlocked ? 'is-fric-blocked' : ''} ${fricSlowed ? 'is-fric-slowed' : ''} ${fricMelting ? 'is-fric-melting' : ''}`}>
-                  <div className="freeze-fill" style={{ width: `${freezingTotal > 0 ? (1 - freezingLeft / freezingTotal) * 100 : 0}%` }} />
+                <div className={`freeze-bar ${inDrought ? 'is-dry' : ''} ${(inOutage || inDrought) && freezingLeft > 0 ? 'is-locked' : ''} ${fricBlocked ? 'is-fric-blocked' : ''} ${fricSlowed ? 'is-fric-slowed' : ''} ${fricMelting ? 'is-fric-melting' : ''}`}>
+                  {(() => {
+                    // Sécheresse : le cycle n'avance plus en continu mais par
+                    // paliers. La largeur venant d'un style inline, c'est ici
+                    // qu'on quantifie — aucune règle CSS ne pourrait le faire.
+                    const raw = freezingTotal > 0 ? (1 - freezingLeft / freezingTotal) : 0;
+                    const DRY_STEPS = 5;
+                    const p = inDrought ? Math.floor(raw * DRY_STEPS) / DRY_STEPS : raw;
+                    return <div className="freeze-fill" style={{ width: `${p * 100}%` }} />;
+                  })()}
                 </div>
                 <div className="cycle-info">{stats.perClick} GL · {(FREEZE_DURATION * stats.freezeDurationMult * getDynamicFreezeMult(gameTime)).toFixed(1)}s</div>
               </>
@@ -13302,13 +13313,13 @@ export default function App() {
         .tension-stakes .stake-row b { color: var(--fg); }
         .tension-stakes .stake-refuse { color: var(--m2); }
         /* Bandeau "décision en attente" (modale réduite) */
-        .tension-banner { position: fixed; left: 50%; transform: translateX(-50%); bottom: 16px; z-index: 2500; display: flex; align-items: center; gap: 8px; max-width: 90vw; padding: 8px 14px; background: var(--bg); border: 2px solid var(--fg); border-radius: 6px; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.25); animation: bannerPulse 1.2s ease-in-out infinite; }
+        .tension-banner { position: fixed; left: 50%; transform: translateX(-50%); bottom: 16px; z-index: 2500; display: flex; align-items: center; gap: 8px; max-width: 90vw; padding: 8px 14px; background: var(--bg); border: 2px solid var(--fg); border-radius: 6px; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.25); animation: tensionBannerPulse 1.2s ease-in-out infinite; }
         .tension-banner.is-crisis { border-color: var(--fg); }
         .tension-banner-icon { font-size: 13px; }
         .tension-banner-name { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40vw; }
         .tension-banner-timer { font-family: 'ThinSep', 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; color: var(--m1); font-variant-numeric: tabular-nums; }
         .tension-banner-cta { font-size: 9px; font-weight: 700; letter-spacing: 1px; }
-        @keyframes bannerPulse { 0%,100% { box-shadow: 0 4px 16px rgba(0,0,0,0.25); } 50% { box-shadow: 0 4px 22px rgba(0,0,0,0.45); } }
+        @keyframes tensionBannerPulse { 0%,100% { box-shadow: 0 4px 16px rgba(0,0,0,0.25); } 50% { box-shadow: 0 4px 22px rgba(0,0,0,0.45); } }
         .tension-timer {
           font-family: 'ThinSep', 'JetBrains Mono', monospace;
           font-size: 11px;
@@ -15085,6 +15096,69 @@ export default function App() {
           color: var(--bg);
           font-weight: 500;
         }
+
+
+        /* ===================================================================
+           ANIMATIONS D'ÉVÉNEMENTS NÉGATIFS
+           Même vocabulaire que la cyberattaque : noir et blanc, angles droits,
+           filets de 1px, hachures à 45°, scintillement en steps(), secousses
+           d'un pixel. Chaque effet s'accroche à l'élément concerné plutôt
+           qu'à un bandeau séparé — c'est l'interface elle-même qui encaisse.
+           =================================================================== */
+
+        /* --- CANICULE : l'air chaud monte, le gros chiffre ondule --- */
+        .stock-side { position: relative; }
+        .heat-waves { position: absolute; inset: 0; pointer-events: none; opacity: 0.5; overflow: hidden; }
+        .heat-waves i {
+          position: absolute; left: 10%; right: 10%; height: 1px;
+          background: var(--fg); animation: heatRise 2.2s linear infinite;
+        }
+        .heat-waves i:nth-child(2) { animation-delay: 0.55s; }
+        .heat-waves i:nth-child(3) { animation-delay: 1.1s; }
+        .heat-waves i:nth-child(4) { animation-delay: 1.65s; }
+        @keyframes heatRise {
+          0%   { bottom: -4px; opacity: 0; transform: scaleX(0.35); }
+          35%  { opacity: 0.75; }
+          100% { bottom: 100%; opacity: 0; transform: scaleX(1); }
+        }
+        .stock-side.is-heatwave .stock { animation: heatWobble 1.6s ease-in-out infinite; }
+        @keyframes heatWobble { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+
+        /* --- SÉCHERESSE : le cycle avance par paliers au lieu de couler --- */
+        /* Le remplissage saute d'un palier à l'autre : pas de transition,
+           sinon le navigateur relisserait ce qu'on vient de quantifier. */
+        .freeze-bar.is-dry .freeze-fill { transition: none; }
+
+        /* --- COUPURE DE COURANT : le disjoncteur claque, puis ça ronfle --- */
+        .md.is-outage { animation: outageCut 0.9s steps(1) 1; }
+        @keyframes outageCut {
+          0%, 7%    { filter: invert(1); }
+          8%, 13%   { filter: none; }
+          14%, 19%  { filter: invert(1); }
+          20%, 100% { filter: none; }
+        }
+        .md.is-outage .prod-line { animation: outageHum 1.1s steps(2) infinite 0.9s; }
+        @keyframes outageHum { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        /* --- GRÈVE : la trame des bacs condamnés, mais en défilement --- */
+        .prod-line.line-strike { position: relative; overflow: hidden; }
+        .prod-line.line-strike::after {
+          content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0.42;
+          background-image: repeating-linear-gradient(45deg, var(--fg) 0 1px, transparent 1px 5px);
+          animation: strikeSlide 0.8s linear infinite;
+        }
+        @keyframes strikeSlide { from { background-position: 0 0; } to { background-position: 7px 7px; } }
+
+        /* --- CAMPAGNES GELÉES : le givre gagne le bouton depuis ses angles --- */
+        .menu-btn-marketing.is-frozen { position: relative; overflow: hidden; color: var(--m1); }
+        .menu-btn-marketing.is-frozen::before,
+        .menu-btn-marketing.is-frozen::after {
+          content: ""; position: absolute; width: 4px; height: 4px; background: var(--fg);
+          opacity: 0.7; animation: frostIn 0.5s ease-out backwards;
+        }
+        .menu-btn-marketing.is-frozen::before { left: 3px; top: 3px; animation-delay: 0.05s; }
+        .menu-btn-marketing.is-frozen::after { right: 3px; bottom: 3px; animation-delay: 0.25s; }
+        @keyframes frostIn { from { opacity: 0; transform: scale(0); } to { opacity: 0.7; transform: scale(1); } }
 
         .brand-detail-modal, .market-detail-modal { max-width: 480px; }
         .brand-detail-body, .market-detail-body { padding: 14px 18px 18px; }
@@ -16946,7 +17020,7 @@ export default function App() {
         }
       `}</style>
 
-      <div className={`md theme-${theme}`}>
+      <div className={`md theme-${theme} ${inOutage ? 'is-outage' : ''}`}>
         {theme === 'retro' && <div className="crt-overlay" aria-hidden="true" />}
         <div className="hdr" ref={hdrRef}>
           <div className="brand-row">
