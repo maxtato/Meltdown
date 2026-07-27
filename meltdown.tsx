@@ -6596,12 +6596,16 @@ export default function App() {
   };
 
   const maxCap = BASE_CAP + rawStats.capBonus;
-  // Capacité RÉELLEMENT utilisable : une friction de type dégât des eaux
-  // condamne une partie des bacs. Le tick de production plafonne déjà le stock
-  // à cette valeur ; l'interface doit en tenir compte, sinon le joueur voit
-  // seulement un stock qui cesse de monter sans savoir pourquoi.
+  // Capacité RÉELLEMENT utilisable. Deux causes se cumulent, exactement comme
+  // dans le tick de production : une friction (dégât des eaux) rabote la
+  // capacité, et le sabotage du groupe froid condamne les 2/3 restants pendant
+  // 30 s. Sans ça l'interface montre un stock qui cesse de monter sans raison.
   const capMultNow = aggregateFrictionEffects(activeFrictions, gameTime).capMult;
-  const usableCap = Math.max(1, Math.floor(maxCap * capMultNow));
+  const burnFlashActive = stockBurnFlash > 0 && (gameTime - stockBurnFlash) < 30;
+  const _rawUsableCap = maxCap * capMultNow;
+  const usableCap = Math.max(1, burnFlashActive
+    ? Math.ceil(_rawUsableCap / 3)
+    : Math.floor(_rawUsableCap));
   const capReduced = usableCap < maxCap;
   const stolenEff = Math.min(stolenTrucks, rawStats.linesBonus);
   const maxLines = Math.max(0, BASE_LINES + rawStats.linesBonus - stolenEff);
@@ -7274,11 +7278,10 @@ export default function App() {
   // rabotée, le stock atteint bien le haut de la zone encore disponible.
   const fillRatio = usableCap > 0 ? Math.min(1, displayStock / usableCap) : 0;
   const stockTier = fillRatio < 0.30 ? 'low' : fillRatio < 0.75 ? 'mid' : 'high';
-  // === Zone condamnée : sabotage frigo (2/3, 30s) ou friction de capacité ===
+  // === Zone condamnée : sabotage frigo (2/3, 30s) et/ou friction de capacité ===
   // Les deux se rendent pareil — cubes hachurés en haut de la grille — pour que
   // « je ne peux plus stocker » soit lisible d'un coup d'œil dans les deux cas.
-  const burnFlashActive = stockBurnFlash > 0 && (gameTime - stockBurnFlash) < 30;
-  const usableRatio = burnFlashActive ? (1 / 3) : (capReduced ? capMultNow : 1);
+  const usableRatio = maxCap > 0 ? Math.min(1, usableCap / maxCap) : 1;
   const usableCubes = Math.max(1, Math.ceil(STOCK_SIZE * usableRatio));
   const burnedZoneStart = usableCubes < STOCK_SIZE ? usableCubes : STOCK_SIZE;
   const filledCubes = Math.floor(fillRatio * usableCubes);
@@ -9824,20 +9827,22 @@ export default function App() {
       if (phaseRef.current >= 4) return;
       // ARRÊT MALADIE Brigitte : auto-vente coupée, le joueur doit vendre manuellement.
       if (isSickNow('brigitte')) return;
-      // L'auto-vente continue pendant la cyberattaque (seuls contrats/téléphone coupés),
-      // MAIS elle est paralysée pendant le sabotage du groupe froid (30s).
+      // L'auto-vente continue pendant la cyberattaque (seuls contrats/téléphone
+      // coupés) ET pendant le sabotage du groupe froid : une capacité réduite
+      // n'empêche pas de vendre, elle rend même l'écoulement plus urgent.
       const stockSabActive = stockBurnFlashRef.current > 0
         && (gameTimeRef.current - stockBurnFlashRef.current) < 30;
-      if (stockSabActive) return;
       const curStock = stockRef.current;
       const curSell = effectiveSellRef.current;
       const curStats = computeStats(ownedRef.current);
       // === Friction : Brigitte en pause (Bug ERP/CRM) ===
       const fricBrig = aggregateFrictionEffects(activeFrictionsRef.current, gameTimeRef.current);
       if (fricBrig.pauseBrigitte) return;
-      // Le seuil de saturation suit la capacité RÉELLEMENT utilisable : sinon,
-      // capacité rabotée, le stock plafonne sous les 90 % et rien ne s'écoule.
-      const curMaxCap = Math.max(1, Math.floor((BASE_CAP + curStats.capBonus) * fricBrig.capMult));
+      // Le seuil de saturation suit la capacité RÉELLEMENT utilisable — friction
+      // et sabotage cumulés, comme dans le tick. Sinon, capacité rabotée, le
+      // stock plafonne sous les 90 % et plus rien ne s'écoule.
+      const _rawCap = (BASE_CAP + curStats.capBonus) * fricBrig.capMult;
+      const curMaxCap = Math.max(1, stockSabActive ? Math.ceil(_rawCap / 3) : Math.floor(_rawCap));
       // === Gestion de la surproduction (toutes phases) ===
       // Brigitte vend UNIQUEMENT quand le stock arrive à saturation
       // (≥ 90% de la capacité) pour éviter la fonte massive ou la perte de production.
