@@ -871,7 +871,7 @@ function formatRefuseEffect(eff, lang) {
   if (eff.prodMult && eff.duration) p.push(L(PRD) + ' ' + Math.round((eff.prodMult - 1) * 100) + `% (${eff.duration}s)`);
   if (eff.blockContracts) p.push(L(BLK) + ' ' + eff.blockContracts + 's');
   if (eff.loseTruckLine) p.push(L(LTR));
-  if (eff.money) p.push((eff.money < 0 ? '−' : '+') + Math.abs(eff.money).toLocaleString('fr-FR') + '€');
+  if (eff.money) p.push((eff.money < 0 ? '−' : '+') + fmtInt(Math.abs(eff.money)) + '€');
   return p.join(' · ') || L(NOTHING);
 }
 
@@ -10661,7 +10661,7 @@ export default function App() {
         setStock(s => Math.max(0, s - lost));
         setActiveTensionEffect({ id: pending.id, expiresAt: gameTimeRef.current + def.durableEffect.duration, sellMult: def.durableEffect.sellMult });
         bumpStress('fred', def.stressOn.ignore);
-        setEventNotif(language === 'fr' ? `STOCK FONDU · −${lost.toLocaleString()} GL · VENTES −30% 60S` : `STOCK MELTED · −${lost.toLocaleString()} IC · SALES −30% 60S`);
+        setEventNotif(language === 'fr' ? `STOCK FONDU · −${fmtInt(lost)} GL · VENTES −30% 60S` : `STOCK MELTED · −${fmtInt(lost)} IC · SALES −30% 60S`);
       }
     }
     // CRISE P2 : LITIGE FACTURE CLIENT
@@ -10713,7 +10713,7 @@ export default function App() {
         setReputation(r => Math.max(0, Math.min(100, r - def.envelopeRepLoss)));
         bumpStress('brigitte', 15);
         queuePopup({ type: 'character', speaker: 'Patrice Glacier', text: localizeField({ fr: "Sage décision. On se comprend, tous les deux. Le froid, c'est une famille.", en: "Wise choice. We understand each other, you and I. Cold is a family.", es: "Sabia decisión. Nos entendemos, usted y yo. El frío es una familia.", zh: "明智的选择。我们俩心照不宣。寒冷，是一个大家庭。", ru: "Мудрое решение. Мы понимаем друг друга, вы и я. Холод — это семья.", it: "Saggia decisione. Ci capiamo, lei ed io. Il freddo è una famiglia.", de: "Kluge Entscheidung. Wir verstehen uns, Sie und ich. Kälte ist eine Familie." }, language) });
-        setEventNotif(language === 'fr' ? `ENVELOPPE ACCEPTÉE · +${def.envelopeMoney.toLocaleString()}€ · RÉPUTATION −${def.envelopeRepLoss}` : `ENVELOPE TAKEN · +€${def.envelopeMoney.toLocaleString()} · REPUTATION −${def.envelopeRepLoss}`);
+        setEventNotif(language === 'fr' ? `ENVELOPPE ACCEPTÉE · +${fmtInt(def.envelopeMoney)}€ · RÉPUTATION −${def.envelopeRepLoss}` : `ENVELOPE TAKEN · +€${fmtInt(def.envelopeMoney)} · REPUTATION −${def.envelopeRepLoss}`);
       }
     }
     // OPP P3 CATASTROPHIQUE : TOUT OU RIEN (peut mener au Game Over)
@@ -10731,9 +10731,9 @@ export default function App() {
           const winnings = stake * (def.winMultiplier || 2);
           setMoney(m => m + winnings);
           totalsRef.current.moneyEarned += winnings;
-          setEventNotif(language === 'fr' ? `APPEL D'OFFRES REMPORTÉ · +${winnings.toLocaleString()}€` : `BID WON · +€${winnings.toLocaleString()}`);
+          setEventNotif(language === 'fr' ? `APPEL D'OFFRES REMPORTÉ · +${fmtInt(winnings)}€` : `BID WON · +€${fmtInt(winnings)}`);
         } else {
-          setEventNotif(language === 'fr' ? `APPEL D'OFFRES PERDU · −${stake.toLocaleString()}€` : `BID LOST · −€${stake.toLocaleString()}`);
+          setEventNotif(language === 'fr' ? `APPEL D'OFFRES PERDU · −${fmtInt(stake)}€` : `BID LOST · −€${fmtInt(stake)}`);
         }
       } else {
         setEventNotif(language === 'fr' ? 'TU AS PRÉFÉRÉ LA PRUDENCE' : 'YOU PLAYED IT SAFE');
@@ -10864,7 +10864,7 @@ export default function App() {
   const handleRebuyTruck = () => {
     if (stolenTrucksRef.current <= 0) return;
     if (moneyRef.current < TRUCK_REBUY_COST) {
-      setEventNotif(language === 'fr' ? `FONDS INSUFFISANTS · ${TRUCK_REBUY_COST.toLocaleString('fr-FR')}€` : `INSUFFICIENT FUNDS · €${TRUCK_REBUY_COST.toLocaleString('fr-FR')}`);
+      setEventNotif(language === 'fr' ? `FONDS INSUFFISANTS · ${fmtInt(TRUCK_REBUY_COST)}€` : `INSUFFICIENT FUNDS · €${fmtInt(TRUCK_REBUY_COST)}`);
       return;
     }
     setMoney(m => m - TRUCK_REBUY_COST);
@@ -10877,7 +10877,7 @@ export default function App() {
     if (!chainBrokenRef.current || chainBrokenRef.current.repairUntil <= gameTimeRef.current) return;
     const cost = chainRepairCost(phaseRef.current);
     if (moneyRef.current < cost) {
-      setEventNotif(language === 'fr' ? `FONDS INSUFFISANTS · ${cost.toLocaleString('fr-FR')}€` : `INSUFFICIENT FUNDS · €${cost.toLocaleString('fr-FR')}`);
+      setEventNotif(language === 'fr' ? `FONDS INSUFFISANTS · ${fmtInt(cost)}€` : `INSUFFICIENT FUNDS · €${fmtInt(cost)}`);
       return;
     }
     setMoney(m => m - cost);
@@ -11750,15 +11750,15 @@ export default function App() {
           .theme-light { --bg: #ffffff; --fg: #000000; --m1: #666; --m2: #999; --m3: #ccc; --line: #e5e5e5; --line-soft: #f0f0f0; }
           .theme-dark { --bg: #000000; --fg: #ffffff; --m1: #888; --m2: #555; --m3: #333; --line: #1c1c1c; --line-soft: #111111; }
           .theme-retro { --bg: #b8c3ac; --fg: #2c382a; --m1: #54614c; --m2: #717e68; --m3: #8d9882; --line: #8d9882; --line-soft: #9fab90; }
-          .home { min-height: 100vh; min-height: 100dvh; background: var(--bg); color: var(--fg); display: flex; flex-direction: column; justify-content: center; align-items: stretch; padding: 32px 24px; font-family: 'Inter Tight', system-ui, sans-serif; max-width: 460px; margin: 0 auto; width: 100%; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+          .home { min-height: 100vh; min-height: 100dvh; background: var(--bg); color: var(--fg); display: flex; flex-direction: column; justify-content: center; align-items: stretch; padding: 32px 24px; font-family: 'ThinSep', 'Inter Tight', system-ui, sans-serif; max-width: 460px; margin: 0 auto; width: 100%; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
           .home-logo { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 48px; }
           .home-logo-row { display: flex; align-items: center; gap: 14px; }
           .home-logo-icon { color: var(--fg); }
-          .home-title { font-family: 'Major Mono Display', monospace; font-size: 44px; font-weight: 400; letter-spacing: 1px; line-height: 1; margin: 0; color: var(--fg); }
+          .home-title { font-family: 'ThinSep', 'Major Mono Display', monospace; font-size: 44px; font-weight: 400; letter-spacing: 1px; line-height: 1; margin: 0; color: var(--fg); }
           .home-tagline { font-family: 'ThinSep', 'JetBrains Mono', ui-monospace, monospace; font-size: 9px; font-weight: 500; letter-spacing: 6px; color: var(--m2); margin-top: 2px; text-transform: uppercase; }
           .home-prestige { font-family: 'ThinSep', 'JetBrains Mono', ui-monospace, monospace; font-size: 9px; font-weight: 700; letter-spacing: 2px; color: var(--m1); margin-top: 8px; padding: 3px 10px; border: 1px solid var(--m1); border-radius: 3px; text-transform: uppercase; }
           .home-actions { display: flex; flex-direction: column; gap: 12px; }
-          .home-btn { width: 100%; background: var(--bg); color: var(--fg); border: 1px solid var(--fg); padding: 18px 20px; font-family: 'Inter Tight', system-ui, sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; cursor: pointer; transition: background 0.12s, color 0.12s; border-radius: 0; }
+          .home-btn { width: 100%; background: var(--bg); color: var(--fg); border: 1px solid var(--fg); padding: 18px 20px; font-family: 'ThinSep', 'Inter Tight', system-ui, sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; cursor: pointer; transition: background 0.12s, color 0.12s; border-radius: 0; }
           .home-btn:hover:not(:disabled) { background: var(--fg); color: var(--bg); }
           .home-btn-primary { background: var(--fg); color: var(--bg); }
           .home-btn-primary:hover:not(:disabled) { background: var(--bg); color: var(--fg); }
@@ -11777,7 +11777,7 @@ export default function App() {
 
           /* Modal (réutilisé sur home) */
           .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 16px; }
-          .modal { background: var(--bg); color: var(--fg); border: 1px solid var(--fg); padding: 20px; max-width: 380px; width: 100%; max-height: 86vh; overflow-y: auto; font-family: 'Inter Tight', system-ui, sans-serif; }
+          .modal { background: var(--bg); color: var(--fg); border: 1px solid var(--fg); padding: 20px; max-width: 380px; width: 100%; max-height: 86vh; overflow-y: auto; font-family: 'ThinSep', 'Inter Tight', system-ui, sans-serif; }
           .modal-header { display: flex; align-items: center; gap: 8px; padding-bottom: 12px; border-bottom: 1px solid var(--line); margin-bottom: 14px; position: relative; }
           .modal-title { flex: 1; font-size: 13px; font-weight: 700; letter-spacing: 3px; }
           .modal-title-pays { font-size: 9px; font-weight: 400; letter-spacing: 1px; opacity: 0.5; margin-left: 8px; }
@@ -11786,17 +11786,17 @@ export default function App() {
           .options-section { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
           .options-lbl { font-size: 10px; letter-spacing: 3px; font-weight: 700; color: var(--m1); }
           .options-row { display: flex; gap: 6px; }
-          .options-pill { flex: 1; background: var(--bg); color: var(--fg); border: 1px solid var(--line); padding: 10px 8px; font-family: 'Inter Tight', system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; cursor: pointer; border-radius: 0; transition: background 0.12s, color 0.12s, border-color 0.12s; }
+          .options-pill { flex: 1; background: var(--bg); color: var(--fg); border: 1px solid var(--line); padding: 10px 8px; font-family: 'ThinSep', 'Inter Tight', system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; cursor: pointer; border-radius: 0; transition: background 0.12s, color 0.12s, border-color 0.12s; }
           .options-pill:hover { border-color: var(--fg); }
           .options-pill.active { background: var(--fg); color: var(--bg); border-color: var(--fg); }
           .options-divider { height: 1px; background: var(--line); margin: 4px 0 16px; }
-          .options-danger { width: 100%; background: var(--bg); color: var(--fg); border: 1px solid var(--fg); padding: 12px; font-family: 'Inter Tight', system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 3px; cursor: pointer; border-radius: 0; }
+          .options-danger { width: 100%; background: var(--bg); color: var(--fg); border: 1px solid var(--fg); padding: 12px; font-family: 'ThinSep', 'Inter Tight', system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 3px; cursor: pointer; border-radius: 0; }
           .options-danger:hover { background: var(--fg); color: var(--bg); }
-          .reset-confirm { background: var(--bg); color: var(--fg); border: 1px solid var(--fg); max-width: 320px; width: 100%; padding: 24px 22px; text-align: center; font-family: 'Inter Tight', system-ui, sans-serif; }
+          .reset-confirm { background: var(--bg); color: var(--fg); border: 1px solid var(--fg); max-width: 320px; width: 100%; padding: 24px 22px; text-align: center; font-family: 'ThinSep', 'Inter Tight', system-ui, sans-serif; }
           .reset-confirm-title { font-size: 13px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; }
           .reset-confirm-msg { font-family: 'ThinSep', 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; line-height: 1.55; color: var(--m1); white-space: pre-line; margin-bottom: 22px; }
           .reset-confirm-actions { display: flex; gap: 10px; }
-          .reset-confirm-btn { flex: 1; background: var(--bg); color: var(--fg); border: 1px solid var(--line); padding: 12px 8px; font-family: 'Inter Tight', system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; border-radius: 0; transition: background 0.12s, color 0.12s, border-color 0.12s; }
+          .reset-confirm-btn { flex: 1; background: var(--bg); color: var(--fg); border: 1px solid var(--line); padding: 12px 8px; font-family: 'ThinSep', 'Inter Tight', system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; border-radius: 0; transition: background 0.12s, color 0.12s, border-color 0.12s; }
           .reset-confirm-btn:hover { border-color: var(--fg); }
           .reset-confirm-btn.danger { border-color: var(--fg); background: var(--fg); color: var(--bg); }
           .reset-confirm-btn.danger:hover { opacity: 0.85; }
@@ -12744,7 +12744,7 @@ export default function App() {
         .hdr { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 24px; border-bottom: 1px solid var(--fg); }
         .brand-row { display: flex; align-items: flex-end; gap: 12px; }
         .brand-icon { flex-shrink: 0; color: var(--fg); margin-bottom: 18px; }
-        .ttl { font-family: 'Major Mono Display', monospace; font-size: 30px; letter-spacing: 1px; line-height: 1; }
+        .ttl { font-family: 'ThinSep', 'Major Mono Display', monospace; font-size: 30px; letter-spacing: 1px; line-height: 1; }
         .ttl-sub { font-weight: 300; font-size: 9px; letter-spacing: 4px; color: var(--m1); margin-top: 7px; }
         .meta-block { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
         .toggle-row { display: flex; gap: 6px; }
@@ -13657,7 +13657,7 @@ export default function App() {
           100% { transform: translateY(0); }
         }
         .truck-icon.flipped { transform: scaleX(-1); }
-        .line-popup { position: absolute; right: 0; top: 50%; transform: translateY(-50%); font-family: 'Major Mono Display', monospace; font-size: 10px; font-weight: 700; color: var(--bg); background: var(--fg); padding: 1px 4px; animation: linePop 1.2s ease-out forwards; pointer-events: none; white-space: nowrap; z-index: 3; }
+        .line-popup { position: absolute; right: 0; top: 50%; transform: translateY(-50%); font-family: 'ThinSep', 'Major Mono Display', monospace; font-size: 10px; font-weight: 700; color: var(--bg); background: var(--fg); padding: 1px 4px; animation: linePop 1.2s ease-out forwards; pointer-events: none; white-space: nowrap; z-index: 3; }
         @keyframes linePop { 0% { opacity: 0; transform: translate(-8px, -50%); } 15% { opacity: 1; transform: translate(0, -50%); } 100% { opacity: 0; transform: translate(16px, -100%); } }
 
         .prod-line-info { width: 130px; flex-shrink: 0; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
@@ -14018,7 +14018,7 @@ export default function App() {
         .stock-logo-bg { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 100%; height: 100%; color: var(--fg); opacity: 0.03; pointer-events: none; z-index: 0; }
         .stock-logo-bg path { fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
         .hero-center .stock, .hero-center .stock-lbl, .hero-center .status, .hero-center .cap-line, .hero-center .prod-melt-mini { position: relative; z-index: 1; text-shadow: -1px -1px 0 var(--bg), 0 -1px 0 var(--bg), 1px -1px 0 var(--bg), -1px 0 0 var(--bg), 1px 0 0 var(--bg), -1px 1px 0 var(--bg), 0 1px 0 var(--bg), 1px 1px 0 var(--bg), 0 0 2px var(--bg); }
-        .stock { font-family: 'Azeret Mono', ui-monospace, monospace; font-size: 80px; font-weight: 300; letter-spacing: -3px; line-height: 0.9; font-variant-numeric: tabular-nums; display: inline-block; }
+        .stock { font-family: 'ThinSep', 'Azeret Mono', ui-monospace, monospace; font-size: 80px; font-weight: 300; letter-spacing: -3px; line-height: 0.9; font-variant-numeric: tabular-nums; display: inline-block; }
         .stock.canicule { animation: shakeDigit 0.18s linear infinite; }
         .stock.full { animation: capShakeBig 0.2s ease-in-out infinite, capPulseBig 1.1s ease-in-out infinite; }
         .stock.full.canicule { animation: shakeDigit 0.18s linear infinite, capPulseBig 1.1s ease-in-out infinite; }
@@ -14110,7 +14110,7 @@ export default function App() {
           display: inline-flex;
           align-items: center;
           gap: 10px;
-          font-family: 'Major Mono Display', monospace;
+          font-family: 'ThinSep', 'Major Mono Display', monospace;
           font-size: 28px;
           letter-spacing: 1px;
           line-height: 1;
@@ -14354,7 +14354,7 @@ export default function App() {
         .caisse-zone { margin: 22px 0 0; }
         .caisse-block { background: var(--fg); color: var(--bg); padding: 18px 20px; display: flex; justify-content: space-between; align-items: baseline; transition: background 0.3s ease, color 0.3s ease; }
         .caisse-lbl { font-size: 11px; letter-spacing: 3px; font-weight: 500; }
-        .caisse-val { font-family: 'Major Mono Display', monospace; font-size: 32px; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+        .caisse-val { font-family: 'ThinSep', 'Major Mono Display', monospace; font-size: 32px; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
         .price-line { padding: 8px 0 10px; display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--line); }
         .price-lbl { font-size: 8px; letter-spacing: 2px; color: var(--m2); font-weight: 400; }
         .price-val { font-size: 10px; font-weight: 500; font-variant-numeric: tabular-nums; color: var(--m1); }
@@ -16894,7 +16894,7 @@ export default function App() {
         .footer { margin-top: 20px; font-size: 9px; letter-spacing: 3px; color: var(--m3); text-align: center; font-weight: 400; }
 
         /* === FLOATING POPS — cube (au-dessus du stock) === */
-        .pop { position: absolute; pointer-events: none; font-family: 'Major Mono Display', monospace; font-variant-numeric: tabular-nums; }
+        .pop { position: absolute; pointer-events: none; font-family: 'ThinSep', 'Major Mono Display', monospace; font-variant-numeric: tabular-nums; }
         .pop-cube {
           font-weight: 400;
           font-size: 24px;
@@ -16941,14 +16941,14 @@ export default function App() {
         .cash-mini { position: relative; }
 
         /* ===== HOME SCREEN ===== */
-        .home { min-height: 100vh; min-height: 100dvh; background: var(--bg); color: var(--fg); display: flex; flex-direction: column; justify-content: center; align-items: stretch; padding: 32px 24px; font-family: 'Inter Tight', system-ui, sans-serif; max-width: 460px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+        .home { min-height: 100vh; min-height: 100dvh; background: var(--bg); color: var(--fg); display: flex; flex-direction: column; justify-content: center; align-items: stretch; padding: 32px 24px; font-family: 'ThinSep', 'Inter Tight', system-ui, sans-serif; max-width: 460px; margin: 0 auto; width: 100%; box-sizing: border-box; }
         .home-logo { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 48px; }
         .home-logo-row { display: flex; align-items: center; gap: 14px; }
         .home-logo-icon { color: var(--fg); }
         .home-title { font-size: 44px; font-weight: 800; letter-spacing: -1.5px; line-height: 1; margin: 0; color: var(--fg); }
         .home-tagline { font-size: 10px; font-weight: 500; letter-spacing: 6px; color: var(--m2); margin-top: 4px; text-transform: uppercase; }
         .home-actions { display: flex; flex-direction: column; gap: 12px; }
-        .home-btn { width: 100%; background: var(--bg); color: var(--fg); border: 1px solid var(--fg); padding: 18px 20px; font-family: 'Inter Tight', system-ui, sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; cursor: pointer; transition: background 0.12s, color 0.12s; border-radius: 0; }
+        .home-btn { width: 100%; background: var(--bg); color: var(--fg); border: 1px solid var(--fg); padding: 18px 20px; font-family: 'ThinSep', 'Inter Tight', system-ui, sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; cursor: pointer; transition: background 0.12s, color 0.12s; border-radius: 0; }
         .home-btn:hover:not(:disabled) { background: var(--fg); color: var(--bg); }
         .home-btn-primary { background: var(--fg); color: var(--bg); }
         .home-btn-primary:hover:not(:disabled) { background: var(--bg); color: var(--fg); }
@@ -16966,17 +16966,17 @@ export default function App() {
         .options-section { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
         .options-lbl { font-size: 10px; letter-spacing: 3px; font-weight: 700; color: var(--m1); }
         .options-row { display: flex; gap: 6px; }
-        .options-pill { flex: 1; background: var(--bg); color: var(--fg); border: 1px solid var(--line); padding: 10px 8px; font-family: 'Inter Tight', system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; cursor: pointer; border-radius: 0; transition: background 0.12s, color 0.12s, border-color 0.12s; }
+        .options-pill { flex: 1; background: var(--bg); color: var(--fg); border: 1px solid var(--line); padding: 10px 8px; font-family: 'ThinSep', 'Inter Tight', system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; cursor: pointer; border-radius: 0; transition: background 0.12s, color 0.12s, border-color 0.12s; }
         .options-pill:hover { border-color: var(--fg); }
         .options-pill.active { background: var(--fg); color: var(--bg); border-color: var(--fg); }
         .options-divider { height: 1px; background: var(--line); margin: 8px 0 16px; }
-        .options-danger { width: 100%; background: var(--bg); color: var(--fg); border: 1px solid var(--fg); padding: 12px; font-family: 'Inter Tight', system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 3px; cursor: pointer; border-radius: 0; }
+        .options-danger { width: 100%; background: var(--bg); color: var(--fg); border: 1px solid var(--fg); padding: 12px; font-family: 'ThinSep', 'Inter Tight', system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 3px; cursor: pointer; border-radius: 0; }
         .options-danger:hover { background: var(--fg); color: var(--bg); }
-        .reset-confirm { background: var(--bg); color: var(--fg); border: 2px solid var(--fg); max-width: 320px; width: 100%; padding: 24px 22px; text-align: center; font-family: 'Inter Tight', system-ui, sans-serif; }
+        .reset-confirm { background: var(--bg); color: var(--fg); border: 2px solid var(--fg); max-width: 320px; width: 100%; padding: 24px 22px; text-align: center; font-family: 'ThinSep', 'Inter Tight', system-ui, sans-serif; }
         .reset-confirm-title { font-size: 13px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; }
         .reset-confirm-msg { font-family: 'ThinSep', 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; line-height: 1.55; color: var(--m1); white-space: pre-line; margin-bottom: 22px; }
         .reset-confirm-actions { display: flex; gap: 10px; }
-        .reset-confirm-btn { flex: 1; background: var(--bg); color: var(--fg); border: 1px solid var(--line); padding: 12px 8px; font-family: 'Inter Tight', system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; border-radius: 0; transition: background 0.12s, color 0.12s, border-color 0.12s; }
+        .reset-confirm-btn { flex: 1; background: var(--bg); color: var(--fg); border: 1px solid var(--line); padding: 12px 8px; font-family: 'ThinSep', 'Inter Tight', system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; border-radius: 0; transition: background 0.12s, color 0.12s, border-color 0.12s; }
         .reset-confirm-btn:hover { border-color: var(--fg); }
         .reset-confirm-btn.danger { border-color: var(--fg); background: var(--fg); color: var(--bg); }
         .reset-confirm-btn.danger:hover { opacity: 0.85; }
@@ -17245,7 +17245,7 @@ export default function App() {
                     <div className="banner-left"><Award size={11} strokeWidth={2} /> <span className="banner-title">{language === 'fr' ? 'MÉGA-CONTRAT' : 'MEGA-CONTRACT'}</span></div>
                     <div className="banner-right">{remain}s</div>
                   </div>
-                  <div className="banner-sub">{delivered.toLocaleString()} / {required.toLocaleString()} GL · +{activeMegacontract.rewardMoney.toLocaleString()}€</div>
+                  <div className="banner-sub">{fmtInt(delivered)} / {fmtInt(required)} GL · +{fmtInt(activeMegacontract.rewardMoney)}€</div>
                 </div>
               );
             })()}
@@ -17306,7 +17306,7 @@ export default function App() {
                   <div className="banner-sub">{language === 'fr' ? 'Production figée' : 'Production frozen'}</div>
                   <button className="chain-repair-btn" disabled={!canPay} onClick={canPay ? handleRepairChain : undefined}>
                     {canPay
-                      ? (language === 'fr' ? `RÉPARER MAINTENANT · ${repairCost.toLocaleString('fr-FR')}€` : `REPAIR NOW · €${repairCost.toLocaleString('fr-FR')}`)
+                      ? (language === 'fr' ? `RÉPARER MAINTENANT · ${fmtInt(repairCost)}€` : `REPAIR NOW · €${fmtInt(repairCost)}`)
                       : (language === 'fr' ? 'FONDS INSUFFISANTS' : 'INSUFFICIENT FUNDS')}
                   </button>
                 </div>
@@ -18056,7 +18056,7 @@ export default function App() {
                   <div className="truck-rebuy-banner">
                     <span className="trb-text">{language === 'fr' ? `🚚 ${stolenTrucks} camion${stolenTrucks > 1 ? 's' : ''} volé${stolenTrucks > 1 ? 's' : ''} — autant de lignes de livraison en moins` : `🚚 ${stolenTrucks} truck${stolenTrucks > 1 ? 's' : ''} stolen — that many fewer delivery lines`}</span>
                     <button className="modal-btn modal-btn-accept trb-btn" disabled={money < TRUCK_REBUY_COST} onClick={handleRebuyTruck}>
-                      {money < TRUCK_REBUY_COST ? (language === 'fr' ? 'FONDS INSUFFISANTS' : 'INSUFFICIENT FUNDS') : (language === 'fr' ? `RACHETER · ${TRUCK_REBUY_COST.toLocaleString('fr-FR')}€` : `BUY · €${TRUCK_REBUY_COST.toLocaleString('fr-FR')}`)}
+                      {money < TRUCK_REBUY_COST ? (language === 'fr' ? 'FONDS INSUFFISANTS' : 'INSUFFICIENT FUNDS') : (language === 'fr' ? `RACHETER · ${fmtInt(TRUCK_REBUY_COST)}€` : `BUY · €${fmtInt(TRUCK_REBUY_COST)}`)}
                     </button>
                   </div>
                 )}
@@ -19171,7 +19171,7 @@ export default function App() {
           const isCrisis = def.category === 'tension_crisis';
           // Enjeux affichés clairement (payer vs refuser).
           const _fr = language === 'fr';
-          const stakePay = def.cost != null ? `−${def.cost.toLocaleString('fr-FR')}€` : (def.mitigationCost ? `−${def.mitigationCost.toLocaleString('fr-FR')}€` : null);
+          const stakePay = def.cost != null ? `−${fmtInt(def.cost)}€` : (def.mitigationCost ? `−${fmtInt(def.mitigationCost)}€` : null);
           const stakeRefuse = def.racket ? formatRefuseEffect(def.refuse, language) : null;
           const payLabel = ({ fr: 'Payer', en: 'Pay', es: 'Pagar', zh: '支付', ru: 'Заплатить', it: 'Pagare', de: 'Zahlen' })[language] || 'Payer';
           const refuseLabel = ({ fr: 'Refuser', en: 'Refuse', es: 'Rechazar', zh: '拒绝', ru: 'Отказать', it: 'Rifiutare', de: 'Ablehnen' })[language] || 'Refuser';
@@ -19197,7 +19197,7 @@ export default function App() {
           if (pendingTensionEvent.id === 'crisis_strike') {
             const trucksActive = lines.filter(l => l && l.contractId).length;
             mitigateCost = trucksActive * def.mitigationCostPerTruck;
-            mitigateLabel = language === 'fr' ? `PRIME · ${mitigateCost.toLocaleString()}€` : `BONUS · €${mitigateCost.toLocaleString()}`;
+            mitigateLabel = language === 'fr' ? `PRIME · ${fmtInt(mitigateCost)}€` : `BONUS · €${fmtInt(mitigateCost)}`;
           }
           const ignoreLabel = def.ignoreLabel ? (def.ignoreLabel[language] || def.ignoreLabel.fr) : null;
           const acceptLabel = def.acceptLabel ? (def.acceptLabel[language] || def.acceptLabel.fr) : null;
