@@ -12438,7 +12438,7 @@ export default function App() {
           })()}
         </div>
         <div className="hero-center">
-          <div className={`stock ${atCap ? 'full' : ''} ${inHeatwave ? 'canicule' : ''}`}>{fmtK(displayStock)}</div>
+          <div className={`stock ${atCap ? 'full' : ''} ${inHeatwave ? 'canicule' : ''} ${inDrought ? 'secheresse' : ''}`}>{fmtK(displayStock)}</div>
           <div className="stock-lbl">{t('status.stock')}</div>
           <div className={`status ${atCap && status ? 'warn' : ''}`}>
             {(() => {
@@ -15121,13 +15121,32 @@ export default function App() {
           35%  { opacity: 0.75; }
           100% { bottom: 100%; opacity: 0; transform: scaleX(1); }
         }
-        .stock-side.is-heatwave .stock { animation: heatWobble 1.6s ease-in-out infinite; }
-        @keyframes heatWobble { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
 
         /* --- SÉCHERESSE : le cycle avance par paliers au lieu de couler --- */
         /* Le remplissage saute d'un palier à l'autre : pas de transition,
            sinon le navigateur relisserait ce qu'on vient de quantifier. */
         .freeze-bar.is-dry .freeze-fill { transition: none; }
+
+        /* --- SÉCHERESSE : la pompe tousse, la nappe baisse ---
+           Le chiffre ne tremble pas en continu comme sous la canicule : il
+           bégaie brièvement, à intervalle régulier, et un pointillé sous la
+           grille marque le niveau qui manque. */
+        .stock.secheresse,
+        .stock.full.secheresse { animation: dryStutter 2.6s steps(1) infinite; }
+        @keyframes dryStutter {
+          0%, 85%   { opacity: 1; }
+          86%, 89%  { opacity: 0.3; }
+          90%, 93%  { opacity: 1; }
+          94%, 97%  { opacity: 0.3; }
+          98%, 100% { opacity: 1; }
+        }
+        .stock-side.is-drought .stock-grid { position: relative; }
+        .stock-side.is-drought .stock-grid::after {
+          content: ""; position: absolute; left: 0; right: 0; bottom: -7px; height: 1px;
+          background-image: repeating-linear-gradient(90deg, var(--fg) 0 3px, transparent 3px 7px);
+          animation: dryLine 3s ease-in-out infinite;
+        }
+        @keyframes dryLine { 0%, 100% { opacity: 0.85; } 50% { opacity: 0.2; } }
 
         /* --- COUPURE DE COURANT : le disjoncteur claque, puis ça ronfle --- */
         .md.is-outage { animation: outageCut 0.9s steps(1) 1; }
