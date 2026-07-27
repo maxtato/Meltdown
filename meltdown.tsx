@@ -3616,7 +3616,7 @@ function computeStats(owned) {
 
 // Séparateur de milliers : espace fine insécable (U+202F). Sa largeur ne vient
 // pas de la police du texte mais de 'ThinSep', déclarée dans les styles, qui ne
-// porte que ce caractère et lui donne une chasse fixe de 0,10 em. Le décalage
+// porte que ce caractère et lui donne une chasse fixe de 0,15 em. Le décalage
 // est donc identique partout, quelle que soit la police de l'élément.
 // Insécable par nature : un nombre ne se coupe jamais en fin de ligne.
 const THIN_SEP = '\u202F';
@@ -11738,7 +11738,7 @@ export default function App() {
                     /* === SÉPARATEUR DE MILLIERS ===
              Les polices du jeu sont à chasse fixe : une espace, même « fine »,
              y occupe la largeur d'un chiffre et creuse un trou dans les nombres.
-             On embarque donc une police d'un seul glyphe — un blanc de 0,10 em —
+             On embarque donc une police d'un seul glyphe — un blanc de 0,15 em —
              qui ne porte que U+202F. Elle est en tête de toutes les piles : le
              séparateur vient d'elle, tout le reste du texte tombe sur la police
              suivante. Embarquée en data URI plutôt que cherchée par local() :
@@ -11748,7 +11748,7 @@ export default function App() {
              de ligne, sans avoir à l'encadrer de liants de largeur nulle. */
           @font-face {
             font-family: 'ThinSep';
-            src: url(data:font/woff;base64,d09GRgABAAAAAAKYAAoAAAAAA3QAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAABPUy8yAAABXAAAAC8AAABgZQ7iL2NtYXAAAAGUAAAAKgAAADQADCCCZ2x5ZgAAAcgAAAABAAAAAQAAAABoZWFkAAAA9AAAADYAAAA2LDAZ5GhoZWEAAAEsAAAAGwAAACQDIf+faG10eAAAAYwAAAAIAAAACABkAABsb2NhAAABwAAAAAYAAAAGAAAAAG1heHAAAAFIAAAAEwAAACAAAwACbmFtZQAAAcwAAAC0AAABdK9vAsdwb3N0AAACgAAAABgAAAAuzt915wABAAAAAQAAf1NxKF8PPPUAAwPoAAAAAOaM7IIAAAAA5ozsggAAAAAAAAAAAAAAAwACAAAAAAAAeJxjYGRgYFb4b8HAwJDCAAGMDKiACQAymAHDAHicY2BkYGBgYoABBAsKAACXAAYAeJxjYGZIYZzAwMrAwkAANKDx7YGAgUFBX0GfWeG/BQMDswLDCTQlCgwMAONUBYEAAAAAAABkAAB4nGNgYGBiYGBgBmIRIMkIplkYFIA0CxAC+Qr6//9DyPuXwPIMAFPdBqsAAAAAAAAAAAAAAAAAAHicbY87CsJAEIa/mBeiaCFYSmzsNmjtDSyNiG2KNQmEJERyC2sP4Sk8mqOMiMEphu9/zMICY244vMYhfO/XDIRDZZcZE2WPKUtlnxFr5UD8rTQdbyjOhJ3yQPik7LLirOyx4KrsM+euHIj/OORFldhmb7OuTFtVRqXZxGu1IrWOtr0UdRV9k0+ZAzkFFQmWhr3sjI6SlH5meqlhQyz/+21FvdZRVMtFGrV0or83vZefmYQ7tHicY2BiwA+A8oxM7CUZmXnFqQUADOoDCg==) format('woff');
+            src: url(data:font/woff;base64,d09GRgABAAAAAAKYAAoAAAAAA3QAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAABPUy8yAAABXAAAAC8AAABgZQ7iYWNtYXAAAAGUAAAAKgAAADQADCCCZ2x5ZgAAAcgAAAABAAAAAQAAAABoZWFkAAAA9AAAADYAAAA2LDBBdmhoZWEAAAEsAAAAGwAAACQDIf/RaG10eAAAAYwAAAAIAAAACACWAABsb2NhAAABwAAAAAYAAAAGAAAAAG1heHAAAAFIAAAAEwAAACAAAwACbmFtZQAAAcwAAAC0AAABdK9vAsdwb3N0AAACgAAAABgAAAAuzt915wABAAAAAQAAfu8hPF8PPPUAAwPoAAAAAOaNAEsAAAAA5o0ASwAAAAAAAAAAAAAAAwACAAAAAAAAeJxjYGRgYFb4b8HAwDCNAQIYGVABEwA3egH1AHicY2BkYGBgYoABBAsKAACXAAYAeJxjYGaYxjiBgZWBhYEAaEDj2wMBA4OCvoI+s8J/CwYGZgWGE2hKFBgYAPV+BbMAAAAAAACWAAB4nGNgYGBiYGBgBmIRIMkIplkYFIA0CxAC+Qr6//9DyPuXwPIMAFPdBqsAAAAAAAAAAAAAAAAAAHicbY87CsJAEIa/mBeiaCFYSmzsNmjtDSyNiG2KNQmEJERyC2sP4Sk8mqOMiMEphu9/zMICY244vMYhfO/XDIRDZZcZE2WPKUtlnxFr5UD8rTQdbyjOhJ3yQPik7LLirOyx4KrsM+euHIj/OORFldhmb7OuTFtVRqXZxGu1IrWOtr0UdRV9k0+ZAzkFFQmWhr3sjI6SlH5meqlhQyz/+21FvdZRVMtFGrV0or83vZefmYQ7tHicY2BiwA+A8oxM7CUZmXnFqQUADOoDCg==) format('woff');
             font-display: block;
             unicode-range: U+202F;
           }
@@ -12693,7 +12693,7 @@ export default function App() {
                 /* === SÉPARATEUR DE MILLIERS ===
            Les polices du jeu sont à chasse fixe : une espace, même « fine »,
            y occupe la largeur d'un chiffre et creuse un trou dans les nombres.
-           On embarque donc une police d'un seul glyphe — un blanc de 0,10 em —
+           On embarque donc une police d'un seul glyphe — un blanc de 0,15 em —
            qui ne porte que U+202F. Elle est en tête de toutes les piles : le
            séparateur vient d'elle, tout le reste du texte tombe sur la police
            suivante. Embarquée en data URI plutôt que cherchée par local() :
@@ -12703,7 +12703,7 @@ export default function App() {
            de ligne, sans avoir à l'encadrer de liants de largeur nulle. */
         @font-face {
           font-family: 'ThinSep';
-          src: url(data:font/woff;base64,d09GRgABAAAAAAKYAAoAAAAAA3QAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAABPUy8yAAABXAAAAC8AAABgZQ7iL2NtYXAAAAGUAAAAKgAAADQADCCCZ2x5ZgAAAcgAAAABAAAAAQAAAABoZWFkAAAA9AAAADYAAAA2LDAZ5GhoZWEAAAEsAAAAGwAAACQDIf+faG10eAAAAYwAAAAIAAAACABkAABsb2NhAAABwAAAAAYAAAAGAAAAAG1heHAAAAFIAAAAEwAAACAAAwACbmFtZQAAAcwAAAC0AAABdK9vAsdwb3N0AAACgAAAABgAAAAuzt915wABAAAAAQAAf1NxKF8PPPUAAwPoAAAAAOaM7IIAAAAA5ozsggAAAAAAAAAAAAAAAwACAAAAAAAAeJxjYGRgYFb4b8HAwJDCAAGMDKiACQAymAHDAHicY2BkYGBgYoABBAsKAACXAAYAeJxjYGZIYZzAwMrAwkAANKDx7YGAgUFBX0GfWeG/BQMDswLDCTQlCgwMAONUBYEAAAAAAABkAAB4nGNgYGBiYGBgBmIRIMkIplkYFIA0CxAC+Qr6//9DyPuXwPIMAFPdBqsAAAAAAAAAAAAAAAAAAHicbY87CsJAEIa/mBeiaCFYSmzsNmjtDSyNiG2KNQmEJERyC2sP4Sk8mqOMiMEphu9/zMICY244vMYhfO/XDIRDZZcZE2WPKUtlnxFr5UD8rTQdbyjOhJ3yQPik7LLirOyx4KrsM+euHIj/OORFldhmb7OuTFtVRqXZxGu1IrWOtr0UdRV9k0+ZAzkFFQmWhr3sjI6SlH5meqlhQyz/+21FvdZRVMtFGrV0or83vZefmYQ7tHicY2BiwA+A8oxM7CUZmXnFqQUADOoDCg==) format('woff');
+          src: url(data:font/woff;base64,d09GRgABAAAAAAKYAAoAAAAAA3QAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAABPUy8yAAABXAAAAC8AAABgZQ7iYWNtYXAAAAGUAAAAKgAAADQADCCCZ2x5ZgAAAcgAAAABAAAAAQAAAABoZWFkAAAA9AAAADYAAAA2LDBBdmhoZWEAAAEsAAAAGwAAACQDIf/RaG10eAAAAYwAAAAIAAAACACWAABsb2NhAAABwAAAAAYAAAAGAAAAAG1heHAAAAFIAAAAEwAAACAAAwACbmFtZQAAAcwAAAC0AAABdK9vAsdwb3N0AAACgAAAABgAAAAuzt915wABAAAAAQAAfu8hPF8PPPUAAwPoAAAAAOaNAEsAAAAA5o0ASwAAAAAAAAAAAAAAAwACAAAAAAAAeJxjYGRgYFb4b8HAwDCNAQIYGVABEwA3egH1AHicY2BkYGBgYoABBAsKAACXAAYAeJxjYGaYxjiBgZWBhYEAaEDj2wMBA4OCvoI+s8J/CwYGZgWGE2hKFBgYAPV+BbMAAAAAAACWAAB4nGNgYGBiYGBgBmIRIMkIplkYFIA0CxAC+Qr6//9DyPuXwPIMAFPdBqsAAAAAAAAAAAAAAAAAAHicbY87CsJAEIa/mBeiaCFYSmzsNmjtDSyNiG2KNQmEJERyC2sP4Sk8mqOMiMEphu9/zMICY244vMYhfO/XDIRDZZcZE2WPKUtlnxFr5UD8rTQdbyjOhJ3yQPik7LLirOyx4KrsM+euHIj/OORFldhmb7OuTFtVRqXZxGu1IrWOtr0UdRV9k0+ZAzkFFQmWhr3sjI6SlH5meqlhQyz/+21FvdZRVMtFGrV0or83vZefmYQ7tHicY2BiwA+A8oxM7CUZmXnFqQUADOoDCg==) format('woff');
           font-display: block;
           unicode-range: U+202F;
         }
