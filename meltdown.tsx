@@ -3618,7 +3618,11 @@ const fmt2 = n => n.toFixed(2).replace('.', ',');
 // Séparateur de milliers : espace fine insécable (U+202F), rendue étroite par
 // la police 'ThinSep' déclarée dans les styles. Groupe la seule partie
 // entière, pour ne pas découper les centimes.
-const THIN_SEP = '\u202F';
+// U+200A (espace ultrafine) plutôt que l'espace fine insécable : mesurée dans
+// le navigateur, elle rend 14 % de la chasse d'un chiffre contre 33 %. Elle est
+// sécable, on l'encadre donc de deux U+2060 (word joiner), de largeur nulle,
+// qui interdisent la coupure d'un nombre en fin de ligne.
+const THIN_SEP = '\u2060\u200A\u2060';
 const groupThousands = (str) => {
   const [intPart, decPart] = String(str).split(',');
   const grouped = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, THIN_SEP);
@@ -11731,7 +11735,7 @@ export default function App() {
           /* === SÉPARATEUR DE MILLIERS ===
              JetBrains Mono est à chasse fixe : toute espace, même « fine », y occupe
              la largeur d'un chiffre, ce qui creuse un trou dans les nombres. On fait
-             donc porter le seul U+202F (espace fine insécable) par une police
+             donc porter la seule U+200A (espace ultrafine) par une police
              proportionnelle du système ; tout le reste continue de tomber sur
              JetBrains Mono. Si aucune n'est installée, on retrouve le rendu actuel. */
           @font-face {
@@ -11739,7 +11743,7 @@ export default function App() {
             src: local('Helvetica Neue'), local('Helvetica'), local('Arial'),
                  local('Segoe UI'), local('Roboto'), local('Noto Sans'),
                  local('Liberation Sans'), local('DejaVu Sans'), local('FreeSans');
-            unicode-range: U+202F;
+            unicode-range: U+200A;
           }
           * { box-sizing: border-box; margin: 0; padding: 0; }
           html, body { background: ${theme === 'dark' ? '#000' : theme === 'retro' ? '#b8c3ac' : '#fff'}; }
@@ -12682,7 +12686,7 @@ export default function App() {
         /* === SÉPARATEUR DE MILLIERS ===
            JetBrains Mono est à chasse fixe : toute espace, même « fine », y occupe
            la largeur d'un chiffre, ce qui creuse un trou dans les nombres. On fait
-           donc porter le seul U+202F (espace fine insécable) par une police
+           donc porter la seule U+200A (espace ultrafine) par une police
            proportionnelle du système ; tout le reste continue de tomber sur
            JetBrains Mono. Si aucune n'est installée, on retrouve le rendu actuel. */
         @font-face {
@@ -12690,7 +12694,7 @@ export default function App() {
           src: local('Helvetica Neue'), local('Helvetica'), local('Arial'),
                local('Segoe UI'), local('Roboto'), local('Noto Sans'),
                local('Liberation Sans'), local('DejaVu Sans'), local('FreeSans');
-          unicode-range: U+202F;
+          unicode-range: U+200A;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         .theme-light { --bg: #ffffff; --fg: #000000; --m1: #666; --m2: #999; --m3: #ccc; --line: #e5e5e5; --line-soft: #f0f0f0; --bg-owned: #fafafa; }
