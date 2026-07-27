@@ -3616,25 +3616,29 @@ function computeStats(owned) {
 
 const fmt2 = n => n.toFixed(2).replace('.', ',');
 // Séparateur de milliers : espace fine insécable (U+202F), rendue étroite par
-// la police 'ThinSep' déclarée dans les styles. On normalise quel que soit le
-// séparateur réellement produit par le moteur JS (virgule ou espace).
-const fmtInt = n => Math.floor(n).toLocaleString('fr-FR').replace(/[,\s\u00A0\u202F]/g, '\u202F');
+// la police 'ThinSep' déclarée dans les styles. Groupe la seule partie
+// entière, pour ne pas découper les centimes.
+const THIN_SEP = '\u202F';
+const groupThousands = (str) => {
+  const [intPart, decPart] = String(str).split(',');
+  const grouped = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, THIN_SEP);
+  return decPart != null ? grouped + ',' + decPart : grouped;
+};
+const fmtInt = n => groupThousands(String(Math.floor(n)));
 // fmtK : format compact pour les gros chiffres principaux (stock, etc.).
 // Précis sous 10 000, puis « k » (millier) et « M » (million) au-dessus.
-// Pas de séparateur de milliers : la police monospace du HUD le rend comme
-// une pleine chasse, ce qui creuse un écart disgracieux (ex « 9 999 »).
-// Ex : 9999 → "9999", 10 000 → "10k", 12 345 → "12.3k", 1 500 000 → "1.5M".
+// Ex : 9999 → "9 999", 10 000 → "10k", 12 345 → "12.3k", 1 500 000 → "1.5M".
 // Séparateur décimal : point (pas de virgule) — plus lisible sur le gros chiffre.
 const fmtK = n => {
   const abs = Math.abs(n);
-  if (abs < 10000) return String(Math.floor(n));
+  if (abs < 10000) return groupThousands(String(Math.floor(n)));
   if (abs < 1000000) return ((Math.round(n / 100) / 10).toLocaleString('fr-FR') + 'k').replace(/\s/g, '').replace(',', '.');
   return ((Math.round(n / 10000) / 100).toLocaleString('fr-FR') + 'M').replace(/\s/g, '').replace(',', '.');
 };
 // fmtCash : format compact pour le HUD principal — précis (centimes) sous 10k€, k€/M€ au-dessus.
 const fmtCash = n => {
   const abs = Math.abs(n);
-  if (abs < 10000) return n.toFixed(2).replace('.', ',');
+  if (abs < 10000) return groupThousands(n.toFixed(2).replace('.', ','));
   if (abs < 1000000) return (Math.round(n / 100) / 10).toLocaleString('fr-FR') + 'k';
   return (Math.round(n / 10000) / 100).toLocaleString('fr-FR') + 'M';
 };
@@ -14988,17 +14992,31 @@ export default function App() {
           background: #ffffff;
           padding: 2px;
         }
+        /* Nom du locuteur : centré dans le bandeau et encadré de deux filets,
+           pour qu'il se détache au lieu de se perdre dans le coin gauche. */
         .popup-msg-character .popup-msg-speaker {
           flex: 1;
           min-width: 0;
           margin: 0;
           padding: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
           font-size: 10px;
           font-weight: 800;
           letter-spacing: 3px;
           text-transform: uppercase;
-          text-align: left;
+          text-align: center;
           color: var(--bg);
+        }
+        .popup-msg-character .popup-msg-speaker::before,
+        .popup-msg-character .popup-msg-speaker::after {
+          content: "";
+          flex: 0 0 auto;
+          width: 18px;
+          height: 1px;
+          background: var(--bg);
         }
         .popup-msg-character .popup-msg-body {
           padding: 16px 16px 18px;
