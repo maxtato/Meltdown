@@ -14988,17 +14988,31 @@ export default function App() {
           background: #ffffff;
           padding: 2px;
         }
+        /* Nom du locuteur : centré dans le bandeau et encadré de deux filets,
+           pour qu'il se détache au lieu de se perdre dans le coin gauche. */
         .popup-msg-character .popup-msg-speaker {
           flex: 1;
           min-width: 0;
           margin: 0;
           padding: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
           font-size: 10px;
           font-weight: 800;
           letter-spacing: 3px;
           text-transform: uppercase;
-          text-align: left;
+          text-align: center;
           color: var(--bg);
+        }
+        .popup-msg-character .popup-msg-speaker::before,
+        .popup-msg-character .popup-msg-speaker::after {
+          content: "";
+          flex: 0 0 auto;
+          width: 18px;
+          height: 1px;
+          background: var(--bg);
         }
         .popup-msg-character .popup-msg-body {
           padding: 16px 16px 18px;
