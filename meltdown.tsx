@@ -12422,7 +12422,15 @@ export default function App() {
             return (
               <>
                 <div className={`freeze-bar ${inDrought ? 'is-dry' : ''} ${(inOutage || inDrought) && freezingLeft > 0 ? 'is-locked' : ''} ${fricBlocked ? 'is-fric-blocked' : ''} ${fricSlowed ? 'is-fric-slowed' : ''} ${fricMelting ? 'is-fric-melting' : ''}`}>
-                  <div className="freeze-fill" style={{ width: `${freezingTotal > 0 ? (1 - freezingLeft / freezingTotal) * 100 : 0}%` }} />
+                  {(() => {
+                    // Sécheresse : le cycle n'avance plus en continu mais par
+                    // paliers. La largeur venant d'un style inline, c'est ici
+                    // qu'on quantifie — aucune règle CSS ne pourrait le faire.
+                    const raw = freezingTotal > 0 ? (1 - freezingLeft / freezingTotal) : 0;
+                    const DRY_STEPS = 5;
+                    const p = inDrought ? Math.floor(raw * DRY_STEPS) / DRY_STEPS : raw;
+                    return <div className="freeze-fill" style={{ width: `${p * 100}%` }} />;
+                  })()}
                 </div>
                 <div className="cycle-info">{stats.perClick} GL · {(FREEZE_DURATION * stats.freezeDurationMult * getDynamicFreezeMult(gameTime)).toFixed(1)}s</div>
               </>
@@ -15117,12 +15125,9 @@ export default function App() {
         @keyframes heatWobble { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
 
         /* --- SÉCHERESSE : le cycle avance par paliers au lieu de couler --- */
-        .freeze-bar.is-dry .freeze-fill {
-          transition: none;
-          clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
-          animation: dryStep 0.9s steps(4, end) infinite;
-        }
-        @keyframes dryStep { 0%, 100% { opacity: 1; } 50% { opacity: 0.72; } }
+        /* Le remplissage saute d'un palier à l'autre : pas de transition,
+           sinon le navigateur relisserait ce qu'on vient de quantifier. */
+        .freeze-bar.is-dry .freeze-fill { transition: none; }
 
         /* --- COUPURE DE COURANT : le disjoncteur claque, puis ça ronfle --- */
         .md.is-outage { animation: outageCut 0.9s steps(1) 1; }
