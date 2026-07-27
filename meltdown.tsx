@@ -3614,21 +3614,24 @@ function computeStats(owned) {
   return s;
 }
 
-const fmt2 = n => n.toFixed(2).replace('.', ',');
-// Séparateur de milliers : espace fine insécable (U+202F), rendue étroite par
-// la police 'ThinSep' déclarée dans les styles. Groupe la seule partie
-// entière, pour ne pas découper les centimes.
-// U+200A (espace ultrafine) plutôt que l'espace fine insécable : mesurée dans
-// le navigateur, elle rend 14 % de la chasse d'un chiffre contre 33 %. Elle est
-// sécable, on l'encadre donc de deux U+2060 (word joiner), de largeur nulle,
-// qui interdisent la coupure d'un nombre en fin de ligne.
-const THIN_SEP = '\u2060\u200A\u2060';
+// Séparateur de milliers : espace fine insécable (U+202F). Sa largeur ne vient
+// pas de la police du texte mais de 'ThinSep', déclarée dans les styles, qui ne
+// porte que ce caractère et lui donne une chasse fixe de 0,15 em. Le décalage
+// est donc identique partout, quelle que soit la police de l'élément.
+// Insécable par nature : un nombre ne se coupe jamais en fin de ligne.
+const THIN_SEP = '\u202F';
+// Ne groupe que la partie entière, pour ne pas découper les centimes.
+// Sans effet sous 1000 : on peut donc en envelopper n'importe quel affichage
+// numérique sans avoir à vérifier son ordre de grandeur au préalable.
 const groupThousands = (str) => {
   const [intPart, decPart] = String(str).split(',');
   const grouped = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, THIN_SEP);
   return decPart != null ? grouped + ',' + decPart : grouped;
 };
 const fmtInt = n => groupThousands(String(Math.floor(n)));
+// Montant au centime près. Groupe les milliers lui aussi : c'est ce format qui
+// sert aux revenus et charges mensuels, qui dépassent vite le millier d'euros.
+const fmt2 = n => groupThousands(n.toFixed(2).replace('.', ','));
 // fmtK : format compact pour les gros chiffres principaux (stock, etc.).
 // Précis sous 10 000, puis « k » (millier) et « M » (million) au-dessus.
 // Ex : 9999 → "9 999", 10 000 → "10k", 12 345 → "12.3k", 1 500 000 → "1.5M".
@@ -5134,7 +5137,7 @@ export default function App() {
       if (passes) {
         if (def.effects.success.rep) setReputation(r => Math.min(100, r + def.effects.success.rep));
         if (def.effects.success.money) setMoney(m => m + def.effects.success.money);
-        setEventNotif(localizeField(def.name, language) + ' · OK' + (def.effects.success.money ? ` · +${def.effects.success.money}€` : ''));
+        setEventNotif(localizeField(def.name, language) + ' · OK' + (def.effects.success.money ? ` · +${fmtInt(def.effects.success.money)}€` : ''));
       } else {
         if (def.effects.fail.rep) setReputation(r => Math.max(0, r + def.effects.fail.rep));
         if (def.effects.fail.money) setMoney(m => Math.max(0, m + def.effects.fail.money));
@@ -7842,7 +7845,7 @@ export default function App() {
           const lossPct = hasMaintenance ? 0.05 : 0.12;
           const _melted = Math.floor(stockRef.current * lossPct);
           if (_melted > 0) setStock(s => Math.max(0, s - _melted));
-          setEventNotif(language === 'fr' ? `⚠ PANNE CHAÎNE · ${dur}S · −${_melted} GL` : `⚠ CHAIN BREAKDOWN · ${dur}S · −${_melted} IC`);
+          setEventNotif(language === 'fr' ? `⚠ PANNE CHAÎNE · ${dur}S · −${fmtInt(_melted)} GL` : `⚠ CHAIN BREAKDOWN · ${dur}S · −${fmtInt(_melted)} IC`);
         }
       }
 
@@ -10568,7 +10571,7 @@ export default function App() {
           return;
         }
         setMoney(m => m - cost);
-        setEventNotif(language === 'fr' ? `PRIME PAYÉE · ${cost}€ · CAMIONS DÉBLOQUÉS` : `BONUS PAID · €${cost} · TRUCKS RELEASED`);
+        setEventNotif(language === 'fr' ? `PRIME PAYÉE · ${fmtInt(cost)}€ · CAMIONS DÉBLOQUÉS` : `BONUS PAID · €${fmtInt(cost)} · TRUCKS RELEASED`);
       } else {
         // Bloquer tous les camions actifs pendant 90s
         setActiveTensionEffect({
@@ -10638,9 +10641,9 @@ export default function App() {
         if (win) {
           const winnings = def.betAmount * def.winMultiplier;
           setMoney(m => m + winnings);
-          setEventNotif(language === 'fr' ? `PARI GAGNÉ · +${winnings}€` : `BET WON · +€${winnings}`);
+          setEventNotif(language === 'fr' ? `PARI GAGNÉ · +${fmtInt(winnings)}€` : `BET WON · +€${fmtInt(winnings)}`);
         } else {
-          setEventNotif(language === 'fr' ? `PARI PERDU · −${def.betAmount}€` : `BET LOST · −€${def.betAmount}`);
+          setEventNotif(language === 'fr' ? `PARI PERDU · −${fmtInt(def.betAmount)}€` : `BET LOST · −€${fmtInt(def.betAmount)}`);
         }
       } else {
         setEventNotif(language === 'fr' ? 'PARI ÉVITÉ' : 'BET AVOIDED');
@@ -11732,18 +11735,22 @@ export default function App() {
       <>
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Azeret+Mono:wght@300;400&family=Major+Mono+Display&family=Inter+Tight:wght@500;700;800&display=swap');
-          /* === SÉPARATEUR DE MILLIERS ===
-             JetBrains Mono est à chasse fixe : toute espace, même « fine », y occupe
-             la largeur d'un chiffre, ce qui creuse un trou dans les nombres. On fait
-             donc porter la seule U+200A (espace ultrafine) par une police
-             proportionnelle du système ; tout le reste continue de tomber sur
-             JetBrains Mono. Si aucune n'est installée, on retrouve le rendu actuel. */
+                    /* === SÉPARATEUR DE MILLIERS ===
+             Les polices du jeu sont à chasse fixe : une espace, même « fine »,
+             y occupe la largeur d'un chiffre et creuse un trou dans les nombres.
+             On embarque donc une police d'un seul glyphe — un blanc de 0,15 em —
+             qui ne porte que U+202F. Elle est en tête de toutes les piles : le
+             séparateur vient d'elle, tout le reste du texte tombe sur la police
+             suivante. Embarquée en data URI plutôt que cherchée par local() :
+             local() ne résout pas les mêmes polices selon la plateforme, ce qui
+             donnait un séparateur invisible sur iOS et pleine chasse ailleurs.
+             U+202F est insécable par nature : aucun nombre ne se coupe en fin
+             de ligne, sans avoir à l'encadrer de liants de largeur nulle. */
           @font-face {
             font-family: 'ThinSep';
-            src: local('Helvetica Neue'), local('Helvetica'), local('Arial'),
-                 local('Segoe UI'), local('Roboto'), local('Noto Sans'),
-                 local('Liberation Sans'), local('DejaVu Sans'), local('FreeSans');
-            unicode-range: U+200A;
+            src: url(data:font/woff;base64,d09GRgABAAAAAAKYAAoAAAAAA3QAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAABPUy8yAAABXAAAAC8AAABgZQ7iYWNtYXAAAAGUAAAAKgAAADQADCCCZ2x5ZgAAAcgAAAABAAAAAQAAAABoZWFkAAAA9AAAADYAAAA2LDBBdmhoZWEAAAEsAAAAGwAAACQDIf/RaG10eAAAAYwAAAAIAAAACACWAABsb2NhAAABwAAAAAYAAAAGAAAAAG1heHAAAAFIAAAAEwAAACAAAwACbmFtZQAAAcwAAAC0AAABdK9vAsdwb3N0AAACgAAAABgAAAAuzt915wABAAAAAQAAfu8hPF8PPPUAAwPoAAAAAOaNAEsAAAAA5o0ASwAAAAAAAAAAAAAAAwACAAAAAAAAeJxjYGRgYFb4b8HAwDCNAQIYGVABEwA3egH1AHicY2BkYGBgYoABBAsKAACXAAYAeJxjYGaYxjiBgZWBhYEAaEDj2wMBA4OCvoI+s8J/CwYGZgWGE2hKFBgYAPV+BbMAAAAAAACWAAB4nGNgYGBiYGBgBmIRIMkIplkYFIA0CxAC+Qr6//9DyPuXwPIMAFPdBqsAAAAAAAAAAAAAAAAAAHicbY87CsJAEIa/mBeiaCFYSmzsNmjtDSyNiG2KNQmEJERyC2sP4Sk8mqOMiMEphu9/zMICY244vMYhfO/XDIRDZZcZE2WPKUtlnxFr5UD8rTQdbyjOhJ3yQPik7LLirOyx4KrsM+euHIj/OORFldhmb7OuTFtVRqXZxGu1IrWOtr0UdRV9k0+ZAzkFFQmWhr3sjI6SlH5meqlhQyz/+21FvdZRVMtFGrV0or83vZefmYQ7tHicY2BiwA+A8oxM7CUZmXnFqQUADOoDCg==) format('woff');
+            font-display: block;
+            unicode-range: U+202F;
           }
           * { box-sizing: border-box; margin: 0; padding: 0; }
           html, body { background: ${theme === 'dark' ? '#000' : theme === 'retro' ? '#b8c3ac' : '#fff'}; }
@@ -12017,7 +12024,7 @@ export default function App() {
                     <div
                       className="truck-repair-key"
                       onClick={(e) => { e.stopPropagation(); if (canRepair) handleRepairVehicle(idx); }}
-                      title={`${repCost}€`}
+                      title={`${fmtInt(repCost)}€`}
                     >
                       <Wrench size={11} strokeWidth={2.4} />
                     </div>
@@ -12072,11 +12079,11 @@ export default function App() {
                     onClick={() => handleRepairVehicle(idx)}
                     disabled={!canRepair}
                   >
-                    <Wrench size={9} strokeWidth={2.2} /> {repCost}€
+                    <Wrench size={9} strokeWidth={2.2} /> {fmtInt(repCost)}€
                   </button>
                 )}
               </div>
-              <div className="prod-line-info-stats">{localizeField(c.name, language)} · {c.qty} GL</div>
+              <div className="prod-line-info-stats">{localizeField(c.name, language)} · {fmtInt(c.qty)} GL</div>
             </>
           ) : (
             <>
@@ -12089,12 +12096,12 @@ export default function App() {
               <div className="prod-line-info-stats">
                 {isPaused ? (
                   <span className="prod-paused-row">
-                    <span className="prod-paused-lbl">PAUSE · {Math.ceil(line.pauseLeft || 0)}s</span>
+                    <span className="prod-paused-lbl">PAUSE · {fmtInt(Math.ceil(line.pauseLeft || 0))}s</span>
                   </span>
                 ) : isWaitingStock ? (
-                  <span className="waiting-stock">ATTENTE STOCK · {c.qty} GL</span>
+                  <span className="waiting-stock">ATTENTE STOCK · {fmtInt(c.qty)} GL</span>
                 ) : (
-                  <>{c.qty} GL · {c.deliveryTime}s · {fmt2(totalRev)}€</>
+                  <>{fmtInt(c.qty)} GL · {fmtInt(c.deliveryTime)}s · {fmt2(totalRev)}€</>
                 )}
               </div>
               {/* Progrès contrat : N/T livraisons + timer global */}
@@ -12110,7 +12117,7 @@ export default function App() {
                     <div className="contract-progress-row">
                       <span className="contract-progress-deliveries">{done}/{target}</span>
                       <span className={`contract-progress-time ${isLate ? 'late' : isCritical ? 'critical' : ''}`}>
-                        {isLate ? `HORS DÉLAI` : `${Math.ceil(timeLeft)}s`}
+                        {isLate ? `HORS DÉLAI` : `${fmtInt(Math.ceil(timeLeft))}s`}
                       </span>
                     </div>
                     <div className="contract-progress-bar">
@@ -12436,7 +12443,7 @@ export default function App() {
                     return <div className="freeze-fill" style={{ width: `${p * 100}%` }} />;
                   })()}
                 </div>
-                <div className="cycle-info">{stats.perClick} GL · {(FREEZE_DURATION * stats.freezeDurationMult * getDynamicFreezeMult(gameTime)).toFixed(1)}s</div>
+                <div className="cycle-info">{fmtInt(stats.perClick)} GL · {(FREEZE_DURATION * stats.freezeDurationMult * getDynamicFreezeMult(gameTime)).toFixed(1)}s</div>
               </>
             );
           })()}
@@ -12455,7 +12462,7 @@ export default function App() {
           </div>
           {phase < 4 && (
             <div className="prod-melt-mini">
-              <span className={`prod-melt-cell ${inOutage ? 'off' : ''}`}>{t('rate.production_short')} +{effectivePassive.toFixed(1)}/s</span>
+              <span className={`prod-melt-cell ${inOutage ? 'off' : ''}`}>{t('rate.production_short')} +{groupThousands(effectivePassive.toFixed(1))}/s</span>
               <span className="prod-melt-sep">·</span>
               <span className="prod-melt-cell">{t('rate.melt')} −{effectiveMelt.toFixed(2)}/s</span>
               {moralMult < 1 && (
@@ -12683,18 +12690,22 @@ export default function App() {
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Azeret+Mono:wght@300;400&family=Major+Mono+Display&display=swap');
-        /* === SÉPARATEUR DE MILLIERS ===
-           JetBrains Mono est à chasse fixe : toute espace, même « fine », y occupe
-           la largeur d'un chiffre, ce qui creuse un trou dans les nombres. On fait
-           donc porter la seule U+200A (espace ultrafine) par une police
-           proportionnelle du système ; tout le reste continue de tomber sur
-           JetBrains Mono. Si aucune n'est installée, on retrouve le rendu actuel. */
+                /* === SÉPARATEUR DE MILLIERS ===
+           Les polices du jeu sont à chasse fixe : une espace, même « fine »,
+           y occupe la largeur d'un chiffre et creuse un trou dans les nombres.
+           On embarque donc une police d'un seul glyphe — un blanc de 0,15 em —
+           qui ne porte que U+202F. Elle est en tête de toutes les piles : le
+           séparateur vient d'elle, tout le reste du texte tombe sur la police
+           suivante. Embarquée en data URI plutôt que cherchée par local() :
+           local() ne résout pas les mêmes polices selon la plateforme, ce qui
+           donnait un séparateur invisible sur iOS et pleine chasse ailleurs.
+           U+202F est insécable par nature : aucun nombre ne se coupe en fin
+           de ligne, sans avoir à l'encadrer de liants de largeur nulle. */
         @font-face {
           font-family: 'ThinSep';
-          src: local('Helvetica Neue'), local('Helvetica'), local('Arial'),
-               local('Segoe UI'), local('Roboto'), local('Noto Sans'),
-               local('Liberation Sans'), local('DejaVu Sans'), local('FreeSans');
-          unicode-range: U+200A;
+          src: url(data:font/woff;base64,d09GRgABAAAAAAKYAAoAAAAAA3QAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAABPUy8yAAABXAAAAC8AAABgZQ7iYWNtYXAAAAGUAAAAKgAAADQADCCCZ2x5ZgAAAcgAAAABAAAAAQAAAABoZWFkAAAA9AAAADYAAAA2LDBBdmhoZWEAAAEsAAAAGwAAACQDIf/RaG10eAAAAYwAAAAIAAAACACWAABsb2NhAAABwAAAAAYAAAAGAAAAAG1heHAAAAFIAAAAEwAAACAAAwACbmFtZQAAAcwAAAC0AAABdK9vAsdwb3N0AAACgAAAABgAAAAuzt915wABAAAAAQAAfu8hPF8PPPUAAwPoAAAAAOaNAEsAAAAA5o0ASwAAAAAAAAAAAAAAAwACAAAAAAAAeJxjYGRgYFb4b8HAwDCNAQIYGVABEwA3egH1AHicY2BkYGBgYoABBAsKAACXAAYAeJxjYGaYxjiBgZWBhYEAaEDj2wMBA4OCvoI+s8J/CwYGZgWGE2hKFBgYAPV+BbMAAAAAAACWAAB4nGNgYGBiYGBgBmIRIMkIplkYFIA0CxAC+Qr6//9DyPuXwPIMAFPdBqsAAAAAAAAAAAAAAAAAAHicbY87CsJAEIa/mBeiaCFYSmzsNmjtDSyNiG2KNQmEJERyC2sP4Sk8mqOMiMEphu9/zMICY244vMYhfO/XDIRDZZcZE2WPKUtlnxFr5UD8rTQdbyjOhJ3yQPik7LLirOyx4KrsM+euHIj/OORFldhmb7OuTFtVRqXZxGu1IrWOtr0UdRV9k0+ZAzkFFQmWhr3sjI6SlH5meqlhQyz/+21FvdZRVMtFGrV0or83vZefmYQ7tHicY2BiwA+A8oxM7CUZmXnFqQUADOoDCg==) format('woff');
+          font-display: block;
+          unicode-range: U+202F;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         .theme-light { --bg: #ffffff; --fg: #000000; --m1: #666; --m2: #999; --m3: #ccc; --line: #e5e5e5; --line-soft: #f0f0f0; --bg-owned: #fafafa; }
@@ -17143,7 +17154,7 @@ export default function App() {
               <div className="banner cat-negative banner-uniform">
                 <div className="banner-main">
                   <div className="banner-left"><Sun size={11} strokeWidth={2} /> <span className="banner-title">{t('banner.heatwave_name')}</span></div>
-                  <div className="banner-right">{Math.ceil(heatwaveLeft)}s</div>
+                  <div className="banner-right">{fmtInt(Math.ceil(heatwaveLeft))}s</div>
                 </div>
                 <div className="banner-sub">{t('banner.heatwave_fx')}</div>
               </div>
@@ -17152,7 +17163,7 @@ export default function App() {
               <div className="banner cat-negative banner-uniform">
                 <div className="banner-main">
                   <div className="banner-left"><Droplets size={11} strokeWidth={2} /> <span className="banner-title">{t('banner.drought_name')}</span></div>
-                  <div className="banner-right">{Math.ceil(droughtLeft)}s</div>
+                  <div className="banner-right">{fmtInt(Math.ceil(droughtLeft))}s</div>
                 </div>
                 <div className="banner-sub">{t('banner.drought_fx')}</div>
               </div>
@@ -17161,7 +17172,7 @@ export default function App() {
               <div className="banner cat-negative banner-uniform">
                 <div className="banner-main">
                   <div className="banner-left"><ZapOff size={11} strokeWidth={2} /> <span className="banner-title">{t('banner.outage_name')}</span></div>
-                  <div className="banner-right">{Math.ceil(outageLeft)}s</div>
+                  <div className="banner-right">{fmtInt(Math.ceil(outageLeft))}s</div>
                 </div>
                 <div className="banner-sub">{t('banner.outage_fx')}</div>
               </div>
@@ -17170,7 +17181,7 @@ export default function App() {
               <div className="banner cat-positive banner-uniform">
                 <div className="banner-main">
                   <div className="banner-left"><Leaf size={11} strokeWidth={2} /> <span className="banner-title">{t('banner.autumn_rush_name')}</span></div>
-                  <div className="banner-right">{Math.ceil(autumnRushLeft)}s</div>
+                  <div className="banner-right">{fmtInt(Math.ceil(autumnRushLeft))}s</div>
                 </div>
                 <div className="banner-sub">{t('banner.autumn_rush_fx')}</div>
               </div>
@@ -17179,7 +17190,7 @@ export default function App() {
               <div className="banner cat-positive banner-uniform">
                 <div className="banner-main">
                   <div className="banner-left"><span className="banner-title">{t('banner.teambuild_name')}</span></div>
-                  <div className="banner-right">{Math.ceil(karenTeamBuildUntil - gameTime)}s</div>
+                  <div className="banner-right">{fmtInt(Math.ceil(karenTeamBuildUntil - gameTime))}s</div>
                 </div>
                 <div className="banner-sub">{t('banner.teambuild_fx')}</div>
               </div>
@@ -17243,7 +17254,7 @@ export default function App() {
                 <div className="banner cat-positive banner-uniform">
                   <div className="banner-main">
                     <div className="banner-left"><Award size={11} strokeWidth={2} /> <span className="banner-title">{language === 'fr' ? 'MÉGA-CONTRAT' : 'MEGA-CONTRACT'}</span></div>
-                    <div className="banner-right">{remain}s</div>
+                    <div className="banner-right">{fmtInt(remain)}s</div>
                   </div>
                   <div className="banner-sub">{fmtInt(delivered)} / {fmtInt(required)} GL · +{fmtInt(activeMegacontract.rewardMoney)}€</div>
                 </div>
@@ -17265,7 +17276,7 @@ export default function App() {
                 <div className={`banner ${isPositive ? 'cat-positive' : 'cat-negative'} banner-uniform`}>
                   <div className="banner-main">
                     <div className="banner-left"><EventIcon keyName={def.iconKey} size={11} /> <span className="banner-title">{label}</span></div>
-                    <div className="banner-right">{remain}s</div>
+                    <div className="banner-right">{fmtInt(remain)}s</div>
                   </div>
                   {effectTxt && <div className="banner-sub">{effectTxt}</div>}
                 </div>
@@ -17287,7 +17298,7 @@ export default function App() {
                 <div key={f.id} className="banner cat-negative banner-uniform">
                   <div className="banner-main">
                     <div className="banner-left"><EventIcon keyName={def.iconKey} size={11} /> <span className="banner-title">{label}</span></div>
-                    <div className="banner-right">{remain}s</div>
+                    <div className="banner-right">{fmtInt(remain)}s</div>
                   </div>
                   {sub && <div className="banner-sub">{sub}</div>}
                 </div>
@@ -17301,7 +17312,7 @@ export default function App() {
                 <div className="banner cat-negative banner-uniform">
                   <div className="banner-main">
                     <div className="banner-left"><Wrench size={11} strokeWidth={2} /> <span className="banner-title">{localizeField(chainBroken.brokenMsg, language)}</span></div>
-                    <div className="banner-right">{remain}s</div>
+                    <div className="banner-right">{fmtInt(remain)}s</div>
                   </div>
                   <div className="banner-sub">{language === 'fr' ? 'Production figée' : 'Production frozen'}</div>
                   <button className="chain-repair-btn" disabled={!canPay} onClick={canPay ? handleRepairChain : undefined}>
@@ -17317,7 +17328,7 @@ export default function App() {
               <div className="banner cat-sabotage banner-uniform">
                 <div className="banner-main">
                   <div className="banner-left"><Siren size={11} strokeWidth={2.2} /> <span className="banner-title">{language === 'fr' ? 'CYBERATTAQUE' : 'CYBER ATTACK'}</span></div>
-                  <div className="banner-right">{Math.ceil(cyberLockout)}s</div>
+                  <div className="banner-right">{fmtInt(Math.ceil(cyberLockout))}s</div>
                 </div>
                 <div className="banner-sub">{language === 'fr' ? 'Téléphone et marché B2B coupés' : 'Phone and B2B market down'}</div>
               </div>
@@ -17328,7 +17339,7 @@ export default function App() {
                 <div className="banner cat-sabotage banner-uniform">
                   <div className="banner-main">
                     <div className="banner-left"><Siren size={11} strokeWidth={2.2} /> <span className="banner-title">{language === 'fr' ? 'SABOTAGE GROUPE FROID' : 'COOLING SABOTAGE'}</span></div>
-                    <div className="banner-right">{remain}s</div>
+                    <div className="banner-right">{fmtInt(remain)}s</div>
                   </div>
                   <div className="banner-sub">{language === 'fr' ? 'Capacité réduite à 1/3' : 'Capacity reduced to 1/3'}</div>
                 </div>
@@ -17340,7 +17351,7 @@ export default function App() {
                 <div className="banner cat-sabotage banner-uniform">
                   <div className="banner-main">
                     <div className="banner-left"><Siren size={11} strokeWidth={2.2} /> <span className="banner-title">{language === 'fr' ? 'CAMPAGNE FAUX AVIS' : 'FAKE REVIEW CAMPAIGN'}</span></div>
-                    <div className="banner-right">{remain}s</div>
+                    <div className="banner-right">{fmtInt(remain)}s</div>
                   </div>
                   <div className="banner-sub">{language === 'fr' ? 'Notoriété et demande sapées' : 'Notoriety and demand undermined'}</div>
                 </div>
@@ -17411,7 +17422,7 @@ export default function App() {
                 <div className={`banner ${cat} banner-uniform`}>
                   <div className="banner-main">
                     <div className="banner-left"><EventIcon keyName={def.iconKey} size={11} /> <span className="banner-title">{localizeField(def.name, language)}</span></div>
-                    <div className="banner-right">{Math.ceil(remaining)}s</div>
+                    <div className="banner-right">{fmtInt(Math.ceil(remaining))}s</div>
                   </div>
                   {impact && <div className="banner-sub">{impact}</div>}
                 </div>
@@ -17892,7 +17903,7 @@ export default function App() {
                                     <div key={c.id} className="dev-list-row">
                                       <div>
                                         <div className="dev-list-name">{name}</div>
-                                        <div className="dev-list-meta">{c.qty} GL · {c.pricePerCube}€ · {c.deliveryTime}s</div>
+                                        <div className="dev-list-meta">{fmtInt(c.qty)} GL · {c.pricePerCube}€ · {fmtInt(c.deliveryTime)}s</div>
                                       </div>
                                       <button className="dev-list-trigger" onClick={() => {
                                         const idx = lines.findIndex(l => !l.contractId);
@@ -17919,7 +17930,7 @@ export default function App() {
                                     <div key={c.id} className="dev-list-row">
                                       <div>
                                         <div className="dev-list-name">{name}</div>
-                                        <div className="dev-list-meta">noto≥{c.notorietyMin} · {c.qty} GL · {c.pricePerCube}€</div>
+                                        <div className="dev-list-meta">noto≥{c.notorietyMin} · {fmtInt(c.qty)} GL · {c.pricePerCube}€</div>
                                       </div>
                                       <button className="dev-list-trigger" onClick={() => {
                                         const idx = lines.findIndex(l => !l.contractId);
@@ -18066,7 +18077,7 @@ export default function App() {
                       <span></span><span></span><span></span><span></span><span></span>
                     </div>
                     <div className="cyber-lockout-txt">{t('cyber.systems_down')}</div>
-                    <div className="cyber-lockout-sub">{t('cyber.reconnect_in')} {Math.ceil(cyberLockout)}s</div>
+                    <div className="cyber-lockout-sub">{t('cyber.reconnect_in')} {fmtInt(Math.ceil(cyberLockout))}s</div>
                   </div>
                 ) : (
                   <div className="market-grid">
@@ -18139,7 +18150,7 @@ export default function App() {
                             </div>
                             <div className="market-card-foot">
                               <span>{_avail ? t('market.details') : (t('market.locked') || 'INDISPONIBLE')}</span>
-                              <span className="expires">{Math.ceil(item.expiresIn)}s</span>
+                              <span className="expires">{fmtInt(Math.ceil(item.expiresIn))}s</span>
                             </div>
                           </div>
                         </div>
@@ -18625,7 +18636,7 @@ export default function App() {
                   <span className="modal-title">{localizeField(c.name, language).toUpperCase()}</span>
                   <button className="modal-close" onClick={() => setLineStatusIdx(null)}><X size={14} strokeWidth={2} /></button>
                 </div>
-                <div className="contract-detail-arch">{c.archetype === 'RETAIL' ? `${t('ctype.retail')} · ${t('seg.' + c.targetSegment)}` : `${c.archetype === 'VOLUME' ? t('ctype.b2b_volume') : c.archetype === 'PREMIUM' ? t('ctype.b2b_premium') : t('ctype.b2b_local')} · ${t('contract.tier')} ${c.brigitteTier || 1}`}{c.notorietyMin ? ` · ${t('contract.noto')} ${c.notorietyMin}` : ''} · {profile.maxDeliveries} {t('contract.deliveries_short')} / {profile.globalDeadlineSec}s</div>
+                <div className="contract-detail-arch">{c.archetype === 'RETAIL' ? `${t('ctype.retail')} · ${t('seg.' + c.targetSegment)}` : `${c.archetype === 'VOLUME' ? t('ctype.b2b_volume') : c.archetype === 'PREMIUM' ? t('ctype.b2b_premium') : t('ctype.b2b_local')} · ${t('contract.tier')} ${c.brigitteTier || 1}`}{c.notorietyMin ? ` · ${t('contract.noto')} ${c.notorietyMin}` : ''} · {profile.maxDeliveries} {t('contract.deliveries_short')} / {fmtInt(profile.globalDeadlineSec)}s</div>
                 {c.narrative && <div className="modal-narrative">« {localizeField(c.narrative, language)} »</div>}
                 {/* === État du contrat en cours === */}
                 <div className="status-section">
@@ -18750,7 +18761,7 @@ export default function App() {
                   <span className="modal-title">{localizeField(c.name, language).toUpperCase()}</span>
                   <button className="modal-close" onClick={() => setContractDetailId(null)}><X size={14} strokeWidth={2} /></button>
                 </div>
-                <div className="contract-detail-arch">{c.archetype === 'RETAIL' ? `${t('ctype.retail')} · ${t('seg.' + c.targetSegment)}` : `${c.archetype === 'VOLUME' ? t('ctype.b2b_volume') : c.archetype === 'PREMIUM' ? t('ctype.b2b_premium') : t('ctype.b2b_local')} · ${t('contract.tier')} ${c.brigitteTier || 1}`}{c.notorietyMin ? ` · ${t('contract.noto')} ${c.notorietyMin}` : ''} · {(() => { const p = getContractProfile(c); return `${p.maxDeliveries} ${t('contract.deliveries_short')} / ${p.globalDeadlineSec}s`; })()}</div>
+                <div className="contract-detail-arch">{c.archetype === 'RETAIL' ? `${t('ctype.retail')} · ${t('seg.' + c.targetSegment)}` : `${c.archetype === 'VOLUME' ? t('ctype.b2b_volume') : c.archetype === 'PREMIUM' ? t('ctype.b2b_premium') : t('ctype.b2b_local')} · ${t('contract.tier')} ${c.brigitteTier || 1}`}{c.notorietyMin ? ` · ${t('contract.noto')} ${c.notorietyMin}` : ''} · {(() => { const p = getContractProfile(c); return `${p.maxDeliveries} ${t('contract.deliveries_short')} / ${fmtInt(p.globalDeadlineSec)}s`; })()}</div>
                 {c.narrative && <div className="modal-narrative">« {localizeField(c.narrative, language)} »</div>}
                 <div className="modal-grid">
                   <div className="modal-row">
@@ -19266,7 +19277,7 @@ export default function App() {
             <div className={`tension-banner ${isCrisis ? 'is-crisis' : 'is-opportunity'}`} onClick={() => setTensionMinimized(false)} role="button" tabIndex={0}>
               <span className="tension-banner-icon">{isCrisis ? '⚠' : '✦'}</span>
               <span className="tension-banner-name">{nm}</span>
-              <span className="tension-banner-timer">{rem}s</span>
+              <span className="tension-banner-timer">{fmtInt(rem)}s</span>
               <span className="tension-banner-cta">{(({ fr: 'DÉCIDER', en: 'DECIDE', es: 'DECIDIR', zh: '决定', ru: 'РЕШИТЬ', it: 'DECIDI', de: 'ENTSCHEIDEN' })[language] || 'DÉCIDER')} →</span>
             </div>
           );
@@ -20999,7 +21010,7 @@ export default function App() {
                     <div className="modal-row">
                       <span className="modal-lbl">{t('call.if_accepted')}</span>
                       <span className="modal-val">
-                        {acceptReward.money ? `+${acceptReward.money}€` : '0€'}
+                        {acceptReward.money ? `+${fmtInt(acceptReward.money)}€` : '0€'}
                         {acceptReward.rep ? ` · +${acceptReward.rep} ${t('call.rep_short')}` : ''}
                       </span>
                     </div>
@@ -21007,14 +21018,14 @@ export default function App() {
                       <div className="modal-row">
                         <span className="modal-lbl">{t('call.if_declined')}</span>
                         <span className="modal-val">
-                          {declineReward.money ? `+${declineReward.money}€` : '0€'}
+                          {declineReward.money ? `+${fmtInt(declineReward.money)}€` : '0€'}
                           {declineReward.rep ? ` · +${declineReward.rep} ${t('call.rep_short')}` : ''}
                         </span>
                       </div>
                     )}
                     <div className="modal-row">
                       <span className="modal-lbl">{t('call.delay')}</span>
-                      <span className="modal-val">{Math.ceil(remaining)}s</span>
+                      <span className="modal-val">{fmtInt(Math.ceil(remaining))}s</span>
                     </div>
                   </div>
                 )}
