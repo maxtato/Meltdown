@@ -383,7 +383,6 @@ const STOCK_SIZE = STOCK_COLS * STOCK_ROWS;
 const CUBE_SIZE = 7;
 const CUBE_GAP = 2;
 const DEMAND_ROWS = 7;
-const PULSE_THRESHOLD = 0.30;
 
 // === CONDITIONS DE TRANSITION DE PHASE (source unique de vérité) ===
 // Ces listes sont utilisées À LA FOIS par les ticks narratifs (détection des
@@ -7351,7 +7350,6 @@ export default function App() {
 
   const demandLevel = dynamicDemand * heatDemandMult * droughtDemandMult;
   const demandFilled = Math.max(1, Math.min(DEMAND_ROWS, Math.ceil(demandLevel)));
-  const isOpportune = effectiveSell >= PULSE_THRESHOLD;
 
   useEffect(() => {
     (async () => {
@@ -14496,8 +14494,6 @@ export default function App() {
         }
         .btn-primary:active:not(:disabled) { background: var(--bg); color: var(--fg); }
         .btn:disabled { opacity: 0.25; cursor: not-allowed; }
-        .btn.opportune:not(:disabled) { animation: opportune 1.2s ease-in-out infinite; }
-        @keyframes opportune { 0%, 100% { box-shadow: inset 0 0 0 0 var(--fg); } 50% { box-shadow: inset 0 0 0 2px var(--fg); } }
 
         .upg-ttl { font-size: 10px; letter-spacing: 3px; margin-bottom: 14px; font-weight: 700; display: flex; align-items: center; gap: 12px; }
         .upg-ttl::after { content: ''; flex: 1; height: 1px; background: var(--fg); }
@@ -20884,10 +20880,10 @@ export default function App() {
           )}
           {phase === 1 ? (
             <>
-              <button className={`btn ${isOpportune ? 'opportune' : ''}`} onClick={handleSell} disabled={displayStock < 1}>
+              <button className="btn" onClick={handleSell} disabled={displayStock < 1}>
                 <Coins size={13} strokeWidth={1.8} /> {niceThird(maxCap)}
               </button>
-              <button className={`btn ${isOpportune ? 'opportune' : ''}`} onClick={handleSellAll} disabled={displayStock < 1}>
+              <button className="btn" onClick={handleSellAll} disabled={displayStock < 1}>
                 <Coins size={13} strokeWidth={1.8} /> {t('hero.sell_all')}
               </button>
             </>
