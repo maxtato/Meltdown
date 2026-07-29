@@ -1796,19 +1796,19 @@ const TUTORIAL_STEPS = [
       fr: 'Clique ici pour congeler tes premiers glaçons.',
       en: 'Click here to freeze your first ice cubes.',
       es: 'Pulsa aquí para congelar tus primeros cubitos.', zh: "点这里冷冻你的第一批冰块。", ru: "Нажмите сюда, чтобы заморозить первые кубики.", it: "Clicca qui per congelare i tuoi primi cubetti.", de: "Klicke hier, um deine ersten Eiswürfel einzufrieren."
-    }, targetSel: '.acts .btn-primary', side: 'top', delay: 1000,
+    }, targetSel: '.acts .btn-primary', side: 'top', delay: 1000, chainFast: true,
     canShow: s => true, autoClose: s => s.totals.produced >= 8 },
   { id: 't_vendre', text: {
       fr: 'Vends quelques glaçons pour gagner ton premier cash.',
       en: 'Sell a few ice cubes to earn your first cash.',
       es: 'Vende unos cubitos para ganar tu primer dinero.', zh: "卖几块冰赚到你的第一笔现金。", ru: "Продайте несколько кубиков, чтобы заработать первые деньги.", it: "Vendi qualche cubetto per guadagnare i tuoi primi soldi.", de: "Verkaufe ein paar Eiswürfel, um dein erstes Geld zu verdienen."
-    }, targetSel: '.acts .btn:nth-child(2)', side: 'top', delay: 600,
+    }, targetSel: '.acts .btn:nth-child(2)', side: 'top', delay: 500, chainFast: true,
     canShow: s => s.totals.produced >= 8, autoClose: s => s.totals.sold > 0 },
   { id: 't_revenus', text: {
       fr: "Bravo, première vente ! Le compteur en haut affiche ton cash disponible. C'est la trésorerie qui te servira à acheter des améliorations, payer les salaires et financer ta croissance.",
       en: "Nice, first sale! The top counter shows your available cash. That's the cash flow you'll use to buy upgrades, pay salaries, and fund growth.",
       es: "¡Bien, primera venta! El contador de arriba muestra tu cash disponible. Es la tesorería que usarás para comprar mejoras, pagar salarios y financiar el crecimiento.", zh: "漂亮，第一单！顶部计数器显示你的可用现金。这就是你用来购买升级、支付工资、资助增长的现金流。", ru: "Отлично, первая продажа! Верхний счётчик показывает доступные наличные. Это денежный поток, который вы будете использовать для покупки улучшений, выплаты зарплат и финансирования роста.", it: "Bene, prima vendita! Il contatore in alto mostra la liquidità disponibile. È la cassa che userai per comprare migliorie, pagare gli stipendi e finanziare la crescita.", de: "Stark, erster Verkauf! Der obere Zähler zeigt dein verfügbares Geld. Mit diesem Cashflow kaufst du Upgrades, zahlst Gehälter und finanzierst Wachstum."
-    }, targetSel: '.cash-mini', side: 'bottom', delay: 700,
+    }, targetSel: '.cash-mini', side: 'bottom', delay: 500,
     canShow: s => s.totals.sold > 0 && s.money > 0, autoClose: null },
   { id: 't_rentab', text: {
       fr: "Voici ta RENTABILITÉ MENSUELLE : ce qui te reste chaque mois après paiement des charges (salaires, charges courantes, prêt). Tape pour le détail. Si elle devient négative et clignote, tu perds de l'argent, réagis vite.",
@@ -7157,7 +7157,16 @@ export default function App() {
       setTutorialDismissed(d => ({ ...d, [activeTutorial]: true }));
       tutorialDismissedAtRef.current[activeTutorial] = Date.now();
       setActiveTutorial(null);
-      setTutCooldownUntil(Date.now() + 1500);
+      if (step.chainFast) {
+        // La bulle vient de se fermer parce que le joueur a fait ce qu'elle
+        // demandait : la suite doit venir tout de suite. On lève cooldown et
+        // bubble gap pour que le `delay` de l'étape suivante soit le seul
+        // temps d'attente perçu — même traitement que l'intro.
+        setTutCooldownUntil(0);
+        _bypassBubbleGapOnceRef.current = true;
+      } else {
+        setTutCooldownUntil(Date.now() + 1500);
+      }
     }
   }, [activeTutorial, money, stock, gameTime, owned, currentCall, hasBrigitte, hasFred, personnelOpen, phase, lines, notoriety, campaignsLaunched, completedCalls, reputation, totals]);
 
@@ -7169,7 +7178,7 @@ export default function App() {
     // On bypass cooldown + bubble gap pour que le delay de 1s du step suivant
     // soit le SEUL temps d'attente perçu.
     const step = TUTORIAL_STEPS.find(t => t.id === id);
-    if (step && step.isIntro) {
+    if (step && (step.isIntro || step.chainFast)) {
       setTutCooldownUntil(0);
       _bypassBubbleGapOnceRef.current = true;
     } else {
