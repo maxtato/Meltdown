@@ -653,7 +653,7 @@ const EVENT_TYPES = {
     id: 'opp_allin', category: 'tension_opportunity', minPhase: 3,
     name: { fr: 'TOUT OU RIEN', en: 'ALL OR NOTHING', es: 'TODO O NADA', zh: "孤注一掷", ru: "ВСЁ ИЛИ НИЧЕГО", it: "TUTTO O NIENTE", de: "ALLES ODER NICHTS" },
     iconKey: 'trending',
-    intro: { fr: "Une chaîne de supermarchés met aux enchères un contrat national exclusif. Pour entrer, il faut déposer une caution énorme — la moitié de ta trésorerie — remboursée au double si tu remportes l'appel d'offres. 45% de chances. Mark transpire en relisant le dossier.", en: "A supermarket chain is auctioning an exclusive national contract. To enter, you must post a huge deposit — half your cash — refunded double if you win the bid. 45% chance. Mark sweats as he rereads the file.", es: "Una cadena de supermercados subasta un contrato nacional exclusivo. Para entrar hay que depositar una fianza enorme —la mitad de tu tesorería— devuelta al doble si ganas la licitación. 45% de probabilidad. Mark suda releyendo el expediente.", zh: "一家连锁超市正在拍卖一份全国独家合同。要参与，必须缴纳一笔巨额保证金——你一半的现金——如果中标则双倍返还。45%的机会。马克一边重读文件一边冒汗。", ru: "Сеть супермаркетов выставляет на торги эксклюзивный национальный контракт. Чтобы участвовать, нужно внести огромный залог — половину твоей наличности — он вернётся вдвойне, если выиграешь тендер. 45% шанс. Марк потеет, перечитывая досье.", it: "Una catena di supermercati mette all'asta un contratto nazionale esclusivo. Per entrare devi versare una cauzione enorme — metà della tua liquidità — restituita al doppio se vinci la gara. 45% di possibilità. Mark suda rileggendo il dossier.", de: "Eine Supermarktkette versteigert einen exklusiven nationalen Vertrag. Um teilzunehmen, musst du eine riesige Kaution hinterlegen — die Hälfte deiner Barmittel — doppelt zurückerstattet, wenn du die Ausschreibung gewinnst. 45% Chance. Mark schwitzt beim erneuten Lesen der Akte." },
+    intro: { fr: "Une chaîne de supermarchés met aux enchères un contrat national exclusif. Pour entrer, il faut déposer une caution énorme — la moitié de ta trésorerie — remboursée au double si tu remportes l'appel d'offres. 45% de chances. Le dossier fait quarante pages de conditions.", en: "A supermarket chain is auctioning an exclusive national contract. To enter, you must post a huge deposit — half your cash — refunded double if you win the bid. 45% chance. The file runs forty pages of conditions.", es: "Una cadena de supermercados subasta un contrato nacional exclusivo. Para entrar hay que depositar una fianza enorme —la mitad de tu tesorería— devuelta al doble si ganas la licitación. 45% de probabilidad. El expediente son cuarenta páginas de condiciones.", zh: "一家连锁超市正在拍卖一份全国独家合同。要参与，必须缴纳一笔巨额保证金——你一半的现金——如果中标则双倍返还。45%的机会。这份文件有四十页条款。", ru: "Сеть супермаркетов выставляет на торги эксклюзивный национальный контракт. Чтобы участвовать, нужно внести огромный залог — половину твоей наличности — он вернётся вдвойне, если выиграешь тендер. 45% шанс. В досье сорок страниц условий.", it: "Una catena di supermercati mette all'asta un contratto nazionale esclusivo. Per entrare devi versare una cauzione enorme — metà della tua liquidità — restituita al doppio se vinci la gara. 45% di possibilità. Mark suda rileggendo il dossier.", de: "Eine Supermarktkette versteigert einen exklusiven nationalen Vertrag. Um teilzunehmen, musst du eine riesige Kaution hinterlegen — die Hälfte deiner Barmittel — doppelt zurückerstattet, wenn du die Ausschreibung gewinnst. 45% Chance. Mark schwitzt beim erneuten Lesen der Akte." },
     acceptLabel: { fr: 'TOUT MISER', en: 'GO ALL IN', es: 'APOSTARLO TODO', zh: "全部押上", ru: "ПОСТАВИТЬ ВСЁ", it: "PUNTARE TUTTO", de: "ALLES SETZEN" },
     declineLabel: { fr: 'TROP RISQUÉ', en: 'TOO RISKY', es: 'DEMASIADO ARRIESGADO', zh: "太冒险", ru: "СЛИШКОМ РИСКОВАННО", it: "TROPPO RISCHIOSO", de: "ZU RISKANT" },
     stakePct: 0.5,    // mise 50% de la trésorerie
@@ -1470,7 +1470,7 @@ const UPGRADES = [
     longDesc: { fr: "Un deuxième bac silicone à côté du premier. Tu doubles ta capacité de cycle dès le début.", en: "A second silicone tray next to the first. Double your cycle capacity from the start.", es: "Una segunda bandeja de silicona junto a la primera. Duplicas tu capacidad de ciclo desde el principio.", zh: "在第一个旁边放第二个硅胶冰格。从一开始就让你的周期容量翻倍。", ru: "Вторая силиконовая форма рядом с первой. Удваиваешь циклическую ёмкость с самого начала.", it: "Una seconda vaschetta in silicone accanto alla prima. Raddoppi la capacità di ciclo dall'inizio.", de: "Eine zweite Silikonform neben der ersten. Verdoppele deine Zykluskapazität von Anfang an." },
     apply: s => ({ ...s, perClick: s.perClick + 8, capBonus: s.capBonus + 12 }) },
   { id: 'voisin_jacques',  Icon: Contact,   count: 1, destructible: false, phase: 1, name: { fr: 'Voisin Jacques', en: 'Neighbor Jacques', es: 'Vecino Jacques', zh: "邻居雅克", ru: "Сосед Жак", it: "Vicino Jacques", de: "Nachbar Jacques" }, desc: { fr: '+30 cap (prête sa cuisine)', en: '+30 cap (lends his kitchen)', es: '+30 cap (presta su cocina)', zh: "+30 容量（借用厨房）", ru: "+30 ёмкость (одалживает кухню)", it: "+30 cap (presta la cucina)", de: "+30 Kap (leiht seine Küche)" }, cost: 60,
-    longDesc: { fr: "Jacques, ton voisin de palier, accepte que tu stockes des bacs chez lui en échange d'un pack par semaine. Pas de quoi changer le jeu, mais tu gagnes 30 places.", en: "Jacques, your floor neighbor, agrees to store trays at his place in exchange for a pack a week. Not game-changing, but you gain 30 slots.", es: "Jacques, tu vecino de planta, acepta que guardes bandejas en su casa a cambio de un pack por semana. No cambia el juego, pero ganas 30 plazas.", zh: "你的同层邻居雅克同意你在他家放冰格，交换条件是每周一包冰。改变不了大局，但多30个位。", ru: "Жак, твой сосед по этажу, разрешает хранить формы у него в обмен на пак в неделю. Не переворот, но 30 ячеек.", it: "Jacques, il tuo vicino di pianerottolo, accetta che tu stocchi vaschette da lui in cambio di un pack a settimana. Non cambia il gioco, ma guadagni 30 posti.", de: "Jacques, dein Etagennachbar, lässt dich Formen bei sich lagern für ein Pack pro Woche. Kein Gamechanger, aber 30 Plätze mehr." },
+    longDesc: { fr: "Jacques, ton voisin d'à côté, accepte que tu stockes des bacs chez lui en échange d'un pack par semaine. Pas de quoi changer le jeu, mais tu gagnes 30 places.", en: "Jacques, your next-door neighbor, agrees to store trays at his place in exchange for a pack a week. Not game-changing, but you gain 30 slots.", es: "Jacques, tu vecino de al lado, acepta que guardes bandejas en su casa a cambio de un pack por semana. No cambia el juego, pero ganas 30 plazas.", zh: "你的隔壁邻居雅克同意你在他家放冰格，交换条件是每周一包冰。改变不了大局，但多30个位。", ru: "Жак, твой сосед по улице, разрешает хранить формы у него в обмен на пак в неделю. Не переворот, но 30 ячеек.", it: "Jacques, il tuo vicino di casa, accetta che tu stocchi vaschette da lui in cambio di un pack a settimana. Non cambia il gioco, ma guadagni 30 posti.", de: "Jacques, dein Nachbar von nebenan, lässt dich Formen bei sich lagern für ein Pack pro Woche. Kein Gamechanger, aber 30 Plätze mehr." },
     apply: s => ({ ...s, capBonus: s.capBonus + 30 }) },
   { id: 'canettes_fred',   Icon: Coffee,    count: 1, destructible: false, phase: 1, requireUnlock: 'fred_stage', name: { fr: 'Pack canettes pour Fred', en: 'Cans pack for Fred', es: 'Pack latas para Fred', zh: "弗雷德的罐装饮料", ru: "Банки для Фреда", it: "Pack lattine per Fred", de: "Dosen-Pack für Fred" }, desc: { fr: 'prod ×1.05', en: 'prod ×1.05', es: 'prod ×1.05', zh: "生产 ×1.05", ru: "произв ×1.05", it: "prod ×1.05", de: "Prod ×1.05" }, cost: 180,
     longDesc: { fr: "Fred carbure à la caféine et au sucre. Tu lui livres un pack de canettes énergisantes : il tient mieux les longues séries.", en: "Fred runs on caffeine and sugar. You deliver him a pack of energy cans: he holds long stretches better.", es: "Fred funciona con cafeína y azúcar. Le entregas un pack de latas energéticas: aguanta mejor las largas series.", zh: "弗雷德靠咖啡因和糖运转。你给他送一包能量饮料：他能扛住更长的工作时段。", ru: "Фред работает на кофеине и сахаре. Привозишь ему пак энергетиков: лучше держит длинные серии.", it: "Fred va a caffeina e zucchero. Gli consegni un pack di lattine energetiche: regge meglio le serie lunghe.", de: "Fred läuft auf Koffein und Zucker. Du lieferst ihm einen Energie-Dosen-Pack: Er hält längere Serien besser durch." },
@@ -2872,24 +2872,6 @@ const UPGRADE_THANKS = {
     it: "Assistente di Direzione. Lasciamo le piccole scartoffie, entriamo nella stanza dove la gente parla forte con cartelle sottili. Contratti premium aperti, margine +5%. Voglio essere consultata prima delle idee brillanti.",
     de: "Direktionsassistentin. Wir lassen den Kleinkram hinter uns und betreten den Raum, in dem Leute laut sprechen mit dünnen Akten. Premium-Verträge offen, Marge +5 %. Ich möchte vor den brillanten Ideen konsultiert werden." },
 
-  // JANICE — marketing
-  janice_senior: { speaker: 'Agence marketing',
-    fr: "Senior. Excellent. Mes campagnes prennent ×1,3 et les deals retail deviennent sérieux. On commence à exister dans des réunions où des gens hochent la tête devant des graphiques parfaitement vides.",
-    en: "Senior. Excellent. My campaigns hit ×1.3 and retail deals turn serious. We're starting to exist in meetings where people nod in front of perfectly empty charts.",
-    es: "Sénior. Excelente. Mis campañas suben a ×1,3 y los deals retail se vuelven serios. Empezamos a existir en reuniones donde la gente asiente delante de gráficos perfectamente vacíos.",
-    zh: "高级。很好。我的活动力达到×1.3，零售合作开始正经起来。我们开始出现在那种大家对着空空如也的图表点头的会议里。",
-    ru: "Сеньор. Отлично. Мои кампании выходят на ×1,3, ритейл-сделки становятся серьёзными. Мы начинаем существовать на встречах, где люди кивают перед безупречно пустыми графиками.",
-    it: "Senior. Eccellente. Le mie campagne salgono a ×1,3 e i deal retail diventano seri. Cominciamo a esistere in riunioni dove la gente annuisce davanti a grafici perfettamente vuoti.",
-    de: "Senior. Hervorragend. Meine Kampagnen erreichen ×1,3 und die Retail-Deals werden ernst. Wir fangen an, in Meetings zu existieren, in denen Leute vor perfekt leeren Diagrammen nicken." },
-  janice_dir: { speaker: 'Agence marketing',
-    fr: "Directrice Marketing. Très bien. Campagnes ×1,6, accès aux géants nationaux. À partir de maintenant, on ne vend plus seulement du froid. On vend une évidence avec un logo.",
-    en: "Marketing Director. Very well. Campaigns ×1.6, access to national giants. From now on, we don't just sell cold. We sell an obvious truth with a logo.",
-    es: "Directora de Marketing. Muy bien. Campañas ×1,6, acceso a los gigantes nacionales. A partir de ahora ya no vendemos solo frío. Vendemos una evidencia con un logo.",
-    zh: "营销总监。好。活动×1.6，可触达全国级巨头。从现在起，我们卖的不再只是冷。我们卖的是带着 logo 的「不言而喻」。",
-    ru: "Директор по маркетингу. Очень хорошо. Кампании ×1,6, доступ к национальным гигантам. С этого момента мы продаём не просто холод. Мы продаём очевидность с логотипом.",
-    it: "Direttrice Marketing. Molto bene. Campagne ×1,6, accesso ai giganti nazionali. Da ora non vendiamo più solo il freddo. Vendiamo un'ovvietà con un logo.",
-    de: "Marketing Director. Sehr gut. Kampagnen ×1,6, Zugang zu den nationalen Giganten. Ab jetzt verkaufen wir nicht nur Kälte. Wir verkaufen eine Selbstverständlichkeit mit Logo." },
-
   // LENNY — logistique
   // (camion_1 n'a pas de remerciement : c'est la 1ère embauche, déjà gérée par hire_intro.lenny)
   camion_2: { speaker: 'Lenny',
@@ -2935,19 +2917,15 @@ const UPGRADE_THANKS = {
     ru: "Директор по персоналу. Теперь накладываем настоящую социальную политику на компанию, которая делает кубики под давлением. Базовая мораль +8, превентивная медиация, действия в два раза быстрее. Будем расти, не превращая Фреда в предмет мебели.",
     it: "Direttrice HR. Ora mettiamo una vera politica sociale su un'azienda che fa cubetti sotto pressione. Morale di base +8, mediazione preventiva, azioni due volte più rapide. Cresceremo senza trasformare Fred in un mobile.",
     de: "HR-Direktorin. Jetzt legen wir eine echte Sozialpolitik über ein Unternehmen, das unter Druck Eiswürfel herstellt. Grundmoral +8, präventive Mediation, Aktionen doppelt so schnell. Wir wachsen, ohne Fred in ein Möbelstück zu verwandeln." },
-  // MARK — achats
-
-  // SABINE — juridique
-
   // === P1 — Infra (commentaires des persos existants) ===
   voisin_jacques: { speaker: 'Fred',
-    fr: "Jacques d'à côté ? J'l'ai croisé deux fois dans l'escalier, mec sympa. Sa cuisine est nickel, on peut clairement caser vos bacs là-haut. +30 places, je monte les premiers, vous inquiétez pas.",
-    en: "Jacques next door? Ran into him twice in the stairwell, nice guy. His kitchen is spotless, we can totally stash your trays up there. +30 spots, I'll carry the first ones up, no worries.",
-    es: "¿Jacques el de al lado? Me lo crucé dos veces en la escalera, buen tío. Su cocina está impecable, podemos meter sus cubetas ahí arriba. +30 plazas, las primeras las subo yo, no se preocupe.",
-    zh: "隔壁那个雅克？我在楼梯间碰到他两次，人不错。他的厨房很干净，咱们完全可以把您的盘子放上去。多30个位置，头几个我帮您抬上去，别担心。",
-    ru: "Жак из соседней квартиры? Сталкивался с ним пару раз на лестнице, нормальный мужик. Кухня у него чистая, ваши поддоны туда вполне влезут. +30 мест, первые я сам затащу, не переживайте.",
-    it: "Jacques della porta accanto? L'ho incrociato due volte sulle scale, tipo simpatico. La sua cucina è pulitissima, ci stanno tranquillamente le sue vaschette. +30 posti, le prime gliele porto su io, stia tranquillo.",
-    de: "Jacques von nebenan? Hab ihn zweimal im Treppenhaus getroffen, netter Typ. Seine Küche ist blitzblank, da kriegen wir Ihre Schalen locker rein. +30 Plätze, die ersten trage ich Ihnen hoch, keine Sorge." },
+    fr: "Jacques d'à côté ? J'l'ai croisé deux fois devant chez lui, mec sympa. Sa cuisine est nickel, on peut clairement caser vos bacs là-bas. +30 places, je porte les premiers, vous inquiétez pas.",
+    en: "Jacques next door? Ran into him twice outside his place, nice guy. His kitchen is spotless, we can totally stash your trays over there. +30 spots, I'll carry the first ones over, no worries.",
+    es: "¿Jacques el de al lado? Me lo crucé dos veces delante de su casa, buen tío. Su cocina está impecable, podemos meter sus cubetas ahí. +30 plazas, las primeras las llevo yo, no se preocupe.",
+    zh: "隔壁那个雅克？我在他家门口碰到他两次，人不错。他的厨房很干净，咱们完全可以把您的盘子放那儿。多30个位置，头几个我帮您搬过去，别担心。",
+    ru: "Жак из соседнего дома? Сталкивался с ним пару раз у его калитки, нормальный мужик. Кухня у него чистая, ваши поддоны туда вполне влезут. +30 мест, первые я сам отнесу, не переживайте.",
+    it: "Jacques della porta accanto? L'ho incrociato due volte davanti a casa sua, tipo simpatico. La sua cucina è pulitissima, ci stanno tranquillamente le sue vaschette. +30 posti, le prime gliele porto io, stia tranquillo.",
+    de: "Jacques von nebenan? Hab ihn zweimal vor seiner Tür getroffen, netter Typ. Seine Küche ist blitzblank, da kriegen wir Ihre Schalen locker rein. +30 Plätze, die ersten trage ich Ihnen rüber, keine Sorge." },
   canettes_fred: { speaker: 'Fred',
     fr: "Le pack de canettes ! Patron, j'vous embrasserais. Caféine + sucre, j'tiens trois cycles d'affilée sans broncher. +5% sur tout.",
     en: "The can pack! Boss, I could kiss you. Caffeine + sugar, I knock out three cycles in a row no problem. +5% on everything.",
@@ -5026,7 +5004,7 @@ export default function App() {
             // sens que si un contrat a réellement été ajouté. Pour un simple boost
             // (ex. Fête de quartier, sans contrat), le bandeau à décompte suffit.
             if (c) {
-              setEventNotif(localizeField(picked.name, language).toUpperCase() + ' · CONTRAT AU MARCHÉ');
+              setEventNotif(localizeField(picked.name, language).toUpperCase() + ' · ' + t('notif.market_contract'));
             }
           } else if ((picked.category === 'crisis' || picked.category === 'bonus') && picked.duration <= 1) {
             applyCrisisInstant(picked);
@@ -10181,7 +10159,7 @@ export default function App() {
       if (ownedRef.current['autosell'] || ownedRef.current['brigitte_compta'] || ownedRef.current['brigitte_ad']) {
         setBrigitteMoral(m => Math.max(0, m - 3));
       }
-      setEventNotif(`${t('notif.industrialisation') || 'INDUSTRIALISATION'} · MORAL ÉQUIPES −`);
+      setEventNotif(t('notif.industrialisation'));
     }
     if (INDUSTRIAL_UPGRADES_BY_CATEGORY.logistics.includes(u.id)) {
       // Pression sur la logistique : Lenny en priorité, et un peu Brigitte (paperasse)
@@ -11804,7 +11782,7 @@ export default function App() {
 
   // ===== HOME SCREEN =====
   if (screen === 'home') {
-    const savePhaseLabel = phase >= 3 ? t('home.save_brand') : phase >= 2 ? t('home.save_industry') : t('home.save_kitchen');
+    const savePhaseLabel = phase >= 3 ? t('home.save_brand') : phase >= 2 ? t('home.save_industry') : t('home.save_garage');
     const seasonIdxHome = Math.floor((gameTime / SEASON_DURATION)) % 4;
     const yearHome = Math.floor(gameTime / (SEASON_DURATION * 4)) + 1;
     const seasonHome = SEASONS[seasonIdxHome];
@@ -17964,7 +17942,7 @@ export default function App() {
                                 }
                                 const sellMult = (def.effects && def.effects.sellMult) || 1.5;
                                 setActiveTensionEffect({ id: def.id, expiresAt: gameTime + def.duration, sellMult });
-                                setEventNotif(localizeField(def.name, language).toUpperCase() + ' · CONTRAT AU MARCHÉ');
+                                setEventNotif(localizeField(def.name, language).toUpperCase() + ' · ' + t('notif.market_contract'));
                               } else if (isCrisis) {
                                 applyCrisisInstant(def);
                               } else {
@@ -21297,7 +21275,7 @@ export default function App() {
         <button className="reset" onClick={handleReset}>
           <RotateCcw size={11} strokeWidth={1.5} /> {t('footer.reset')}
         </button>
-        <div className="footer">— MELTDOWN · {phase >= 3 ? t('footer.phase_brand') : phase >= 2 ? t('footer.phase_industry') : t('footer.phase_kitchen')} · 0{phase}/03 —</div>
+        <div className="footer">— MELTDOWN · {phase >= 3 ? t('footer.phase_brand') : phase >= 2 ? t('footer.phase_industry') : t('footer.phase_garage')} · 0{phase}/03 —</div>
 
         {resetConfirmModal}
 
