@@ -131,6 +131,11 @@ const AUTUMN_RUSH_MAX = 40;
 const AUTUMN_RUSH_MULT = 1.5;
 const BREAKDOWN_CHANCE_HEAT = 0.0002;
 const BREAKDOWN_CHANCE_BASE = 0.00004;
+// Durée (secondes de jeu) pendant laquelle la tranche de capacité perdue par
+// une panne matérielle reste dessinée en haut de la jauge, hachurée et
+// clignotante. Passé ce délai la grille se recale sur la nouvelle capacité ;
+// l'alerte persistante, elle, reste jusqu'au rachat.
+const BROKEN_FLASH_DURATION = 10;
 
 const BASE_LINES = 0;
 const TRUCK_REBUY_COST = 9000; // racheter un camion volé (plus cher que la rançon : payer tout de suite vaut mieux)
@@ -4364,6 +4369,14 @@ export default function App() {
   const [stockBurnFlash, setStockBurnFlash] = useState(0); // gameTime du dernier sabotage frigo (flash visuel)
   const stockBurnFlashRef = useRef(0);
   useEffect(() => { stockBurnFlashRef.current = stockBurnFlash; }, [stockBurnFlash]);
+  // === CASSE MATÉRIEL ===
+  // Une panne retire l'amélioration de `owned` : la capacité chute et la jauge
+  // se réétalonne en silence. On mémorise donc quel appareil est tombé, pour
+  // pouvoir dire lequel racheter et combien de capacité il rendra.
+  // { id, at } — `at` est le gameTime de la panne, il sert au clignotement.
+  // Pas de nettoyage explicite : l'indicateur s'éteint dès que owned[id] repasse
+  // à vrai, c'est-à-dire au rachat.
+  const [brokenGear, setBrokenGear] = useState(null);
   // === PANNE CHAÎNE DE PRODUCTION ===
   // Suite à un sabotage frigo/usine, la chaîne peut tomber en panne (production figée).
   // Réparation manuelle nécessaire. Atténué par l'amélioration "maintenance préventive".
@@ -6621,6 +6634,24 @@ export default function App() {
     ? Math.ceil(_rawUsableCap / 3)
     : Math.floor(_rawUsableCap));
   const capReduced = usableCap < maxCap;
+  // === Appareil en panne : capacité perdue tant qu'il n'est pas racheté ===
+  // L'alerte s'éteint d'elle-même au rachat, puisqu'elle est conditionnée à
+  // l'absence de l'amélioration dans `owned`.
+  const brokenActive = !!brokenGear && !owned[brokenGear.id];
+  const brokenUpgrade = brokenActive ? UPGRADES.find(u => u.id === brokenGear.id) : null;
+  // Capacité que rendrait le rachat : on recalcule les stats comme si
+  // l'amélioration était de nouveau possédée, plutôt que de coder en dur un
+  // bonus par appareil — la valeur suit automatiquement l'équilibrage.
+  const brokenCapLoss = React.useMemo(() => {
+    if (!brokenActive) return 0;
+    const withIt = computeStats({ ...owned, [brokenGear.id]: true });
+    return Math.max(0, withIt.capBonus - rawStats.capBonus);
+  }, [brokenActive, brokenGear, owned, rawStats.capBonus]);
+  // Fenêtre de clignotement juste après la panne : la tranche perdue reste
+  // dessinée en haut de la jauge pendant quelques secondes, sinon la grille se
+  // réétalonne en silence et la perte passe inaperçue.
+  const brokenFlash = brokenActive && brokenCapLoss > 0
+    && (gameTime - brokenGear.at) < BROKEN_FLASH_DURATION;
   const stolenEff = Math.min(stolenTrucks, rawStats.linesBonus);
   const maxLines = Math.max(0, BASE_LINES + rawStats.linesBonus - stolenEff);
   const displayStock = Math.ceil(stock);
@@ -7295,7 +7326,12 @@ export default function App() {
   // === Zone condamnée : sabotage frigo (2/3, 30s) et/ou friction de capacité ===
   // Les deux se rendent pareil — cubes hachurés en haut de la grille — pour que
   // « je ne peux plus stocker » soit lisible d'un coup d'œil dans les deux cas.
-  const usableRatio = maxCap > 0 ? Math.min(1, usableCap / maxCap) : 1;
+  // Pendant la fenêtre de clignotement, la grille reste graduée sur l'ANCIENNE
+  // capacité : la tranche perdue occupe donc le haut et se voit partir. Sans
+  // ça, maxCap ayant déjà baissé, la jauge se réétalonne sur la nouvelle
+  // capacité et rien ne signale la perte.
+  const gridRefCap = brokenFlash ? maxCap + brokenCapLoss : maxCap;
+  const usableRatio = gridRefCap > 0 ? Math.min(1, usableCap / gridRefCap) : 1;
   const usableCubes = Math.max(1, Math.ceil(STOCK_SIZE * usableRatio));
   const burnedZoneStart = usableCubes < STOCK_SIZE ? usableCubes : STOCK_SIZE;
   const filledCubes = Math.floor(fillRatio * usableCubes);
@@ -7371,6 +7407,12 @@ export default function App() {
           }
           if (typeof s.lastInsuranceCancel === 'number') {
             setLastInsuranceCancel(s.lastInsuranceCancel);
+          }
+          // Appareil tombé en panne et pas encore racheté. On ne restaure que si
+          // l'amélioration est effectivement absente : une sauvegarde d'avant le
+          // rachat, rouverte après, ne doit pas ressortir l'alerte.
+          if (s.brokenGear && s.brokenGear.id && !(s.owned && s.owned[s.brokenGear.id])) {
+            setBrokenGear({ id: s.brokenGear.id, at: s.brokenGear.at || 0 });
           }
           if (Array.isArray(s.completedCalls)) setCompletedCalls(s.completedCalls);
           if (typeof s.nextCallAt === 'number') setNextCallAt(s.nextCallAt);
@@ -7589,7 +7631,7 @@ export default function App() {
     saveStateRef.current = {
       stock, money, owned, gameTime, phase, reputation, lines, marketplace, freezingLeft, freezingTotal, fredCycleLeft, fredCycleTotal,
       fredCycleAccum: fredCycleAccumRef.current,
-      totals, lastInsuranceCancel, completedCalls, nextCallAt, meltTutorialShown,
+      totals, lastInsuranceCancel, completedCalls, nextCallAt, meltTutorialShown, brokenGear,
       fredSalaryLevel, brigitteSalaryLevel, lennySalaryLevel, karenSalaryLevel,
       fredGrumpy, brigitteGrumpy, janiceGrumpy, lennyGrumpy, karenGrumpy,
       fredMoral, brigitteMoral, lennyMoral, karenMoral,
@@ -8406,6 +8448,7 @@ export default function App() {
           } else {
             setOwned(o => { const n = { ...o }; delete n[victim.id]; return n; });
             setEventNotif(t('notif.destruction') + ' : ' + localizeField(victim.name, language).toUpperCase());
+            setBrokenGear({ id: victim.id, at: gameTimeRef.current });
             totalsRef.current.destructions += 1;
           }
         }
@@ -11605,6 +11648,9 @@ export default function App() {
     // après que gameTime ait été remis à 0.
     setActiveFrictions({});
     activeFrictionsRef.current = {};
+    // L'alerte de panne matériel survivrait au reset : elle n'est conditionnée
+    // qu'à l'absence de l'amélioration dans `owned`, or `owned` repart vide.
+    setBrokenGear(null);
     setActiveTensionEffect(null);
     activeTensionEffectRef.current = null;
     setSickUntil({});
@@ -12414,7 +12460,7 @@ export default function App() {
             </div>
           )}
           <div className="side-lbl">{t('side.stock')}</div>
-          <div className={`stock-grid ${atCap ? 'full' : ''} ${burnFlashActive ? 'burn-flash' : ''} ${capReduced && !burnFlashActive ? 'cap-reduced' : ''}`}>
+          <div className={`stock-grid ${atCap ? 'full' : ''} ${burnFlashActive ? 'burn-flash' : ''} ${brokenFlash ? 'broke-drop' : ''} ${capReduced && !burnFlashActive && !brokenFlash ? 'cap-reduced' : ''}`}>
             {Array.from({ length: STOCK_SIZE }).map((_, p) => {
               const row = Math.floor(p / STOCK_COLS);
               const col = p % STOCK_COLS;
@@ -12460,6 +12506,11 @@ export default function App() {
           <div className={`cap-line ${atCap ? 'full' : ''}`}>
             <b>{fmtK(displayStock)}</b> / {fmtK(maxCap)} <span style={{ opacity: 0.5, marginLeft: 4 }}>· {t('status.cap')}</span>
           </div>
+          {brokenActive && brokenCapLoss > 0 && (
+            <div className={`cap-lost ${brokenFlash ? 'is-fresh' : ''}`}>
+              ↓ −{fmtInt(brokenCapLoss)} {t('unit.ice')} · {t('broken.cap_line')}
+            </div>
+          )}
           {phase < 4 && (
             <div className="prod-melt-mini">
               <span className={`prod-melt-cell ${inOutage ? 'off' : ''}`}>{t('rate.production_short')} +{groupThousands(effectivePassive.toFixed(1))}/s</span>
@@ -12964,6 +13015,16 @@ export default function App() {
         .banner-uniform .banner-main { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
         .banner-uniform .banner-title { font-size: 11px; letter-spacing: 2px; }
         .banner-uniform .banner-sub { font-size: 8.5px; letter-spacing: 1.2px; font-weight: 500; opacity: 0.78; text-transform: uppercase; }
+        /* Alerte de panne matérielle : bouton, car elle ouvre la fiche de
+           l'amélioration à racheter. On annule le style natif du bouton pour
+           qu'elle reste visuellement une bannière comme les autres. */
+        .banner-broken {
+          width: 100%;
+          border: none;
+          font-family: inherit;
+          text-align: left;
+          cursor: pointer;
+        }
         /* Bannière action (arrêt maladie nécessitant une prise en main joueur) */
         .banner-action { border: 1px dashed var(--fg); background: var(--bg); color: var(--fg); }
         .banner-cta {
@@ -14240,6 +14301,38 @@ export default function App() {
         /* Capacité rabotée par une friction (dégât des eaux…) : même hachure
            que le sabotage, mais fixe — c'est un état durable, pas une alerte. */
         .stock-grid.cap-reduced .cube.burned { animation: none; opacity: 0.4; }
+        /* === PANNE MATÉRIEL : TRANCHE DE CAPACITÉ PERDUE ===
+           La panne retire l'appareil, donc maxCap baisse et la jauge se
+           regradue toute seule : sans traitement, la perte est invisible.
+           Pendant BROKEN_FLASH_DURATION la grille reste graduée sur l'ancienne
+           capacité et les cubes du haut — la tranche perdue — clignotent en
+           plein avant de s'effacer. Le clignotement en steps() reprend le
+           vocabulaire des autres états négatifs. */
+        .stock-grid.broke-drop .cube.burned {
+          animation: brokeDrop 0.44s steps(2) infinite;
+        }
+        @keyframes brokeDrop {
+          0%, 49%   { opacity: 1; }
+          50%, 100% { opacity: 0.18; }
+        }
+        /* Capacité perdue, rappelée sous la ligne de capacité tant que
+           l'appareil n'est pas racheté. Accentuée les premières secondes. */
+        .cap-lost {
+          margin-top: 4px;
+          font-size: 8.5px;
+          letter-spacing: 1.4px;
+          font-weight: 700;
+          text-transform: uppercase;
+          text-align: center;
+          color: var(--fg);
+          font-variant-numeric: tabular-nums;
+          opacity: 0.7;
+        }
+        .cap-lost.is-fresh { animation: capLostBlink 0.7s steps(2) infinite; }
+        @keyframes capLostBlink {
+          0%, 49%   { opacity: 1; }
+          50%, 100% { opacity: 0.3; }
+        }
         .stock-grid.burn-flash { animation: burnShake 0.16s steps(2) 6; }
         @keyframes burnShake {
           0% { transform: translate(0,0); }
@@ -14391,6 +14484,27 @@ export default function App() {
         .upg-ttl { font-size: 10px; letter-spacing: 3px; margin-bottom: 14px; font-weight: 700; display: flex; align-items: center; gap: 12px; }
         .upg-ttl::after { content: ''; flex: 1; height: 1px; background: var(--fg); }
         .upgs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; align-items: stretch; }
+        /* Amélioration détruite par une panne : elle réapparaît comme un achat
+           ordinaire dans sa famille. Le liseré plein et l'étiquette « HS » la
+           distinguent d'un achat neuf. */
+        .upg.is-broken { border-color: var(--fg); }
+        .upg-broken-tag {
+          position: absolute;
+          top: 5px;
+          right: 5px;
+          padding: 2px 4px;
+          background: var(--fg);
+          color: var(--bg);
+          font-size: 8px;
+          font-weight: 800;
+          letter-spacing: 1.4px;
+          line-height: 1;
+          animation: brokenTagBlink 1.1s steps(2) infinite;
+        }
+        @keyframes brokenTagBlink {
+          0%, 59%   { opacity: 1; }
+          60%, 100% { opacity: 0.35; }
+        }
         .upg { padding: 12px 6px 10px; border: 1px solid var(--line); background: var(--bg); cursor: pointer; transition: all 0.12s ease; text-align: left; font-family: 'ThinSep', 'JetBrains Mono', ui-monospace, monospace; border-radius: 0; color: var(--m1); position: relative; min-width: 0; overflow-wrap: break-word; word-break: normal; display: flex; flex-direction: column; }
         .upg-fam-picto {
           position: absolute;
@@ -15706,11 +15820,27 @@ export default function App() {
           background: var(--fg);
           color: var(--bg);
         }
+        /* Bouton principal indisponible (saturation, coupure, cycle en cours).
+           Pas de lavis gris : le noir reste plein et l'indisponibilité se lit
+           aux hachures à 45°, le même signe que partout ailleurs dans le jeu.
+           Un aplat grisé se confondait avec un simple changement de teinte. */
         .acts .btn-primary:disabled {
-          background: var(--m2);
-          border-color: var(--m2);
+          background: var(--fg);
+          border-color: var(--fg);
           color: var(--bg);
-          opacity: 0.6;
+          opacity: 1;
+        }
+        .acts .btn-primary:disabled::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          background: repeating-linear-gradient(
+            45deg,
+            var(--bg) 0, var(--bg) 1px,
+            transparent 1px, transparent 5px
+          );
+          opacity: 0.3;
         }
         /* Bouton ÉCOULER STOCK : bouton important, trait plein comme les actions principales */
         .btn-drain {
@@ -17345,6 +17475,30 @@ export default function App() {
                 </div>
               );
             })()}
+            {/* Panne matérielle : alerte persistante, sans compte à rebours —
+                elle ne s'éteint qu'au rachat. Cliquable : elle ouvre la fiche de
+                l'amélioration à racheter, pour rendre direct le lien entre la
+                capacité perdue et l'achat qui la rend. */}
+            {brokenActive && brokenUpgrade && (
+              <button
+                type="button"
+                className="banner cat-negative banner-uniform banner-broken"
+                onClick={() => setInfoUpgrade(brokenUpgrade)}
+              >
+                <div className="banner-main">
+                  <div className="banner-left">
+                    <Siren size={11} strokeWidth={2.2} />
+                    <span className="banner-title">{t('broken.title')}</span>
+                  </div>
+                  <div className="banner-right">{fmtInt(brokenUpgrade.cost)}€</div>
+                </div>
+                <div className="banner-sub">
+                  {localizeField(brokenUpgrade.name, language)}
+                  {brokenCapLoss > 0 ? ` · −${fmtInt(brokenCapLoss)} ${t('unit.ice')}` : ''}
+                  {' · '}{t('broken.rebuy')}
+                </div>
+              </button>
+            )}
             {fakeReviewTicker > 0 && (gameTime - fakeReviewTicker) < 30 && (() => {
               const remain = Math.max(0, Math.ceil(30 - (gameTime - fakeReviewTicker)));
               return (
@@ -20856,17 +21010,23 @@ export default function App() {
             const Icon = displayUpgrade.Icon;
             const FamIcon = getFamilyIcon(family.icon);
             const isPhaseUnlock = displayUpgrade.phaseUnlock && state === 'buy';
+            // Appareil tombé en panne : la panne l'a retiré de `owned`, il
+            // redevient donc la prochaine amélioration achetable de sa famille.
+            // On le signale ici, sinon rien ne distingue un rachat d'un achat
+            // neuf et le joueur ne fait pas le lien avec la capacité perdue.
+            const isBrokenCard = brokenActive && displayUpgrade.id === brokenGear.id;
 
             return (
               <button
                 key={family.id}
                 data-family-id={family.id}
-                className={className + (disabled && state !== 'buy' ? ' is-disabled' : '')}
+                className={className + (disabled && state !== 'buy' ? ' is-disabled' : '') + (isBrokenCard ? ' is-broken' : '')}
                 onClick={() => setInfoUpgrade(displayUpgrade)}
               >
                 <div className="upg-fam-picto" title={family.label}>
                   <FamIcon size={10} strokeWidth={2} />
                 </div>
+                {isBrokenCard && <div className="upg-broken-tag">{t('broken.tag')}</div>}
                 <div className="upg-row">
                   <div className="upg-icons">
                     {displayUpgrade.count > 3 ? (

@@ -683,6 +683,13 @@ export const TRANSLATIONS = {
   'notif.autumn_rush': { fr: 'RUSH AUTOMNE · PRIX SPOT +50%', en: 'AUTUMN RUSH · SPOT PRICE +50%', es: 'RUSH OTOÑO · PRECIO SPOT +50%', de: "HERBSTANSTURM · SPOTPREIS +50%" , it: "CORSA AUTUNNO · PREZZO SPOT +50%", ru: "ОСЕННИЙ АЖИОТАЖ · СПОТ-ЦЕНА +50%", zh: "秋季抢购 · 现货价 +50%"},
   'notif.insurance_saved': { fr: 'ASSURANCE FROID · destruction évitée', en: 'COLD INSURANCE · destruction avoided', es: 'SEGURO DE FRÍO · destrucción evitada', de: "KÄLTEVERSICHERUNG · Zerstörung vermieden" , it: "ASSICURAZIONE FREDDO · distruzione evitata", ru: "ХОЛОДОВАЯ СТРАХОВКА · разрушение предотвращено", zh: "冷藏保险 · 已避免损毁"},
   'notif.destruction': { fr: 'DESTRUCTION', en: 'DESTRUCTION', es: 'DESTRUCCIÓN', de: "ZERSTÖRUNG" , it: "DISTRUZIONE", ru: "РАЗРУШЕНИЕ", zh: "损毁"},
+  // Panne matérielle : alerte persistante jusqu'au rachat de l'appareil.
+  // Unité des glaçons, jusqu'ici écrite en dur dans chaque chaîne.
+  'unit.ice': { fr: 'GL', en: 'IC', es: 'CB', de: "EW", it: "CB", ru: "К", zh: "冰块" },
+  'broken.title': { fr: 'PANNE MATÉRIEL', en: 'EQUIPMENT FAILURE', es: 'AVERÍA DE EQUIPO', de: "GERÄTEAUSFALL", it: "GUASTO ATTREZZATURA", ru: "ПОЛОМКА ОБОРУДОВАНИЯ", zh: "设备故障" },
+  'broken.rebuy': { fr: 'à racheter dans les améliorations', en: 'rebuy in upgrades', es: 'volver a comprar en mejoras', de: "in den Upgrades neu kaufen", it: "da ricomprare nei miglioramenti", ru: "купить заново в улучшениях", zh: "在升级中重新购买" },
+  'broken.cap_line': { fr: 'capacité perdue', en: 'capacity lost', es: 'capacidad perdida', de: "Kapazität verloren", it: "capacità persa", ru: "ёмкость потеряна", zh: "容量已损失" },
+  'broken.tag': { fr: 'HS', en: 'DOWN', es: 'KO', de: "DEFEKT", it: "KO", ru: "НЕИСПР.", zh: "故障" },
   'notif.semester_end_salaries': { fr: 'PAIE DU MOIS · SALAIRES', en: 'MONTHLY PAY · SALARIES', es: 'PAGA DEL MES · SALARIOS', de: "MONATSLOHN · GEHÄLTER" , it: "PAGA MENSILE · STIPENDI", ru: "МЕСЯЧНАЯ ОПЛАТА · ЗАРПЛАТЫ", zh: "月度发薪 · 工资"},
   'notif.month_pay_global': { fr: 'PAIE DU MOIS · SALAIRES & CHARGES', en: 'MONTHLY PAY · WAGES & CHARGES', es: 'PAGA DEL MES · SALARIOS Y CARGOS', de: "MONATSLOHN · LÖHNE & KOSTEN" , it: "PAGA MENSILE · STIPENDI E SPESE", ru: "МЕСЯЧНАЯ ОПЛАТА · ЗАРПЛАТЫ И РАСХОДЫ", zh: "月度发薪 · 工资与费用"},
   'notif.month_unpaid_initial': { fr: 'SALAIRES & CHARGES NON PAYÉS · FONDS INSUFFISANTS', en: 'WAGES & CHARGES UNPAID · INSUFFICIENT FUNDS', es: 'SALARIOS Y CARGOS IMPAGOS · FONDOS INSUFICIENTES', de: "LÖHNE & KOSTEN UNBEZAHLT · NICHT GENUG GELD" , it: "STIPENDI E SPESE NON PAGATI · FONDI INSUFFICIENTI", ru: "ЗАРПЛАТЫ И РАСХОДЫ НЕ ОПЛАЧЕНЫ · НЕДОСТАТОЧНО СРЕДСТВ", zh: "工资与费用未付 · 资金不足"},
