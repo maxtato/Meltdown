@@ -165,6 +165,9 @@ function rollMarketTarget() {
 const MARKET_MIN_LIFE = 45;
 const MARKET_MAX_LIFE = 90;
 const RESIGN_REP_LOSS = 6;
+// Moral en dessous duquel on considère le départ imminent, et où le prénom de
+// l'employé se met à se décoller lettre à lettre dans le panneau Personnel.
+const MORAL_RESIGN_WARN = 25;
 
 // === BIEN-ÊTRE & FORMATION (P3) ===
 // Deux améliorations déplacent le niveau de base du moral, comme la crèche
@@ -11362,6 +11365,20 @@ export default function App() {
   // === Bouton boost universel : même apparence pour tous les employés
   //     (Fred / Brigitte / Janice / Lenny). 2 lignes compactes.
   //     Option `compact` : version réduite (pour le bouton Fred dans .acts).
+  // Prénom découpé en lettres quand le moral passe sous le seuil d'alerte :
+  // chacune dérive avec son propre décalage, l'employé est encore là mais plus
+  // tout à fait. Découpage fait ici et pas en CSS, qui ne sait pas viser une
+  // lettre. Hors alerte, le prénom reste un simple texte.
+  const Firstname = ({ name, atRisk }) => (
+    <span className={`personnel-firstname ${atRisk ? 'is-quitting' : ''}`}>
+      {atRisk
+        ? name.split('').map((ch, i) => (
+            <span key={i} style={{ animationDelay: `${i * 95}ms` }}>{ch}</span>
+          ))
+        : name}
+    </span>
+  );
+
   const renderBoostBtn = ({ emp, action, stress, boostUntil, boostDuration, isLocked, additionalDisabled, onBoost, compact }) => {
     const boostActive = gameTime < boostUntil;
     const boostLeft = Math.max(0, boostUntil - gameTime);
@@ -12052,6 +12069,9 @@ export default function App() {
                     />
                   </div>
                   {isPaused && <div className="truck-pause-z">Z</div>}
+                  {line.truckPhase === 'going' && (line.meltAccum || 0) > 0 && !line.broken && (
+                    <div className="melt-trail" aria-hidden="true"><i /><i /><i /></div>
+                  )}
                   {!!(line.broken && line.repairUntil && line.repairUntil > gameTime) && (() => {
                     const total = line.sabotageRepair ? SABOTAGE_REPAIR_DURATION : REPAIR_DURATION;
                     const elapsed = total - Math.max(0, line.repairUntil - gameTime);
@@ -12173,7 +12193,7 @@ export default function App() {
                 const isCritical = timeLeft >= 0 && timeLeft < 30;
                 const progressPct = (done / target) * 100;
                 return (
-                  <div className="prod-line-contract-progress">
+                  <div className={`prod-line-contract-progress ${isLate ? 'is-late' : isCritical ? 'is-critical' : timeLeft < 90 ? 'is-due' : ''}`}>
                     <div className="contract-progress-row">
                       <span className="contract-progress-deliveries">{done}/{target}</span>
                       <span className={`contract-progress-time ${isLate ? 'late' : isCritical ? 'critical' : ''}`}>
@@ -12396,7 +12416,7 @@ export default function App() {
         </button>
         {/* === Bouton JURIDIQUE : toujours visible, grisé tant qu'aucun procès (les procès ne tombent qu'en P2+) === */}
         <button
-          className={`menu-btn menu-btn-juridique ${(activeLawsuits.length > 0 || lawsuitHistory.length > 0) ? '' : 'locked'}`}
+          className={`menu-btn menu-btn-juridique ${activeLawsuits.length > 0 ? 'is-sued' : ''} ${(activeLawsuits.length > 0 || lawsuitHistory.length > 0) ? '' : 'locked'}`}
           onClick={(activeLawsuits.length > 0 || lawsuitHistory.length > 0) ? () => setJuridiqueOpen(true) : undefined}
           disabled={!(activeLawsuits.length > 0 || lawsuitHistory.length > 0)}
           aria-label="Juridique"
@@ -12665,7 +12685,7 @@ export default function App() {
                   }).filter(e => e.part != null)
                 ].sort((a, b) => b.part - a.part).slice(0, 4);
                 return all.map((entry, i) => (
-                  <div key={entry.key} className={`cadran-lb-row ${entry.self ? 'self' : ''}`}>
+                  <div key={entry.key} className={`cadran-lb-row ${entry.self ? 'self' : ''} ${entry.self && i > 0 ? 'is-overtaken' : ''}`}>
                     <span className="cadran-lb-rank">{i + 1}</span>
                     <span className="cadran-lb-name">{entry.name}</span>
                     <span className="cadran-lb-part">{entry.part.toFixed(1)}%</span>
@@ -15336,6 +15356,119 @@ export default function App() {
         @keyframes dryPenBlink {
           0%, 64%   { opacity: 1; }
           65%, 100% { opacity: 0.35; }
+        }
+
+        /* ===================================================================
+           SECONDE SÉRIE D'ANIMATIONS
+           Mécaniques volontairement distinctes de la première : traînée,
+           dérive lettre à lettre, balayage, viseur, accélération, bousculade.
+           Même vocabulaire : noir et blanc, filets d'1 px, hachures à 45°,
+           scintillement en steps(), secousses d'un pixel.
+           =================================================================== */
+
+        /* --- ÉCHÉANCE DE CONTRAT : le liseré bat de plus en plus vite ---
+           Aucun chiffre nouveau à lire, l'urgence est dans la cadence. Les
+           trois paliers réutilisent les seuils qui coloraient déjà le
+           compteur, pour que couleur et rythme racontent la même chose. */
+        .prod-line-contract-progress.is-due,
+        .prod-line-contract-progress.is-critical,
+        .prod-line-contract-progress.is-late {
+          position: relative;
+        }
+        .prod-line-contract-progress.is-due .contract-progress-bar,
+        .prod-line-contract-progress.is-critical .contract-progress-bar,
+        .prod-line-contract-progress.is-late .contract-progress-bar {
+          animation: dueBreathe 1.6s ease-in-out infinite;
+        }
+        .prod-line-contract-progress.is-critical .contract-progress-bar { animation-duration: 0.62s; }
+        .prod-line-contract-progress.is-late .contract-progress-bar { animation-duration: 0.34s; }
+        @keyframes dueBreathe {
+          0%, 100% { box-shadow: inset 0 0 0 0 var(--fg); }
+          50%      { box-shadow: inset 0 0 0 2px var(--fg); }
+        }
+
+        /* --- ASSIGNATION : le bouton JURIDIQUE bat lentement tant que ça dure --- */
+        .menu-btn-juridique.is-sued { animation: suedBeat 2.2s ease-in-out infinite; }
+        @keyframes suedBeat {
+          0%, 100% { box-shadow: inset 0 0 0 0 var(--fg); }
+          50%      { box-shadow: inset 0 0 0 2px var(--fg); }
+        }
+
+        /* --- FONTE EN TRANSIT : la perte devient une trace au sol ---
+           Le camion chargé sème des gouttes qui tombent et s'évaporent
+           derrière lui : on voit fondre au lieu de lire un compteur. */
+        .melt-trail { position: absolute; left: -14px; top: 11px; width: 14px; height: 8px; pointer-events: none; }
+        .melt-trail i {
+          position: absolute; top: 0; width: 2px; height: 2px;
+          background: var(--fg); opacity: 0;
+          animation: meltDrip 1.15s linear infinite;
+        }
+        .melt-trail i:nth-child(1) { left: 1px; }
+        .melt-trail i:nth-child(2) { left: 6px;  animation-delay: 0.38s; }
+        .melt-trail i:nth-child(3) { left: 11px; animation-delay: 0.76s; }
+        @keyframes meltDrip {
+          0%   { opacity: 0;    transform: translateY(0); }
+          25%  { opacity: 0.85; }
+          100% { opacity: 0;    transform: translateY(7px); }
+        }
+
+        /* --- VOL DE CAMION : l'emplacement reste, vide et pointillé --- */
+        .prod-line-stolen { opacity: 0.75; }
+        .prod-line-stolen .prod-line-empty-msg { letter-spacing: 2px; }
+        .stolen-ghost {
+          position: absolute; left: 0; right: 0; top: 8px; height: 1px;
+          background-image: repeating-linear-gradient(90deg, var(--fg) 0 4px, transparent 4px 9px);
+          animation: ghostBlink 1s steps(2) infinite;
+        }
+        @keyframes ghostBlink {
+          0%, 49%   { opacity: 0.8; }
+          50%, 100% { opacity: 0.15; }
+        }
+
+        /* --- PART DE MARCHÉ : notre ligne se fait bousculer quand on perd la tête --- */
+        .cadran-lb-row.is-overtaken { animation: overtakenNudge 2.8s ease-out infinite; }
+        @keyframes overtakenNudge {
+          0%, 82%, 100% { transform: translateX(0); }
+          88%           { transform: translateX(4px); }
+          94%           { transform: translateX(-1px); }
+        }
+
+        /* --- DÉMISSION IMMINENTE : le prénom se décolle, lettre à lettre --- */
+        .personnel-firstname.is-quitting span {
+          display: inline-block;
+          animation: letterDrift 1.9s ease-in-out infinite;
+        }
+        @keyframes letterDrift {
+          0%, 100% { transform: translateY(0);    opacity: 1; }
+          50%      { transform: translateY(-2px); opacity: 0.45; }
+        }
+
+        /* --- CONTRÔLE FISCAL : un faisceau balaie la modale de haut en bas --- */
+        .tension-modal.fx-audit { position: relative; overflow: hidden; }
+        .audit-beam {
+          position: absolute; left: 0; right: 0; height: 30px; top: -34px;
+          background: var(--fg); opacity: 0.16; pointer-events: none; z-index: 2;
+          animation: beamSweep 1.8s cubic-bezier(0.4, 0, 0.6, 1) 2;
+        }
+        @keyframes beamSweep { from { top: -34px; } to { top: 100%; } }
+
+        /* --- ESPIONNAGE : un viseur se pose, capture, disparaît --- */
+        .tension-modal.fx-spy { position: relative; }
+        .spy-target {
+          position: absolute; top: 50%; left: 50%; width: 74px; height: 74px;
+          margin: -37px 0 0 -37px; border: 1.5px solid var(--fg);
+          pointer-events: none; opacity: 0; z-index: 2;
+          animation: spyAim 1.5s ease-out forwards;
+        }
+        .spy-target::before, .spy-target::after { content: ""; position: absolute; background: var(--fg); }
+        .spy-target::before { left: 50%; top: -8px; bottom: -8px; width: 1px; }
+        .spy-target::after  { top: 50%; left: -8px; right: -8px; height: 1px; }
+        @keyframes spyAim {
+          0%   { opacity: 0; transform: scale(2.2); }
+          35%  { opacity: 1; transform: scale(1); }
+          62%  { opacity: 1; }
+          66%  { opacity: 0.25; }
+          100% { opacity: 0; transform: scale(0.9); }
         }
 
         /* --- COUPURE DE COURANT : le disjoncteur claque, puis ça ronfle --- */
@@ -19456,7 +19589,12 @@ export default function App() {
           const canBet = pendingTensionEvent.id !== 'opp_bourse' || money >= 10000;
           return (
             <div className="modal-backdrop" onClick={() => setTensionMinimized(true)}>
-              <div className={`modal tension-modal ${isCrisis ? 'is-crisis' : 'is-opportunity'}`} onClick={e => e.stopPropagation()}>
+              <div
+                className={`modal tension-modal ${isCrisis ? 'is-crisis' : 'is-opportunity'} ${def.id === 'racket_fisc' ? 'fx-audit' : ''} ${def.id === 'racket_espion' ? 'fx-spy' : ''}`}
+                onClick={e => e.stopPropagation()}
+              >
+                {def.id === 'racket_fisc' && <div className="audit-beam" aria-hidden="true" />}
+                {def.id === 'racket_espion' && <div className="spy-target" aria-hidden="true" />}
                 <div className="modal-header">
                   <span className="modal-title"><EventIcon keyName={def.iconKey} size={13} /> {name}</span>
                   <button className="modal-close" onClick={() => setTensionMinimized(true)}><X size={14} strokeWidth={2} /></button>
@@ -20462,7 +20600,7 @@ export default function App() {
                     <div className={`personnel-section ${fredStress >= 60 ? 'is-stressed' : ''}`}>
                       <div className="personnel-name">
                         <span className="personnel-name-left">
-                          <span className="personnel-firstname">Fred</span> · {localizeField(currentFredUpgrade.gradeName, language)}
+                          <Firstname name="Fred" atRisk={fredMoral < MORAL_RESIGN_WARN} /> · {localizeField(currentFredUpgrade.gradeName, language)}
                           {fredGrumpy && <span className="personnel-grumpy"> · {t('staff.grumpy')}</span>}
                           {fredStress >= 60 && !fredGrumpy && <span className="personnel-stress-tag"> · {t('boost.stress_high')}</span>}
                         </span>
@@ -20514,7 +20652,7 @@ export default function App() {
                     <div className={`personnel-section ${brigitteStress >= 60 ? 'is-stressed' : ''}`}>
                       <div className="personnel-name">
                         <span className="personnel-name-left">
-                          <span className="personnel-firstname">Brigitte</span> · {localizeField(currentBrigitteUpgrade.gradeName, language)}
+                          <Firstname name="Brigitte" atRisk={brigitteMoral < MORAL_RESIGN_WARN} /> · {localizeField(currentBrigitteUpgrade.gradeName, language)}
                           {brigitteGrumpy && <span className="personnel-grumpy"> · {t('staff.grumpy')}</span>}
                           {brigitteStress >= 60 && !brigitteGrumpy && <span className="personnel-stress-tag"> · {t('boost.stress_high')}</span>}
                         </span>
@@ -20574,7 +20712,7 @@ export default function App() {
                       <div className={`personnel-section ${lennyStress >= 60 ? 'is-stressed' : ''}`}>
                         <div className="personnel-name">
                           <span className="personnel-name-left">
-                            <span className="personnel-firstname">Lenny</span> · {localizeField(lennyGrade.name, language)}
+                            <Firstname name="Lenny" atRisk={lennyMoral < MORAL_RESIGN_WARN} /> · {localizeField(lennyGrade.name, language)}
                             {lennyGrumpy && <span className="personnel-grumpy"> · {t('staff.on_strike')}</span>}
                             {lennyStress >= 60 && !lennyGrumpy && <span className="personnel-stress-tag"> · {t('boost.stress_high')}</span>}
                           </span>
@@ -20627,7 +20765,7 @@ export default function App() {
                       <div className={`personnel-section ${karenStress >= 60 ? 'is-stressed' : ''}`}>
                         <div className="personnel-name">
                           <span className="personnel-name-left">
-                            <span className="personnel-firstname">Karen</span> · {localizeField(karenUpg.gradeName, language)}
+                            <Firstname name="Karen" atRisk={karenMoral < MORAL_RESIGN_WARN} /> · {localizeField(karenUpg.gradeName, language)}
                             {karenGrumpy && <span className="personnel-grumpy"> · {t('staff.on_strike')}</span>}
                             {karenStress >= 60 && !karenGrumpy && <span className="personnel-stress-tag"> · {t('boost.stress_high')}</span>}
                           </span>
@@ -20940,6 +21078,19 @@ export default function App() {
             <div className="lines-zone">
               <div className="lines-ttl">{t('panel.trucks')}</div>
               {lines.map((line, idx) => renderProductionLine(line, idx))}
+              {/* Camions volés : la ligne correspondante disparaissait purement
+                  et simplement de la liste, donc la perte ne se voyait pas. On
+                  garde son emplacement, vide et pointillé, jusqu'au rachat. */}
+              {Array.from({ length: stolenEff }).map((_, k) => (
+                <div key={`stolen-${k}`} className="prod-line prod-line-stolen">
+                  <div className="prod-line-action">
+                    <div className="track"><div className="stolen-ghost" aria-hidden="true" /></div>
+                  </div>
+                  <div className="prod-line-info">
+                    <div className="prod-line-empty-msg">{t('prod.stolen')}</div>
+                  </div>
+                </div>
+              ))}
             </div>
             {hasLenny && !lennyGrumpy && (
               <div className="boost-btn-wrap">

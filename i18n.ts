@@ -687,6 +687,8 @@ export const TRANSLATIONS = {
   // Unité des glaçons, jusqu'ici écrite en dur dans chaque chaîne.
   // Libellé court de la pénalité de sécheresse, dans la ligne prod/fonte.
   'rate.drought_short': { fr: 'sécheresse', en: 'drought', es: 'sequía', de: "Dürre", it: "siccità", ru: "засуха", zh: "干旱" },
+  // Emplacement d'une ligne dont le camion a été volé.
+  'prod.stolen': { fr: '— CAMION VOLÉ —', en: '— TRUCK STOLEN —', es: '— CAMIÓN ROBADO —', de: "— LKW GESTOHLEN —", it: "— CAMION RUBATO —", ru: "— ГРУЗОВИК УГНАН —", zh: "— 卡车被盗 —" },
   'unit.ice': { fr: 'GL', en: 'IC', es: 'CB', de: "EW", it: "CB", ru: "К", zh: "冰块" },
   'broken.title': { fr: 'PANNE MATÉRIEL', en: 'EQUIPMENT FAILURE', es: 'AVERÍA DE EQUIPO', de: "GERÄTEAUSFALL", it: "GUASTO ATTREZZATURA", ru: "ПОЛОМКА ОБОРУДОВАНИЯ", zh: "设备故障" },
   'broken.rebuy': { fr: 'à racheter dans les améliorations', en: 'rebuy in upgrades', es: 'volver a comprar en mejoras', de: "in den Upgrades neu kaufen", it: "da ricomprare nei miglioramenti", ru: "купить заново в улучшениях", zh: "在升级中重新购买" },
