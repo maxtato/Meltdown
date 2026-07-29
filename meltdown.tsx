@@ -70,6 +70,12 @@ const SAVE_INTERVAL = 1500;
 const CHARACTER_PORTRAITS = {}; // Visuels désactivés (minimalisme)
 
 
+// Remplit les marques {nom} d'un texte traduit. Même convention que les entrées
+// existantes ({client}, {deliveries}, {NAME}), mais utilisable avec plusieurs
+// variables sans enchaîner les .replace().
+const fill = (txt, vars) =>
+  Object.keys(vars).reduce((acc, k) => acc.split('{' + k + '}').join(vars[k]), txt);
+
 function tFor(lang) {
   return (key) => {
     const entry = TRANSLATIONS[key];
@@ -5079,7 +5085,7 @@ export default function App() {
         // (ventes −20% pendant 120s) → on sent un vrai rival, pas juste une réplique.
         if (b.id === 'g_overtake' && !activeTensionEffectRef.current && !activeMegacontractRef.current) {
           setActiveTensionEffect({ id: 'glacier_pricewar', expiresAt: gameTimeRef.current + 120, sellMult: 0.8 });
-          setEventNotif(language === 'fr' ? 'GLACIER RIPOSTE · GUERRE DES PRIX · VENTES −20% 120S' : 'GLACIER STRIKES BACK · PRICE WAR · SALES −20% 120S');
+          setEventNotif(t('notif.glacier_price_war'));
         }
         break; // un beat à la fois
       }
@@ -7853,7 +7859,7 @@ export default function App() {
       // Chain breakdown auto-repair
       if (chainBrokenRef.current && gameTimeRef.current >= chainBrokenRef.current.repairUntil) {
         setChainBroken(null);
-        setEventNotif(language === 'fr' ? 'CHAÎNE RÉPARÉE · PRODUCTION REPRISE' : language === 'en' ? 'CHAIN REPAIRED · PRODUCTION RESUMED' : 'CHAIN REPAIRED');
+        setEventNotif(t('notif.chain_repaired'));
       }
 
       // === PANNE NATURELLE DE LA CHAÎNE (usure normale) ===
@@ -7881,7 +7887,7 @@ export default function App() {
           const lossPct = hasMaintenance ? 0.05 : 0.12;
           const _melted = Math.floor(stockRef.current * lossPct);
           if (_melted > 0) setStock(s => Math.max(0, s - _melted));
-          setEventNotif(language === 'fr' ? `⚠ PANNE CHAÎNE · ${dur}S · −${fmtInt(_melted)} GL` : `⚠ CHAIN BREAKDOWN · ${dur}S · −${fmtInt(_melted)} IC`);
+          setEventNotif(fill(t('notif.chain_break'), { dur, gl: fmtInt(_melted) }));
         }
       }
 
@@ -8030,9 +8036,9 @@ export default function App() {
           setNotoriety(n => Math.max(0, n + notoPen));
         }
         const failLabel = mc.id === 'opp_festival'
-          ? (language === 'fr' ? 'RUSH FESTIVAL MANQUÉ' : 'FESTIVAL RUSH MISSED')
-          : (language === 'fr' ? 'MÉGA-CONTRAT MANQUÉ' : 'MEGA-CONTRACT MISSED');
-        setEventNotif(`${failLabel} · −${Math.abs(notoPen)} ${language === 'fr' ? 'NOTORIÉTÉ' : 'NOTORIETY'}`);
+          ? (t('notif.festival_missed'))
+          : (t('notif.megacontract_missed'));
+        setEventNotif(`${failLabel} · −${Math.abs(notoPen)} ${t('notif.notoriety')}`);
       }
       // Auto-expire la modale si pas de décision (ou si expiresAt est invalide → on ferme net).
       if (pendingTensionEventRef.current && (!Number.isFinite(pendingTensionEventRef.current.expiresAt) || gameTimeRef.current >= pendingTensionEventRef.current.expiresAt)) {
@@ -9200,11 +9206,9 @@ export default function App() {
                   contractSuccessStreakRef.current = newStreak;
                   if (newStreak % 3 === 0) {
                     setReputation(r => Math.min(100, r + 5));
-                    setEventNotif(language === 'fr'
-                      ? `SÉRIE DE ${newStreak} CONTRATS HONORÉS · RÉPUTATION +5`
-                      : `${newStreak} CONTRACTS DELIVERED IN A ROW · REPUTATION +5`);
+                    setEventNotif(fill(t('notif.streak'), { n: newStreak }));
                   } else if (punctual) {
-                    setEventNotif(language === 'fr' ? 'LIVRAISON SANS ACCROC · PRIME PONCTUALITÉ' : 'FLAWLESS DELIVERY · PUNCTUALITY BONUS');
+                    setEventNotif(t('notif.flawless_delivery'));
                   }
                   // Fidélité : ce client a été honoré → +1 (boost à la prochaine signature).
                   const _cid = line.contractId;
@@ -9909,7 +9913,7 @@ export default function App() {
           recordRevenue(revenue);
           totalsRef.current.sold += n;
           totalsRef.current.moneyEarned += revenue;
-          addMoneyPop('+' + fmt2(revenue) + '€ · ' + (language === 'fr' ? 'surplus' : language === 'es' ? 'excedente' : language === 'de' ? 'Überschuss' : language === 'it' ? 'surplus' : language === 'ru' ? 'излишек' : language === 'zh' ? '过剩' : 'surplus'));
+          addMoneyPop('+' + fmt2(revenue) + '€ · ' + t('notif.surplus'));
         }
       }
     }, 1000);
@@ -10035,7 +10039,7 @@ export default function App() {
     // Friction "Émeute urbaine" : marketing désactivé
     const fricMkting = aggregateFrictionEffects(activeFrictions, gameTime);
     if (fricMkting.blockMarketing) {
-      setEventNotif(language === 'fr' ? 'MARKETING DÉSACTIVÉ' : 'MARKETING DISABLED');
+      setEventNotif(t('notif.marketing_off'));
       return;
     }
     const c = CAMPAIGNS_BY_ID[id];
@@ -10105,7 +10109,7 @@ export default function App() {
     // Friction "Inspection du travail" ou "Pénurie de matériaux" : upgrades verrouillés
     const fricUpg = aggregateFrictionEffects(activeFrictions, gameTime);
     if (fricUpg.blockUpgrades) {
-      setEventNotif(language === 'fr' ? 'UPGRADES VERROUILLÉS' : 'UPGRADES LOCKED');
+      setEventNotif(t('notif.upgrades_locked'));
       return;
     }
     // Plan de formation : tous les paliers d'employés supérieurs à 50% du coût
@@ -10557,11 +10561,11 @@ export default function App() {
       bumpStress('fred', action === 'mitigate' ? 16 : 30);
       if (action === 'mitigate') {
         if (moneyRef.current < def.mitigationCost) {
-          setEventNotif(language === 'fr' ? 'FONDS INSUFFISANTS' : 'INSUFFICIENT FUNDS');
+          setEventNotif(t('notif.insufficient_funds'));
           return;
         }
         setMoney(m => m - def.mitigationCost);
-        setEventNotif(language === 'fr' ? 'EXPERT PAYÉ · CRISE LIMITÉE' : 'EXPERT PAID · CRISIS LIMITED');
+        setEventNotif(t('notif.expert_paid'));
       } else {
         // Subir → effet durable
         setActiveTensionEffect({
@@ -10569,7 +10573,7 @@ export default function App() {
           expiresAt: gameTimeRef.current + def.durableEffect.duration,
           sellMult: def.durableEffect.sellMult,
         });
-        setEventNotif(language === 'fr' ? 'CRISE SUBIE · VENTES −40% PENDANT 60S' : 'CRISIS HIT · SALES −40% FOR 60S');
+        setEventNotif(t('notif.crisis_sales_40'));
       }
     }
     // CRISE 2 : CRISE MÉDIATIQUE VIRALE
@@ -10580,21 +10584,21 @@ export default function App() {
       bumpStress('janice', action === 'mitigate' ? 16 : 30);
       if (action === 'mitigate') {
         if (moneyRef.current < def.mitigationCost) {
-          setEventNotif(language === 'fr' ? 'FONDS INSUFFISANTS' : 'INSUFFICIENT FUNDS');
+          setEventNotif(t('notif.insufficient_funds'));
           return;
         }
         setMoney(m => m - def.mitigationCost);
         // Restaurer 50% de la notoriété perdue
         const restore = Math.round(lostNoto * (def.mitigationRestore || 0.5));
         setNotoriety(n => Math.min(100, n + restore));
-        setEventNotif(language === 'fr' ? `CONTRE-CAMPAGNE · +${restore} NOTORIÉTÉ RÉCUPÉRÉE` : `COUNTER-CAMPAIGN · +${restore} NOTORIETY RECOVERED`);
+        setEventNotif(fill(t('notif.counter_campaign'), { restore }));
       } else {
         setActiveTensionEffect({
           id: pending.id,
           expiresAt: gameTimeRef.current + def.durableEffect.duration,
           sellMult: def.durableEffect.sellMult,
         });
-        setEventNotif(language === 'fr' ? 'CRISE SUBIE · VENTES ÷2 PENDANT 90S' : 'CRISIS HIT · SALES /2 FOR 90S');
+        setEventNotif(t('notif.crisis_sales_half'));
       }
     }
     // CRISE 3 : GRÈVE TRANSPORT
@@ -10605,11 +10609,11 @@ export default function App() {
       if (action === 'mitigate') {
         const cost = trucksActive * def.mitigationCostPerTruck;
         if (moneyRef.current < cost) {
-          setEventNotif(language === 'fr' ? 'FONDS INSUFFISANTS' : 'INSUFFICIENT FUNDS');
+          setEventNotif(t('notif.insufficient_funds'));
           return;
         }
         setMoney(m => m - cost);
-        setEventNotif(language === 'fr' ? `PRIME PAYÉE · ${fmtInt(cost)}€ · CAMIONS DÉBLOQUÉS` : `BONUS PAID · €${fmtInt(cost)} · TRUCKS RELEASED`);
+        setEventNotif(fill(t('notif.bonus_paid_trucks'), { cost: fmtInt(cost) }));
       } else {
         // Bloquer tous les camions actifs pendant 90s
         setActiveTensionEffect({
@@ -10617,7 +10621,7 @@ export default function App() {
           expiresAt: gameTimeRef.current + def.durableEffect.duration,
           blockTrucks: true,
         });
-        setEventNotif(language === 'fr' ? 'GRÈVE · CAMIONS BLOQUÉS 90S' : 'STRIKE · TRUCKS BLOCKED 90S');
+        setEventNotif(t('notif.strike_trucks'));
       }
     }
     // OPP 1 : MÉGA-CONTRAT
@@ -10631,9 +10635,9 @@ export default function App() {
           startStock: stockRef.current,
           expiresAt: gameTimeRef.current + def.deliveryWindow,
         });
-        setEventNotif(language === 'fr' ? `MÉGA-CONTRAT ACCEPTÉ · 60S POUR LIVRER 3000 GL` : `MEGA-CONTRACT ACCEPTED · 60S TO DELIVER 3000 IC`);
+        setEventNotif(t('notif.megacontract_accepted'));
       } else {
-        setEventNotif(language === 'fr' ? 'OPPORTUNITÉ DÉCLINÉE' : 'OPPORTUNITY DECLINED');
+        setEventNotif(t('notif.opportunity_declined'));
       }
     }
     // OPP 2 : INTERVIEW TV
@@ -10653,25 +10657,25 @@ export default function App() {
             expiresAt: gameTimeRef.current + 90,
             sellMult: 1.6,
           });
-          setEventNotif(language === 'fr' ? 'INTERVIEW RÉUSSIE · +50 NOTO · +25K€ · VENTES ×1.6' : 'INTERVIEW SUCCESS · +50 NOTO · +€25K · SALES ×1.6');
+          setEventNotif(t('notif.interview_great'));
         } else if (avgMoral >= 50) {
           setNotoriety(n => Math.min(100, n + 20));
           setMoney(m => m + 8000);
           totalsRef.current.moneyEarned += 8000;
-          setEventNotif(language === 'fr' ? 'INTERVIEW MOYENNE · +20 NOTO · +8K€' : 'INTERVIEW OK · +20 NOTO · +€8K');
+          setEventNotif(t('notif.interview_ok'));
         } else {
           setNotoriety(n => Math.max(0, n - 25));
-          setEventNotif(language === 'fr' ? 'INTERVIEW BIDE · −25 NOTORIÉTÉ' : 'INTERVIEW FAIL · −25 NOTORIETY');
+          setEventNotif(t('notif.interview_fail'));
         }
       } else {
-        setEventNotif(language === 'fr' ? 'INTERVIEW DÉCLINÉE' : 'INTERVIEW DECLINED');
+        setEventNotif(t('notif.interview_declined'));
       }
     }
     // OPP 3 : PARI BOURSIER
     else if (pending.id === 'opp_bourse') {
       if (action === 'accept') {
         if (moneyRef.current < def.betAmount) {
-          setEventNotif(language === 'fr' ? 'FONDS INSUFFISANTS' : 'INSUFFICIENT FUNDS');
+          setEventNotif(t('notif.insufficient_funds'));
           return;
         }
         setMoney(m => m - def.betAmount);
@@ -10679,47 +10683,47 @@ export default function App() {
         if (win) {
           const winnings = def.betAmount * def.winMultiplier;
           setMoney(m => m + winnings);
-          setEventNotif(language === 'fr' ? `PARI GAGNÉ · +${fmtInt(winnings)}€` : `BET WON · +€${fmtInt(winnings)}`);
+          setEventNotif(fill(t('notif.bet_won'), { amount: fmtInt(winnings) }));
         } else {
-          setEventNotif(language === 'fr' ? `PARI PERDU · −${fmtInt(def.betAmount)}€` : `BET LOST · −€${fmtInt(def.betAmount)}`);
+          setEventNotif(fill(t('notif.bet_lost'), { amount: fmtInt(def.betAmount) }));
         }
       } else {
-        setEventNotif(language === 'fr' ? 'PARI ÉVITÉ' : 'BET AVOIDED');
+        setEventNotif(t('notif.bet_avoided'));
       }
     }
     // CRISE P2 : PANNE CHAMBRE FROIDE
     else if (pending.id === 'crisis_coldroom') {
       if (action === 'mitigate') {
         if (moneyRef.current < def.mitigationCost) {
-          setEventNotif(language === 'fr' ? 'FONDS INSUFFISANTS' : 'INSUFFICIENT FUNDS');
+          setEventNotif(t('notif.insufficient_funds'));
           return;
         }
         setMoney(m => m - def.mitigationCost);
         bumpStress('fred', def.stressOn.mitigate);
-        setEventNotif(language === 'fr' ? 'TECHNICIEN PAYÉ · STOCK SAUVÉ' : 'TECH PAID · STOCK SAVED');
+        setEventNotif(t('notif.tech_paid'));
       } else {
         const lost = Math.floor(stockRef.current * (def.stockLossPct || 0.3));
         setStock(s => Math.max(0, s - lost));
         setActiveTensionEffect({ id: pending.id, expiresAt: gameTimeRef.current + def.durableEffect.duration, sellMult: def.durableEffect.sellMult });
         bumpStress('fred', def.stressOn.ignore);
-        setEventNotif(language === 'fr' ? `STOCK FONDU · −${fmtInt(lost)} GL · VENTES −30% 60S` : `STOCK MELTED · −${fmtInt(lost)} IC · SALES −30% 60S`);
+        setEventNotif(fill(t('notif.stock_melted'), { gl: fmtInt(lost) }));
       }
     }
     // CRISE P2 : LITIGE FACTURE CLIENT
     else if (pending.id === 'crisis_invoice') {
       if (action === 'mitigate') {
         if (moneyRef.current < def.mitigationCost) {
-          setEventNotif(language === 'fr' ? 'FONDS INSUFFISANTS' : 'INSUFFICIENT FUNDS');
+          setEventNotif(t('notif.insufficient_funds'));
           return;
         }
         setMoney(m => m - def.mitigationCost);
         bumpStress('brigitte', def.stressOn.mitigate);
-        setEventNotif(language === 'fr' ? 'GESTE COMMERCIAL · LITIGE CLOS' : 'GOODWILL PAID · DISPUTE CLOSED');
+        setEventNotif(t('notif.settlement'));
       } else {
         const repLoss = def.ignoreRepLoss || 12;
         setReputation(r => Math.max(0, Math.min(100, r - repLoss)));
         bumpStress('brigitte', def.stressOn.ignore);
-        setEventNotif(language === 'fr' ? `TU AS TENU BON · RÉPUTATION −${repLoss}` : `YOU STOOD FIRM · REPUTATION −${repLoss}`);
+        setEventNotif(fill(t('notif.stood_firm'), { rep: repLoss }));
       }
     }
     // OPP P2 : RUSH FESTIVAL (réutilise le système méga-contrat)
@@ -10733,9 +10737,9 @@ export default function App() {
           startStock: stockRef.current,
           expiresAt: gameTimeRef.current + def.deliveryWindow,
         });
-        setEventNotif(language === 'fr' ? `RUSH FESTIVAL · 45S POUR LIVRER 600 GL` : `FESTIVAL RUSH · 45S TO DELIVER 600 IC`);
+        setEventNotif(t('notif.festival_rush'));
       } else {
-        setEventNotif(language === 'fr' ? 'RUSH DÉCLINÉ' : 'RUSH DECLINED');
+        setEventNotif(t('notif.rush_declined'));
       }
     }
     // CRISE P3 NARRATIVE : L'ENVELOPPE DE PATRICE GLACIER
@@ -10746,7 +10750,7 @@ export default function App() {
         setActiveTensionEffect({ id: pending.id, expiresAt: gameTimeRef.current + def.retaliation.duration, sellMult: def.retaliation.sellMult });
         bumpStress('lenny', 20); bumpStress('janice', 20);
         queuePopup({ type: 'character', speaker: 'Patrice Glacier', text: localizeField({ fr: "Vous refusez. Courageux. Idiot, mais courageux. On va voir combien de temps vous tenez.", en: "You refuse. Brave. Stupid, but brave. Let's see how long you last.", es: "Rechaza. Valiente. Idiota, pero valiente. Veremos cuánto aguanta.", zh: "你拒绝了。有种。蠢，但有种。我们走着瞧你能撑多久。", ru: "Вы отказываетесь. Смело. Глупо, но смело. Посмотрим, сколько вы продержитесь.", it: "Lei rifiuta. Coraggioso. Idiota, ma coraggioso. Vediamo quanto resiste.", de: "Sie lehnen ab. Mutig. Dumm, aber mutig. Mal sehen, wie lange Sie durchhalten." }, language) });
-        setEventNotif(language === 'fr' ? 'ENVELOPPE REFUSÉE · GLACIER RIPOSTE · VENTES −30% 120S' : 'ENVELOPE REFUSED · GLACIER STRIKES BACK · SALES −30% 120S');
+        setEventNotif(t('notif.envelope_refused'));
       } else {
         // PRENDRE L'ENVELOPPE : cash immédiat, mais réputation entamée.
         setMoney(m => m + def.envelopeMoney);
@@ -10754,7 +10758,7 @@ export default function App() {
         setReputation(r => Math.max(0, Math.min(100, r - def.envelopeRepLoss)));
         bumpStress('brigitte', 15);
         queuePopup({ type: 'character', speaker: 'Patrice Glacier', text: localizeField({ fr: "Sage décision. On se comprend, tous les deux. Le froid, c'est une famille.", en: "Wise choice. We understand each other, you and I. Cold is a family.", es: "Sabia decisión. Nos entendemos, usted y yo. El frío es una familia.", zh: "明智的选择。我们俩心照不宣。寒冷，是一个大家庭。", ru: "Мудрое решение. Мы понимаем друг друга, вы и я. Холод — это семья.", it: "Saggia decisione. Ci capiamo, lei ed io. Il freddo è una famiglia.", de: "Kluge Entscheidung. Wir verstehen uns, Sie und ich. Kälte ist eine Familie." }, language) });
-        setEventNotif(language === 'fr' ? `ENVELOPPE ACCEPTÉE · +${fmtInt(def.envelopeMoney)}€ · RÉPUTATION −${def.envelopeRepLoss}` : `ENVELOPE TAKEN · +€${fmtInt(def.envelopeMoney)} · REPUTATION −${def.envelopeRepLoss}`);
+        setEventNotif(fill(t('notif.envelope_accepted'), { money: fmtInt(def.envelopeMoney), rep: def.envelopeRepLoss }));
       }
     }
     // OPP P3 CATASTROPHIQUE : TOUT OU RIEN (peut mener au Game Over)
@@ -10762,7 +10766,7 @@ export default function App() {
       if (action === 'accept') {
         const stake = Math.floor(moneyRef.current * (def.stakePct || 0.5));
         if (stake <= 0) {
-          setEventNotif(language === 'fr' ? 'FONDS INSUFFISANTS' : 'INSUFFICIENT FUNDS');
+          setEventNotif(t('notif.insufficient_funds'));
           return;
         }
         setMoney(m => Math.max(0, m - stake));
@@ -10772,27 +10776,27 @@ export default function App() {
           const winnings = stake * (def.winMultiplier || 2);
           setMoney(m => m + winnings);
           totalsRef.current.moneyEarned += winnings;
-          setEventNotif(language === 'fr' ? `APPEL D'OFFRES REMPORTÉ · +${fmtInt(winnings)}€` : `BID WON · +€${fmtInt(winnings)}`);
+          setEventNotif(fill(t('notif.bid_won'), { amount: fmtInt(winnings) }));
         } else {
-          setEventNotif(language === 'fr' ? `APPEL D'OFFRES PERDU · −${fmtInt(stake)}€` : `BID LOST · −€${fmtInt(stake)}`);
+          setEventNotif(fill(t('notif.bid_lost'), { amount: fmtInt(stake) }));
         }
       } else {
-        setEventNotif(language === 'fr' ? 'TU AS PRÉFÉRÉ LA PRUDENCE' : 'YOU PLAYED IT SAFE');
+        setEventNotif(t('notif.played_safe'));
       }
     }
     // CRISE P1 : VOISIN MÉCONTENT
     else if (pending.id === 'crisis_voisin') {
       if (action === 'mitigate') {
         if (moneyRef.current < def.mitigationCost) {
-          setEventNotif(language === 'fr' ? 'FONDS INSUFFISANTS' : 'INSUFFICIENT FUNDS');
+          setEventNotif(t('notif.insufficient_funds'));
           return;
         }
         setMoney(m => m - def.mitigationCost);
-        setEventNotif(language === 'fr' ? 'PACK OFFERT · VOISIN APAISÉ' : 'SIX-PACK GIFTED · NEIGHBOR CALMED');
+        setEventNotif(t('notif.neighbor_pack'));
       } else {
         const repLoss = def.ignoreRepLoss || 6;
         setReputation(r => Math.max(0, Math.min(100, r - repLoss)));
-        setEventNotif(language === 'fr' ? `VOISIN IGNORÉ · RÉPUTATION −${repLoss}` : `NEIGHBOR IGNORED · REPUTATION −${repLoss}`);
+        setEventNotif(fill(t('notif.neighbor_ignored'), { rep: repLoss }));
       }
     }
     // OPP P1 : COMMANDE EXPRESS DU CAFÉ D'EN BAS
@@ -10800,7 +10804,7 @@ export default function App() {
       if (action === 'accept') {
         const qty = Math.min(def.cafeQty || 20, Math.floor(stockRef.current));
         if (!Number.isFinite(qty) || qty <= 0) {
-          setEventNotif(language === 'fr' ? 'STOCK INSUFFISANT' : 'NOT ENOUGH STOCK');
+          setEventNotif(t('notif.stock_too_low'));
           return;
         }
         // Anti-NaN : repli sur le prix de base si effectiveSell est invalide.
@@ -10810,9 +10814,9 @@ export default function App() {
         setMoney(m => m + revenue);
         totalsRef.current.moneyEarned += revenue;
         totalsRef.current.sold += qty;
-        setEventNotif(language === 'fr' ? `CAFÉ DÉPANNÉ · +${fmt2(revenue)}€ (×3)` : `CAFÉ HELPED · +${fmt2(revenue)}€ (×3)`);
+        setEventNotif(fill(t('notif.cafe_helped'), { amount: fmt2(revenue) }));
       } else {
-        setEventNotif(language === 'fr' ? 'COMMANDE DÉCLINÉE' : 'ORDER DECLINED');
+        setEventNotif(t('notif.order_declined'));
       }
     }
     // === RÉSOLVEUR GÉNÉRIQUE (events "racket" data-driven) ===
@@ -10905,12 +10909,12 @@ export default function App() {
   const handleRebuyTruck = () => {
     if (stolenTrucksRef.current <= 0) return;
     if (moneyRef.current < TRUCK_REBUY_COST) {
-      setEventNotif(language === 'fr' ? `FONDS INSUFFISANTS · ${fmtInt(TRUCK_REBUY_COST)}€` : `INSUFFICIENT FUNDS · €${fmtInt(TRUCK_REBUY_COST)}`);
+      setEventNotif(fill(t('notif.insufficient_funds_amount'), { cost: fmtInt(TRUCK_REBUY_COST) }));
       return;
     }
     setMoney(m => m - TRUCK_REBUY_COST);
     setStolenTrucks(s => Math.max(0, s - 1));
-    setEventNotif(language === 'fr' ? 'NOUVEAU CAMION · LIGNE RESTAURÉE' : 'NEW TRUCK · LINE RESTORED');
+    setEventNotif(t('notif.new_truck'));
   };
   // Coût pour réparer instantanément une panne de chaîne (au lieu d'attendre).
   const chainRepairCost = (ph) => Math.round(400 + 600 * (ph || 1));
@@ -10918,13 +10922,13 @@ export default function App() {
     if (!chainBrokenRef.current || chainBrokenRef.current.repairUntil <= gameTimeRef.current) return;
     const cost = chainRepairCost(phaseRef.current);
     if (moneyRef.current < cost) {
-      setEventNotif(language === 'fr' ? `FONDS INSUFFISANTS · ${fmtInt(cost)}€` : `INSUFFICIENT FUNDS · €${fmtInt(cost)}`);
+      setEventNotif(fill(t('notif.insufficient_funds_amount'), { cost: fmtInt(cost) }));
       return;
     }
     setMoney(m => m - cost);
     setChainBroken(null);
     chainBrokenRef.current = null;
-    setEventNotif(language === 'fr' ? 'CHAÎNE RÉPARÉE · PRODUCTION REPRISE' : 'CHAIN REPAIRED · PRODUCTION RESUMED');
+    setEventNotif(t('notif.chain_repaired'));
   };
   const REPAIR_DURATION = 9; // secondes game time (panne normale, augmenté +5s)
   const SABOTAGE_REPAIR_DURATION = 15; // pneus sabotés : réparation longue
@@ -12292,7 +12296,7 @@ export default function App() {
           aria-label={t('aria.phone')}
         >
           <Phone size={18} strokeWidth={1.8} />
-          <span className="menu-btn-label">{cyberLockout > 0 ? t('cyber.line_down') : fricVis.phone ? (language === 'fr' ? 'LIGNE COUPÉE' : 'LINE DOWN') : t('menu.call')}</span>
+          <span className="menu-btn-label">{cyberLockout > 0 ? t('cyber.line_down') : fricVis.phone ? t('notif.line_cut') : t('menu.call')}</span>
           {!!fricVis.phone && (
             <span className="friction-badge fric-onbtn"><AlertTriangle size={8} strokeWidth={2.5} /></span>
           )}
@@ -17566,7 +17570,7 @@ export default function App() {
                   </svg>
                 </div>
                 <div className="achievement-notif-text">
-                  <div className="achievement-notif-lbl">{language === 'fr' ? 'TROPHÉE' : language === 'es' ? 'TROFEO' : language === 'de' ? 'TROPHÄE' : language === 'it' ? 'TROFEO' : language === 'ru' ? 'ТРОФЕЙ' : language === 'zh' ? '成就' : 'TROPHY'}</div>
+                  <div className="achievement-notif-lbl">{t('banner.trophy')}</div>
                   <div className="achievement-notif-name">{achievementNotif.name}</div>
                 </div>
               </div>
@@ -17579,7 +17583,7 @@ export default function App() {
               return (
                 <div className="banner cat-positive banner-uniform">
                   <div className="banner-main">
-                    <div className="banner-left"><Award size={11} strokeWidth={2} /> <span className="banner-title">{language === 'fr' ? 'MÉGA-CONTRAT' : 'MEGA-CONTRACT'}</span></div>
+                    <div className="banner-left"><Award size={11} strokeWidth={2} /> <span className="banner-title">{t('banner.megacontract')}</span></div>
                     <div className="banner-right">{fmtInt(remain)}s</div>
                   </div>
                   <div className="banner-sub">{fmtInt(delivered)} / {fmtInt(required)} GL · +{fmtInt(activeMegacontract.rewardMoney)}€</div>
@@ -17594,9 +17598,9 @@ export default function App() {
               const label = def.name[language] || def.name.fr;
               let effectTxt = '';
               if (activeTensionEffect.sellMult && activeTensionEffect.sellMult !== 1) {
-                effectTxt = `${language === 'fr' ? 'ventes' : 'sales'} ×${activeTensionEffect.sellMult}`;
+                effectTxt = `${t('banner.sales_word')} ×${activeTensionEffect.sellMult}`;
               } else if (activeTensionEffect.blockTrucks) {
-                effectTxt = language === 'fr' ? 'camions bloqués' : 'trucks blocked';
+                effectTxt = t('banner.trucks_blocked');
               }
               return (
                 <div className={`banner ${isPositive ? 'cat-positive' : 'cat-negative'} banner-uniform`}>
@@ -17640,11 +17644,11 @@ export default function App() {
                     <div className="banner-left"><Wrench size={11} strokeWidth={2} /> <span className="banner-title">{localizeField(chainBroken.brokenMsg, language)}</span></div>
                     <div className="banner-right">{fmtInt(remain)}s</div>
                   </div>
-                  <div className="banner-sub">{language === 'fr' ? 'Production figée' : 'Production frozen'}</div>
+                  <div className="banner-sub">{t('banner.production_frozen')}</div>
                   <button className="chain-repair-btn" disabled={!canPay} onClick={canPay ? handleRepairChain : undefined}>
                     {canPay
-                      ? (language === 'fr' ? `RÉPARER MAINTENANT · ${fmtInt(repairCost)}€` : `REPAIR NOW · €${fmtInt(repairCost)}`)
-                      : (language === 'fr' ? 'FONDS INSUFFISANTS' : 'INSUFFICIENT FUNDS')}
+                      ? (fill(t('banner.repair_now'), { cost: fmtInt(repairCost) }))
+                      : (t('notif.insufficient_funds'))}
                   </button>
                 </div>
               );
@@ -17653,10 +17657,10 @@ export default function App() {
             {cyberLockout > 0 && (
               <div className="banner cat-sabotage banner-uniform">
                 <div className="banner-main">
-                  <div className="banner-left"><Siren size={11} strokeWidth={2.2} /> <span className="banner-title">{language === 'fr' ? 'CYBERATTAQUE' : 'CYBER ATTACK'}</span></div>
+                  <div className="banner-left"><Siren size={11} strokeWidth={2.2} /> <span className="banner-title">{t('banner.cyberattack')}</span></div>
                   <div className="banner-right">{fmtInt(Math.ceil(cyberLockout))}s</div>
                 </div>
-                <div className="banner-sub">{language === 'fr' ? 'Téléphone et marché B2B coupés' : 'Phone and B2B market down'}</div>
+                <div className="banner-sub">{t('banner.cyber_sub')}</div>
               </div>
             )}
             {stockBurnFlash > 0 && (gameTime - stockBurnFlash) < 30 && (() => {
@@ -17664,10 +17668,10 @@ export default function App() {
               return (
                 <div className="banner cat-sabotage banner-uniform">
                   <div className="banner-main">
-                    <div className="banner-left"><Siren size={11} strokeWidth={2.2} /> <span className="banner-title">{language === 'fr' ? 'SABOTAGE GROUPE FROID' : 'COOLING SABOTAGE'}</span></div>
+                    <div className="banner-left"><Siren size={11} strokeWidth={2.2} /> <span className="banner-title">{t('banner.cooling_sabotage')}</span></div>
                     <div className="banner-right">{fmtInt(remain)}s</div>
                   </div>
-                  <div className="banner-sub">{language === 'fr' ? 'Capacité réduite à 1/3' : 'Capacity reduced to 1/3'}</div>
+                  <div className="banner-sub">{t('banner.cooling_sub')}</div>
                 </div>
               );
             })()}
@@ -17700,10 +17704,10 @@ export default function App() {
               return (
                 <div className="banner cat-sabotage banner-uniform">
                   <div className="banner-main">
-                    <div className="banner-left"><Siren size={11} strokeWidth={2.2} /> <span className="banner-title">{language === 'fr' ? 'CAMPAGNE FAUX AVIS' : 'FAKE REVIEW CAMPAIGN'}</span></div>
+                    <div className="banner-left"><Siren size={11} strokeWidth={2.2} /> <span className="banner-title">{t('banner.fake_reviews')}</span></div>
                     <div className="banner-right">{fmtInt(remain)}s</div>
                   </div>
-                  <div className="banner-sub">{language === 'fr' ? 'Notoriété et demande sapées' : 'Notoriety and demand undermined'}</div>
+                  <div className="banner-sub">{t('banner.fake_reviews_sub')}</div>
                 </div>
               );
             })()}
@@ -18415,9 +18419,9 @@ export default function App() {
               <div className={`market-body ${cyberLockout > 0 ? 'cyber-glitched' : ''}`}>
                 {phase < 4 && stolenTrucks > 0 && (
                   <div className="truck-rebuy-banner">
-                    <span className="trb-text">{language === 'fr' ? `🚚 ${stolenTrucks} camion${stolenTrucks > 1 ? 's' : ''} volé${stolenTrucks > 1 ? 's' : ''} — autant de lignes de livraison en moins` : `🚚 ${stolenTrucks} truck${stolenTrucks > 1 ? 's' : ''} stolen — that many fewer delivery lines`}</span>
+                    <span className="trb-text">{fill(t(stolenTrucks > 1 ? 'banner.trucks_stolen_plural' : 'banner.trucks_stolen'), { n: stolenTrucks })}</span>
                     <button className="modal-btn modal-btn-accept trb-btn" disabled={money < TRUCK_REBUY_COST} onClick={handleRebuyTruck}>
-                      {money < TRUCK_REBUY_COST ? (language === 'fr' ? 'FONDS INSUFFISANTS' : 'INSUFFICIENT FUNDS') : (language === 'fr' ? `RACHETER · ${fmtInt(TRUCK_REBUY_COST)}€` : `BUY · €${fmtInt(TRUCK_REBUY_COST)}`)}
+                      {money < TRUCK_REBUY_COST ? (t('notif.insufficient_funds')) : fill(t('banner.rebuy_truck'), { cost: fmtInt(TRUCK_REBUY_COST) })}
                     </button>
                   </div>
                 )}
@@ -18783,7 +18787,7 @@ export default function App() {
                                 <div className="trophy-icon">{isUnlocked ? '✦' : '·'}</div>
                                 <div className="trophy-content">
                                   <div className="trophy-name">{isUnlocked ? (a.name[language] || a.name.fr) : '???'}</div>
-                                  <div className="trophy-desc">{isUnlocked ? (a.desc[language] || a.desc.fr) : (language === 'fr' ? 'Verrouillé' : 'Locked')}</div>
+                                  <div className="trophy-desc">{isUnlocked ? (a.desc[language] || a.desc.fr) : t('trophy.locked')}</div>
                                 </div>
                               </div>
                             );
@@ -19531,7 +19535,6 @@ export default function App() {
           if (!def) return null;
           const isCrisis = def.category === 'tension_crisis';
           // Enjeux affichés clairement (payer vs refuser).
-          const _fr = language === 'fr';
           const stakePay = def.cost != null ? `−${fmtInt(def.cost)}€` : (def.mitigationCost ? `−${fmtInt(def.mitigationCost)}€` : null);
           const stakeRefuse = def.racket ? formatRefuseEffect(def.refuse, language) : null;
           const payLabel = ({ fr: 'Payer', en: 'Pay', es: 'Pagar', zh: '支付', ru: 'Заплатить', it: 'Pagare', de: 'Zahlen' })[language] || 'Payer';
@@ -19558,7 +19561,7 @@ export default function App() {
           if (pendingTensionEvent.id === 'crisis_strike') {
             const trucksActive = lines.filter(l => l && l.contractId).length;
             mitigateCost = trucksActive * def.mitigationCostPerTruck;
-            mitigateLabel = language === 'fr' ? `PRIME · ${fmtInt(mitigateCost)}€` : `BONUS · €${fmtInt(mitigateCost)}`;
+            mitigateLabel = fill(t('tension.bonus_label'), { cost: fmtInt(mitigateCost) });
           }
           const ignoreLabel = def.ignoreLabel ? (def.ignoreLabel[language] || def.ignoreLabel.fr) : null;
           const acceptLabel = def.acceptLabel ? (def.acceptLabel[language] || def.acceptLabel.fr) : null;
