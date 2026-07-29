@@ -15891,6 +15891,16 @@ export default function App() {
           color: var(--bg);
           opacity: 1;
         }
+        /* Cycle de congélation en cours : attente normale, pas un blocage. Le
+           bouton reprend son aplat gris d'origine, sans les hachures — celles-ci
+           restent réservées aux vrais empêchements, saturation et coupure. */
+        .acts .btn-primary.is-cycling:disabled {
+          background: var(--m2);
+          border-color: var(--m2);
+          color: var(--bg);
+          opacity: 0.6;
+        }
+        .acts .btn-primary.is-cycling:disabled::after { content: none; }
         .acts .btn-primary:disabled::after {
           content: "";
           position: absolute;
@@ -20877,7 +20887,11 @@ export default function App() {
               },
             })
           ) : (
-            <button className="btn btn-primary" onClick={handleProduce} disabled={atCap || inOutage || freezingLeft > 0}>
+            <button
+              className={`btn btn-primary ${freezingLeft > 0 && !atCap && !inOutage ? 'is-cycling' : ''}`}
+              onClick={handleProduce}
+              disabled={atCap || inOutage || freezingLeft > 0}
+            >
               <Plus size={14} strokeWidth={2.5} /> {
                 atCap ? t('hero.saturated') :
                 inOutage ? t('hero.elec_off') :
