@@ -15876,10 +15876,24 @@ export default function App() {
           color: var(--bg);
           border-color: var(--fg);
         }
-        .acts .btn-primary:hover:not(:disabled) {
-          opacity: 0.82;
+        /* Le bouton n'a que deux apparences : noir au repos, gris pendant le
+           cycle. Ni survol ni appui n'introduisent de troisième teinte.
+           La règle précédente baissait l'opacité à 0,82 au survol sans être
+           gardée par une media query : sur écran tactile le :hover reste collé
+           après le tap, donc le bouton restait pâli jusqu'à ce qu'on touche
+           ailleurs. Le retour tactile à l'appui reste assuré par le décalage
+           d'un pixel hérité de .btn:active. */
+        @media (hover: hover) and (pointer: fine) {
+          .acts .btn-primary:hover:not(:disabled) {
+            background: var(--fg);
+            color: var(--bg);
+            opacity: 1;
+          }
+        }
+        .acts .btn-primary:active:not(:disabled) {
           background: var(--fg);
           color: var(--bg);
+          opacity: 1;
         }
         /* Bouton principal indisponible (saturation, coupure, cycle en cours).
            Pas de lavis gris : le noir reste plein et l'indisponibilité se lit
