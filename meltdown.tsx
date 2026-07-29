@@ -11782,7 +11782,7 @@ export default function App() {
 
   // ===== HOME SCREEN =====
   if (screen === 'home') {
-    const savePhaseLabel = phase >= 3 ? t('home.save_brand') : phase >= 2 ? t('home.save_industry') : t('home.save_kitchen');
+    const savePhaseLabel = phase >= 3 ? t('home.save_brand') : phase >= 2 ? t('home.save_industry') : t('home.save_garage');
     const seasonIdxHome = Math.floor((gameTime / SEASON_DURATION)) % 4;
     const yearHome = Math.floor(gameTime / (SEASON_DURATION * 4)) + 1;
     const seasonHome = SEASONS[seasonIdxHome];
@@ -21275,7 +21275,7 @@ export default function App() {
         <button className="reset" onClick={handleReset}>
           <RotateCcw size={11} strokeWidth={1.5} /> {t('footer.reset')}
         </button>
-        <div className="footer">— MELTDOWN · {phase >= 3 ? t('footer.phase_brand') : phase >= 2 ? t('footer.phase_industry') : t('footer.phase_kitchen')} · 0{phase}/03 —</div>
+        <div className="footer">— MELTDOWN · {phase >= 3 ? t('footer.phase_brand') : phase >= 2 ? t('footer.phase_industry') : t('footer.phase_garage')} · 0{phase}/03 —</div>
 
         {resetConfirmModal}
 

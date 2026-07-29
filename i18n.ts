@@ -550,7 +550,9 @@ export const TRANSLATIONS = {
   'upg.phase_brand': { fr: 'Phase 03, La Marque', en: 'Phase 03, The Brand', es: 'Fase 03, La Marca', de: "Phase 03, Die Marke" , it: "Fase 03, Il Marchio", ru: "Фаза 03, Бренд", zh: "第03阶段, 品牌"},
 
   // Footer
-  'footer.phase_kitchen': { fr: 'CUISINE', en: 'KITCHEN', es: 'COCINA', de: "KÜCHE" , it: "CUCINA", ru: "КУХНЯ", zh: "厨房"},
+  // Phase 01 : on produit dans le garage, pas dans une cuisine — le libellé
+  // entretenait la confusion avec le décor décrit par les textes.
+  'footer.phase_garage': { fr: 'GARAGE', en: 'GARAGE', es: 'GARAJE', de: "GARAGE" , it: "GARAGE", ru: "ГАРАЖ", zh: "车库"},
   'footer.phase_industry': { fr: 'INDUSTRIE', en: 'INDUSTRY', es: 'INDUSTRIA', de: "INDUSTRIE" , it: "INDUSTRIA", ru: "ПРОМЫШЛЕННОСТЬ", zh: "工业"},
   'footer.phase_brand': { fr: 'LA MARQUE', en: 'THE BRAND', es: 'LA MARCA', de: "DIE MARKE" , it: "IL MARCHIO", ru: "БРЕНД", zh: "品牌"},
   'footer.reset': { fr: 'RESET PARTIE', en: 'RESET GAME', es: 'REINICIAR', de: "SPIEL ZURÜCKSETZEN" , it: "RESETTA PARTITA", ru: "СБРОСИТЬ ИГРУ", zh: "重置游戏"},
@@ -967,7 +969,7 @@ export const TRANSLATIONS = {
   'home.confirm_no': { fr: 'ANNULER', en: 'CANCEL', es: 'CANCELAR', de: "ABBRECHEN" , it: "ANNULLA", ru: "ОТМЕНА", zh: "取消"},
   'home.confirm_title': { fr: 'NOUVELLE PARTIE', en: 'NEW GAME', es: 'NUEVA PARTIDA', de: "NEUES SPIEL" , it: "NUOVA PARTITA", ru: "НОВАЯ ИГРА", zh: "新游戏"},
   'home.save_phase': { fr: 'PHASE', en: 'PHASE', es: 'FASE', de: "PHASE" , it: "FASE", ru: "ФАЗА", zh: "阶段"},
-  'home.save_kitchen': { fr: 'CUISINE', en: 'KITCHEN', es: 'COCINA', de: "KÜCHE" , it: "CUCINA", ru: "КУХНЯ", zh: "厨房"},
+  'home.save_garage': { fr: 'GARAGE', en: 'GARAGE', es: 'GARAJE', de: "GARAGE" , it: "GARAGE", ru: "ГАРАЖ", zh: "车库"},
   'home.save_industry': { fr: 'INDUSTRIE', en: 'INDUSTRY', es: 'INDUSTRIA', de: "INDUSTRIE" , it: "INDUSTRIA", ru: "ПРОМЫШЛЕННОСТЬ", zh: "工业"},
   'home.save_brand': { fr: 'LA MARQUE', en: 'THE BRAND', es: 'LA MARCA', de: "DIE MARKE" , it: "IL MARCHIO", ru: "БРЕНД", zh: "品牌"},
   'home.save_year': { fr: 'An', en: 'Year', es: 'Año', de: "Jahr" , it: "Anno", ru: "Год", zh: "年"},
