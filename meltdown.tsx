@@ -124,6 +124,12 @@ const BASE_TRUCK_MELT = 0.010;
 // tout doublon. Les DURÉES restent inchangées.
 const HEATWAVE_CHANCE = 0.0016;
 const DROUGHT_CHANCE = 0.0014;
+// Sécheresse : la bannière annonce « PRODUCTION ÷2 ». Ce facteur ne s'appliquait
+// qu'à `perClick`, c'est-à-dire à la production manuelle du début de partie.
+// Dès Fred embauché la production devient passive et la sécheresse n'avait plus
+// aucun effet : la bannière annonçait une pénalité inexistante. Le facteur porte
+// désormais aussi sur la production passive, dans le rendu comme dans le tick.
+const DROUGHT_PROD_MULT = 0.5;
 const OUTAGE_CHANCE = 0.0018;
 const AUTUMN_RUSH_CHANCE = 0.0008;
 const AUTUMN_RUSH_MIN = 25;
@@ -6919,7 +6925,7 @@ export default function App() {
   // ARRÊT MALADIE Fred : prod passive coupée. Le joueur reprend la production
   // au clic (bouton CONGELER) pendant la durée de l'arrêt.
   const _fredSickMult = isSickNow('fred') ? 0 : 1;
-  const effectivePassive = stats.passiveProd * stats.prodSpeedMult * getDynamicProdMult(gameTime) * fredMult * teamBuildMult * moralMult * chainBreakMult * _fredSickMult;
+  const effectivePassive = stats.passiveProd * stats.prodSpeedMult * getDynamicProdMult(gameTime) * fredMult * teamBuildMult * moralMult * chainBreakMult * _fredSickMult * (inDrought ? DROUGHT_PROD_MULT : 1);
 
   // === DÉPENSES À PROVISIONNER ===
   // Calcule les charges à venir pour aider le joueur à anticiper sa trésorerie
@@ -8254,7 +8260,8 @@ export default function App() {
       // === FRICTIONS — agrégat des effets actifs ===
       const curFric = aggregateFrictionEffects(activeFrictionsRef.current, gameTimeRef.current);
       const curFricProdMult = curFric.prodBlock ? 0 : curFric.prodMult;
-      const curEffectivePassive = curPassive * curStats.prodSpeedMult * curDynProd * curFredMult * teamBuildMult * curChainBreakMult * curFricProdMult;
+      const curDroughtProdMult = droughtLeftRef.current > 0 ? DROUGHT_PROD_MULT : 1;
+      const curEffectivePassive = curPassive * curStats.prodSpeedMult * curDynProd * curFredMult * teamBuildMult * curChainBreakMult * curFricProdMult * curDroughtProdMult;
       const curMeltMult = curOutage ? 1 : curStats.meltMult;
       const curHeat = heatwaveLeftRef.current > 0 ? 3 : 1;
       const curPhaseMelt = phaseRef.current >= 2 ? PHASE2_MELT_MULT : 1;
@@ -12434,10 +12441,7 @@ export default function App() {
       )}
       {phase < 4 && (
       <div className="hero-grid">
-        <div className={`stock-side ${inHeatwave ? 'is-heatwave' : ''} ${inDrought ? 'is-drought' : ''}`}>
-          {inHeatwave && (
-            <div className="heat-waves" aria-hidden="true"><i /><i /><i /><i /></div>
-          )}
+        <div className="stock-side">
           {/* Anciens hero-actions désactivés : remplacés par la grande menu-bar visible dès P1 */}
           {false && phase < 3 && (
             <div className="hero-actions">
@@ -12495,6 +12499,12 @@ export default function App() {
           })()}
         </div>
         <div className="hero-center">
+          {inHeatwave && (
+            <div className="heat-waves" aria-hidden="true"><i /><i /><i /><i /></div>
+          )}
+          {inDrought && (
+            <div className="dry-lines" aria-hidden="true"><i /><i /><i /></div>
+          )}
           <div className={`stock ${atCap ? 'full' : ''} ${inHeatwave ? 'canicule' : ''} ${inDrought ? 'secheresse' : ''}`}>{fmtK(displayStock)}</div>
           <div className="stock-lbl">{t('status.stock')}</div>
           <div className={`status ${atCap && status ? 'warn' : ''}`}>
@@ -12513,9 +12523,17 @@ export default function App() {
           )}
           {phase < 4 && (
             <div className="prod-melt-mini">
-              <span className={`prod-melt-cell ${inOutage ? 'off' : ''}`}>{t('rate.production_short')} +{groupThousands(effectivePassive.toFixed(1))}/s</span>
+              <span className={`prod-melt-cell ${inOutage ? 'off' : ''} ${inDrought && !inOutage ? 'dry' : ''}`}>{t('rate.production_short')} +{groupThousands(effectivePassive.toFixed(1))}/s</span>
               <span className="prod-melt-sep">·</span>
               <span className="prod-melt-cell">{t('rate.melt')} −{effectiveMelt.toFixed(2)}/s</span>
+              {/* Pénalité de sécheresse : cellule dédiée, comme la pénalité de
+                  moral juste après. Un chip inversé de 9 px n'était pas lisible. */}
+              {inDrought && !inOutage && (
+                <>
+                  <span className="prod-melt-sep">·</span>
+                  <span className="prod-melt-cell dry-pen">{t('rate.drought_short')} ÷2</span>
+                </>
+              )}
               {moralMult < 1 && (
                 <>
                   <span className="prod-melt-sep">·</span>
@@ -15235,8 +15253,11 @@ export default function App() {
            qu'à un bandeau séparé — c'est l'interface elle-même qui encaisse.
            =================================================================== */
 
-        /* --- CANICULE : l'air chaud monte, le gros chiffre ondule --- */
-        .stock-side { position: relative; }
+        /* --- CANICULE : l'air chaud monte, le gros chiffre ondule ---
+           Les filets sont derrière le gros chiffre, pas sur la grille de
+           gauche : c'est là que .hero-center réserve la place d'un calque
+           décoratif, ses enfants portant déjà un halo de texte et un z-index
+           qui les détachent du fond. */
         .heat-waves { position: absolute; inset: 0; pointer-events: none; opacity: 0.5; overflow: hidden; }
         .heat-waves i {
           position: absolute; left: 10%; right: 10%; height: 1px;
@@ -15256,26 +15277,61 @@ export default function App() {
            sinon le navigateur relisserait ce qu'on vient de quantifier. */
         .freeze-bar.is-dry .freeze-fill { transition: none; }
 
-        /* --- SÉCHERESSE : la pompe tousse, la nappe baisse ---
-           Le chiffre ne tremble pas en continu comme sous la canicule : il
-           bégaie brièvement, à intervalle régulier, et un pointillé sous la
-           grille marque le niveau qui manque. */
+        /* --- SÉCHERESSE : rationnement ---
+           La version précédente ne se voyait pas : le chiffre s'éteignait sur
+           12 % d'un cycle de 2,6 s, et le seul autre signe était un filet d'un
+           pixel sous la grille. Trois marques franches à la place, toutes sur
+           des éléments rendus en permanence — le premier signal utile, la
+           quantification de la barre de cycle, ne s'affiche que sans Fred.
+
+           1. Une trame de lignes horizontales descend derrière le gros
+              chiffre : la nappe qui baisse. Elle est posée là, et non sur la
+              grille de gauche, pour rejoindre la canicule — c'est l'endroit
+              que .hero-center réserve à un calque décoratif, ses enfants
+              portant déjà un halo de texte et un z-index qui les détachent. */
+        .dry-lines { position: absolute; inset: 0; pointer-events: none; opacity: 0.5; overflow: hidden; }
+        .dry-lines i {
+          position: absolute; left: 10%; right: 10%; height: 1px;
+          background: var(--fg); animation: dryDrain 3.4s linear infinite;
+        }
+        .dry-lines i:nth-child(2) { animation-delay: 1.13s; }
+        .dry-lines i:nth-child(3) { animation-delay: 2.26s; }
+        /* Miroir exact de la canicule : là l'air chaud monte, ici le niveau
+           descend. Trois filets espacés plutôt qu'une trame pleine, qui
+           barrait le texte du bloc central. */
+        @keyframes dryDrain {
+          0%   { top: -4px;  opacity: 0;    transform: scaleX(1); }
+          30%  { opacity: 0.7; }
+          100% { top: 100%;  opacity: 0;    transform: scaleX(0.35); }
+        }
+        /* 2. Le gros chiffre bégaie franchement, et plus souvent. */
         .stock.secheresse,
-        .stock.full.secheresse { animation: dryStutter 2.6s steps(1) infinite; }
+        .stock.full.secheresse { animation: dryStutter 1.8s steps(1) infinite; }
         @keyframes dryStutter {
-          0%, 85%   { opacity: 1; }
-          86%, 89%  { opacity: 0.3; }
-          90%, 93%  { opacity: 1; }
-          94%, 97%  { opacity: 0.3; }
-          98%, 100% { opacity: 1; }
+          0%, 61%   { opacity: 1; }
+          62%, 68%  { opacity: 0.22; }
+          69%, 75%  { opacity: 1; }
+          76%, 82%  { opacity: 0.22; }
+          83%, 100% { opacity: 1; }
         }
-        .stock-side.is-drought .stock-grid { position: relative; }
-        .stock-side.is-drought .stock-grid::after {
-          content: ""; position: absolute; left: 0; right: 0; bottom: -7px; height: 1px;
-          background-image: repeating-linear-gradient(90deg, var(--fg) 0 3px, transparent 3px 7px);
-          animation: dryLine 3s ease-in-out infinite;
+        /* 3. La pénalité est attribuée là où elle se lit : sur le chiffre de
+              production, souligné de hachures et suivi d'un ÷2 clignotant. */
+        .prod-melt-cell.dry {
+          font-weight: 700;
+          padding-bottom: 2px;
+          border-bottom: 2px solid transparent;
+          border-image: repeating-linear-gradient(
+            45deg, var(--fg) 0 2px, transparent 2px 4px) 2;
         }
-        @keyframes dryLine { 0%, 100% { opacity: 0.85; } 50% { opacity: 0.2; } }
+        .prod-melt-cell.dry-pen {
+          color: var(--fg);
+          font-weight: 700;
+          animation: dryPenBlink 1s steps(2) infinite;
+        }
+        @keyframes dryPenBlink {
+          0%, 64%   { opacity: 1; }
+          65%, 100% { opacity: 0.35; }
+        }
 
         /* --- COUPURE DE COURANT : le disjoncteur claque, puis ça ronfle --- */
         .md.is-outage { animation: outageCut 0.9s steps(1) 1; }
