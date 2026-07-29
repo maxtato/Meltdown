@@ -12441,10 +12441,7 @@ export default function App() {
       )}
       {phase < 4 && (
       <div className="hero-grid">
-        <div className={`stock-side ${inHeatwave ? 'is-heatwave' : ''} ${inDrought ? 'is-drought' : ''}`}>
-          {inHeatwave && (
-            <div className="heat-waves" aria-hidden="true"><i /><i /><i /><i /></div>
-          )}
+        <div className="stock-side">
           {/* Anciens hero-actions désactivés : remplacés par la grande menu-bar visible dès P1 */}
           {false && phase < 3 && (
             <div className="hero-actions">
@@ -12502,6 +12499,12 @@ export default function App() {
           })()}
         </div>
         <div className="hero-center">
+          {inHeatwave && (
+            <div className="heat-waves" aria-hidden="true"><i /><i /><i /><i /></div>
+          )}
+          {inDrought && (
+            <div className="dry-lines" aria-hidden="true"><i /><i /><i /></div>
+          )}
           <div className={`stock ${atCap ? 'full' : ''} ${inHeatwave ? 'canicule' : ''} ${inDrought ? 'secheresse' : ''}`}>{fmtK(displayStock)}</div>
           <div className="stock-lbl">{t('status.stock')}</div>
           <div className={`status ${atCap && status ? 'warn' : ''}`}>
@@ -15250,8 +15253,11 @@ export default function App() {
            qu'à un bandeau séparé — c'est l'interface elle-même qui encaisse.
            =================================================================== */
 
-        /* --- CANICULE : l'air chaud monte, le gros chiffre ondule --- */
-        .stock-side { position: relative; }
+        /* --- CANICULE : l'air chaud monte, le gros chiffre ondule ---
+           Les filets sont derrière le gros chiffre, pas sur la grille de
+           gauche : c'est là que .hero-center réserve la place d'un calque
+           décoratif, ses enfants portant déjà un halo de texte et un z-index
+           qui les détachent du fond. */
         .heat-waves { position: absolute; inset: 0; pointer-events: none; opacity: 0.5; overflow: hidden; }
         .heat-waves i {
           position: absolute; left: 10%; right: 10%; height: 1px;
@@ -15278,21 +15284,25 @@ export default function App() {
            des éléments rendus en permanence — le premier signal utile, la
            quantification de la barre de cycle, ne s'affiche que sans Fred.
 
-           1. La colonne stock prend une trame de lignes horizontales qui
-              descendent : la nappe qui baisse. */
-        .stock-side.is-drought .stock-grid { position: relative; }
-        .stock-side.is-drought .stock-grid::after {
-          content: "";
-          position: absolute;
-          inset: -3px;
-          pointer-events: none;
-          background-image: repeating-linear-gradient(
-            0deg, var(--fg) 0 1px, transparent 1px 11px);
-          animation: dryDrain 2.6s linear infinite;
+           1. Une trame de lignes horizontales descend derrière le gros
+              chiffre : la nappe qui baisse. Elle est posée là, et non sur la
+              grille de gauche, pour rejoindre la canicule — c'est l'endroit
+              que .hero-center réserve à un calque décoratif, ses enfants
+              portant déjà un halo de texte et un z-index qui les détachent. */
+        .dry-lines { position: absolute; inset: 0; pointer-events: none; opacity: 0.5; overflow: hidden; }
+        .dry-lines i {
+          position: absolute; left: 10%; right: 10%; height: 1px;
+          background: var(--fg); animation: dryDrain 3.4s linear infinite;
         }
+        .dry-lines i:nth-child(2) { animation-delay: 1.13s; }
+        .dry-lines i:nth-child(3) { animation-delay: 2.26s; }
+        /* Miroir exact de la canicule : là l'air chaud monte, ici le niveau
+           descend. Trois filets espacés plutôt qu'une trame pleine, qui
+           barrait le texte du bloc central. */
         @keyframes dryDrain {
-          0%   { background-position: 0 0;    opacity: 0.5; }
-          100% { background-position: 0 11px; opacity: 0.14; }
+          0%   { top: -4px;  opacity: 0;    transform: scaleX(1); }
+          30%  { opacity: 0.7; }
+          100% { top: 100%;  opacity: 0;    transform: scaleX(0.35); }
         }
         /* 2. Le gros chiffre bégaie franchement, et plus souvent. */
         .stock.secheresse,
