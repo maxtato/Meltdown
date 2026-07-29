@@ -230,7 +230,10 @@ export const TRANSLATIONS = {
   'contract_end.success_body': {
     fr: "Excellent travail. Vous avez livré {deliveries} fois dans les temps. Un bonus de {bonus}€ vient récompenser votre régularité. On serait ravis de retravailler avec vous.",
     en: "Excellent work. You delivered {deliveries} times on time. A bonus of {bonus}€ rewards your consistency. We'd be glad to work with you again.",
-    es: "Excelente trabajo. Ha entregado {deliveries} veces a tiempo. Una bonificación de {bonus}€ recompensa su regularidad. Nos encantaría volver a trabajar con usted.", de: "Ausgezeichnete Arbeit. Sie haben {deliveries} mal pünktlich geliefert. Ein Bonus von {bonus}€ belohnt Ihre Beständigkeit. Wir arbeiten gern wieder mit Ihnen."
+    es: "Excelente trabajo. Ha entregado {deliveries} veces a tiempo. Una bonificación de {bonus}€ recompensa su regularidad. Nos encantaría volver a trabajar con usted.", de: "Ausgezeichnete Arbeit. Sie haben {deliveries} mal pünktlich geliefert. Ein Bonus von {bonus}€ belohnt Ihre Beständigkeit. Wir arbeiten gern wieder mit Ihnen.",
+    it: "Ottimo lavoro. Avete consegnato {deliveries} volte nei tempi. Un bonus di {bonus}€ premia la vostra regolarità. Saremmo lieti di rilavorare con voi.",
+    ru: "Отличная работа. Вы доставили {deliveries} раз вовремя. Бонус в {bonus}€ вознаграждает вашу стабильность. Будем рады поработать снова.",
+    zh: "干得漂亮。你们准时交付了 {deliveries} 次。{bonus}€ 的奖金是对稳定性的回报。期待再次合作。"
   },
   'contract_end.fail_title': { fr: 'CONTRAT EXPIRÉ', en: 'CONTRACT EXPIRED', es: 'CONTRATO EXPIRADO', zh: "合同已过期", ru: "КОНТРАКТ ИСТЁК", it: "CONTRATTO SCADUTO", de: "VERTRAG ABGELAUFEN" },
   'contract_end.fail_body': {
@@ -246,7 +249,10 @@ export const TRANSLATIONS = {
   'contract_end.second_chance_body': {
     fr: "Vous avez raté nos délais. {client} hésite. Bon, on vous laisse une seconde chance, mais cette fois, pas d'erreur.",
     en: "You missed our deadlines. {client} is hesitating. Alright, we'll give you a second chance, but this time, no mistakes.",
-    es: "No ha cumplido los plazos. {client} duda. De acuerdo, le damos una segunda oportunidad, pero esta vez, sin errores.", de: "Sie haben unsere Fristen verpasst. {client} zögert. Gut, Sie bekommen eine zweite Chance, aber diesmal keine Fehler."
+    es: "No ha cumplido los plazos. {client} duda. De acuerdo, le damos una segunda oportunidad, pero esta vez, sin errores.", de: "Sie haben unsere Fristen verpasst. {client} zögert. Gut, Sie bekommen eine zweite Chance, aber diesmal keine Fehler.",
+    it: "Avete mancato le nostre scadenze. {client} esita. Va bene, vi diamo una seconda possibilità, ma stavolta niente errori.",
+    ru: "Вы сорвали наши сроки. {client} колеблется. Ладно, даём вам второй шанс, но на этот раз без ошибок.",
+    zh: "你们错过了我们的期限。{client} 在犹豫。好吧，再给你们一次机会，这次别出错。"
   },
   'contract_end.deliveries': { fr: 'Livraisons', en: 'Deliveries', es: 'Entregas', de: "Lieferungen" , it: "Consegne", ru: "Доставки", zh: "配送"},
   'contract_end.revenue': { fr: 'Revenu total', en: 'Total revenue', es: 'Ingresos totales', de: "Gesamtumsatz" , it: "Ricavo totale", ru: "Общая выручка", zh: "总收入"},
@@ -635,7 +641,7 @@ export const TRANSLATIONS = {
   // Poaching modal
   'poach.title': { fr: 'DÉBAUCHAGE', en: 'POACHING', es: 'CAZA DE TALENTO', de: "ABWERBUNG" , it: "CACCIA DI TESTE", ru: "ПЕРЕМАНИВАНИЕ", zh: "挖角"},
   'poach.narrative': { fr: 'a contacté', en: 'contacted', es: 'ha contactado a', de: "kontaktiert" , it: "contattato", ru: "связались", zh: "被联系"},
-  'poach.narrative_rest': { fr: 'Ils proposent un salaire bien plus haut. {NAME} attend ta réponse.', en: 'They offer a much higher salary. {NAME} is waiting for your answer.', es: 'Ofrecen un salario mucho más alto. {NAME} espera tu respuesta.', de: "Sie bieten ein viel höheres Gehalt. {NAME} wartet auf deine Antwort." },
+  'poach.narrative_rest': { fr: 'Ils proposent un salaire bien plus haut. {NAME} attend ta réponse.', en: 'They offer a much higher salary. {NAME} is waiting for your answer.', es: 'Ofrecen un salario mucho más alto. {NAME} espera tu respuesta.', de: "Sie bieten ein viel höheres Gehalt. {NAME} wartet auf deine Antwort.", it: "Offrono uno stipendio molto più alto. {NAME} aspetta la tua risposta.", ru: "Они предлагают куда более высокую зарплату. {NAME} ждёт твоего ответа.", zh: "他们开出的薪水高得多。{NAME} 在等你的答复。" },
   'poach.if_aligned': { fr: 'SI ALIGNÉ', en: 'IF MATCHED', es: 'SI IGUALAS', de: "WENN ANGEGLICHEN" , it: "SE PAREGGI", ru: "ЕСЛИ СОГЛАСИТЬСЯ", zh: "若匹配"},
   'poach.if_refused': { fr: 'SI REFUSÉ', en: 'IF REFUSED', es: 'SI RECHAZAS', de: "WENN ABGELEHNT" , it: "SE RIFIUTI", ru: "ЕСЛИ ОТКАЗАТЬ", zh: "若拒绝"},
   'poach.aligned_val': { fr: 'Passe direct en HAUT · garanti', en: 'Moves straight to HIGH · guaranteed', es: 'Pasa directo a ALTO · garantizado', de: "Geht direkt auf HOCH · garantiert" , it: "Passa subito ad ALTO · garantito", ru: "Сразу переходит на ВЫСОКУЮ · гарантированно", zh: "直接升至高薪 · 保证"},
@@ -682,6 +688,11 @@ export const TRANSLATIONS = {
   'gameover.quit': { fr: 'QUITTER', en: 'QUIT', es: 'SALIR', de: "BEENDEN" , it: "ESCI", ru: "ВЫЙТИ", zh: "退出"},
   'notif.autumn_rush': { fr: 'RUSH AUTOMNE · PRIX SPOT +50%', en: 'AUTUMN RUSH · SPOT PRICE +50%', es: 'RUSH OTOÑO · PRECIO SPOT +50%', de: "HERBSTANSTURM · SPOTPREIS +50%" , it: "CORSA AUTUNNO · PREZZO SPOT +50%", ru: "ОСЕННИЙ АЖИОТАЖ · СПОТ-ЦЕНА +50%", zh: "秋季抢购 · 现货价 +50%"},
   'notif.insurance_saved': { fr: 'ASSURANCE FROID · destruction évitée', en: 'COLD INSURANCE · destruction avoided', es: 'SEGURO DE FRÍO · destrucción evitada', de: "KÄLTEVERSICHERUNG · Zerstörung vermieden" , it: "ASSICURAZIONE FREDDO · distruzione evitata", ru: "ХОЛОДОВАЯ СТРАХОВКА · разрушение предотвращено", zh: "冷藏保险 · 已避免损毁"},
+  // Industrialisation : la clé manquait, `t()` renvoyait donc son propre nom et
+  // le joueur lisait « notif.industrialisation » en clair. Le suffixe était de
+  // surcroît en français dur ; il est intégré à la clé.
+  'notif.industrialisation': { fr: 'INDUSTRIALISATION · MORAL ÉQUIPES −', en: 'INDUSTRIALIZATION · TEAM MORALE −', es: 'INDUSTRIALIZACIÓN · MORAL EQUIPOS −', de: "INDUSTRIALISIERUNG · TEAMMORAL −", it: "INDUSTRIALIZZAZIONE · MORALE SQUADRE −", ru: "ИНДУСТРИАЛИЗАЦИЯ · МОРАЛЬ КОМАНД −", zh: "工业化 · 团队士气 −" },
+  'notif.market_contract': { fr: 'CONTRAT AU MARCHÉ', en: 'CONTRACT ON THE MARKET', es: 'CONTRATO EN EL MERCADO', de: "VERTRAG AUF DEM MARKT", it: "CONTRATTO SUL MERCATO", ru: "КОНТРАКТ НА РЫНКЕ", zh: "市场合同" },
   'notif.destruction': { fr: 'DESTRUCTION', en: 'DESTRUCTION', es: 'DESTRUCCIÓN', de: "ZERSTÖRUNG" , it: "DISTRUZIONE", ru: "РАЗРУШЕНИЕ", zh: "损毁"},
   // Panne matérielle : alerte persistante jusqu'au rachat de l'appareil.
   // Unité des glaçons, jusqu'ici écrite en dur dans chaque chaîne.

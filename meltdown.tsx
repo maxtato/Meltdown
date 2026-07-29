@@ -5004,7 +5004,7 @@ export default function App() {
             // sens que si un contrat a réellement été ajouté. Pour un simple boost
             // (ex. Fête de quartier, sans contrat), le bandeau à décompte suffit.
             if (c) {
-              setEventNotif(localizeField(picked.name, language).toUpperCase() + ' · CONTRAT AU MARCHÉ');
+              setEventNotif(localizeField(picked.name, language).toUpperCase() + ' · ' + t('notif.market_contract'));
             }
           } else if ((picked.category === 'crisis' || picked.category === 'bonus') && picked.duration <= 1) {
             applyCrisisInstant(picked);
@@ -10159,7 +10159,7 @@ export default function App() {
       if (ownedRef.current['autosell'] || ownedRef.current['brigitte_compta'] || ownedRef.current['brigitte_ad']) {
         setBrigitteMoral(m => Math.max(0, m - 3));
       }
-      setEventNotif(`${t('notif.industrialisation') || 'INDUSTRIALISATION'} · MORAL ÉQUIPES −`);
+      setEventNotif(t('notif.industrialisation'));
     }
     if (INDUSTRIAL_UPGRADES_BY_CATEGORY.logistics.includes(u.id)) {
       // Pression sur la logistique : Lenny en priorité, et un peu Brigitte (paperasse)
@@ -17942,7 +17942,7 @@ export default function App() {
                                 }
                                 const sellMult = (def.effects && def.effects.sellMult) || 1.5;
                                 setActiveTensionEffect({ id: def.id, expiresAt: gameTime + def.duration, sellMult });
-                                setEventNotif(localizeField(def.name, language).toUpperCase() + ' · CONTRAT AU MARCHÉ');
+                                setEventNotif(localizeField(def.name, language).toUpperCase() + ' · ' + t('notif.market_contract'));
                               } else if (isCrisis) {
                                 applyCrisisInstant(def);
                               } else {
