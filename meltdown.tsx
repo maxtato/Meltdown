@@ -177,7 +177,7 @@ const MORAL_RESIGN_WARN = 25;
 
 // === BIEN-ÊTRE & FORMATION (P3) ===
 // Deux améliorations déplacent le niveau de base du moral, comme la crèche
-// et les paliers de Karen : le moral dérive vers ce niveau au lieu de vers 70.
+// d'entreprise : le moral dérive vers ce niveau au lieu de vers 70.
 const FORMATION_INTERNE_MORAL = 10;   // on forme nos gens : ils restent
 const ROBOTISATION_MORAL = 15;        // malus : les collègues partent, ceux qui restent voient
 // La robotisation remplace la moitié des postes : la masse salariale
@@ -394,30 +394,16 @@ const CUBE_GAP = 2;
 const DEMAND_ROWS = 7;
 
 // === CONDITIONS DE TRANSITION DE PHASE (source unique de vérité) ===
-// Ces listes sont utilisées À LA FOIS par les ticks narratifs (détection des
-// conditions) ET par prepareTransitionToPhase (dev : remplit automatiquement).
-// Toute modification ici se répercute partout → impossible de désynchroniser.
+// Ces listes sont lues par les ticks narratifs, qui déclenchent les appels de
+// Robert : le premier ouvre la Phase 2, le second débloque l'achat du siège
+// social, lequel ouvre la Phase 3. Le panneau dev repart des mêmes constantes,
+// donc les deux chemins ne peuvent pas se désynchroniser.
 const ROBERT1_REQUIRED = ['fred_perma', 'autosell', 'pro_freezer', 'cold_tunnel', 'cuve_cryo', 'caisson_isotherme'];
 const ROBERT1_MONEY = 3500;
 const ROBERT1_MAXCAP = 100;
 
 const ROBERT2_REQUIRED = ['fred_dir', 'brigitte_ad', 'camion_3', 'fast_truck', 'truck_cryo', 'force_cadence'];
 const ROBERT2_MONEY = 10500;
-
-const VANDENBERG_REQUIRED = [
-  'janice_jr',
-  'security_camera',
-  'community_mgmt',
-  'cyber_security',
-  'physical_security',
-  'machine_cafe',
-  'salle_repos',
-  'salle_sport',
-  'plan_formation',
-  'creche_entreprise',
-];
-const VANDENBERG_MONEY = 35000;
-const VANDENBERG_NOTORIETY = 70;
 
 const COMPETITORS = [
   { key: 'glacier',      name: 'Glacier Frères', archetype: 'pro',      driftPerYear: -0.5, basePart: 23, baseNoto: 70, baseCash: 850000 },
@@ -1348,7 +1334,7 @@ const ACHIEVEMENTS = [
   { id: 'family', cat: 'team', name: { fr: 'FAMILLE', en: 'FAMILY' },
     desc: { fr: 'Recruter Fred', en: 'Hire Fred' } },
   { id: 'harmony', cat: 'team', name: { fr: 'HARMONIE', en: 'HARMONY' },
-    desc: { fr: 'Avoir 4 employés avec moral ≥80', en: 'Have 4 employees with morale ≥80' } },
+    desc: { fr: 'Avoir 3 employés avec moral ≥80', en: 'Have 3 employees with morale ≥80' } },
   { id: 'mentor', cat: 'team', name: { fr: 'MENTOR', en: 'MENTOR' },
     desc: { fr: 'Promouvoir un employé jusqu\'au tier Directeur', en: 'Promote an employee to Director tier' } },
   { id: 'fred_director', cat: 'team', name: { fr: 'FRED DIRECTEUR', en: 'FRED DIRECTOR' },
@@ -1530,7 +1516,7 @@ const UPGRADES = [
   { id: 'comptable_senior', Icon: Briefcase, count: 1, destructible: false, phase: 2, name: { fr: 'Comptable senior', en: 'Senior accountant', es: 'Contable senior', zh: "高级会计", ru: "Старший бухгалтер", it: "Contabile senior", de: "Senior-Buchhalter" }, desc: { fr: 'prix ×1.05 · charges ×0.8', en: 'price ×1.05 · costs ×0.8', es: 'precio ×1.05 · cargas ×0.8', zh: "价格 ×1.05 · 费用 ×0.8", ru: "цена ×1.05 · расходы ×0.8", it: "prezzo ×1.05 · spese ×0.8", de: "Preis ×1.05 · Kosten ×0.8" }, cost: 56000,
     longDesc: { fr: "Un vrai comptable qui sait optimiser tes charges, anticiper les échéances, ouvrir les bons comptes. Tes coûts administratifs sont divisés par deux et ta marge nette gagne 5 points.", en: "A real accountant who knows how to optimize charges, anticipate deadlines, open the right accounts. Your admin costs are halved and your net margin gains 5 points.", es: "Un contable de verdad que sabe optimizar tus cargas, anticipar plazos, abrir las cuentas correctas. Tus costes administrativos se reducen a la mitad y tu margen neto gana 5 puntos.", zh: "一位真正的会计师，懂得优化开支、预判到期日、开对账户。你的行政成本减半，净利润率上升5点。", ru: "Настоящий бухгалтер, который умеет оптимизировать расходы, предвидеть сроки, открывать правильные счета. Ваши административные расходы уменьшаются вдвое, чистая маржа растёт на 5 пунктов.", it: "Un vero contabile che sa ottimizzare gli oneri, anticipare le scadenze, aprire i conti giusti. I tuoi costi amministrativi si dimezzano e il margine netto guadagna 5 punti.", de: "Ein echter Buchhalter, der Lasten optimiert, Fristen vorausplant, die richtigen Konten eröffnet. Deine Verwaltungskosten halbieren sich und deine Nettomarge gewinnt 5 Punkte." },
     apply: s => ({ ...s, sellMult: s.sellMult * 1.05, utilityCostMult: (s.utilityCostMult || 1) * 0.80 }) },
-  { id: 'salle_blanche_basique', Icon: FlaskConical, count: 1, destructible: false, phase: 3, name: { fr: 'Salle blanche basique', en: 'Basic cleanroom', es: 'Sala blanca básica', zh: "基础洁净室", ru: "Базовая чистая комната", it: "Camera bianca base", de: "Basis-Reinraum" }, desc: { fr: 'prix ×1.10', en: 'price ×1.10', es: 'precio ×1.10', zh: "价格 ×1.10", ru: "цена ×1.10", it: "prezzo ×1.10", de: "Preis ×1.10" }, cost: 320000,
+  { id: 'salle_blanche_basique', Icon: FlaskConical, count: 1, destructible: false, phase: 3, name: { fr: 'Salle blanche basique', en: 'Basic cleanroom', es: 'Sala blanca básica', zh: "基础洁净室", ru: "Базовая чистая комната", it: "Camera bianca base", de: "Basis-Reinraum" }, desc: { fr: 'prix ×1.10', en: 'price ×1.10', es: 'precio ×1.10', zh: "价格 ×1.10", ru: "цена ×1.10", it: "prezzo ×1.10", de: "Preis ×1.10" }, cost: 260000,
     longDesc: { fr: "Une vraie salle blanche avec filtration HEPA. Tes glaçons sortent purs comme du cristal de roche. Tu peux les vendre 10% plus cher et les pertes liées à la qualité divisées par cinq.", en: "A real cleanroom with HEPA filtration. Your ice cubes come out pure as rock crystal. You can sell them 10% more and quality-related losses divided by five.", es: "Una sala blanca real con filtración HEPA. Tus cubitos salen puros como cristal de roca. Puedes venderlos 10% más caros y las pérdidas por calidad divididas entre cinco.", zh: "配备HEPA过滤的真正洁净室。你的冰块纯净得像水晶。售价可提高10%，质量相关损失减少五倍。", ru: "Настоящая чистая комната с HEPA-фильтрацией. Кубики выходят чистыми как горный хрусталь. Продавай на 10% дороже, потери по качеству делятся на пять.", it: "Una vera camera bianca con filtrazione HEPA. I tuoi cubetti escono puri come cristallo di rocca. Vendili al 10% in più e perdite di qualità divise per cinque.", de: "Ein echter Reinraum mit HEPA-Filterung. Deine Eiswürfel kommen rein wie Bergkristall raus. 10% höherer Verkaufspreis und Qualitätsverluste durch fünf geteilt." },
     apply: s => ({ ...s, sellMult: s.sellMult * 1.10 }) },
   { id: 'hub_regional', Icon: Building2, count: 1, destructible: false, phase: 3, name: { fr: 'Hub logistique régional', en: 'Regional logistics hub', es: 'Hub logístico regional', zh: "区域物流枢纽", ru: "Региональный логистический хаб", it: "Hub logistico regionale", de: "Regionaler Logistik-Hub" }, desc: { fr: '+2 dépôts · trajets ÷1.5', en: '+2 depots · trips ÷1.5', es: '+2 depósitos · trayectos ÷1.5', zh: "+2 仓库 · 行程 ÷1.5", ru: "+2 склада · поездки ÷1.5", it: "+2 depositi · tragitti ÷1.5", de: "+2 Depots · Fahrten ÷1.5" }, cost: 190000,
@@ -1551,10 +1537,10 @@ const UPGRADES = [
   { id: 'maintenance_preventive', Icon: Wrench, count: 1, destructible: false, phase: 3, name: { fr: 'Maintenance préventive', en: 'Preventive maintenance', es: 'Mantenimiento preventivo', zh: "预防性维护", ru: "Профилактическое обслуживание", it: "Manutenzione preventiva", de: "Vorbeugende Wartung" }, desc: { fr: 'risque panne ÷4 · fonte réduite', en: 'breakdown risk ÷4 · less melt', es: 'riesgo avería ÷4 · menos fundido', zh: "故障风险 ÷4 · 减少融化", ru: "риск поломки ÷4 · меньше таяния", it: "rischio guasti ÷4 · meno fusione", de: "Ausfallrisiko ÷4 · weniger Schmelze" }, cost: 110000,
     longDesc: { fr: "Tu contractes une équipe de techniciens qui vérifie chaque mois tes appareils de froid (congélateurs, turbine, cryo) et ta chaîne. Les pannes de chaîne ET de tes appareils — d'autant plus fréquentes que ton usine grossit et qu'il fait chaud — voient leur risque divisé par 4, et la part de stock qui fond à chaque panne est réduite de moitié. (Les isolants passifs comme les sacs et caissons ne tombent pas en panne.) L'assurance-vie de ton outil de production dès que tu montes en cadence.", en: "You hire a technician team that checks your cold appliances (freezers, turbine, cryo) and your line every month. Chain AND appliance breakdowns — which get more frequent as your factory grows and the heat rises — see their risk divided by 4, and the share of stock that melts per breakdown is halved. (Passive insulation like bags and boxes never breaks down.) The life insurance of your production rig once you scale up.", es: "Contratas un equipo de técnicos que revisa cada mes tus aparatos de frío (congeladores, turbina, cryo) y tu línea. Las averías de línea Y de tus aparatos —cada vez más frecuentes según crece tu fábrica y sube el calor— ven su riesgo dividido por 4, y la parte de stock que se funde por avería se reduce a la mitad. (El aislante pasivo como bolsas y cajones no se avería.) El seguro de vida de tu producción en cuanto subes de cadencia.", zh: "你聘请技术团队每月检查你的制冷设备（冷柜、涡轮、深冷）和生产线。生产线和设备故障——工厂越大、天气越热就越频繁——风险降为四分之一，每次故障融化的库存减半。（保温袋、保温箱等被动隔热件不会故障。）当你提升产能时，这是你生产工具的人寿保险。", ru: "Вы нанимаете команду техников, которая ежемесячно проверяет ваши холодильные приборы (морозильники, турбина, крио) и линию. Поломки линии И приборов — тем более частые, чем больше фабрика и сильнее жара — снижают риск вчетверо, а доля запаса, тающая при каждой поломке, уменьшается вдвое. (Пассивная изоляция вроде пакетов и ящиков не ломается.) Страховка жизни производства, как только вы наращиваете темп.", it: "Assumi un team di tecnici che controlla ogni mese i tuoi apparecchi del freddo (congelatori, turbina, cryo) e la linea. I guasti di linea E degli apparecchi — sempre più frequenti man mano che la fabbrica cresce e il caldo aumenta — vedono il rischio diviso per 4, e la quota di scorta che si scioglie a ogni guasto è dimezzata. (Gli isolanti passivi come sacche e contenitori non si guastano.) L'assicurazione sulla vita della produzione appena sali di cadenza.", de: "Du beauftragst ein Technikerteam, das monatlich deine Kältegeräte (Gefriertruhen, Turbine, Cryo) und deine Linie prüft. Linien- UND Geräteausfälle — umso häufiger, je größer die Fabrik und je heißer es wird — sehen ihr Risiko geviertelt, und der bei jedem Ausfall schmelzende Bestandsanteil wird halbiert. (Passive Dämmung wie Beutel und Boxen fällt nicht aus.) Die Lebensversicherung deiner Produktion, sobald du hochskalierst." },
     apply: s => s },
-  { id: 'entrepot_xl', Icon: Factory, count: 1, destructible: false, phase: 3, name: { fr: 'Entrepôt XL', en: 'XL warehouse', es: 'Almacén XL', zh: "超大仓库", ru: "Склад XL", it: "Magazzino XL", de: "XL-Lager" }, desc: { fr: '+4000 cap', en: '+4000 cap', es: '+4000 cap', zh: "+4000 容量", ru: "+4000 ёмкость", it: "+4000 cap", de: "+4000 Kap" }, cost: 560000,
+  { id: 'entrepot_xl', Icon: Factory, count: 1, destructible: false, phase: 3, name: { fr: 'Entrepôt XL', en: 'XL warehouse', es: 'Almacén XL', zh: "超大仓库", ru: "Склад XL", it: "Magazzino XL", de: "XL-Lager" }, desc: { fr: '+4000 cap', en: '+4000 cap', es: '+4000 cap', zh: "+4000 容量", ru: "+4000 ёмкость", it: "+4000 cap", de: "+4000 Kap" }, cost: 350000,
     longDesc: { fr: "Tu signes pour un entrepôt XL avec quai de chargement double. 4000 places en plus. Tu peux désormais gérer des contrats massifs sans saturation.", en: "You sign for an XL warehouse with double loading dock. 4000 extra slots. You can now handle massive contracts without saturation.", es: "Firmas por un almacén XL con muelle de carga doble. 4000 plazas extra. Ya puedes gestionar contratos masivos sin saturación.", zh: "你签下双装卸台的超大仓库。多4000个位。现在可以处理大型合同而不饱和。", ru: "Подписываешь договор на XL-склад с двойной погрузочной зоной. +4000 мест. Можно обрабатывать массивные контракты без насыщения.", it: "Firmi per un magazzino XL con doppia banchina di carico. 4000 posti in più. Puoi gestire contratti enormi senza saturazione.", de: "Du unterschreibst für ein XL-Lager mit doppelter Laderampe. 4000 Plätze mehr. Du kannst jetzt massive Verträge ohne Sättigung bewältigen." },
     apply: s => ({ ...s, capBonus: s.capBonus + 4000 }) },
-  { id: 'deuxieme_zone_depot', Icon: Truck, count: 1, destructible: false, phase: 3, name: { fr: 'Deuxième zone dépôt', en: 'Second depot zone', es: 'Segunda zona de depósito', zh: "第二仓储区", ru: "Вторая зона склада", it: "Seconda zona deposito", de: "Zweite Depotzone" }, desc: { fr: '+1 hub · capacité flotte ×1.5', en: '+1 hub · fleet capacity ×1.5', es: '+1 hub · capacidad flota ×1.5', zh: "+1 枢纽 · 车队容量 ×1.5", ru: "+1 хаб · ёмкость парка ×1.5", it: "+1 hub · capacità flotta ×1.5", de: "+1 Hub · Flottenkapazität ×1.5" }, cost: 560000,
+  { id: 'deuxieme_zone_depot', Icon: Truck, count: 1, destructible: false, phase: 3, name: { fr: 'Deuxième zone dépôt', en: 'Second depot zone', es: 'Segunda zona de depósito', zh: "第二仓储区", ru: "Вторая зона склада", it: "Seconda zona deposito", de: "Zweite Depotzone" }, desc: { fr: '+1 hub · capacité flotte ×1.5', en: '+1 hub · fleet capacity ×1.5', es: '+1 hub · capacidad flota ×1.5', zh: "+1 枢纽 · 车队容量 ×1.5", ru: "+1 хаб · ёмкость парка ×1.5", it: "+1 hub · capacità flotta ×1.5", de: "+1 Hub · Flottenkapazität ×1.5" }, cost: 350000,
     longDesc: { fr: "Tu doubles ta zone de dépôt avec un hub secondaire. La capacité totale de ta flotte est multipliée par 1.5, et tu débloques un emplacement camion supplémentaire pour les contrats parallèles.", en: "You double your depot zone with a secondary hub. Total fleet capacity is multiplied by 1.5, and you unlock an extra truck slot for parallel contracts.", es: "Duplicas tu zona de depósito con un hub secundario. La capacidad total de tu flota se multiplica por 1.5 y desbloqueas un espacio de camión extra para contratos paralelos.", zh: "你用第二枢纽扩展仓储区域。车队总容量 ×1.5，解锁额外卡车位以处理并行合同。", ru: "Удваиваете зону склада вторичным хабом. Общая ёмкость парка ×1.5, открываете дополнительный слот грузовика для параллельных контрактов.", it: "Raddoppi la zona deposito con un hub secondario. La capacità totale della flotta ×1.5, sblocchi uno slot camion in più per contratti paralleli.", de: "Du verdoppelst deine Depotzone mit einem Sekundärhub. Gesamtflottenkapazität ×1.5, du schaltest einen zusätzlichen LKW-Slot für parallele Verträge frei." },
     apply: s => ({ ...s, linesBonus: s.linesBonus + 1 }) },
   // === PHASE 2 — SABINE · JURIDIQUE ===
@@ -1565,62 +1551,50 @@ const UPGRADES = [
   { id: 'janice_jr',       Icon: Megaphone, count: 1, destructible: false, phase: 3, name: { fr: 'Engager une agence marketing', en: 'Hire a marketing agency', es: 'Contratar una agencia de marketing', zh: "聘请营销代理公司", ru: "Нанять маркетинговое агентство", it: "Ingaggia un'agenzia marketing", de: "Marketingagentur engagieren" }, desc: { fr: 'Débloque les campagnes · risque de bourde', en: 'Unlocks campaigns · misfire risk', es: 'Desbloquea campañas · riesgo de error', zh: "解锁营销活动 · 有翻车风险", ru: "Открывает кампании · риск провала", it: "Sblocca le campagne · rischio errore", de: "Schaltet Kampagnen frei · Patzer-Risiko" }, cost: 60000,
     longDesc: { fr: "Tu signes avec une agence de communication coûteuse. Elle pilote tes campagnes marketing et fait monter ta notoriété — mais elle facture cher et, de temps en temps, sort une pub à côté de la plaque qui fait CHUTER ta notoriété. Aucun visage, aucun bureau : juste une facture et des résultats en dents de scie.", en: "You sign with a pricey communications agency. It runs your marketing campaigns and grows your awareness — but it bills steeply and, every now and then, ships an off-target ad that DROPS your awareness. No face, no office: just an invoice and uneven results.", es: "Firmas con una agencia de comunicación cara. Dirige tus campañas de marketing y aumenta tu notoriedad, pero factura caro y, de vez en cuando, saca un anuncio fuera de lugar que HACE CAER tu notoriedad. Sin cara, sin oficina: solo una factura y resultados irregulares.", zh: "你签下一家昂贵的传播代理公司。它操盘你的营销活动、提升知名度——但收费高昂，而且时不时推出一则离谱的广告，让你的知名度不升反降。没有面孔，没有办公室：只有账单和起伏不定的成绩。", ru: "Вы заключаете контракт с дорогим коммуникационным агентством. Оно ведёт ваши маркетинговые кампании и повышает известность — но выставляет крупные счета и время от времени выпускает неудачную рекламу, которая СНИЖАЕТ известность. Ни лица, ни кабинета: только счёт и нестабильные результаты.", it: "Firmi con una costosa agenzia di comunicazione. Gestisce le tue campagne marketing e fa salire la notorietà — ma fattura caro e, ogni tanto, sforna una pubblicità fuori bersaglio che FA CROLLARE la notorietà. Nessun volto, nessun ufficio: solo una fattura e risultati altalenanti.", de: "Du unterschreibst bei einer teuren Kommunikationsagentur. Sie steuert deine Marketingkampagnen und steigert deine Bekanntheit — rechnet aber happig ab und bringt hin und wieder eine danebenliegende Werbung heraus, die deine Bekanntheit ABSTÜRZEN lässt. Kein Gesicht, kein Büro: nur eine Rechnung und schwankende Ergebnisse." },
     apply: s => ({ ...s, hasJanice: true, marketingMult: Math.max(s.marketingMult, 1.4) }) },
-  { id: 'karen_junior',    Icon: UserCheck, count: 1, destructible: false, phase: 2, name: { fr: 'Embaucher Karen · RH Junior', en: 'Hire Karen · HR Junior', es: 'Contratar a Karen · RRHH Junior', zh: "雇用凯伦 · 人事初级", ru: "Нанять Карен · HR Джуниор", it: "Assumi Karen · RU Junior", de: "Karen einstellen · HR Junior" }, desc: { fr: 'Moral niveau de base +3', en: 'Morale base level +3', es: 'Nivel base moral +3', zh: "士气基线 +3", ru: "Базовая мораль +3", it: "Livello base morale +3", de: "Moral-Basis +3" }, cost: 13000,
-    salary: { bas: 45, std: 90, haut: 135 }, salaryRole: 'karen', gradeName: { fr: "RH Junior", en: "HR Junior", es: "RRHH Junior", zh: "人事初级", ru: "HR Джуниор", it: "RU Junior", de: "HR Junior" },
-    longDesc: { fr: "Tu structures enfin la fonction RH avec une vraie professionnelle, formée à dénouer les conflits dans une boîte de logistique. Sa simple présence apaise l'équipe : niveau de base moral à 73 au lieu de 70 pour tout le monde. Elle gère anniversaires et premiers événements saisonniers. Tu commences à parler d'entreprise structurée.", en: "You finally structure the HR function with a real professional, trained to defuse conflicts at a logistics company. Her mere presence calms the team: morale base level 73 instead of 70 for everyone. She handles birthdays and first seasonal events. You're starting to look like a structured company.", es: "Por fin estructuras la función RH con una profesional de verdad, formada en desactivar conflictos en una empresa de logística. Su simple presencia calma al equipo: nivel base moral a 73 en vez de 70 para todos. Gestiona cumpleaños y primeros eventos estacionales. Empiezas a hablar de empresa estructurada.", zh: "你终于用一位真正的专业人士来搭建人事职能，她在一家物流公司里练就了化解冲突的本事。她的存在本身就能安抚团队：所有人士气基线73而非70。她负责生日和首批季节活动。你开始像一家有架构的公司了。", ru: "Вы наконец-то выстраиваете HR-функцию с настоящим профессионалом, набившим руку на разрешении конфликтов в логистической компании. Само её присутствие успокаивает команду: базовая мораль 73 вместо 70 для всех. Она занимается днями рождения и первыми сезонными мероприятиями. Вы начинаете походить на структурированную компанию.", it: "Finalmente strutturi la funzione RU con una vera professionista, formata a sbrogliare i conflitti in una società di logistica. La sua sola presenza calma il team: livello base morale 73 invece di 70 per tutti. Gestisce compleanni e primi eventi stagionali. Inizi ad assomigliare a un'azienda strutturata.", de: "Du strukturierst endlich die HR-Funktion mit einer echten Profi, geschult darin, Konflikte in einem Logistikunternehmen zu entschärfen. Allein ihre Präsenz beruhigt das Team: Moral-Basis 73 statt 70 für alle. Sie kümmert sich um Geburtstage und erste saisonale Events. Du fängst an, wie ein strukturiertes Unternehmen auszusehen." },
-    apply: s => ({ ...s }) },
-  { id: 'karen_senior',    Icon: UserCheck, count: 2, destructible: false, phase: 2, name: { fr: 'Karen Senior · Responsable RH', en: 'Karen Senior · HR Manager', es: 'Karen Senior · Responsable RRHH', zh: "凯伦, 高级 · 人事经理", ru: "Карен, Сеньор · HR-менеджер", it: "Karen Senior · Responsabile RU", de: "Karen Senior · HR-Managerin" }, desc: { fr: 'Niveau de base +5 · Team-building débloqué', en: 'Base level +5 · Team-building unlocked', es: 'Nivel base +5 · Team-building desbloqueado', zh: "基线 +5 · 解锁团建", ru: "База +5 · Тимбилдинг открыт", it: "Livello base +5 · Team-building sbloccato", de: "Basis +5 · Teambuilding freigeschaltet" }, cost: 48000,
-    salary: { bas: 555, std: 840, haut: 1310 }, salaryRole: 'karen', gradeName: { fr: "Responsable RH", en: "HR Manager", es: "Responsable RRHH", zh: "人事经理", ru: "HR-менеджер", it: "Responsabile RU", de: "HR-Managerin" },
-    longDesc: { fr: "Karen passe Responsable RH. Niveau de base moral +5 pour toute l'équipe. Surtout : elle débloque le bouton TEAM-BUILDING, pour 300€ tu lances une session qui booste la production de tous de +25% pendant 60 secondes et donne +12 de moral à tous. Récupération 240s.", en: "Karen becomes HR Manager. Morale base level +5 for everyone. Most importantly: she unlocks the TEAM-BUILDING button, for €300 you trigger a session that boosts everyone's production by +25% for 60s and adds +12 morale to all. 240s recovery.", es: "Karen pasa a Responsable RRHH. Nivel base moral +5 para todo el equipo. Sobre todo: desbloquea el botón TEAM-BUILDING, por 300€ lanzas una sesión que aumenta la producción de todos en +25% durante 60s y da +12 de moral a todos. Recuperación 240s.", zh: "凯伦成为人事经理。所有人士气基线 +5。最重要的是：她解锁团建按钮,,花€300触发一场活动，60秒内全员生产 +25%，并给所有人 +12 士气。240秒冷却。", ru: "Карен становится HR-менеджером. Базовая мораль +5 для всех. Что важнее: она открывает кнопку ТИМБИЛДИНГ, за €300 вы запускаете сессию, которая повышает производство всех на +25% на 60с и добавляет +12 морали всем. Перезарядка 240с.", it: "Karen diventa Responsabile RU. Livello base morale +5 per tutti. Soprattutto: sblocca il pulsante TEAM-BUILDING, per €300 attivi una sessione che dà +25% di produzione a tutti per 60s e +12 morale a tutti. Ricarica 240s.", de: "Karen wird HR-Managerin. Moral-Basis +5 für alle. Vor allem: Sie schaltet den TEAMBUILDING-Knopf frei, für 300€ löst du eine Session aus, die die Produktion aller für 60s um +25% steigert und allen +12 Moral gibt. 240s Abklingzeit." },
-    apply: s => ({ ...s }) },
-  { id: 'karen_drh',       Icon: UserCheck, count: 3, destructible: false, phase: 3, name: { fr: 'Karen DRH', en: 'Karen HR Director', es: 'Karen DRH', zh: "凯伦, 人事总监", ru: "Карен, HR-директор", it: "Karen Direttrice RU", de: "Karen HR-Direktorin" }, desc: { fr: 'Niveau de base +8 · Médiation préventive · Récupération actions ÷2', en: 'Base level +8 · Preventive mediation · Action recovery ÷2', es: 'Nivel base +8 · Mediación preventiva · Recuperación acciones ÷2', zh: "基线 +8 · 预防性调解 · 行动冷却 ÷2", ru: "База +8 · Превентивная медиация · Перезарядка действий ÷2", it: "Livello base +8 · Mediazione preventiva · Ricarica azioni ÷2", de: "Basis +8 · Präventive Mediation · Aktions-Abklingzeit ÷2" }, cost: 110000,
-    salary: { bas: 1385, std: 2100, haut: 3275 }, salaryRole: 'karen', gradeName: { fr: "DRH", en: "HR Director", es: "DRH", zh: "人事总监", ru: "HR-директор", it: "Direttrice RU", de: "HR-Direktorin" },
-    longDesc: { fr: "Karen devient DRH. Niveau de base moral +8 pour toute l'équipe. Le récupération du team-building tombe à 120s (au lieu de 240s). C'est le top de la pyramide : ton équipe est devenue une vraie communauté.", en: "Karen becomes HR Director. Morale base level +8 for the entire team. Team-building recovery drops to 120s (instead of 240s). Top of the pyramid: your team has become a real community.", es: "Karen se vuelve DRH. Nivel base moral +8 para todo el equipo. El recuperación del team-building baja a 120s (en vez de 240s). Tope de la pirámide: tu equipo se ha convertido en una verdadera comunidad.", zh: "凯伦成为人事总监。全团队士气基线 +8。团建冷却降至120秒（而非240秒）。金字塔顶端：你的团队已成为一个真正的集体。", ru: "Карен становится HR-директором. Базовая мораль +8 для всей команды. Перезарядка тимбилдинга падает до 120с (вместо 240с). Вершина пирамиды: ваша команда стала настоящим сообществом.", it: "Karen diventa Direttrice RU. Livello base morale +8 per tutto il team. La ricarica del team-building scende a 120s (invece di 240s). Vertice della piramide: il tuo team è diventato una vera comunità.", de: "Karen wird HR-Direktorin. Moral-Basis +8 fürs ganze Team. Teambuilding-Abklingzeit sinkt auf 120s (statt 240s). Spitze der Pyramide: Dein Team ist eine echte Gemeinschaft geworden." },
-    apply: s => ({ ...s }) },
   // === PHASE 3 — MARK · DIRECTEUR ACHATS ===
   // === PHASE 3 — MEGA-UPGRADES TIER 1 ===
-  { id: 'usine_etendue', Icon: Factory, count: 1, destructible: false, phase: 3, name: { fr: 'Usine étendue', en: 'Extended factory', es: 'Fábrica ampliada', zh: "扩建工厂", ru: "Расширенная фабрика", it: "Fabbrica estesa", de: "Erweiterte Fabrik" }, desc: { fr: 'cap +3000 · prod ×1.07', en: 'cap +3000 · prod ×1.07', es: 'cap +3000 · prod ×1.07', zh: "容量 +3000 · 生产 ×1.07", ru: "ёмк +3000 · произв ×1.07", it: "cap +3000 · prod ×1.07", de: "Kap +3000 · Prod ×1.07" }, cost: 320000,
+  { id: 'usine_etendue', Icon: Factory, count: 1, destructible: false, phase: 3, name: { fr: 'Usine étendue', en: 'Extended factory', es: 'Fábrica ampliada', zh: "扩建工厂", ru: "Расширенная фабрика", it: "Fabbrica estesa", de: "Erweiterte Fabrik" }, desc: { fr: 'cap +3000 · prod ×1.07', en: 'cap +3000 · prod ×1.07', es: 'cap +3000 · prod ×1.07', zh: "容量 +3000 · 生产 ×1.07", ru: "ёмк +3000 · произв ×1.07", it: "cap +3000 · prod ×1.07", de: "Kap +3000 · Prod ×1.07" }, cost: 260000,
     longDesc: { fr: "Tu rachètes l'entrepôt mitoyen et tu casses le mur. L'espace s'étend : capacité +3000 et production +7%. Premier vrai saut industriel.", en: "You buy the adjacent warehouse and knock down the wall. Space expands: capacity +3000 and production +7%. First real industrial leap.", es: "Compras el almacén contiguo y derribas el muro. El espacio se amplía: capacidad +3000 y producción +7%. Primer salto industrial real.", zh: "你买下隔壁仓库并打通墙壁。空间扩展：容量 +3000，产量 +7%。第一次真正的工业飞跃。", ru: "Покупаешь соседний склад и сносишь стену. Пространство расширяется: ёмкость +3000, производство +7%. Первый настоящий промышленный скачок.", it: "Compri il magazzino adiacente e abbatti il muro. Lo spazio si amplia: capacità +3000 e produzione +7%. Primo vero salto industriale.", de: "Du kaufst das angrenzende Lager und reißt die Wand ein. Der Raum erweitert sich: Kapazität +3000 und Produktion +7%. Erster echter Industriesprung." },
     apply: s => ({ ...s, capBonus: s.capBonus + 3000, prodSpeedMult: s.prodSpeedMult * 1.07 }) },
-  { id: 'doseur_precis', Icon: Gauge, count: 1, destructible: false, phase: 3, name: { fr: 'Doseur ultra-précis', en: 'Ultra-precise doser', es: 'Dosificador ultra-preciso', zh: "超精密分配器", ru: "Ультра-точный дозатор", it: "Dosatore ultra-preciso", de: "Ultra-präziser Dosierer" }, desc: { fr: 'prix ×1.03 · prod ×1.03', en: 'price ×1.03 · prod ×1.03', es: 'precio ×1.03 · prod ×1.03', zh: "价格 ×1.03 · 生产 ×1.03", ru: "цена ×1.03 · произв ×1.03", it: "prezzo ×1.03 · prod ×1.03", de: "Preis ×1.03 · Prod ×1.03" }, cost: 720000,
+  { id: 'doseur_precis', Icon: Gauge, count: 1, destructible: false, phase: 3, name: { fr: 'Doseur ultra-précis', en: 'Ultra-precise doser', es: 'Dosificador ultra-preciso', zh: "超精密分配器", ru: "Ультра-точный дозатор", it: "Dosatore ultra-preciso", de: "Ultra-präziser Dosierer" }, desc: { fr: 'prix ×1.03 · prod ×1.03', en: 'price ×1.03 · prod ×1.03', es: 'precio ×1.03 · prod ×1.03', zh: "价格 ×1.03 · 生产 ×1.03", ru: "цена ×1.03 · произв ×1.03", it: "prezzo ×1.03 · prod ×1.03", de: "Preis ×1.03 · Prod ×1.03" }, cost: 400000,
     longDesc: { fr: "Un système de dosage au gramme près. Plus de gaspillage, plus de surcoût. Ta marge bondit de 3% et la production accélère de 3%.", en: "A dosing system precise to the gram. No more waste, no more overspending. Your margin jumps 3% and production accelerates 3%.", es: "Un sistema de dosificación al gramo exacto. Sin desperdicio, sin sobrecostes. Tu margen sube un 3% y la producción acelera un 3%.", zh: "精确到克的分配系统。不再浪费，不再超支。利润率跳升3%，生产加速3%。", ru: "Система дозирования с точностью до грамма. Никаких потерь, никакого перерасхода. Маржа растёт на 3%, производство ускоряется на 3%.", it: "Un sistema di dosaggio al grammo. Niente più sprechi, niente più costi extra. Il margine sale del 3% e la produzione accelera del 3%.", de: "Ein grammgenaues Dosiersystem. Keine Verschwendung, keine Mehrkosten. Deine Marge springt 3% und Produktion beschleunigt 3%." },
     apply: s => ({ ...s, sellMult: s.sellMult * 1.03, prodSpeedMult: s.prodSpeedMult * 1.03 }) },
-  { id: 'auto_lignes', Icon: Factory, count: 1, destructible: false, phase: 3, name: { fr: 'Automatisation des lignes', en: 'Line automation', es: 'Automatización de líneas', zh: "生产线自动化", ru: "Автоматизация линий", it: "Automazione linee", de: "Linien-Automation" }, desc: { fr: 'prod ×1.16 · prix ×1.05', en: 'prod ×1.16 · price ×1.05', es: 'prod ×1.16 · precio ×1.05', zh: "生产 ×1.16 · 价格 ×1.05", ru: "произв ×1.16 · цена ×1.05", it: "prod ×1.16 · prezzo ×1.05", de: "Prod ×1.16 · Preis ×1.05" }, cost: 1000000,
+  { id: 'auto_lignes', Icon: Factory, count: 1, destructible: false, phase: 3, name: { fr: 'Automatisation des lignes', en: 'Line automation', es: 'Automatización de líneas', zh: "生产线自动化", ru: "Автоматизация линий", it: "Automazione linee", de: "Linien-Automation" }, desc: { fr: 'prod ×1.16 · prix ×1.05', en: 'prod ×1.16 · price ×1.05', es: 'prod ×1.16 · precio ×1.05', zh: "生产 ×1.16 · 价格 ×1.05", ru: "произв ×1.16 · цена ×1.05", it: "prod ×1.16 · prezzo ×1.05", de: "Prod ×1.16 · Preis ×1.05" }, cost: 480000,
     longDesc: { fr: "Tu équipes les lignes de capteurs et d'automates. Production doublée et consommation d'énergie en chute libre. Les employés supervisent au lieu d'exécuter.", en: "You equip lines with sensors and automatons. Production doubled, energy consumption in free fall. Employees supervise instead of executing.", es: "Equipas las líneas con sensores y autómatas. Producción duplicada y consumo de energía en caída libre. Los empleados supervisan en vez de ejecutar.", zh: "你给生产线装上传感器和自动装置。产量翻倍，能耗直线下降。员工从执行者变为监督者。", ru: "Оснащаешь линии датчиками и автоматами. Производство удваивается, энергопотребление падает. Сотрудники переходят от исполнения к контролю.", it: "Equipaggi le linee con sensori e automi. Produzione raddoppiata, consumo energetico in caduta libera. I dipendenti supervisionano invece di eseguire.", de: "Du rüstest die Linien mit Sensoren und Automaten aus. Produktion verdoppelt, Energieverbrauch im freien Fall. Mitarbeiter überwachen statt auszuführen." },
     apply: s => ({ ...s, prodSpeedMult: s.prodSpeedMult * 1.16, sellMult: s.sellMult * 1.05 }) },
-  { id: 'salle_blanche_iso5', Icon: FlaskConical, count: 1, destructible: false, phase: 3, name: { fr: 'Salle blanche ISO 5', en: 'ISO 5 cleanroom', es: 'Sala blanca ISO 5', zh: "ISO 5 洁净室", ru: "Чистая комната ISO 5", it: "Camera bianca ISO 5", de: "ISO-5-Reinraum" }, desc: { fr: 'prix ×1.07', en: 'price ×1.07', es: 'precio ×1.07', zh: "价格 ×1.07", ru: "цена ×1.07", it: "prezzo ×1.07", de: "Preis ×1.07" }, cost: 1200000,
+  { id: 'salle_blanche_iso5', Icon: FlaskConical, count: 1, destructible: false, phase: 3, name: { fr: 'Salle blanche ISO 5', en: 'ISO 5 cleanroom', es: 'Sala blanca ISO 5', zh: "ISO 5 洁净室", ru: "Чистая комната ISO 5", it: "Camera bianca ISO 5", de: "ISO-5-Reinraum" }, desc: { fr: 'prix ×1.07', en: 'price ×1.07', es: 'precio ×1.07', zh: "价格 ×1.07", ru: "цена ×1.07", it: "prezzo ×1.07", de: "Preis ×1.07" }, cost: 540000,
     longDesc: { fr: "Salle blanche certifiée ISO 5 : qualité pharmaceutique. Tes glaçons deviennent un produit premium recherché, prix de vente ×1.07 et les retours clients fondent de moitié.", en: "ISO 5 certified cleanroom: pharmaceutical quality. Your ice cubes become a sought-after premium product, sell price ×1.07 and customer returns melt in half.", es: "Sala blanca certificada ISO 5: calidad farmacéutica. Tus cubitos se vuelven un producto premium codiciado, precio venta ×1.07 y devoluciones a la mitad.", zh: "ISO 5 认证洁净室：制药级品质。你的冰块变身抢手的高端产品，售价 ×1.07，客户退货减半。", ru: "Сертифицированная по ISO 5 чистая комната: фармацевтическое качество. Кубики становятся востребованным премиум-продуктом, цена продажи ×1.07, возвраты сокращаются вдвое.", it: "Camera bianca certificata ISO 5: qualità farmaceutica. I cubetti diventano un prodotto premium ricercato, prezzo vendita ×1.07 e resi clienti dimezzati.", de: "ISO-5-zertifizierter Reinraum: pharmazeutische Qualität. Deine Eiswürfel werden zum begehrten Premiumprodukt, Verkaufspreis ×1.07, Kundenretouren halbiert." },
     apply: s => ({ ...s, sellMult: s.sellMult * 1.07 }) },
-  { id: 'cogeneration', Icon: Zap, count: 1, destructible: false, phase: 3, name: { fr: 'Cogénération', en: 'Cogeneration', es: 'Cogeneración', zh: "热电联产", ru: "Когенерация", it: "Cogenerazione", de: "Kraft-Wärme-Kopplung" }, desc: { fr: 'prix ×1.03 · énergie −30%', en: 'price ×1.03 · energy −30%', es: 'precio ×1.03 · energía −30%', zh: "价格 ×1.03 · 能源 −30%", ru: "цена ×1.03 · энергия −30%", it: "prezzo ×1.03 · energia −30%", de: "Preis ×1.03 · Energie −30%" }, cost: 1680000,
+  { id: 'cogeneration', Icon: Zap, count: 1, destructible: false, phase: 3, name: { fr: 'Cogénération', en: 'Cogeneration', es: 'Cogeneración', zh: "热电联产", ru: "Когенерация", it: "Cogenerazione", de: "Kraft-Wärme-Kopplung" }, desc: { fr: 'prix ×1.03 · énergie −30%', en: 'price ×1.03 · energy −30%', es: 'precio ×1.03 · energía −30%', zh: "价格 ×1.03 · 能源 −30%", ru: "цена ×1.03 · энергия −30%", it: "prezzo ×1.03 · energia −30%", de: "Preis ×1.03 · Energie −30%" }, cost: 640000,
     longDesc: { fr: "Tu installes un système de cogénération qui produit ta propre électricité tout en récupérant la chaleur perdue. Tes coûts énergétiques sont divisés par deux, et tu deviens partiellement autonome.", en: "You install a cogeneration system producing your own electricity while recovering wasted heat. Your energy costs are halved, and you become partially autonomous.", es: "Instalas un sistema de cogeneración que produce tu propia electricidad y recupera el calor perdido. Tus costes energéticos se reducen a la mitad y ganas autonomía parcial.", zh: "你安装热电联产系统，自产电力同时回收余热。能源成本减半，部分能源自给自足。", ru: "Устанавливаете когенерационную систему, которая производит собственное электричество и утилизирует отработанное тепло. Энергозатраты делятся пополам, частичная автономия.", it: "Installi un sistema di cogenerazione che produce la tua elettricità recuperando il calore disperso. I costi energetici si dimezzano e diventi parzialmente autonomo.", de: "Du installierst ein Kraft-Wärme-Kopplungssystem, das eigenen Strom erzeugt und Abwärme zurückgewinnt. Energiekosten halbiert, teilautonom." },
     apply: s => ({ ...s, sellMult: s.sellMult * 1.03 }) },
-  { id: 'hub_logi_ia', Icon: Truck, count: 1, destructible: false, phase: 3, name: { fr: 'Hub logistique IA', en: 'AI logistics hub', es: 'Hub logístico IA', zh: "AI物流枢纽", ru: "ИИ-логистический хаб", it: "Hub logistico IA", de: "KI-Logistik-Hub" }, desc: { fr: 'transit ×0.7 · +1 ligne', en: 'transit ×0.7 · +1 line', es: 'tránsito ×0.7 · +1 línea', zh: "运输 ×0.7 · +1 路线", ru: "транзит ×0.7 · +1 линия", it: "transito ×0.7 · +1 linea", de: "Transit ×0.7 · +1 Linie" }, cost: 1280000,
+  { id: 'hub_logi_ia', Icon: Truck, count: 1, destructible: false, phase: 3, name: { fr: 'Hub logistique IA', en: 'AI logistics hub', es: 'Hub logístico IA', zh: "AI物流枢纽", ru: "ИИ-логистический хаб", it: "Hub logistico IA", de: "KI-Logistik-Hub" }, desc: { fr: 'transit ×0.7 · +1 ligne', en: 'transit ×0.7 · +1 line', es: 'tránsito ×0.7 · +1 línea', zh: "运输 ×0.7 · +1 路线", ru: "транзит ×0.7 · +1 линия", it: "transito ×0.7 · +1 linea", de: "Transit ×0.7 · +1 Linie" }, cost: 560000,
     longDesc: { fr: "Un système d'IA pilote en temps réel les itinéraires, anticipe le trafic, optimise les tournées. Tu gagnes 30% de livraisons en plus avec la même flotte.", en: "An AI system pilots routes in real-time, anticipates traffic, optimizes tours. You gain 30% more deliveries with the same fleet.", es: "Un sistema de IA pilota rutas en tiempo real, anticipa el tráfico, optimiza recorridos. Ganas un 30% más de entregas con la misma flota.", zh: "AI系统实时调度路线、预判交通、优化车次。同样车队可多送30%。", ru: "ИИ-система управляет маршрутами в реальном времени, предвидит пробки, оптимизирует рейсы. +30% доставок при том же парке.", it: "Un sistema IA pilota le rotte in tempo reale, anticipa il traffico, ottimizza i giri. Guadagni il 30% di consegne in più con la stessa flotta.", de: "Ein KI-System steuert Routen in Echtzeit, antizipiert Verkehr, optimiert Touren. +30% Lieferungen mit derselben Flotte." },
     apply: s => ({ ...s, truckColdMult: s.truckColdMult * 0.7, linesBonus: s.linesBonus + 1 }) },
   // === PHASE 3 — MEGA-UPGRADES TIER 2 ===
-  { id: 'ia_marketing', Icon: Megaphone, count: 1, destructible: false, phase: 3, name: { fr: 'IA marketing', en: 'Marketing AI', es: 'IA marketing', zh: "营销AI", ru: "ИИ-маркетинг", it: "IA marketing", de: "Marketing-KI" }, desc: { fr: 'Campagnes ×2.5 · demande +20%', en: 'Campaigns ×2.5 · demand +20%', es: 'Campañas ×2.5 · demanda +20%', zh: "营销活动 ×2.5 · 需求 +20%", ru: "Кампании ×2.5 · спрос +20%", it: "Campagne ×2.5 · domanda +20%", de: "Kampagnen ×2.5 · Nachfrage +20%" }, cost: 480000,
+  { id: 'ia_marketing', Icon: Megaphone, count: 1, destructible: false, phase: 3, name: { fr: 'IA marketing', en: 'Marketing AI', es: 'IA marketing', zh: "营销AI", ru: "ИИ-маркетинг", it: "IA marketing", de: "Marketing-KI" }, desc: { fr: 'Campagnes ×2.5 · demande +20%', en: 'Campaigns ×2.5 · demand +20%', es: 'Campañas ×2.5 · demanda +20%', zh: "营销活动 ×2.5 · 需求 +20%", ru: "Кампании ×2.5 · спрос +20%", it: "Campagne ×2.5 · domanda +20%", de: "Kampagnen ×2.5 · Nachfrage +20%" }, cost: 320000,
     longDesc: { fr: "Tu déploies une IA qui apprend des comportements clients, ajuste les pubs en temps réel, prédit les pics de demande. Tes campagnes deviennent 2.5× plus efficaces.", en: "You deploy an AI that learns customer behaviors, adjusts ads in real-time, predicts demand peaks. Your campaigns become 2.5× more effective.", es: "Despliegas una IA que aprende comportamientos de clientes, ajusta anuncios en tiempo real, predice picos de demanda. Tus campañas son 2.5× más eficaces.", zh: "你部署AI学习客户行为、实时调整广告、预测需求高峰。营销活动效果 ×2.5。", ru: "Разворачиваете ИИ, изучающий поведение клиентов, корректирующий рекламу в реальном времени, предсказывающий пики спроса. Кампании в 2.5× эффективнее.", it: "Distribuisci un'IA che apprende i comportamenti dei clienti, regola gli annunci in tempo reale, prevede i picchi di domanda. Le campagne diventano 2.5× più efficaci.", de: "Du setzt eine KI ein, die Kundenverhalten lernt, Anzeigen in Echtzeit anpasst, Nachfragespitzen vorhersagt. Kampagnen werden 2.5× effektiver." },
     apply: s => ({ ...s, marketingMult: Math.max(s.marketingMult, 2.5) }) },
-  { id: 'usine_bis', Icon: Factory, count: 1, destructible: false, phase: 3, name: { fr: 'Usine bis', en: 'Second factory', es: 'Fábrica bis', zh: "第二工厂", ru: "Вторая фабрика", it: "Fabbrica bis", de: "Zweite Fabrik" }, desc: { fr: 'prod ×1.16 · cap +6000', en: 'prod ×1.16 · cap +6000', es: 'prod ×1.16 · cap +6000', zh: "生产 ×1.16 · 容量 +6000", ru: "произв ×1.16 · ёмк +6000", it: "prod ×1.16 · cap +6000", de: "Prod ×1.16 · Kap +6000" }, cost: 2400000,
+  { id: 'usine_bis', Icon: Factory, count: 1, destructible: false, phase: 3, name: { fr: 'Usine bis', en: 'Second factory', es: 'Fábrica bis', zh: "第二工厂", ru: "Вторая фабрика", it: "Fabbrica bis", de: "Zweite Fabrik" }, desc: { fr: 'prod ×1.16 · cap +6000', en: 'prod ×1.16 · cap +6000', es: 'prod ×1.16 · cap +6000', zh: "生产 ×1.16 · 容量 +6000", ru: "произв ×1.16 · ёмк +6000", it: "prod ×1.16 · cap +6000", de: "Prod ×1.16 · Kap +6000" }, cost: 780000,
     longDesc: { fr: "Tu duplique ton site de production : deuxième usine identique sur une autre zone. Production totale ×1.16. C'est le moment où ton entreprise passe à l'échelle nationale.", en: "You duplicate your production site: second identical factory in another zone. Total production ×1.16. This is when your company scales to national.", es: "Duplicas tu sitio de producción: segunda fábrica idéntica en otra zona. Producción total ×1.16. Es el momento en que tu empresa escala a nivel nacional.", zh: "你复制生产基地：在另一区域建相同工厂。总产量 ×1.16。公司迈向全国规模。", ru: "Дублируете производственную площадку: вторая идентичная фабрика в другой зоне. Общее производство ×1.16. Момент масштабирования до национального уровня.", it: "Duplichi il tuo sito di produzione: seconda fabbrica identica in un'altra zona. Produzione totale ×1.16. È il momento in cui la tua azienda scala a livello nazionale.", de: "Du duplizierst deinen Produktionsstandort: zweite identische Fabrik in einer anderen Zone. Gesamtproduktion ×1.16. Der Moment, in dem dein Unternehmen national wächst." },
     apply: s => ({ ...s, prodSpeedMult: s.prodSpeedMult * 1.16, capBonus: s.capBonus + 6000 }) },
-  { id: 'formation_interne', Icon: GraduationCap, count: 1, destructible: false, phase: 3, name: { fr: 'Centre de formation interne', en: 'Internal training center', es: 'Centro de formación interno', zh: "内部培训中心", ru: "Внутренний учебный центр", it: "Centro formazione interno", de: "Internes Schulungszentrum" }, desc: { fr: 'prod ×1.07 · moral +10', en: 'prod ×1.07 · morale +10', es: 'prod ×1.07 · moral +10', zh: "生产 ×1.07 · 士气 +10", ru: "произв ×1.07 · мораль +10", it: "prod ×1.07 · morale +10", de: "Prod ×1.07 · Moral +10" }, cost: 320000,
+  { id: 'formation_interne', Icon: GraduationCap, count: 1, destructible: false, phase: 3, name: { fr: 'Centre de formation interne', en: 'Internal training center', es: 'Centro de formación interno', zh: "内部培训中心", ru: "Внутренний учебный центр", it: "Centro formazione interno", de: "Internes Schulungszentrum" }, desc: { fr: 'prod ×1.07 · moral +10', en: 'prod ×1.07 · morale +10', es: 'prod ×1.07 · moral +10', zh: "生产 ×1.07 · 士气 +10", ru: "произв ×1.07 · мораль +10", it: "prod ×1.07 · morale +10", de: "Prod ×1.07 · Moral +10" }, cost: 260000,
     longDesc: { fr: "Tu ouvres un centre de formation interne où tes équipes montent en compétence. Productivité ×1.07 sur tous les employés et moral général +10 (les gens aiment apprendre).", en: "You open an internal training center where teams build skills. Productivity ×1.07 across all employees and overall morale +10 (people love learning).", es: "Abres un centro de formación interno donde los equipos suben de nivel. Productividad ×1.07 en todos los empleados y moral general +10 (a la gente le encanta aprender).", zh: "你开设内部培训中心，团队提升技能。所有员工生产力 ×1.07，整体士气 +10（人们喜欢学习）。", ru: "Открываете внутренний учебный центр, где команды повышают квалификацию. Производительность ×1.07 у всех сотрудников и общая мораль +10 (люди любят учиться).", it: "Apri un centro di formazione interno dove i team crescono in competenze. Produttività ×1.07 su tutti i dipendenti e morale generale +10 (la gente ama imparare).", de: "Du eröffnest ein internes Schulungszentrum, in dem Teams Kompetenzen aufbauen. Produktivität ×1.07 bei allen Mitarbeitern und allgemeine Moral +10 (Menschen lieben es zu lernen)." },
     apply: s => ({ ...s, prodSpeedMult: s.prodSpeedMult * 1.07 }) },
-  { id: 'robotisation', Icon: Wrench, count: 1, destructible: false, phase: 3, name: { fr: 'Robotisation partielle', en: 'Partial robotization', es: 'Robotización parcial', zh: "部分机器人化", ru: "Частичная роботизация", it: "Robotizzazione parziale", de: "Teilrobotisierung" }, desc: { fr: 'prod ×1.07 · salaires ÷2 · moral −15', en: 'prod ×1.07 · payroll ÷2 · morale −15', es: 'prod ×1.07 · nóminas ÷2 · moral −15', zh: "生产 ×1.07 · 工资 ÷2 · 士气 −15", ru: "произв ×1.07 · зарплаты ÷2 · мораль −15", it: "prod ×1.07 · stipendi ÷2 · morale −15", de: "Prod ×1.07 · Lohnkosten ÷2 · Moral −15" }, cost: 800000,
+  { id: 'robotisation', Icon: Wrench, count: 1, destructible: false, phase: 3, name: { fr: 'Robotisation partielle', en: 'Partial robotization', es: 'Robotización parcial', zh: "部分机器人化", ru: "Частичная роботизация", it: "Robotizzazione parziale", de: "Teilrobotisierung" }, desc: { fr: 'prod ×1.07 · salaires ÷2 · moral −15', en: 'prod ×1.07 · payroll ÷2 · morale −15', es: 'prod ×1.07 · nóminas ÷2 · moral −15', zh: "生产 ×1.07 · 工资 ÷2 · 士气 −15", ru: "произв ×1.07 · зарплаты ÷2 · мораль −15", it: "prod ×1.07 · stipendi ÷2 · morale −15", de: "Prod ×1.07 · Lohnkosten ÷2 · Moral −15" }, cost: 430000,
     longDesc: { fr: "Tu remplaces une partie des employés par des robots. Tu divises tes salaires par deux, mais ceux qui restent voient leurs camarades partir. Moral général −15 permanent. Un choix moral lourd, mais financièrement imbattable.", en: "You replace part of the workforce with robots. Wages halved, but those who stay watch their coworkers leave. Permanent morale −15. A heavy ethical call, but financially unbeatable.", es: "Reemplazas parte de la plantilla por robots. Salarios a la mitad, pero los que quedan ven irse a sus compañeros. Moral general −15 permanente. Decisión ética pesada, pero financieramente imbatible.", zh: "你用机器人替换部分员工。薪资减半，但留下的人看着同事离开。永久士气 −15。沉重的道德选择，但财务上无可匹敌。", ru: "Заменяете часть персонала роботами. Зарплаты вдвое меньше, но оставшиеся видят, как уходят коллеги. Перманентно −15 морали. Тяжёлый этический выбор, но финансово непобедимый.", it: "Sostituisci parte del personale con robot. Stipendi dimezzati, ma chi resta vede partire i colleghi. Morale generale −15 permanente. Scelta etica pesante, ma finanziariamente imbattibile.", de: "Du ersetzt einen Teil der Belegschaft durch Roboter. Löhne halbiert, aber die Bleibenden sehen ihre Kollegen gehen. Dauerhaft −15 Moral. Schwere ethische Entscheidung, finanziell unschlagbar." },
     apply: s => ({ ...s, prodSpeedMult: s.prodSpeedMult * 1.07 }) },
-  { id: 'predictive_analytics', Icon: BarChart3, count: 1, destructible: false, phase: 3, name: { fr: 'Analyse prédictive', en: 'Predictive analytics', es: 'Análisis predictivo', zh: "预测分析", ru: "Предиктивная аналитика", it: "Analisi predittiva", de: "Vorhersage-Analytik" }, desc: { fr: 'prix ×1.03', en: 'price ×1.03', es: 'precio ×1.03', zh: "价格 ×1.03", ru: "цена ×1.03", it: "prezzo ×1.03", de: "Preis ×1.03" }, cost: 2400000,
+  { id: 'predictive_analytics', Icon: BarChart3, count: 1, destructible: false, phase: 3, name: { fr: 'Analyse prédictive', en: 'Predictive analytics', es: 'Análisis predictivo', zh: "预测分析", ru: "Предиктивная аналитика", it: "Analisi predittiva", de: "Vorhersage-Analytik" }, desc: { fr: 'prix ×1.03', en: 'price ×1.03', es: 'precio ×1.03', zh: "价格 ×1.03", ru: "цена ×1.03", it: "prezzo ×1.03", de: "Preis ×1.03" }, cost: 780000,
     longDesc: { fr: "Tes algorithmes prédisent la demande à 95% de précision. Plus jamais de stock épuisé, plus jamais de surplus invendu. Le prix s'ajuste tout seul pour maximiser la marge.", en: "Your algorithms predict demand with 95% accuracy. Never run out of stock again, never have unsold surplus. Price auto-adjusts to maximize margin.", es: "Tus algoritmos predicen la demanda con 95% de precisión. Nunca más stock agotado, nunca más excedente sin vender. El precio se ajusta solo para maximizar el margen.", zh: "你的算法以95%精度预测需求。再无缺货，再无滞销库存。价格自动调整以最大化利润。", ru: "Ваши алгоритмы предсказывают спрос с 95% точностью. Больше никогда не закончится сток, никогда не будет непроданных излишков. Цена автоматически подгоняется для максимальной маржи.", it: "I tuoi algoritmi prevedono la domanda al 95% di precisione. Mai più scorta esaurita, mai più surplus invenduto. Il prezzo si regola da solo per massimizzare il margine.", de: "Deine Algorithmen sagen Nachfrage mit 95% Genauigkeit voraus. Nie wieder ausverkauft, nie wieder unverkaufter Überschuss. Preis passt sich automatisch an für maximale Marge." },
     apply: s => ({ ...s, sellMult: s.sellMult * 1.03 }) },
   // === PHASE 3 — MEGA-UPGRADES TIER 3 ===
-  { id: 'usine_2_0', Icon: Factory, count: 1, destructible: false, phase: 3, name: { fr: 'Usine 2.0', en: 'Factory 2.0', es: 'Fábrica 2.0', zh: "工厂 2.0", ru: "Фабрика 2.0", it: "Fabbrica 2.0", de: "Fabrik 2.0" }, desc: { fr: 'prod ×1.33 · prix ×1.05 · cap +12000', en: 'prod ×1.33 · price ×1.05 · cap +12000', es: 'prod ×1.33 · precio ×1.05 · cap +12000', zh: "生产 ×1.33 · 价格 ×1.05 · 容量 +12000", ru: "произв ×1.33 · цена ×1.05 · ёмк +12000", it: "prod ×1.33 · prezzo ×1.05 · cap +12000", de: "Prod ×1.33 · Preis ×1.05 · Kap +12000" }, cost: 4800000,
+  { id: 'usine_2_0', Icon: Factory, count: 1, destructible: false, phase: 3, name: { fr: 'Usine 2.0', en: 'Factory 2.0', es: 'Fábrica 2.0', zh: "工厂 2.0", ru: "Фабрика 2.0", it: "Fabbrica 2.0", de: "Fabrik 2.0" }, desc: { fr: 'prod ×1.33 · prix ×1.05 · cap +12000', en: 'prod ×1.33 · price ×1.05 · cap +12000', es: 'prod ×1.33 · precio ×1.05 · cap +12000', zh: "生产 ×1.33 · 价格 ×1.05 · 容量 +12000", ru: "произв ×1.33 · цена ×1.05 · ёмк +12000", it: "prod ×1.33 · prezzo ×1.05 · cap +12000", de: "Prod ×1.33 · Preis ×1.05 · Kap +12000" }, cost: 1150000,
     longDesc: { fr: "Une refonte totale : usine ultra-moderne, lignes connectées, gestion temps réel. Tout est multiplié par 1.33. C'est la version industrielle ultime, le saut technologique qui te place hors compétition.", en: "Complete overhaul: ultra-modern factory, connected lines, real-time management. Everything ×1.33. The ultimate industrial version, the tech leap putting you out of competition.", es: "Renovación total: fábrica ultra-moderna, líneas conectadas, gestión en tiempo real. Todo ×1.33. Versión industrial definitiva, salto tecnológico que te deja fuera de competencia.", zh: "全面重塑：超现代工厂、互联生产线、实时管理。全部 ×1.33。终极工业版本，让你脱离竞争的技术飞跃。", ru: "Полная переделка: ультрасовременная фабрика, связанные линии, управление в реальном времени. Всё ×1.33. Окончательная промышленная версия, технологический скачок вне конкуренции.", it: "Rifacimento totale: fabbrica ultra-moderna, linee connesse, gestione in tempo reale. Tutto ×1.33. Versione industriale definitiva, salto tecnologico fuori competizione.", de: "Komplette Überarbeitung: ultramoderne Fabrik, vernetzte Linien, Echtzeit-Management. Alles ×1.33. Die ultimative Industrieversion, der Tech-Sprung außer Konkurrenz." },
     apply: s => ({ ...s, prodSpeedMult: s.prodSpeedMult * 1.33, capBonus: s.capBonus + 12000, sellMult: s.sellMult * 1.05 }) },
-  { id: 'centre_rd', Icon: FlaskConical, count: 1, destructible: false, phase: 3, name: { fr: 'Centre R&D', en: 'R&D center', es: 'Centro I+D', zh: "研发中心", ru: "Центр R&D", it: "Centro R&S", de: "F&E-Zentrum" }, desc: { fr: 'prix ×1.05', en: 'price ×1.05', es: 'precio ×1.05', zh: "价格 ×1.05", ru: "цена ×1.05", it: "prezzo ×1.05", de: "Preis ×1.05" }, cost: 4800000,
+  { id: 'centre_rd', Icon: FlaskConical, count: 1, destructible: false, phase: 3, name: { fr: 'Centre R&D', en: 'R&D center', es: 'Centro I+D', zh: "研发中心", ru: "Центр R&D", it: "Centro R&S", de: "F&E-Zentrum" }, desc: { fr: 'prix ×1.05', en: 'price ×1.05', es: 'precio ×1.05', zh: "价格 ×1.05", ru: "цена ×1.05", it: "prezzo ×1.05", de: "Preis ×1.05" }, cost: 1150000,
     longDesc: { fr: "Un vrai centre R&D dirigé par Dr Élise. Deux glaçons signature sortent du labo : cristal pur volcanique et glaçon infusé botanique. Chacun se vend ×1.05 le prix standard.", en: "A real R&D center led by Dr Élise. Two signature ice cubes emerge from the lab: pure volcanic crystal and botanical-infused cube. Each sells at ×1.05 standard price.", es: "Un centro I+D real dirigido por la Dra. Élise. Dos cubitos firma salen del laboratorio: cristal volcánico puro y cubito infusionado botánico. Cada uno se vende ×1.05 el precio estándar.", zh: "由Élise博士领导的真正研发中心。实验室推出两款招牌冰块：纯火山水晶和植物浸渍冰块。每款售价 ×1.05 标准价。", ru: "Настоящий R&D-центр под руководством Dr Élise. Из лаборатории выходят два фирменных кубика: чистый вулканический кристалл и ботанически настоянный кубик. Каждый продаётся в ×1.05 от стандартной цены.", it: "Un vero centro R&S diretto dalla Dr.ssa Élise. Due cubetti signature escono dal lab: cristallo vulcanico puro e cubetto infuso botanico. Ciascuno si vende ×1.05 il prezzo standard.", de: "Ein echtes F&E-Zentrum unter Leitung von Dr. Élise. Zwei Signatur-Eiswürfel verlassen das Labor: reiner vulkanischer Kristall und botanisch infundierter Würfel. Jeder verkauft sich zum ×1.05 Standardpreis." },
     apply: s => ({ ...s, sellMult: s.sellMult * 1.05 }) },
-  { id: 'hub_national', Icon: Truck, count: 1, destructible: false, phase: 3, name: { fr: 'Hub logistique national', en: 'National logistics hub', es: 'Hub logístico nacional', zh: "全国物流枢纽", ru: "Национальный логистический хаб", it: "Hub logistico nazionale", de: "Nationaler Logistik-Hub" }, desc: { fr: 'transit ×0.5 · +4 lignes', en: 'transit ×0.5 · +4 lines', es: 'tránsito ×0.5 · +4 líneas', zh: "运输 ×0.5 · +4 路线", ru: "транзит ×0.5 · +4 линии", it: "transito ×0.5 · +4 linee", de: "Transit ×0.5 · +4 Linien" }, cost: 4000000,
+  { id: 'hub_national', Icon: Truck, count: 1, destructible: false, phase: 3, name: { fr: 'Hub logistique national', en: 'National logistics hub', es: 'Hub logístico nacional', zh: "全国物流枢纽", ru: "Национальный логистический хаб", it: "Hub logistico nazionale", de: "Nationaler Logistik-Hub" }, desc: { fr: 'transit ×0.5 · +4 lignes', en: 'transit ×0.5 · +4 lines', es: 'tránsito ×0.5 · +4 líneas', zh: "运输 ×0.5 · +4 路线", ru: "транзит ×0.5 · +4 линии", it: "transito ×0.5 · +4 linee", de: "Transit ×0.5 · +4 Linien" }, cost: 1050000,
     longDesc: { fr: "Une flotte de 10 camions et un réseau de dépôts dans toutes les grandes villes du pays. Tu peux livrer n'importe où sous 24h. Le maillage complet qui te rend incontournable.", en: "A 10-truck fleet and a depot network in every major city. You can deliver anywhere within 24h. The complete coverage that makes you essential.", es: "Una flota de 10 camiones y una red de depósitos en todas las grandes ciudades. Puedes entregar en cualquier lugar en 24h. La cobertura completa que te hace imprescindible.", zh: "10辆卡车车队加全国大城市的仓库网络。24小时内可送达任何地方。完整覆盖让你不可或缺。", ru: "Парк из 10 грузовиков и сеть складов во всех крупных городах. Доставка куда угодно за 24ч. Полное покрытие делает вас незаменимым.", it: "Flotta di 10 camion e rete depositi in tutte le grandi città. Consegna ovunque entro 24h. La copertura completa che ti rende indispensabile.", de: "Eine 10-LKW-Flotte und ein Depot-Netzwerk in allen Großstädten. Lieferung überall innerhalb 24h. Die komplette Abdeckung macht dich unverzichtbar." },
     apply: s => ({ ...s, linesBonus: s.linesBonus + 4, truckColdMult: s.truckColdMult * 0.5 }) },
   // === PHASE 3 — SABINE · DG JURIDIQUE ===
@@ -1701,19 +1675,19 @@ const UPGRADES = [
     apply: s => ({ ...s, sabotageRiskMult: (s.sabotageRiskMult || 1) * 0.5, truckBreakMult: (s.truckBreakMult || 1) * 0.5 }) },
 
   // === NOUVEAUX UPGRADES — PHASE 3 (+5) ===
-  { id: 'blockchain_certif', Icon: Shield, count: 1, destructible: false, phase: 3, name: { fr: 'Blockchain certification', en: 'Blockchain certification', es: 'Certificación blockchain', zh: "区块链认证", ru: "Блокчейн-сертификация", it: "Certificazione blockchain", de: "Blockchain-Zertifizierung" }, desc: { fr: 'prix ×1.05 · notoriété +10', en: 'price ×1.05 · noto +10', es: 'precio ×1.05 · noto +10', zh: "价格 ×1.05 · 声誉 +10", ru: "цена ×1.05 · известность +10", it: "prezzo ×1.05 · noto +10", de: "Preis ×1.05 · Noto +10" }, cost: 960000,
+  { id: 'blockchain_certif', Icon: Shield, count: 1, destructible: false, phase: 3, name: { fr: 'Blockchain certification', en: 'Blockchain certification', es: 'Certificación blockchain', zh: "区块链认证", ru: "Блокчейн-сертификация", it: "Certificazione blockchain", de: "Blockchain-Zertifizierung" }, desc: { fr: 'prix ×1.05 · notoriété +10', en: 'price ×1.05 · noto +10', es: 'precio ×1.05 · noto +10', zh: "价格 ×1.05 · 声誉 +10", ru: "цена ×1.05 · известность +10", it: "prezzo ×1.05 · noto +10", de: "Preis ×1.05 · Noto +10" }, cost: 470000,
     longDesc: { fr: "Chaque glaçon est traçable depuis sa source via une blockchain certifiée. Les clients scannent un QR code et accèdent à la traçabilité complète : eau, énergie, transport, carbone. Prix ×1.05 et +10 notoriété instantanée. Référence mondiale.", en: "Every cube traceable from source via certified blockchain. Customers scan a QR code and access full traceability: water, energy, transport, carbon. Price ×1.05 and +10 instant notoriety. Global benchmark.", es: "Cada cubito trazable desde origen vía blockchain certificada. Los clientes escanean QR y acceden a trazabilidad completa: agua, energía, transporte, carbono. Precio ×1.05 y +10 notoriedad instantánea. Referencia mundial.", zh: "每块冰从源头可追溯，认证区块链。客户扫QR码访问完整追溯：水、能源、运输、碳。价格×1.05，即时+10声誉。全球标杆。", ru: "Каждый кубик отслеживается от источника через сертифицированный блокчейн. Клиенты сканируют QR и получают полную прослеживаемость: вода, энергия, транспорт, углерод. Цена ×1.05 и +10 известности мгновенно. Мировой эталон.", it: "Ogni cubetto tracciabile dall'origine via blockchain certificata. I clienti scansionano un QR e accedono alla tracciabilità completa: acqua, energia, trasporto, carbonio. Prezzo ×1.05 e +10 notorietà istantanei. Riferimento mondiale.", de: "Jeder Würfel vom Ursprung über zertifizierte Blockchain rückverfolgbar. Kunden scannen QR-Code und sehen vollständige Nachverfolgbarkeit: Wasser, Energie, Transport, CO2. Preis ×1.05 und +10 Bekanntheit sofort. Globaler Maßstab." },
     apply: s => ({ ...s, sellMult: s.sellMult * 1.05, notoBonus: (s.notoBonus || 0) + 10 }) },
-  { id: 'energie_renouvelable', Icon: Zap, count: 1, destructible: false, phase: 3, name: { fr: 'Énergie 100% renouvelable', en: '100% renewable energy', es: 'Energía 100% renovable', zh: "100%可再生能源", ru: "100% возобновляемая энергия", it: "Energia 100% rinnovabile", de: "100% erneuerbare Energie" }, desc: { fr: 'charges ×0.5 · prix ×1.02', en: 'charges ×0.5 · price ×1.02', es: 'cargos ×0.5 · precio ×1.02', zh: "费用 ×0.5 · 价格 ×1.02", ru: "расходы ×0.5 · цена ×1.02", it: "spese ×0.5 · prezzo ×1.02", de: "Kosten ×0.5 · Preis ×1.02" }, cost: 1920000,
+  { id: 'energie_renouvelable', Icon: Zap, count: 1, destructible: false, phase: 3, name: { fr: 'Énergie 100% renouvelable', en: '100% renewable energy', es: 'Energía 100% renovable', zh: "100%可再生能源", ru: "100% возобновляемая энергия", it: "Energia 100% rinnovabile", de: "100% erneuerbare Energie" }, desc: { fr: 'charges ×0.5 · prix ×1.02', en: 'charges ×0.5 · price ×1.02', es: 'cargos ×0.5 · precio ×1.02', zh: "费用 ×0.5 · 价格 ×1.02", ru: "расходы ×0.5 · цена ×1.02", it: "spese ×0.5 · prezzo ×1.02", de: "Kosten ×0.5 · Preis ×1.02" }, cost: 690000,
     longDesc: { fr: "Tu équipes le site en panneaux solaires + éolienne + accumulateurs. Autonomie énergétique à 100%, charges divisées par deux. Bonus prix ×1.02 grâce au label vert et à la communication anti-greenwashing.", en: "You equip the site with solar panels + wind turbine + batteries. 100% energy autonomy, charges halved. Bonus price ×1.02 thanks to green label and anti-greenwashing communication.", es: "Equipas el sitio con paneles solares + eólica + baterías. Autonomía energética 100%, cargos divididos por dos. Bonus precio ×1.02 gracias a la etiqueta verde y comunicación anti-greenwashing.", zh: "你为基地装太阳能板+风力发电+蓄电池。100%能源自主，费用减半。绿色认证和反漂绿传播带来价格×1.02加成。", ru: "Оснащаешь объект солнечными панелями + ветряком + аккумуляторами. 100% энергонезависимость, расходы вдвое меньше. Бонус к цене ×1.02 благодаря зелёному лейблу и анти-гринвошинг-коммуникации.", it: "Equipaggi il sito con pannelli solari + eolico + batterie. Autonomia energetica 100%, spese dimezzate. Bonus prezzo ×1.02 grazie all'etichetta verde e comunicazione anti-greenwashing.", de: "Du stattest die Anlage mit Solar + Windrad + Akkus aus. 100% Energieautonomie, Kosten halbiert. Preisbonus ×1.02 dank Grünlabel und Anti-Greenwashing-Kommunikation." },
     apply: s => ({ ...s, utilMult: (s.utilMult || 1) * 0.5, sellMult: s.sellMult * 1.02 }) },
-  { id: 'stockage_cryo_avance', Icon: Snowflake, count: 1, destructible: true, phase: 3, name: { fr: 'Stockage cryogénique avancé', en: 'Advanced cryogenic storage', es: 'Almacenamiento criogénico avanzado', zh: "高级深冷储存", ru: "Продвинутое криохранилище", it: "Stoccaggio criogenico avanzato", de: "Fortgeschrittene Cryo-Lagerung" }, desc: { fr: 'cap +9000 · fonte ×0.10', en: 'cap +9000 · melt ×0.10', es: 'cap +9000 · fusión ×0.10', zh: "容量 +9000 · 融化 ×0.10", ru: "ёмкость +9000 · таяние ×0.10", it: "cap +9000 · fusione ×0.10", de: "Kap +9000 · Schmelze ×0.10" }, cost: 1280000,
+  { id: 'stockage_cryo_avance', Icon: Snowflake, count: 1, destructible: true, phase: 3, name: { fr: 'Stockage cryogénique avancé', en: 'Advanced cryogenic storage', es: 'Almacenamiento criogénico avanzado', zh: "高级深冷储存", ru: "Продвинутое криохранилище", it: "Stoccaggio criogenico avanzato", de: "Fortgeschrittene Cryo-Lagerung" }, desc: { fr: 'cap +9000 · fonte ×0.10', en: 'cap +9000 · melt ×0.10', es: 'cap +9000 · fusión ×0.10', zh: "容量 +9000 · 融化 ×0.10", ru: "ёмкость +9000 · таяние ×0.10", it: "cap +9000 · fusione ×0.10", de: "Kap +9000 · Schmelze ×0.10" }, cost: 560000,
     longDesc: { fr: "Chambre cryogénique à -80°C, 9 000 places de stock, fonte quasi-nulle (×0.10). Le rêve de tout glaçonnier : ton stock attend tranquillement les pics de demande. L'investissement qui change tout en P3.", en: "Cryogenic chamber at -80°C, 9,000 storage slots, near-zero melt (×0.10). Every ice-maker's dream: stock waits quietly for demand peaks. The investment that changes everything in P3.", es: "Cámara criogénica a -80°C, 9.000 plazas de stock, fusión casi nula (×0.10). El sueño de cualquier productor: el stock espera tranquilo los picos de demanda. La inversión que lo cambia todo en F3.", zh: "-80°C深冷库，9000储位，近零融化（×0.10）。每个制冰人的梦想：库存安静等需求高峰。P3阶段改变一切的投资。", ru: "Криогенная камера -80°C, 9 000 ячеек, почти нулевое таяние (×0.10). Мечта любого ледовара: запас спокойно ждёт пика спроса. Инвестиция, меняющая всё в P3.", it: "Camera criogenica a -80°C, 9 000 slot di stoccaggio, fusione quasi nulla (×0.10). Il sogno di ogni produttore: lo stock aspetta tranquillo i picchi di domanda. L'investimento che cambia tutto in P3.", de: "Cryo-Kammer bei -80°C, 9.000 Lagerplätze, fast null Schmelze (×0.10). Der Traum jedes Eisproduzenten: Bestand wartet ruhig auf Nachfragespitzen. Die Investition, die in P3 alles ändert." },
     apply: s => ({ ...s, capBonus: s.capBonus + 9000, meltMult: s.meltMult * 0.10 }) },
-  { id: 'reseau_diplomatique', Icon: Globe, count: 1, destructible: false, phase: 3, name: { fr: 'Réseau diplomatique', en: 'Diplomatic network', es: 'Red diplomática', zh: "外交网络", ru: "Дипломатическая сеть", it: "Rete diplomatica", de: "Diplomatisches Netzwerk" }, desc: { fr: 'notoriété +15 · contrats T7 accessibles', en: 'noto +15 · T7 contracts unlocked', es: 'noto +15 · contratos T7 desbloqueados', zh: "声誉 +15 · T7合同解锁", ru: "известность +15 · контракты T7 открыты", it: "noto +15 · contratti T7 sbloccati", de: "Noto +15 · T7-Verträge freigeschaltet" }, cost: 2400000,
+  { id: 'reseau_diplomatique', Icon: Globe, count: 1, destructible: false, phase: 3, name: { fr: 'Réseau diplomatique', en: 'Diplomatic network', es: 'Red diplomática', zh: "外交网络", ru: "Дипломатическая сеть", it: "Rete diplomatica", de: "Diplomatisches Netzwerk" }, desc: { fr: 'notoriété +15 · contrats T7 accessibles', en: 'noto +15 · T7 contracts unlocked', es: 'noto +15 · contratos T7 desbloqueados', zh: "声誉 +15 · T7合同解锁", ru: "известность +15 · контракты T7 открыты", it: "noto +15 · contratti T7 sbloccati", de: "Noto +15 · T7-Verträge freigeschaltet" }, cost: 780000,
     longDesc: { fr: "Tu embauches un consultant diplomatique (ancien ambassadeur) qui t'introduit dans les cercles d'influence. +15 notoriété instantanée, et l'accès aux contrats T7 ultra-prestigieux (palais, sommets internationaux) devient possible.", en: "You hire a diplomatic consultant (former ambassador) who introduces you in influence circles. +15 instant notoriety, and access to ultra-prestigious T7 contracts (palaces, international summits) opens up.", es: "Contratas a un consultor diplomático (ex embajador) que te introduce en círculos de influencia. +15 notoriedad instantánea, y se desbloquea acceso a contratos T7 ultra prestigiosos (palacios, cumbres internacionales).", zh: "你聘请一位外交顾问（前大使），把你引入影响力圈。即时+15声誉，超高威望T7合同（宫殿、国际峰会）通道开启。", ru: "Нанимаешь дипломатического консультанта (бывший посол), который вводит тебя в круги влияния. +15 известности мгновенно, открывается доступ к сверхпрестижным контрактам T7 (дворцы, международные саммиты).", it: "Assumi un consulente diplomatico (ex ambasciatore) che ti introduce nei circoli di influenza. +15 notorietà istantanei, e l'accesso a contratti T7 ultra-prestigiosi (palazzi, vertici internazionali) si apre.", de: "Du heuerst einen Diplomatie-Berater (Ex-Botschafter) an, der dich in Einflusskreise einführt. +15 Bekanntheit sofort, Zugang zu ultraprestigevollen T7-Verträgen (Paläste, internationale Gipfel) öffnet sich." },
     apply: s => ({ ...s, notoBonus: (s.notoBonus || 0) + 15, diplomaticAccess: true }) },
-  { id: 'rd_quantique', Icon: FlaskConical, count: 1, destructible: false, phase: 3, name: { fr: 'Cellule R&D quantique', en: 'Quantum R&D cell', es: 'Célula I+D cuántica', zh: "量子研发部门", ru: "Квантовое R&D подразделение", it: "Cellula R&D quantistica", de: "Quanten-F&E-Zelle" }, desc: { fr: 'prod ×1.10 · prix ×1.03 · fonte ×0.5', en: 'prod ×1.10 · price ×1.03 · melt ×0.5', es: 'prod ×1.10 · precio ×1.03 · fusión ×0.5', zh: "生产 ×1.10 · 价格 ×1.03 · 融化 ×0.5", ru: "произв. ×2 · цена ×1.03 · таяние ×0.5", it: "prod ×1.10 · prezzo ×1.03 · fusione ×0.5", de: "Prod ×1.10 · Preis ×1.03 · Schmelze ×0.5" }, cost: 6400000,
+  { id: 'rd_quantique', Icon: FlaskConical, count: 1, destructible: false, phase: 3, name: { fr: 'Cellule R&D quantique', en: 'Quantum R&D cell', es: 'Célula I+D cuántica', zh: "量子研发部门", ru: "Квантовое R&D подразделение", it: "Cellula R&D quantistica", de: "Quanten-F&E-Zelle" }, desc: { fr: 'prod ×1.10 · prix ×1.03 · fonte ×0.5', en: 'prod ×1.10 · price ×1.03 · melt ×0.5', es: 'prod ×1.10 · precio ×1.03 · fusión ×0.5', zh: "生产 ×1.10 · 价格 ×1.03 · 融化 ×0.5", ru: "произв. ×2 · цена ×1.03 · таяние ×0.5", it: "prod ×1.10 · prezzo ×1.03 · fusione ×0.5", de: "Prod ×1.10 · Preis ×1.03 · Schmelze ×0.5" }, cost: 1350000,
     longDesc: { fr: "Cellule de recherche quantique : 8 doctorants, équipement à 12M€. Brevets sur la cristallisation supercritique de l'eau. Production ×1.10, prix ×1.03, fonte ×0.5. La R&D qui transforme ton entreprise en référence mondiale technologique.", en: "Quantum research cell: 8 PhD students, €12M equipment. Patents on supercritical water crystallization. Production ×1.10, price ×1.03, melt ×0.5. R&D that turns your company into a global tech reference.", es: "Célula investigación cuántica: 8 doctorandos, equipamiento de 12M€. Patentes en cristalización supercrítica del agua. Producción ×1.10, precio ×1.03, fusión ×0.5. I+D que convierte tu empresa en referencia tecnológica mundial.", zh: "量子研究部门：8名博士生，1200万欧元设备。超临界水结晶专利。生产×1.10，价格×1.03，融化×0.5。把公司变成全球技术标杆的研发。", ru: "Квантовое исследовательское подразделение: 8 аспирантов, оборудование на 12 млн€. Патенты на сверхкритическую кристаллизацию воды. Производство ×1.10, цена ×1.03, таяние ×0.5. R&D, превращающий компанию в мирового технологического лидера.", it: "Cellula ricerca quantistica: 8 dottorandi, attrezzatura da 12M€. Brevetti sulla cristallizzazione supercritica dell'acqua. Produzione ×1.10, prezzo ×1.03, fusione ×0.5. R&D che trasforma l'azienda in riferimento tecnologico mondiale.", de: "Quanten-Forschungszelle: 8 Doktoranden, 12M€-Ausstattung. Patente auf überkritische Wasserkristallisation. Produktion ×1.10, Preis ×1.03, Schmelze ×0.5. F&E, das dein Unternehmen zur globalen Tech-Referenz macht." },
     apply: s => ({ ...s, prodSpeedMult: s.prodSpeedMult * 1.10, sellMult: s.sellMult * 1.03, meltMult: s.meltMult * 0.5 }) },
 
@@ -1722,7 +1696,7 @@ const UPGRADES = [
     salary: { bas: 3200, std: 4800, haut: 7400 }, salaryRole: 'fred', gradeName: { fr: "Légende vivante", en: "Living Legend", es: "Leyenda viva", zh: "活着的传奇", ru: "Живая легенда", it: "Leggenda vivente", de: "Lebende Legende" },
     longDesc: { fr: "Fred a tout vu, tout fait. Six ans dans la boîte, du stagiaire au directeur ops, et maintenant Légende vivante du métier. Il gère 7 lignes en simultané, forme la relève, et son nom seul attire les meilleurs candidats. La consécration ultime de sa carrière.", en: "Fred has seen and done it all. Six years in the company, from intern to ops director, now Living Legend of the trade. He runs 7 lines simultaneously, trains successors, and his name alone attracts top candidates. The ultimate career consecration.", es: "Fred lo ha visto y hecho todo. Seis años en la casa, de becario a director ops, ahora Leyenda viva del oficio. Gestiona 7 líneas a la vez, forma sucesores, y su nombre solo atrae a los mejores candidatos. La consagración final de su carrera.", zh: "弗雷德见过、做过一切。在公司六年，从实习生到运营总监，现在是行业活传奇。同时管理7条生产线，培养接班人，光他的名字就吸引顶尖候选人。职业生涯的终极加冕。", ru: "Фред видел всё и делал всё. Шесть лет в компании, от стажёра до операционного директора, теперь Живая легенда профессии. Управляет 7 линиями одновременно, готовит преемников, его имя одно привлекает лучших кандидатов. Высшая коронация карьеры.", it: "Fred ha visto e fatto tutto. Sei anni in azienda, da stagista a direttore operativo, ora Leggenda vivente del mestiere. Gestisce 7 linee in contemporanea, forma i successori, e il suo nome attira i migliori candidati. La consacrazione ultima della carriera.", de: "Fred hat alles gesehen, alles gemacht. Sechs Jahre im Unternehmen, vom Praktikanten zum Betriebsleiter, jetzt Lebende Legende des Fachs. Er leitet 7 Linien gleichzeitig, bildet Nachfolger aus, sein Name allein zieht Spitzenkandidaten an. Die ultimative Krönung seiner Karriere." },
     apply: s => ({ ...s, passiveProd: s.passiveProd + 30, fredCycle: 1.5 }) },
-  { id: 'brigitte_legende', Icon: Crown, count: 1, destructible: false, phase: 3, name: { fr: 'Brigitte Légende', en: 'Brigitte the Legend', es: 'Brigitte Leyenda', zh: "传奇布丽吉特", ru: "Брижит Легенда", it: "Brigitte Leggenda", de: "Brigitte die Legende" }, desc: { fr: 'prix ×1.10 · contrats T7 +30%', en: 'price ×1.10 · T7 contracts +30%', es: 'precio ×1.10 · contratos T7 +30%', zh: "价格 ×1.10 · T7合同 +30%", ru: "цена ×1.10 · T7-контракты +30%", it: "prezzo ×1.10 · contratti T7 +30%", de: "Preis ×1.10 · T7-Verträge +30%" }, cost: 240000, requireUnlock: 'brigitte_ad',
+  { id: 'brigitte_legende', Icon: Crown, count: 1, destructible: false, phase: 3, name: { fr: 'Brigitte Légende', en: 'Brigitte the Legend', es: 'Brigitte Leyenda', zh: "传奇布丽吉特", ru: "Брижит Легенда", it: "Brigitte Leggenda", de: "Brigitte die Legende" }, desc: { fr: 'prix ×1.10 · contrats T7 +30%', en: 'price ×1.10 · T7 contracts +30%', es: 'precio ×1.10 · contratos T7 +30%', zh: "价格 ×1.10 · T7合同 +30%", ru: "цена ×1.10 · T7-контракты +30%", it: "prezzo ×1.10 · contratti T7 +30%", de: "Preis ×1.10 · T7-Verträge +30%" }, cost: 220000, requireUnlock: 'brigitte_ad',
     salary: { bas: 2800, std: 4200, haut: 6500 }, salaryRole: 'brigitte', gradeName: { fr: "Directrice Générale Adjointe", en: "Deputy CEO", es: "Directora General Adjunta", zh: "副总裁", ru: "Заместитель генерального", it: "Vice Direttrice Generale", de: "Stellvertretende Geschäftsführerin" },
     longDesc: { fr: "Brigitte est devenue ton numéro 2 incontournable. Elle négocie les contrats T7 avec une autorité que personne ne questionne, ferme les portes en pleine réunion quand un client dépasse, et signe les chèques sans regarder. Le respect total du milieu. Augmentation salaire ×1.5.", en: "Brigitte has become your indispensable number 2. She negotiates T7 contracts with unquestioned authority, slams doors mid-meeting when a client oversteps, signs checks without looking. Total industry respect. ×1.5 salary increase.", es: "Brigitte se ha vuelto tu número 2 imprescindible. Negocia contratos T7 con autoridad incuestionable, cierra puertas en plena reunión cuando un cliente se pasa, firma cheques sin mirar. Respeto total del sector. Salario ×1.5.", zh: "布丽吉特已成为你不可或缺的二号人物。以无可置疑的权威谈判T7合同，客户出格时会议中途摔门而出，签支票不看。行业完全尊敬。工资×1.5。", ru: "Брижит стала твоим незаменимым номером 2. Ведёт переговоры по T7-контрактам с непререкаемым авторитетом, хлопает дверьми посреди встречи, когда клиент перегибает, подписывает чеки не глядя. Тотальное уважение в отрасли. Зарплата ×1.5.", it: "Brigitte è diventata il tuo numero 2 indispensabile. Negozia contratti T7 con autorità indiscussa, sbatte le porte a metà riunione quando un cliente esagera, firma assegni senza guardare. Rispetto totale del settore. Stipendio ×1.5.", de: "Brigitte ist deine unverzichtbare Nummer 2. Sie verhandelt T7-Verträge mit unbestrittener Autorität, schlägt mitten in Meetings Türen zu, wenn ein Kunde übertreibt, unterzeichnet Schecks ungesehen. Totaler Respekt der Branche. Gehalt ×1.5." },
     apply: s => ({ ...s, sellMult: s.sellMult * 1.10, hasBrigitte: true, brigitteLegend: true }) },
@@ -1734,7 +1708,7 @@ const UPGRADE_FAMILIES = [
     tiers: ['silicone', 'silicone_2', 'reservoir_eau', 'plateau_xl', 'doseur_auto', 'cuve_cryo'],
     minPhase: 1 },
   { id: 'prod_vitesse', label: 'VITESSE', icon: 'Factory',
-    tiers: ['canettes_fred', 'cold_water', 'conveyor_belt', 'cold_tunnel', 'reinforce', 'force_cadence', 'capteurs_iot', 'ligne_semi_auto', 'usine_etendue', 'auto_lignes', 'usine_bis', 'rd_quantique', 'usine_2_0'],
+    tiers: ['canettes_fred', 'cold_water', 'conveyor_belt', 'roues_chariot', 'cold_tunnel', 'reinforce', 'force_cadence', 'capteurs_iot', 'ligne_semi_auto', 'usine_etendue', 'auto_lignes', 'usine_bis', 'rd_quantique', 'usine_2_0'],
     minPhase: 1 },
 
   // ============ STOCKAGE ============
@@ -1763,7 +1737,7 @@ const UPGRADE_FAMILIES = [
 
   // ============ RENTABILITÉ ============
   { id: 'rent_marketing', label: 'MARKETING', icon: 'DollarSign',
-    tiers: ['flyers', 'etiqueteuse', 'stand_quartier', 'site_web', 'bao_viral', 'reseau_partenaires', 'ia_marketing', 'blockchain_certif'],
+    tiers: ['flyers', 'etiqueteuse', 'affichage_quartier', 'stand_quartier', 'site_web', 'bao_viral', 'reseau_partenaires', 'ia_marketing', 'blockchain_certif'],
     minPhase: 1 },
   { id: 'rent_qualite', label: 'QUALITÉ ÉQUIPEMENT', icon: 'DollarSign',
     tiers: ['salle_blanche_basique', 'doseur_precis', 'garde_fous_qualite', 'salle_blanche_iso5', 'cogeneration', 'predictive_analytics', 'energie_renouvelable', 'centre_rd'],
@@ -1969,7 +1943,7 @@ const TUTORIAL_STEPS = [
       de: "Lenny ist dein Transporteur. Jede Stufe fügt EINE parallele Lieferspur hinzu und erhöht die Kapazität pro Fahrt. Eine Spur = ein B2B-Vertrag im Autopilot. Achte auf seine Moral: Ein griesgrämiger Lenny = eingefrorene Lieferungen."
     }, targetSel: '.menu-btn-contracts', side: 'top', delay: 1500,
     canShow: s => (!!(s.owned && s.owned['camion_1'])), autoClose: null },
-  { id: 't_karen_intro', text: {
+  { id: 't_rh_intro', text: {
       fr: "Avec Lenny, la boîte grandit : tu n'es plus seul, il faut prendre soin de l'humain. Voici l'écran RH. 5 actions (petit-déj, individuel, afterwork, médiation, team-building) pour remonter le moral. Chacune coûte de l'argent, a un quota annuel et fatigue l'équipe. Un moral en chute libre coûte cher en prod : à toi de doser.",
       en: "With Lenny, the company is growing: you're not alone anymore — you have to look after the human side. Here's the HR screen. 5 actions (breakfast, 1:1, afterwork, mediation, team-building) to lift morale. Each costs money, has a yearly quota and tires the team. A free-falling morale crushes production: pace yourself.",
       es: "Con Lenny, la empresa crece: ya no estás solo, hay que cuidar a las personas. Esta es la pantalla RRHH. 5 acciones (desayuno, 1:1, afterwork, mediación, team-building) para subir la moral. Cada una cuesta dinero, tiene cuota anual y cansa al equipo. Una moral en caída libre destroza la producción: dosifica.",
@@ -2514,20 +2488,6 @@ const BONUS_THANKS = {
       { fr: "Tiens, ça paye le ticket-resto du midi. Sympa.", en: "Hey, that covers lunch vouchers. Nice.", es: "Mira, eso paga los vales de comida. Majo.", zh: "嘿，这够餐券钱。不错。", ru: "Эй, это покрывает обеденные талоны. Неплохо.", it: "Ehi, copre i buoni pasto. Carino.", de: "Hey, das deckt die Essensgutscheine. Schön." },
     ],
   },
-  karen: {
-    sarcastic: [
-      { fr: "Une prime. Pour la RH. C'est presque méta.", en: "A bonus. For HR. That's almost meta.", es: "Una prima. Para RRHH. Casi meta.", zh: "奖金。给人事。简直有点元了。", ru: "Бонус. Для HR. Почти мета.", it: "Un bonus. Per le RU. Quasi meta.", de: "Eine Prämie. Für die HR. Fast schon meta." },
-      { fr: "Je remonte le moral des autres toute l'année. Le mien, on verra.", en: "I boost everyone's morale all year. Mine, we'll see.", es: "Subo la moral de todos todo el año. La mía, ya veremos.", zh: "我全年给所有人打气。我自己的，再说吧。", ru: "Я весь год поднимаю мораль другим. Свою — посмотрим.", it: "Tiro su il morale a tutti tutto l'anno. Il mio, vedremo.", de: "Ich hebe das ganze Jahr die Moral aller. Meine, mal sehen." },
-    ],
-    lukewarm: [
-      { fr: "Merci. C'est noté au dossier.", en: "Thanks. Noted in the file.", es: "Gracias. Anotado en el expediente.", zh: "谢谢。记入档案。", ru: "Спасибо. Занесено в дело.", it: "Grazie. Annotato nel fascicolo.", de: "Danke. In der Akte vermerkt." },
-      { fr: "Sympa. Je retourne gérer les humeurs.", en: "Nice. Back to managing moods.", es: "Majo. Vuelvo a gestionar humores.", zh: "不错。继续管理情绪去了。", ru: "Мило. Обратно к управлению настроениями.", it: "Carino. Torno a gestire gli umori.", de: "Schön. Zurück zum Stimmungsmanagement." },
-    ],
-    sincere: [
-      { fr: "Oh, merci. Ça fait du bien d'être vue, pour une fois.", en: "Oh, thanks. Nice to be seen, for once.", es: "Oh, gracias. Se agradece que me vean, por una vez.", zh: "哦，谢谢。难得被看见，挺好。", ru: "О, спасибо. Приятно, когда тебя замечают, хоть раз.", it: "Oh, grazie. Bello essere vista, per una volta.", de: "Oh, danke. Schön, mal gesehen zu werden." },
-      { fr: "Ça compte. L'équipe va le sentir, crois-moi.", en: "It matters. The team will feel it, trust me.", es: "Importa. El equipo lo notará, créeme.", zh: "这很重要。团队会感受到的，相信我。", ru: "Это важно. Команда это почувствует, поверь.", it: "Conta. La squadra lo sentirà, fidati.", de: "Das zählt. Das Team wird es spüren, glaub mir." },
-    ],
-  },
 };
 
 const MORAL_WARNINGS = {
@@ -2905,24 +2865,6 @@ const UPGRADE_THANKS = {
     it: "Direttore Logistica. Ho un titolo da ufficio e un'anima da cabina. Quattro consegne in parallelo si pilotano con tabelle, caffè freddi e un sano disprezzo per gli ingorghi.",
     de: "Logistikdirektor. Ich habe einen Bürotitel und eine Kabinenseele. Vier parallele Lieferungen pilotiert man mit Tabellen, kaltem Kaffee und einer gesunden Verachtung für Staus." },
 
-  // KAREN — RH
-  // (karen_junior n'a pas de remerciement : c'est la 1ère embauche, déjà gérée par hire_intro.karen)
-  karen_senior: { speaker: 'Karen',
-    fr: "Responsable RH. Niveau de base +5, team building débloqué. Pour 300 €, tout le monde sourit pendant 60 secondes et produit +25 %. C'est presque humain, donc je valide.",
-    en: "HR Manager. Base level +5, team building unlocked. For €300, everyone smiles for 60 seconds and produces +25%. It's almost human, so I'll sign off on it.",
-    es: "Responsable de RRHH. Nivel base +5, team building desbloqueado. Por 300 €, todos sonríen durante 60 segundos y producen +25 %. Es casi humano, así que lo valido.",
-    zh: "人事主管。基础+5，团建解锁。300欧元，让所有人笑60秒、生产+25%。几乎称得上人性化，所以我批了。",
-    ru: "Руководитель HR. База +5, тимбилдинг разблокирован. За 300 € все улыбаются 60 секунд и производят +25 %. Почти по-человечески — одобряю.",
-    it: "Responsabile HR. Livello base +5, team building sbloccato. Per 300 €, tutti sorridono per 60 secondi e producono +25%. Quasi umano, quindi approvo.",
-    de: "HR-Leiterin. Grundlevel +5, Team-Building freigeschaltet. Für 300 € lächeln alle 60 Sekunden und produzieren +25 %. Fast menschlich, also gebe ich grünes Licht." },
-  karen_drh: { speaker: 'Karen',
-    fr: "DRH. Là, on met une vraie politique sociale sur une entreprise qui fabrique des glaçons sous pression. Moral de base +8, médiation préventive, actions deux fois plus rapides. On va grandir sans transformer Fred en meuble.",
-    en: "Head of HR. Now we put a real social policy on a company that manufactures ice cubes under pressure. Base morale +8, preventive mediation, actions twice as fast. We'll grow without turning Fred into a piece of furniture.",
-    es: "Directora de RRHH. Ahora montamos una verdadera política social sobre una empresa que fabrica cubitos bajo presión. Moral base +8, mediación preventiva, acciones el doble de rápidas. Vamos a crecer sin convertir a Fred en un mueble.",
-    zh: "人事总监。我们要在一家高压量产冰块的公司里搞一套真正的社会政策。基础士气+8，预防性调解，行动速度翻倍。我们要长大，但不能把弗雷德活成一件家具。",
-    ru: "Директор по персоналу. Теперь накладываем настоящую социальную политику на компанию, которая делает кубики под давлением. Базовая мораль +8, превентивная медиация, действия в два раза быстрее. Будем расти, не превращая Фреда в предмет мебели.",
-    it: "Direttrice HR. Ora mettiamo una vera politica sociale su un'azienda che fa cubetti sotto pressione. Morale di base +8, mediazione preventiva, azioni due volte più rapide. Cresceremo senza trasformare Fred in un mobile.",
-    de: "HR-Direktorin. Jetzt legen wir eine echte Sozialpolitik über ein Unternehmen, das unter Druck Eiswürfel herstellt. Grundmoral +8, präventive Mediation, Aktionen doppelt so schnell. Wir wachsen, ohne Fred in ein Möbelstück zu verwandeln." },
   // === P1 — Infra (commentaires des persos existants) ===
   voisin_jacques: { speaker: 'Fred',
     fr: "Jacques d'en face ? J'l'ai croisé deux fois devant chez lui, mec sympa. Sa cuisine est nickel, on peut clairement caser vos bacs là-bas. +30 places, je porte les premiers, vous inquiétez pas.",
@@ -3600,6 +3542,13 @@ function computeStats(owned) {
   // === CAP DURS de fin de chaîne ===
   // Évite l'explosion exponentielle des multiplicateurs cumulés en endgame.
   // Cibles : revenus endgame ~150-200k€/mois, cumul partie ~3-5M€.
+  // Repères mesurés en Phase 3 (résultat net mensuel lu dans RENTABILITÉ,
+  // 4 contrats retail signés, sans jeu manuel ni campagne) :
+  //   arbre P1+P2 complet (53 amél.) ....  8,9 k€/mois
+  //   + tous les P3 sous 200 k€ (75) ... 35,2 k€/mois
+  //   arbre complet (100 amél.) ........ 93,3 k€/mois
+  // Les revenus sont donc multipliés par ~10 sur la traversée de la Phase 3 :
+  // c'est cette pente que suit l'échelle des coûts de la phase.
   s.sellMult = Math.min(s.sellMult, 25);
   s.prodSpeedMult = Math.min(s.prodSpeedMult, 20);
   // === NEW GAME+ : bonus de prestige permanent, APPLIQUÉ HORS PLAFOND ===
@@ -4219,21 +4168,17 @@ export default function App() {
   const [fredSalaryLevel, setFredSalaryLevel] = useState('bas');
   const [brigitteSalaryLevel, setBrigitteSalaryLevel] = useState('bas');
   const [lennySalaryLevel, setLennySalaryLevel] = useState('bas');
-  const [karenSalaryLevel, setKarenSalaryLevel] = useState('bas');
   const [fredGrumpy, setFredGrumpy] = useState(false);
   const [brigitteGrumpy, setBrigitteGrumpy] = useState(false);
   const [janiceGrumpy, setJaniceGrumpy] = useState(false);
   const [lennyGrumpy, setLennyGrumpy] = useState(false);
-  const [karenGrumpy, setKarenGrumpy] = useState(false);
   const [fredMoral, setFredMoral] = useState(70);
   const [brigitteMoral, setBrigitteMoral] = useState(70);
   const [lennyMoral, setLennyMoral] = useState(70);
-  const [karenMoral, setKarenMoral] = useState(70);
   // Phase 2+ — Stress per employee (0-100). Boost actions add stress, time decays it.
   const [fredStress, setFredStress] = useState(0);
   const [brigitteStress, setBrigitteStress] = useState(0);
   const [lennyStress, setLennyStress] = useState(0);
-  const [karenStress, setKarenStress] = useState(0);
   // Boost Lenny temporaire (vitesse trajet +50%) — expire après 10s de game time
   const [lennyBoostUntil, setLennyBoostUntil] = useState(0);
   // Boost Fred : durée 8s game time, +50% vitesse de cycle pendant le boost
@@ -4244,13 +4189,13 @@ export default function App() {
   const [brigitteBoostUntil, setBrigitteBoostUntil] = useState(0);
   const BRIGITTE_BOOST_DURATION = 8;
   const LENNY_BOOST_DURATION = 10; // déjà existant via lennyBoostUntil
-  // Karen team-building : prod global +25% pendant 60s, cooldown 240s (120s DRH)
-  const [karenTeamBuildUntil, setKarenTeamBuildUntil] = useState(0);
-  const [karenTeamBuildCooldownUntil, setKarenTeamBuildCooldownUntil] = useState(0);
-  // === Système d'actions RH (Phase 3+, débloqué par Karen)
-  // 3 actions max par année de jeu : 1 petit-déj, 1 afterwork, 1 team-building
-  // Jauge "Capacité RH" 0-100, remplie à 100 par chaque action, draine -1/3s normalement
-  // Boost Karen accélère le drain à -5/3s pendant 20s (+stress sur Karen)
+  // Team-building : prod global +25% pendant 60s. C'est une des actions RH,
+  // déclenchée par le joueur depuis l'écran RH.
+  const [teamBuildUntil, setTeamBuildUntil] = useState(0);
+  // === Système d'actions RH, piloté directement par le joueur
+  // 2 utilisations par an et par action (petit-déj, entretien individuel,
+  // afterwork, médiation, team-building). Jauge « Capacité RH » 0-100, remplie
+  // à 100 par chaque action, draine -1/3s.
   const [rhOpen, setRhOpen] = useState(false);
   const [juridiqueOpen, setJuridiqueOpen] = useState(false);
   // Procès actifs (en attente de décision du joueur)
@@ -4296,25 +4241,18 @@ export default function App() {
   const [rhFatigue, setRhFatigue] = useState(0); // 0-100
   const [rhActionsUsed, setRhActionsUsed] = useState({ breakfast: false, afterwork: false, teambuilding: false, individual: false, mediation: false });
   const [rhActionsYearIdx, setRhActionsYearIdx] = useState(0); // n° d'année du compteur (reset à chaque nouvelle année)
-  const [rhBoostUntil, setRhBoostUntil] = useState(0); // boost Karen actif jusqu'à cette gameTime
   const RH_FATIGUE_MAX = 100;
   const RH_FATIGUE_DRAIN_NORMAL = 1 / 3; // -1 par 3s
-  const RH_FATIGUE_DRAIN_BOOSTED = 5 / 3; // -5 par 3s
-  const RH_BOOST_DURATION = 20; // 20s game time
   const rhFatigueRef = useRef(0);
-  const rhBoostUntilRef = useRef(0);
   const rhActionsUsedRef = useRef({ breakfast: false, afterwork: false, teambuilding: false, individual: false, mediation: false });
   const rhActionsYearIdxRef = useRef(0);
-  const KAREN_TEAMBUILD_DURATION = 60;
-  const KAREN_TEAMBUILD_MULT = 1.25;
-  const KAREN_TEAMBUILD_COST = 300;
-  const KAREN_TEAMBUILD_MORAL = 12;
+  const TEAMBUILD_DURATION = 60;
+  const TEAMBUILD_MULT = 1.25;
   // Verrouillage du boost : quand un employé atteint 100% stress, il reste verrouillé
   // jusqu'à ce que son stress redescende complètement à 0
   const [fredBurnedLock, setFredBurnedLock] = useState(false);
   const [brigitteBurnedLock, setBrigitteBurnedLock] = useState(false);
   const [lennyBurnedLock, setLennyBurnedLock] = useState(false);
-  const [karenBurnedLock, setKarenBurnedLock] = useState(false);
   // Événements (Phase B) : un seul actif à la fois pour le MVP
   // { id, category, startedAt, expiresAt, payload }
   const [activeEvent, setActiveEvent] = useState(null);
@@ -4490,7 +4428,7 @@ export default function App() {
   const activeFrictionsRef = useRef({});
   useEffect(() => { activeFrictionsRef.current = activeFrictions; }, [activeFrictions]);
   // === ARRÊTS MALADIE ===
-  // sickUntil: { fred?: gameTimeExpires, brigitte?: ..., lenny?: ..., karen?: ... }
+  // sickUntil: { fred?: gameTimeExpires, brigitte?: ..., lenny?: ... }
   // Quand un perso est malade, son effet auto est désactivé pendant la durée.
   // Le joueur doit reprendre son boulot (CONGELER pour Fred, VENDRE pour Brigitte,
   // ENVOYER pour Lenny). Les autres voient simplement leur bonus disparaître.
@@ -4508,33 +4446,6 @@ export default function App() {
   const pendingLennyDispatchRef = useRef(new Set());
   // Cooldown du bouton POSTER (Janice malade) : gameTime du prochain click autorisé.
   const [posterCooldownUntil, setPosterCooldownUntil] = useState(0);
-  // Cooldowns par employé du bouton ÉCOUTER (Karen malade) : gameTime du prochain click autorisé.
-  const ecouterCooldownsRef = useRef({});
-  const [ecouterTick, setEcouterTick] = useState(0); // force re-render quand on clique
-  // Rendu du bouton ÉCOUTER pour un employé donné. S'affiche quand Karen est
-  // en arrêt et que le moral est faible (< 60). +6 moral par clic, cooldown 90 s.
-  const renderEcouterBtn = (role, currentMoral, moralSetter) => {
-    if (!isSickNow('karen')) return null;
-    if (role === 'karen') return null; // Karen ne peut pas s'écouter elle-même
-    if (currentMoral >= 60) return null;
-    const cd = ecouterCooldownsRef.current[role] || 0;
-    const remain = Math.max(0, Math.ceil(cd - gameTime));
-    const ready = remain === 0;
-    return (
-      <button
-        className={`ecouter-btn ${ready ? 'ready' : 'cooldown'}`}
-        disabled={!ready}
-        onClick={() => {
-          if (!ready) return;
-          moralSetter(m => Math.max(0, Math.min(100, m + 6)));
-          ecouterCooldownsRef.current[role] = gameTime + 90;
-          setEcouterTick(t => t + 1);
-        }}
-      >
-        {ready ? 'ÉCOUTER · +6' : `${remain}s`}
-      </button>
-    );
-  };
   // Cooldown pour ne pas spammer
   const lastFrictionAtRef = useRef(0);
   // Helper : agrège tous les effets actifs en un seul objet
@@ -4646,18 +4557,14 @@ export default function App() {
   const fredSalaryLevelRef = useRef('bas');
   const brigitteSalaryLevelRef = useRef('bas');
   const lennySalaryLevelRef = useRef('bas');
-  const karenSalaryLevelRef = useRef('bas');
   const fredGrumpyRef = useRef(false);
   const brigitteGrumpyRef = useRef(false);
   const janiceGrumpyRef = useRef(false);
   const lennyGrumpyRef = useRef(false);
-  const karenGrumpyRef = useRef(false);
   const fredMoralRef = useRef(70);
   const brigitteMoralRef = useRef(70);
   const lennyMoralRef = useRef(70);
-  const karenMoralRef = useRef(70);
-  const karenTeamBuildUntilRef = useRef(0);
-  const karenTeamBuildCooldownUntilRef = useRef(0);
+  const teamBuildUntilRef = useRef(0);
   const popupMessageRef = useRef(null);
   const popupsThisSeasonRef = useRef(0); // compteur de popups narratifs aléatoires par saison
   const lastPopupSpeakerRef = useRef(null); // dernier speaker pour éviter doublons consécutifs
@@ -4691,9 +4598,8 @@ export default function App() {
   // Nouveaux pools P2/P3 (anti-répétition) : Fred prod-qui-tourne, Brigitte trésorerie
   const lastFredFlowRef = useRef(-9999);
   const lastBrigitteCashRef = useRef(-9999);
-  // Pools P2/P3 ambient pour Lenny (routes/contacts) et Karen (RH)
+  // Pool P2/P3 ambient pour Lenny (routes/contacts)
   const lastLennyRoadRef = useRef(-9999);
-  const lastKarenAmbRef = useRef(-9999);
   const lastBirthdayRef = useRef(-9999);
   const [birthdays, setBirthdays] = useState({}); // {fred: gameTimeNextBirthday, ...}
   const [birthdayEvent, setBirthdayEvent] = useState(null); // {who: 'Fred', emp: 'fred'}
@@ -4767,17 +4673,12 @@ export default function App() {
   useEffect(() => { fredSalaryLevelRef.current = fredSalaryLevel; }, [fredSalaryLevel]);
   useEffect(() => { brigitteSalaryLevelRef.current = brigitteSalaryLevel; }, [brigitteSalaryLevel]);
   useEffect(() => { lennySalaryLevelRef.current = lennySalaryLevel; }, [lennySalaryLevel]);
-  useEffect(() => { karenSalaryLevelRef.current = karenSalaryLevel; }, [karenSalaryLevel]);
   useEffect(() => { fredGrumpyRef.current = fredGrumpy; }, [fredGrumpy]);
   useEffect(() => { fredMoralRef.current = fredMoral; }, [fredMoral]);
   useEffect(() => { brigitteMoralRef.current = brigitteMoral; }, [brigitteMoral]);
   useEffect(() => { lennyMoralRef.current = lennyMoral; }, [lennyMoral]);
-  useEffect(() => { karenMoralRef.current = karenMoral; }, [karenMoral]);
-  useEffect(() => { karenGrumpyRef.current = karenGrumpy; }, [karenGrumpy]);
-  useEffect(() => { karenTeamBuildUntilRef.current = karenTeamBuildUntil; }, [karenTeamBuildUntil]);
-  useEffect(() => { karenTeamBuildCooldownUntilRef.current = karenTeamBuildCooldownUntil; }, [karenTeamBuildCooldownUntil]);
+  useEffect(() => { teamBuildUntilRef.current = teamBuildUntil; }, [teamBuildUntil]);
   useEffect(() => { rhFatigueRef.current = rhFatigue; }, [rhFatigue]);
-  useEffect(() => { rhBoostUntilRef.current = rhBoostUntil; }, [rhBoostUntil]);
   useEffect(() => { rhActionsUsedRef.current = rhActionsUsed; }, [rhActionsUsed]);
   useEffect(() => { rhActionsYearIdxRef.current = rhActionsYearIdx; }, [rhActionsYearIdx]);
   useEffect(() => { birthdaysRef.current = birthdays; }, [birthdays]);
@@ -5267,7 +5168,6 @@ export default function App() {
       setFredStress(s => Math.max(0, s - decay));
       setBrigitteStress(s => Math.max(0, s - decay));
       setLennyStress(s => Math.max(0, s - decay));
-      setKarenStress(s => Math.max(0, s - decay));
     };
     const id = setInterval(tick, 6000);
     return () => clearInterval(id);
@@ -5339,17 +5239,12 @@ export default function App() {
         let d = 0;
         // Machine à café : +0.2 passif pour tous
         if (ownedSnap['machine_cafe']) d += 0.2;
-        // Karen baseline boost : +3 Junior, +5 Senior, +8 DRH
-        // ARRÊT MALADIE Karen : son bonus de moral de base disparaît pendant l'absence.
-        const karenBaselineBoost = isSickNow('karen') ? 0 : (ownedSnap['karen_drh'] ? 8 : ownedSnap['karen_senior'] ? 5 : ownedSnap['karen_junior'] ? 3 : 0);
         // === ÉROSION DE BASE + DÉPERSONNALISATION ===
         // Le moral s'érode naturellement : il FAUT l'entretenir. Et plus
         // la boîte grandit (embauches, camions, améliorations, phases),
-        // plus l'érosion s'accélère — la RH (Karen) devient un vrai enjeu.
+        // plus l'érosion s'accélère — les actions RH deviennent un vrai enjeu.
         let companySize = 0;
         if (hasF) companySize++; if (hasB) companySize++; if (hasJ) companySize++; if (hasL) companySize++;
-        const hasK = !!(ownedSnap['karen_junior'] || ownedSnap['karen_senior'] || ownedSnap['karen_drh']);
-        if (hasK) companySize++;
         // Camions au-delà du 1er ajoutent à la taille perçue
         if (ownedSnap['camion_2']) companySize++;
         if (ownedSnap['camion_3']) companySize++;
@@ -5365,25 +5260,18 @@ export default function App() {
         const upgradeCount = Object.keys(ownedSnap).filter(k => ownedSnap[k]).length;
         // Drain de base permanent : le moral baisse tout seul.
         // Le drain de base monte avec la phase (entreprise plus impersonnelle),
-        // pour que Karen garde de l'intérêt en P3/P4 — sans Karen ça pique vite.
+        // pour que les actions RH gardent de l'intérêt en P3/P4.
         const phaseDrainBoost = phaseRef.current >= 4 ? 0.10 : phaseRef.current >= 3 ? 0.07 : phaseRef.current >= 2 ? 0.03 : 0;
         const baseDrain = 0.15 + phaseDrainBoost;
         const sizeOver = Math.max(0, companySize - 3);
         const sizeDrain = sizeOver * 0.045;                // +0.045 / point de taille au-delà de 3 (était 0.035)
         const upgradeDrain = Math.max(0, upgradeCount - 5) * 0.018; // +0.018 / amélioration (était 0.012)
         const totalErosion = baseDrain + sizeDrain + upgradeDrain;
-        // Karen (RH) atténue UNIQUEMENT la part liée à la croissance
-        // (dépersonnalisation), pas le drain de base : Junior -35%,
-        // Senior -55%, DRH -70%. La DRH ne neutralise plus presque tout :
-        // elle aide vraiment mais le joueur doit encore agir (team-building,
-        // augmentations, etc.).
-        const karenMitigation = ownedSnap['karen_drh'] ? 0.70 : ownedSnap['karen_senior'] ? 0.55 : ownedSnap['karen_junior'] ? 0.35 : 0;
-        d -= baseDrain + (sizeDrain + upgradeDrain) * (1 - karenMitigation);
-        // Crèche : baseline 75 au lieu de 70 (cumul avec Karen).
+        d -= totalErosion;
+        // Crèche : baseline 75 au lieu de 70.
         // Formation interne et robotisation déplacent aussi ce niveau de base,
         // dans un sens et dans l'autre, de façon permanente.
         const baseline = (ownedSnap['creche_entreprise'] ? 75 : 70)
-          + karenBaselineBoost
           + (ownedSnap['formation_interne'] ? FORMATION_INTERNE_MORAL : 0)
           - (ownedSnap['robotisation'] ? ROBOTISATION_MORAL : 0);
         // Régénération naturelle AFFAIBLIE : ne se déclenche que si le moral
@@ -5429,11 +5317,6 @@ export default function App() {
       if (hasL) {
         const d = computeDelta('lenny', lennySalaryLevelRef.current, lennyMoralRef.current);
         if (d !== 0) setLennyMoral(m => Math.max(0, Math.min(100, m + d)));
-      }
-      const hasK = !!(ownedSnap['karen_junior'] || ownedSnap['karen_senior'] || ownedSnap['karen_drh']);
-      if (hasK) {
-        const d = computeDelta('karen', karenSalaryLevelRef.current, karenMoralRef.current);
-        if (d !== 0) setKarenMoral(m => Math.max(0, Math.min(100, m + d)));
       }
     };
     const id = setInterval(tick, 30000); // every 30s real-time
@@ -5517,7 +5400,7 @@ export default function App() {
     return true;
   };
 
-  // === TICK DÉDIÉ POUR ROBERT / VANDENBERG ===
+  // === TICK DÉDIÉ POUR LES APPELS DE ROBERT ===
   // Tick séparé du narratif principal : n'est PAS bloqué par popupMessage / Fred grumpy.
   // Seules conditions de blocage : pause OU appel en cours.
   // → Garantit que Robert appelle dès que les conditions économiques sont remplies.
@@ -6336,187 +6219,6 @@ export default function App() {
         }
       }
 
-      // 11.PRE. KAREN — ALERTE MORAL ÉQUIPE (priorité haute, cooldown 200s)
-      // Karen prévient le joueur que le moral chute AVANT que la barre rouge ne pulse.
-      // Conditions : Karen présente, moral équipe en baisse (avg < 60 ou un perso < 40),
-      // et pas d'alerte récente. Cooldown plus court qu'ambient (réagit vite).
-      const hasKarenPre = !!(ownedSnap['karen_junior'] || ownedSnap['karen_senior'] || ownedSnap['karen_drh']);
-      if (hasKarenPre && !popupMessageRef.current
-          && (curT - lastKarenAmbRef.current) > 200) {
-        const hasFredAny = !!(ownedSnap['fred_stage'] || ownedSnap['fred'] || ownedSnap['fred_perma'] || ownedSnap['fred_chef'] || ownedSnap['fred_dir']);
-        const hasBrigAny = !!(ownedSnap['autosell'] || ownedSnap['brigitte_compta'] || ownedSnap['brigitte_ad']);
-        const hasLennyAny = !!(ownedSnap['camion_1'] || ownedSnap['camion_2'] || ownedSnap['camion_3'] || ownedSnap['camion_4'] || ownedSnap['camion_5'] || ownedSnap['camion_6']);
-        const moralsArr = [];
-        if (hasFredAny) moralsArr.push(fredMoralRef.current);
-        if (hasBrigAny) moralsArr.push(brigitteMoralRef.current);
-        if (hasLennyAny) moralsArr.push(lennyMoralRef.current);
-        const moralAvg = moralsArr.length > 0 ? moralsArr.reduce((a,b)=>a+b,0) / moralsArr.length : 100;
-        const moralMin = moralsArr.length > 0 ? Math.min(...moralsArr) : 100;
-        // Déclenchement : moyenne < 60 OU au moins un perso < 40 → Karen prévient
-        if ((moralAvg < 60 || moralMin < 40) && Math.random() < 0.55) {
-          const warn = {
-            fr: [
-              "Patron, j'ai un signal faible mais clair : le moral baisse. Si on n'intervient pas dans les jours qui viennent, ça va se voir sur la prod.",
-              "Le climat se tend, je le sens dans les couloirs. Un petit-déj ou un afterwork bien placé, c'est l'investissement le plus rentable de la semaine.",
-              "On est encore loin de la grève, mais l'équipe fatigue. Une action RH maintenant nous évite trois actions dans deux semaines.",
-              "Patron, regardez le panneau Personnel quand vous avez deux minutes. Y a quelques jauges qui méritent votre attention.",
-              "Je préfère vous prévenir tôt : on entre en zone tendue. Un team-building ce mois-ci, ça ferait du bien à tout le monde.",
-              "L'ambiance est descendue d'un cran cette semaine. Pas dramatique, mais ça mérite une action avant que ça s'enkyste.",
-              "Vous connaissez ma règle : on agit avant le rouge, pas pendant. Là on est dans le orange, c'est le bon moment.",
-              "Si vous voulez le détail, ouvrez Personnel, je vous montre les jauges. C'est pas encore critique, mais c'est le moment de bouger."
-            ],
-            en: [
-              "Boss, I've got a weak but clear signal: morale is dipping. If we don't act in the next few days, it'll show in production.",
-              "The climate's tightening, I can feel it in the halls. A well-placed breakfast or afterwork is the best ROI of the week.",
-              "We're still far from a strike, but the team's tired. One HR action now saves us three in two weeks.",
-              "Boss, check the Personnel panel when you have a sec. A few gauges deserve your attention.",
-              "I'd rather warn you early: we're entering the tense zone. A team-building this month would do everyone good.",
-              "The vibe dropped a notch this week. Not dramatic, but worth an action before it sets in.",
-              "You know my rule: act before red, not during. We're in orange right now, that's the right window.",
-              "If you want the details, open Personnel, I'll show you the gauges. Not critical yet, but it's the moment to move."
-            ],
-            es: [
-              "Jefe, tengo una señal débil pero clara: la moral baja. Si no intervenimos en los próximos días, se verá en la producción.",
-              "El clima se tensa, lo siento en los pasillos. Un desayuno o un afterwork bien colocado es el mejor ROI de la semana.",
-              "Aún estamos lejos de la huelga, pero el equipo se cansa. Una acción de RR.HH. ahora nos evita tres en dos semanas.",
-              "Jefe, mire el panel Personal cuando tenga dos minutos. Hay barras que merecen su atención.",
-              "Prefiero avisarle pronto: entramos en zona tensa. Un team-building este mes le vendría bien a todos.",
-              "El ambiente bajó un peldaño esta semana. No es dramático, pero merece una acción antes de que se cronifique.",
-              "Conoces mi regla: actuamos antes del rojo, no durante. Estamos en naranja, es el buen momento.",
-              "Si quiere el detalle, abra Personal, le muestro las barras. No es crítico aún, pero es el momento de moverse."
-            ],
-            zh: [
-              "老板，我收到一个微弱但明确的信号：士气在下滑。这几天不出手，生产线上就会看出来。",
-              "氛围在紧绷，我从走廊里都感觉得到。一顿安排得当的早餐或下班聚会，是本周最划算的投资。",
-              "离罢工还远，但团队疲了。现在做一次人事行动，能省下两周后做三次。",
-              "老板，有空看看人员面板。有几条进度条值得关注。",
-              "我宁愿早点提醒你：我们进入紧绷区了。这个月一次团建对大家都好。",
-              "这周气氛降了一档。不严重，但值得在它扎根前出手。",
-              "你知道我的规矩：在红线前动手，不是踩红线时。我们在橙区，正是好时机。",
-              "想看细节就打开人员面板,,我给你看进度条。还没到危急，但该动了。"
-            ],
-            ru: [
-              "Босс, у меня слабый, но чёткий сигнал: мораль падает. Если не вмешаемся в ближайшие дни, это отразится на производстве.",
-              "Атмосфера напрягается, чувствую это по коридорам. Удачно расположенный завтрак или афтерворк, лучший ROI недели.",
-              "До забастовки ещё далеко, но команда устала. Одно HR-действие сейчас сэкономит три через две недели.",
-              "Босс, загляни в панель Персонал, когда будут две минуты. Несколько индикаторов заслуживают внимания.",
-              "Лучше предупрежу заранее: мы входим в напряжённую зону. Тимбилдинг в этом месяце пошёл бы всем на пользу.",
-              "Настроение упало на ступеньку за неделю. Не драма, но требует действия, пока не закостенело.",
-              "Ты знаешь моё правило: действуем до красного, не во время. Сейчас оранжевый, идеальное окно.",
-              "Если хочешь детали, открой Персонал, покажу индикаторы. Ещё не критично, но пора двигаться."
-            ],
-            it: [
-              "Capo, ho un segnale debole ma chiaro: il morale cala. Se non interveniamo nei prossimi giorni, si vedrà sulla produzione.",
-              "Il clima si tende, lo sento nei corridoi. Una colazione o un afterwork ben piazzato sono il ROI migliore della settimana.",
-              "Siamo ancora lontani dallo sciopero, ma il team è stanco. Un'azione RU ora ne evita tre fra due settimane.",
-              "Capo, dai un'occhiata al pannello Personale quando hai due minuti. Qualche barra merita la tua attenzione.",
-              "Preferisco avvisarla presto: entriamo in zona tesa. Un team-building questo mese farebbe bene a tutti.",
-              "L'atmosfera è calata di un gradino questa settimana. Non drammatico, ma merita un'azione prima che si cronicizzi.",
-              "Conosci la mia regola: si agisce prima del rosso, non durante. Siamo in arancione, è la finestra giusta.",
-              "Se vuole il dettaglio, apra Personale, le mostro le barre. Non è critico ancora, ma è il momento di muoversi."
-            ],
-            de: [
-              "Chef, ich hab ein schwaches aber klares Signal: die Moral sinkt. Wenn wir in den nächsten Tagen nicht eingreifen, sieht man's in der Produktion.",
-              "Das Klima zieht sich zusammen, ich spür's auf den Gängen. Ein gut platziertes Frühstück oder Afterwork ist der beste ROI der Woche.",
-              "Bis zum Streik ist's noch weit, aber das Team ist müde. Eine HR-Aktion jetzt erspart uns drei in zwei Wochen.",
-              "Chef, schau mal ins Personal-Panel, wenn du zwei Minuten hast. Ein paar Anzeigen verdienen deine Aufmerksamkeit.",
-              "Lieber warne ich früh: wir gehen in die angespannte Zone. Ein Teambuilding diesen Monat würde allen gut tun.",
-              "Die Stimmung ist diese Woche eine Stufe gefallen. Nicht dramatisch, aber eine Aktion wert, bevor's chronisch wird.",
-              "Du kennst meine Regel: handeln vor dem Rot, nicht währenddessen. Wir sind im Orange, das ist das richtige Fenster.",
-              "Wenn du Details willst, öffne Personal, ich zeig dir die Anzeigen. Noch nicht kritisch, aber Zeit zu handeln."
-            ]
-          };
-          const pool = warn[lang] || warn.fr;
-          if (tryRandomPopup('Karen', pickUnseen(pool))) {
-            lastKarenAmbRef.current = curT;
-            return;
-          }
-        }
-      }
-
-      // 11. KAREN — P3 ambiance RH (cooldown 500s, Karen présente)
-      const hasK = !!(ownedSnap['karen_junior'] || ownedSnap['karen_senior'] || ownedSnap['karen_drh']);
-      if (hasK && !popupMessageRef.current
-          && phaseRef.current >= 3 && phaseRef.current < 4
-          && (curT - lastKarenAmbRef.current) > 500 && Math.random() < 0.16) {
-        const karen = {
-          fr: [
-            "J'ai reçu trois candidatures spontanées cette semaine. C'est nouveau. On rayonne, on dirait.",
-            "L'équipe est globalement saine. Pas de drame, pas d'angélisme non plus. Le niveau normal d'une boîte qui tourne.",
-            "Petit conflit entre deux personnes ce matin. J'ai géré en 15 minutes, on en reparle plus.",
-            "Vous savez que Fred est éligible à une augmentation depuis deux mois ? Je dis ça, je dis rien.",
-            "J'ai mis en place un point hebdo informel le vendredi. Les gens partent en weekend plus zen, ça se voit.",
-            "Le climat social est dans le vert. Ne change rien à ce qui marche, c'est mon conseil RH du jour.",
-            "On a perdu zéro personne ce trimestre. Pour notre secteur, c'est quasi un miracle.",
-            "Quelqu'un demande à passer à 4/5 pour son enfant. C'est un bon élément, je dis oui, vous confirmez ?"
-          ],
-          en: [
-            "Got three unsolicited applications this week. That's new. We're glowing, apparently.",
-            "The team's generally healthy. No drama, no naive optimism either. The normal level of a functioning company.",
-            "Small conflict between two people this morning. Handled in 15 minutes, no more talk of it.",
-            "You know Fred's been due for a raise for two months? Just saying. Saying nothing.",
-            "Set up an informal Friday touch-base. People leave for the weekend more relaxed, you can see it.",
-            "Social climate's in the green. Don't change what works, that's my HR advice for the day.",
-            "Lost zero people this quarter. For our sector, that's almost a miracle.",
-            "Someone's asking to go to 4/5 for their kid. Solid employee, I say yes, do you confirm?"
-          ],
-          es: [
-            "Recibí tres candidaturas espontáneas esta semana. Es nuevo. Brillamos, parece.",
-            "El equipo está sano en general. Sin dramas, sin angelismo tampoco. El nivel normal de una empresa que funciona.",
-            "Pequeño conflicto entre dos personas esta mañana. Resuelto en 15 minutos, no se vuelve a hablar.",
-            "¿Sabe que Fred lleva dos meses elegible para un aumento? Lo digo y no digo nada.",
-            "Monté una reunión informal los viernes. La gente se va al fin de semana más zen, se nota.",
-            "El clima social está en verde. No cambies lo que funciona, ese es mi consejo de RR.HH. del día.",
-            "Perdimos cero personas este trimestre. Para nuestro sector, es casi un milagro.",
-            "Alguien pide pasar a 4/5 por su hijo. Es un buen elemento, digo que sí, ¿confirma?"
-          ],
-          zh: [
-            "本周收到三份主动应聘。是新鲜事。看来我们在发光。",
-            "团队整体健康。没有戏剧化，也没有天真的乐观。一家正常运转公司的标准水平。",
-            "今早两个人有点小冲突。15分钟解决，没人再提。",
-            "你知道Fred两个月前就该加薪了吗？我就说说，什么也不说。",
-            "我安排了周五的非正式碰头。大家周末走得更轻松，看得出来。",
-            "工作氛围在绿区。别改有效的东西，今天的人资建议。",
-            "这季度零人员流失。对我们这个行业，几乎是奇迹。",
-            "有人为了孩子申请4/5工时。是好员工，我说同意，你确认吗？"
-          ],
-          ru: [
-            "На этой неделе поступили три инициативных резюме. Это ново. Видимо, мы излучаем.",
-            "Команда в целом здорова. Без драм, без розовых очков. Нормальный уровень работающей конторы.",
-            "Маленький конфликт между двумя людьми с утра. Решила за 15 минут, больше об этом не говорим.",
-            "Ты в курсе, что Фред уже два месяца как заслуживает повышения? Просто говорю. Ничего не говорю.",
-            "Запустила неформальный пятничный сбор. Люди уходят на выходные расслабленнее, это видно.",
-            "Социальный климат в зелёной зоне. Не меняй то, что работает, мой HR-совет дня.",
-            "Ноль увольнений за квартал. Для нашей отрасли, почти чудо.",
-            "Один просит перейти на 4/5 ради ребёнка. Хороший сотрудник, я говорю да, подтвердишь?"
-          ],
-          it: [
-            "Ho ricevuto tre candidature spontanee questa settimana. È una novità. Brilliamo, a quanto pare.",
-            "La squadra è sana in generale. Niente drammi, niente angelismo. Il livello normale di un'azienda che gira.",
-            "Piccolo conflitto tra due persone stamattina. Risolto in 15 minuti, non se ne riparla.",
-            "Sai che Fred è in lista per un aumento da due mesi? Dico, eh. Non dico niente.",
-            "Ho messo in piedi un punto informale il venerdì. La gente parte per il weekend più rilassata, si vede.",
-            "Il clima sociale è in verde. Non cambiare quello che funziona, è il mio consiglio HR del giorno.",
-            "Zero perdite di personale questo trimestre. Per il nostro settore, è quasi un miracolo.",
-            "Qualcuno chiede di passare al 4/5 per il figlio. È un buon elemento, io dico sì, confermi?"
-          ],
-          de: [
-            "Drei Initiativbewerbungen diese Woche bekommen. Das ist neu. Wir strahlen wohl.",
-            "Das Team ist im Großen und Ganzen gesund. Kein Drama, aber auch keine rosa Brille. Das Normalniveau einer funktionierenden Firma.",
-            "Kleiner Konflikt zwischen zwei Leuten heute früh. In 15 Minuten gelöst, kein Thema mehr.",
-            "Weißt du, dass Fred seit zwei Monaten für eine Erhöhung ansteht? Sag ich nur. Sag ich gar nichts.",
-            "Hab einen lockeren Freitags-Check-in eingeführt. Die Leute gehen entspannter ins Wochenende, das sieht man.",
-            "Betriebsklima im grünen Bereich. Ändere nicht, was funktioniert, mein HR-Tipp des Tages.",
-            "Null Abgänge dieses Quartal. Für unsere Branche fast ein Wunder.",
-            "Jemand bittet wegen seines Kindes um 4/5. Guter Mitarbeiter, ich sage ja, bestätigst du?"
-          ]
-        };
-        const pool = karen[lang] || karen.fr;
-        if (tryRandomPopup('Karen', pickUnseen(pool))) {
-          lastKarenAmbRef.current = curT;
-          return;
-        }
-      }
       } catch (err) {
         console.error('[Meltdown narrative tick error]', err);
       }
@@ -6667,18 +6369,17 @@ export default function App() {
     if (owned['fred_stage'] || owned['fred'] || owned['fred_perma'] || owned['fred_chef'] || owned['fred_dir']) {
       unlockAchievement('family');
     }
-    // 7. HARMONIE — 4 employés à moral ≥80
+    // 7. HARMONIE — 3 employés à moral ≥80
     {
       const morals = [];
       if (owned['fred_stage'] || owned['fred'] || owned['fred_perma'] || owned['fred_chef'] || owned['fred_dir']) morals.push(fredMoral);
       if (owned['autosell'] || owned['brigitte_compta'] || owned['brigitte_dir']) morals.push(brigitteMoral);
       if (['camion_1','camion_2','lenny_chef'].some(id => owned[id])) morals.push(lennyMoral);
-      if (owned['karen_junior'] || owned['karen_senior'] || owned['karen_drh']) morals.push(karenMoral);
       const goodCount = morals.filter(m => m >= 80).length;
-      if (goodCount >= 4) unlockAchievement('harmony');
+      if (goodCount >= 3) unlockAchievement('harmony');
     }
     // 8. MENTOR — un perso au tier Directeur
-    if (owned['fred_dir'] || owned['brigitte_dir'] || owned['karen_drh'] || owned['lenny_chef']) {
+    if (owned['fred_dir'] || owned['brigitte_dir'] || owned['lenny_chef']) {
       unlockAchievement('mentor');
     }
     // 10. FRED DIRECTEUR
@@ -6693,7 +6394,7 @@ export default function App() {
     if (notoriety >= 100) unlockAchievement('cult_brand');
     // 18. EMPIRE STABLE — 50 saisons jouées
     if (gameTime >= 50 * SEASON_DURATION) unlockAchievement('stable_empire');
-  }, [money, notoriety, stock, maxCap, totals, owned, fredMoral, brigitteMoral, lennyMoral, karenMoral, gameTime, lines]);
+  }, [money, notoriety, stock, maxCap, totals, owned, fredMoral, brigitteMoral, lennyMoral, gameTime, lines]);
 
   // === Détection "stock insuffisant pour l'appel courant" ===
   // EXACTEMENT le même calcul que `canAccept` utilisé dans le rendu du
@@ -6846,8 +6547,8 @@ export default function App() {
   const brigitteMaxTier = getBrigitteMaxContractTier(owned, brigitteSalaryLevel, brigitteGrumpy);
   const brigitteTierLevel = getBrigitteTierLevel(owned);
 
-  const teamBuildActive = gameTime < karenTeamBuildUntil;
-  const teamBuildMult = teamBuildActive ? KAREN_TEAMBUILD_MULT : 1;
+  const teamBuildActive = gameTime < teamBuildUntil;
+  const teamBuildMult = teamBuildActive ? TEAMBUILD_MULT : 1;
 
   // === MORAL : impact sur la productivité ===
   // Prend le moral le plus bas de l'équipe (ceux qui sont hired) comme indicateur global.
@@ -6856,11 +6557,9 @@ export default function App() {
   // === EFFICACITÉ PAR RÔLE selon le moral individuel ===
   // Chaque employé voit ses missions affectées par SON moral personnel.
   // Ces multiplicateurs s'appliquent à des mécanismes spécifiques (vitesse Lenny,
-  // autosell Brigitte, campagnes Janice, actions RH Karen).
-  // Karen a un PLANCHER à 0.70 même très démotivée — filet anti-spirale infernale.
+  // autosell Brigitte, campagnes Janice).
   const lennyEfficiency    = (m) => m >= 80 ? 1.00 : m >= 50 ? 0.95 : m >= 30 ? 0.85 : 0.70;
   const brigitteEfficiency = (m) => m >= 80 ? 1.00 : m >= 50 ? 0.90 : m >= 30 ? 0.75 : 0.60;
-  const karenEfficiency    = (m) => m >= 80 ? 1.00 : m >= 50 ? 0.90 : m >= 30 ? 0.80 : 0.70;
   // Label de pénalité moral (à afficher au-dessus de la barre de moral). 
   // Retourne null si moral ≥80 (pas de pénalité visible).
   // Si moral < 80, retourne { effPct: '−X%', label: 'Démotivé · livraisons −X%' } (texte localisé).
@@ -6870,7 +6569,6 @@ export default function App() {
       fred:     moralFor(moralValue),
       brigitte: brigitteEfficiency(moralValue),
       lenny:    lennyEfficiency(moralValue),
-      karen:    karenEfficiency(moralValue),
     };
     const eff = effMap[role] || 1.0;
     const pct = Math.round((1 - eff) * 100);
@@ -6886,13 +6584,13 @@ export default function App() {
       de: { meh: 'Angespannt', down: 'Demotiviert', crit: 'Am Ende' },
     };
     const effectLabel = {
-      fr: { fred: 'prod', brigitte: 'contrats', janice: 'campagnes', lenny: 'livraisons', karen: 'actions RH' },
-      en: { fred: 'prod', brigitte: 'contracts', janice: 'campaigns', lenny: 'deliveries', karen: 'HR actions' },
-      es: { fred: 'prod', brigitte: 'contratos', janice: 'campañas', lenny: 'entregas', karen: 'acciones RRHH' },
-      zh: { fred: '生产', brigitte: '合同', janice: '活动', lenny: '配送', karen: '人事行动' },
-      ru: { fred: 'произв', brigitte: 'контракты', janice: 'кампании', lenny: 'доставки', karen: 'HR-действия' },
-      it: { fred: 'prod', brigitte: 'contratti', janice: 'campagne', lenny: 'consegne', karen: 'azioni RU' },
-      de: { fred: 'Prod', brigitte: 'Verträge', janice: 'Kampagnen', lenny: 'Lieferungen', karen: 'HR-Aktionen' },
+      fr: { fred: 'prod', brigitte: 'contrats', janice: 'campagnes', lenny: 'livraisons' },
+      en: { fred: 'prod', brigitte: 'contracts', janice: 'campaigns', lenny: 'deliveries' },
+      es: { fred: 'prod', brigitte: 'contratos', janice: 'campañas', lenny: 'entregas' },
+      zh: { fred: '生产', brigitte: '合同', janice: '活动', lenny: '配送' },
+      ru: { fred: 'произв', brigitte: 'контракты', janice: 'кампании', lenny: 'доставки' },
+      it: { fred: 'prod', brigitte: 'contratti', janice: 'campagne', lenny: 'consegne' },
+      de: { fred: 'Prod', brigitte: 'Verträge', janice: 'Kampagnen', lenny: 'Lieferungen' },
     };
     const moodTxt   = (moodLabel[language] || moodLabel.fr)[mood];
     const effectTxt = (effectLabel[language] || effectLabel.fr)[role];
@@ -6981,14 +6679,7 @@ export default function App() {
   const upcomingInDisplay = upcomingIn;
 
   // === RENTABILITÉ — calcul revenus glissants 60s + charges théoriques ===
-  // Inclut Karen salary aussi (qui n'est pas dans upSalaryRaw)
-  const upKarenSalary = (() => {
-    const karenTier = ['karen_drh', 'karen_senior', 'karen_junior'].find(id => owned[id]);
-    if (!karenTier) return 0;
-    const u = UPGRADES.find(uu => uu.id === karenTier);
-    return u ? Math.round(u.salary[karenSalaryLevel] * salaryMult(owned)) : 0;
-  })();
-  const upTotalSalaries = upSalaryRaw + upKarenSalary;
+  const upTotalSalaries = upSalaryRaw;
   // === RENTABILITÉ MENSUELLE ===
   // Tout est mensualisé : charges = ce qui sera prélevé ce mois.
   // Salaires du mois (÷6 comme le prélèvement réel).
@@ -7423,20 +7114,16 @@ export default function App() {
           if (s.fredSalaryLevel) setFredSalaryLevel(s.fredSalaryLevel);
           if (s.brigitteSalaryLevel) setBrigitteSalaryLevel(s.brigitteSalaryLevel);
           if (s.lennySalaryLevel) setLennySalaryLevel(s.lennySalaryLevel);
-          if (s.karenSalaryLevel) setKarenSalaryLevel(s.karenSalaryLevel);
           if (s.fredGrumpy) setFredGrumpy(true);
           if (s.brigitteGrumpy) setBrigitteGrumpy(true);
           if (s.janiceGrumpy) setJaniceGrumpy(true);
           if (s.lennyGrumpy) setLennyGrumpy(true);
-          if (s.karenGrumpy) setKarenGrumpy(true);
           if (typeof s.fredMoral === 'number') setFredMoral(s.fredMoral);
           if (typeof s.brigitteMoral === 'number') setBrigitteMoral(s.brigitteMoral);
           if (typeof s.lennyMoral === 'number') setLennyMoral(s.lennyMoral);
-          if (typeof s.karenMoral === 'number') setKarenMoral(s.karenMoral);
           if (typeof s.fredStress === 'number') setFredStress(s.fredStress);
           if (typeof s.brigitteStress === 'number') setBrigitteStress(s.brigitteStress);
           if (typeof s.lennyStress === 'number') setLennyStress(s.lennyStress);
-          if (typeof s.karenStress === 'number') setKarenStress(s.karenStress);
           if (typeof s.notoriety === 'number') setNotoriety(s.notoriety);
           if (typeof s.segFamille === 'number') setSegFamille(s.segFamille);
           if (typeof s.segJeunesse === 'number') setSegJeunesse(s.segJeunesse);
@@ -7502,7 +7189,6 @@ export default function App() {
           if (typeof s.rhFatigue === 'number') setRhFatigue(s.rhFatigue);
           if (s.rhActionsUsed && typeof s.rhActionsUsed === 'object') setRhActionsUsed(s.rhActionsUsed);
           if (typeof s.rhActionsYearIdx === 'number') setRhActionsYearIdx(s.rhActionsYearIdx);
-          if (typeof s.rhBoostUntil === 'number') setRhBoostUntil(s.rhBoostUntil);
           if (typeof s.robertCall1Triggered === 'boolean') setRobertCall1Triggered(s.robertCall1Triggered);
           if (typeof s.robertCall2Triggered === 'boolean') setRobertCall2Triggered(s.robertCall2Triggered);
           if (typeof s.robertCall2Heard === 'boolean') setRobertCall2Heard(s.robertCall2Heard);
@@ -7632,10 +7318,10 @@ export default function App() {
       stock, money, owned, gameTime, phase, reputation, lines, marketplace, freezingLeft, freezingTotal, fredCycleLeft, fredCycleTotal,
       fredCycleAccum: fredCycleAccumRef.current,
       totals, lastInsuranceCancel, completedCalls, nextCallAt, meltTutorialShown, brokenGear,
-      fredSalaryLevel, brigitteSalaryLevel, lennySalaryLevel, karenSalaryLevel,
-      fredGrumpy, brigitteGrumpy, janiceGrumpy, lennyGrumpy, karenGrumpy,
-      fredMoral, brigitteMoral, lennyMoral, karenMoral,
-      fredStress, brigitteStress, lennyStress, karenStress,
+      fredSalaryLevel, brigitteSalaryLevel, lennySalaryLevel,
+      fredGrumpy, brigitteGrumpy, janiceGrumpy, lennyGrumpy,
+      fredMoral, brigitteMoral, lennyMoral,
+      fredStress, brigitteStress, lennyStress,
       notoriety, glacierBeats, phase3TriggerStage, phase3Semesters, exoIntroShown, securityIntroShown,
       sickUntil,
       monthlyV2: true, // refonte mensuelle : marqueur de migration
@@ -7651,7 +7337,7 @@ export default function App() {
       activeLawsuits, lawsuitHistory,
       victoryAchieved, victoryTimestamp,
       trialAnnounced: trialAnnouncedRef.current,
-      rhFatigue, rhActionsUsed, rhActionsYearIdx, rhBoostUntil,
+      rhFatigue, rhActionsUsed, rhActionsYearIdx,
       robertCall1Triggered, robertCall2Triggered, robertCall2Heard, phase3LastStageAt,
       activeCampaign, campaignsLaunched,
       marketTarget, nextMarketReroll,
@@ -7787,7 +7473,7 @@ export default function App() {
       // === DRIFT MORAL INDUSTRIEL ===
       // En P2+, le moral des employés se dégrade lentement mais constamment.
       // Symbolise la perte du côté familial, la pression croissante, l'industrialisation.
-      // Compensable mais jamais annulable totalement : raises, bonus, actions Karen.
+      // Compensable mais jamais annulable totalement : raises, bonus, actions RH.
       // Drift par seconde (par employé présent) :
       //   P2 : -0.012/s  →  -0.7 moral/min  →  baisse perceptible mais lente
       //   P3 : -0.025/s  →  -1.5 moral/min  →  notoriété, pression
@@ -7798,7 +7484,6 @@ export default function App() {
       //   machine_cafe     : -5%
       //   plan_formation   : -15%
       //   creche_entreprise: -20%
-      //   karen_drh        : -15%  (médiation continue)
       if (phaseRef.current >= 2) {
         const baseDrift = phaseRef.current >= 4 ? 0.040
           : phaseRef.current >= 3 ? 0.025
@@ -7810,7 +7495,6 @@ export default function App() {
         if (ownedRef.current['machine_cafe'])      mitigation += 0.05;
         if (ownedRef.current['plan_formation'])    mitigation += 0.15;
         if (ownedRef.current['creche_entreprise']) mitigation += 0.20;
-        if (ownedRef.current['karen_drh'])         mitigation += 0.15;
         // Plafond à 75% pour qu'on ne puisse jamais arrêter complètement
         mitigation = Math.min(0.75, mitigation);
         const driftPerSec = baseDrift * (1 - mitigation);
@@ -7823,12 +7507,9 @@ export default function App() {
         const hasLennyPresent = !!(ownedRef.current['camion_1'] || ownedRef.current['camion_2']
           || ownedRef.current['camion_3'] || ownedRef.current['camion_4']
           || ownedRef.current['camion_5'] || ownedRef.current['camion_6']);
-        const hasKarenPresent = !!(ownedRef.current['karen_junior'] || ownedRef.current['karen_senior']
-          || ownedRef.current['karen_drh']);
         if (hasFredPresent)     setFredMoral(m => Math.max(0, m + moralDelta));
         if (hasBrigittePresent) setBrigitteMoral(m => Math.max(0, m + moralDelta));
         if (hasLennyPresent)    setLennyMoral(m => Math.max(0, m + moralDelta));
-        if (hasKarenPresent)    setKarenMoral(m => Math.max(0, m + moralDelta));
       }
 
       // Campaign auto-end
@@ -8081,8 +7762,7 @@ export default function App() {
         const hasFredForCtx = !!(curOwn['fred_stage'] || curOwn['fred'] || curOwn['fred_perma'] || curOwn['fred_chef'] || curOwn['fred_dir'] || curOwn['fred_legende']);
         const trucksActiveCount = linesRef.current.filter(l => l && l.contractId && !l.broken).length;
         const contractsActiveCount = linesRef.current.filter(l => l && l.contractId).length;
-        const empCount = (hasFredForCtx ? 1 : 0) + (hasBrigitteForCtx ? 1 : 0) + (hasJaniceForCtx ? 1 : 0) + (hasLenny ? 1 : 0)
-          + (curOwn['karen_junior'] || curOwn['karen_drh'] ? 1 : 0);
+        const empCount = (hasFredForCtx ? 1 : 0) + (hasBrigitteForCtx ? 1 : 0) + (hasJaniceForCtx ? 1 : 0) + (hasLenny ? 1 : 0);
         const hasPremWater = !!(curOwn['eau_source_filtree'] || curOwn['eau_source_montagne'] || curOwn['eau_volcanique']);
         const ctx = {
           phase: curPhase,
@@ -8106,14 +7786,11 @@ export default function App() {
           // Prérequis cohérents (Lenny pour la route, Janice pour le marketing, etc.)
           .filter(f => !f.requires || f.requires(ctx))
           // Modulation dynamique du poids de fric_sick :
-          //  - Karen Senior : −40 % (politique sociale amorce les arrêts)
-          //  - Karen DRH    : −60 % (médiation préventive systématique)
           //  - Hiver (saison 0) : +50 % (saison grippe)
           .map(f => {
             if (f.id !== 'fric_sick') return f;
-            const _karenMult = curOwn['karen_drh'] ? 0.4 : curOwn['karen_senior'] ? 0.6 : 1;
             const _winterMult = seasonIdxRef.current === 0 ? 1.5 : 1;
-            return { ...f, weight: (f.weight || 1) * _karenMult * _winterMult };
+            return { ...f, weight: (f.weight || 1) * _winterMult };
           });
         if (eligible.length > 0) {
           // Tirage pondéré
@@ -8137,8 +7814,6 @@ export default function App() {
             if (ctx.hasFred) pool.push('fred');
             if (ctx.hasBrigitte) pool.push('brigitte');
             if (ctx.hasLenny) pool.push('lenny');
-            const ownedSnap = ownedRef.current;
-            if (ownedSnap['karen_junior'] || ownedSnap['karen_senior'] || ownedSnap['karen_drh']) pool.push('karen');
             if (pool.length > 0) {
               _sickPickedRole = pool[Math.floor(Math.random() * pool.length)];
               const expiresAt = gameTimeRef.current + picked.duration;
@@ -8162,7 +7837,6 @@ export default function App() {
             setFredMoral(m => Math.max(0, Math.min(100, m + d)));
             setBrigitteMoral(m => Math.max(0, Math.min(100, m + d)));
             setLennyMoral(m => Math.max(0, Math.min(100, m + d)));
-            setKarenMoral(m => Math.max(0, Math.min(100, m + d)));
           }
           if (typeof e.oneShotNotoriety === 'number') {
             setNotoriety(n => Math.max(0, Math.min(100, n + e.oneShotNotoriety)));
@@ -8245,9 +7919,9 @@ export default function App() {
       const curFredMult = ({ bas: 0.8, std: 1.0, haut: 1.2 }[fredSalaryLevelRef.current] || 1) * (fredGrumpyRef.current ? 0 : 1);
       const curDynProd = getDynamicProdMult(gameTimeRef.current);
       const curDynMelt = getDynamicMeltMult(gameTimeRef.current);
-      // Karen team-building : +25% prod pendant 60s
-      const teamBuildActive = gameTimeRef.current < karenTeamBuildUntilRef.current;
-      const teamBuildMult = teamBuildActive ? KAREN_TEAMBUILD_MULT : 1;
+      // Team-building : +25% prod pendant 60s
+      const teamBuildActive = gameTimeRef.current < teamBuildUntilRef.current;
+      const teamBuildMult = teamBuildActive ? TEAMBUILD_MULT : 1;
       // Sabotage chaîne (panne) : production figée pendant la durée de réparation
       const curChainBroken = !!(chainBrokenRef.current && chainBrokenRef.current.repairUntil > gameTimeRef.current);
       const curChainBreakMult = curChainBroken ? 0 : 1;
@@ -8687,14 +8361,10 @@ export default function App() {
           let janiceSalary = 0;
           const lennyGr = getLennyGrade(ownedRef.current);
           let lennySalary = lennyGr ? Math.round(lennyGr.salary[lennySalaryLevelRef.current] * _salaryMult / MONTHS_PER_SEMESTER) : 0;
-          const karenTierIds = ['karen_junior', 'karen_senior', 'karen_drh'];
-          const curKarenTier = [...karenTierIds].reverse().find(id => ownedRef.current[id]);
-          const karenUpg = curKarenTier ? UPGRADES.find(u => u.id === curKarenTier) : null;
-          let karenSalary = karenUpg ? Math.round(karenUpg.salary[karenSalaryLevelRef.current] * _salaryMult / MONTHS_PER_SEMESTER) : 0;
           // Période d'essai des 6 mois post-embauche supprimée : chaque
           // employé est payé à plein tarif dès le 1er mois (cohérent avec
           // la suppression globale de l'exonération).
-          const totalSalary = fredSalary + brigitteSalary + janiceSalary + lennySalary + karenSalary;
+          const totalSalary = fredSalary + brigitteSalary + janiceSalary + lennySalary;
           let chargesP4 = 0;
           // Charges utilities P1-3 calculées dans le bloc utilities :
           // intégrées ici au paiement global (un seul prélèvement).
@@ -8718,12 +8388,10 @@ export default function App() {
               if (fredGrumpyRef.current)     setFredMoral(m => Math.max(0, Math.floor(m / 2)));
               if (brigitteGrumpyRef.current) setBrigitteMoral(m => Math.max(0, Math.floor(m / 2)));
               if (lennyGrumpyRef.current)    setLennyMoral(m => Math.max(0, Math.floor(m / 2)));
-              if (karenGrumpyRef.current)    setKarenMoral(m => Math.max(0, Math.floor(m / 2)));
               setFredGrumpy(false);
               setBrigitteGrumpy(false);
               setJaniceGrumpy(false);
               setLennyGrumpy(false);
-              setKarenGrumpy(false);
               // Save bonus : mois payé avec succès = checkpoint stable
               setTimeout(() => { if (saveNowRef.current) saveNowRef.current(); }, 500);
             } else {
@@ -8760,7 +8428,7 @@ export default function App() {
                   struckMonth: -1, // pas encore en grève
                   salariesByEmp: {
                     fred: fredSalary, brigitte: brigitteSalary,
-                    janice: janiceSalary, lenny: lennySalary, karen: karenSalary
+                    janice: janiceSalary, lenny: lennySalary
                   },
                 });
                 const hasBrigitteForWage = !!(ownedRef.current['autosell'] || ownedRef.current['brigitte_compta'] || ownedRef.current['brigitte_ad']);
@@ -8797,7 +8465,6 @@ export default function App() {
               if (sb.brigitte > 0) { setBrigitteGrumpy(true); strikingNames.push('Brigitte'); }
               if (sb.janice > 0)   { setJaniceGrumpy(true);   strikingNames.push('Agence marketing'); }
               if (sb.lenny > 0)    { setLennyGrumpy(true);    strikingNames.push('Lenny'); }
-              if (sb.karen > 0)    { setKarenGrumpy(true);    strikingNames.push('Karen'); }
               setWageArrears({ ...arr, struckMonth: _mNum });
               // Sans Brigitte : pas de popup (le bandeau de notif suffit).
               if (ownedRef.current['autosell'] || ownedRef.current['brigitte_compta'] || ownedRef.current['brigitte_ad']) {
@@ -8812,7 +8479,6 @@ export default function App() {
               if (sb.brigitte > 0) { setBrigitteGrumpy(false); setBrigitteMoral(m => Math.max(0, m - 50)); }
               if (sb.janice > 0)   { setJaniceGrumpy(false); }
               if (sb.lenny > 0)    { setLennyGrumpy(false);    setLennyMoral(m => Math.max(0, m - 50)); }
-              if (sb.karen > 0)    { setKarenGrumpy(false);    setKarenMoral(m => Math.max(0, m - 50)); }
               // L'employé est revenu mais exige son dû avant la fin de
               // l'année : on garde la dette, on neutralise struckMonth
               // pour ne pas reboucler (la dette persiste via wageArrears).
@@ -9808,18 +9474,9 @@ export default function App() {
   const dismissIncident = () => {
     if (!pendingIncident) return;
     const impact = pendingIncident.variant.moralImpact || {};
-    // === Karen DRH : Médiation préventive ===
-    // Si Karen est au palier DRH, l'impact moral des incidents est réduit de 50%
-    // (elle anticipe et désamorce les conflits avant qu'ils ne dégénèrent).
-    const hasKarenDrh = !!ownedRef.current['karen_drh'];
-    const mitigationFactor = hasKarenDrh ? 0.5 : 1.0;
-    const reduceImpact = (val) => typeof val === 'number' ? val * mitigationFactor : val;
-    if (typeof impact.fred === 'number')     setFredMoral(m => Math.max(0, m + reduceImpact(impact.fred)));
-    if (typeof impact.brigitte === 'number') setBrigitteMoral(m => Math.max(0, m + reduceImpact(impact.brigitte)));
-    if (typeof impact.lenny === 'number')    setLennyMoral(m => Math.max(0, m + reduceImpact(impact.lenny)));
-    if (hasKarenDrh) {
-      setEventNotif(t('notif.karen_defused'));
-    }
+    if (typeof impact.fred === 'number')     setFredMoral(m => Math.max(0, m + impact.fred));
+    if (typeof impact.brigitte === 'number') setBrigitteMoral(m => Math.max(0, m + impact.brigitte));
+    if (typeof impact.lenny === 'number')    setLennyMoral(m => Math.max(0, m + impact.lenny));
     setPendingIncident(null);
   };
 
@@ -10180,7 +9837,6 @@ export default function App() {
     if (u.id === 'robotisation') {
       const hit = m => Math.max(0, m - ROBOTISATION_MORAL);
       setFredMoral(hit); setBrigitteMoral(hit); setLennyMoral(hit);
-      setKarenMoral(hit);
     }
     // Track hire dates for first-tier purchases
     const BIRTHDAY_OFFSET_MIN = 480; // ~8 min après embauche
@@ -10190,16 +9846,13 @@ export default function App() {
     if (u.id === 'autosell' && !hireDates.brigitte) { setHireDates(prev => ({ ...prev, brigitte: gameTime })); setBirthdays(prev => ({ ...prev, brigitte: genBirthday() })); queuePopup({ type: 'character', speaker: 'Brigitte', text: t('hire_intro.brigitte') }); }
     if (u.id === 'janice_jr' && !hireDates.janice) { setHireDates(prev => ({ ...prev, janice: gameTime })); queuePopup({ type: 'character', speaker: t('agency.speaker'), text: t('hire_intro.janice') }); }
     if (u.id === 'camion_1' && !hireDates.lenny) { setHireDates(prev => ({ ...prev, lenny: gameTime })); setBirthdays(prev => ({ ...prev, lenny: genBirthday() })); queuePopup({ type: 'character', speaker: 'Lenny', text: t('hire_intro.lenny') }); }
-    if (u.id === 'karen_junior' && !hireDates.karen) { setHireDates(prev => ({ ...prev, karen: gameTime })); setBirthdays(prev => ({ ...prev, karen: genBirthday() })); queuePopup({ type: 'character', speaker: 'Karen', text: t('hire_intro.karen') }); }
     // Moral: promotion d'employé → +30
     const FRED_TIERS = ['fred_stage', 'fred', 'fred_perma', 'fred_chef', 'fred_dir'];
     const BRIGITTE_TIERS = ['autosell', 'brigitte_compta', 'brigitte_ad'];
     const LENNY_TIERS = ['camion_1', 'camion_2', 'camion_3', 'camion_4'];
-    const KAREN_TIERS = ['karen_junior', 'karen_senior', 'karen_drh'];
     if (FRED_TIERS.includes(u.id)) adjustMoralFor('fred', 30);
     else if (BRIGITTE_TIERS.includes(u.id)) adjustMoralFor('brigitte', 30);
     else if (LENNY_TIERS.includes(u.id)) adjustMoralFor('lenny', 30);
-    else if (KAREN_TIERS.includes(u.id)) adjustMoralFor('karen', 30);
     if (u.phaseUnlock) {
       setPhase(u.phaseUnlock);
       setEventNotif('PHASE 0' + u.phaseUnlock + ' ' + t('notif.phase_unlocked'));
@@ -10272,8 +9925,8 @@ export default function App() {
 
   // === DEV : prépare les conditions narratives pour déclencher la transition ===
   // Génère AUTOMATIQUEMENT la liste d'upgrades à partir des constantes partagées
-  // (ROBERT1_REQUIRED, ROBERT2_REQUIRED, VANDENBERG_REQUIRED) — donc toujours
-  // synchronisé avec ce que les ticks vérifient réellement. Inclut aussi tous
+  // (ROBERT1_REQUIRED, ROBERT2_REQUIRED) — donc toujours synchronisé avec ce
+  // que les ticks vérifient réellement. Inclut aussi tous
   // les tiers précédents de chaque famille (ex: fred_dir → fred_chef, fred_perma...).
   const prepareTransitionToPhase = (targetPhase) => {
     try {
@@ -10413,7 +10066,6 @@ export default function App() {
     if (newOwned['autosell'] || newOwned['brigitte_compta'] || newOwned['brigitte_ad']) hd.brigitte = Math.max(0, gameTimeRef.current - 280);
     if (newOwned['janice_jr'] || newOwned['janice_senior'] || newOwned['janice_dir']) hd.janice = Math.max(0, gameTimeRef.current - 250);
     if (newOwned['camion_1']) hd.lenny = Math.max(0, gameTimeRef.current - 270);
-    if (newOwned['karen_junior'] || newOwned['karen_senior'] || newOwned['karen_drh']) hd.karen = Math.max(0, gameTimeRef.current - 200);
     setHireDates(hd);
 
     // Reset marketplace + lines pour reflet propre
@@ -10457,7 +10109,7 @@ export default function App() {
                 'doseur_auto', 'cuve_cryo', 'cold_tunnel', 'pro_freezer', 'autosell',
                 'preventive', 'joint_renforce', 'machine_cafe', 'fred_perma', 'rent_warehouse',
                 'camion_1', 'camion_2', 'camion_3', 'fast_truck', 'truck_iso', 'reinforce',
-                'fred_chef', 'brigitte_compta', 'agence_marketing', 'janice_jr', 'karen_junior', 'salle_repos'],
+                'fred_chef', 'brigitte_compta', 'agence_marketing', 'janice_jr', 'salle_repos'],
         totals: { produced: 15000, sold: 14000, delivered: 600, melted: 800, moneyEarned: 45000, contractsCompleted: 22, destructions: 1, vehicleBreakdowns: 1 },
         notoriety: 5,
         reputation: 65,
@@ -10497,7 +10149,6 @@ export default function App() {
       if (newOwned['autosell'] || newOwned['brigitte_compta'] || newOwned['brigitte_ad']) hd.brigitte = Math.max(0, gameTimeRef.current - 200);
       if (newOwned['janice_jr'] || newOwned['janice_senior'] || newOwned['janice_dir']) hd.janice = Math.max(0, gameTimeRef.current - 150);
       if (newOwned['camion_1']) hd.lenny = Math.max(0, gameTimeRef.current - 180);
-      if (newOwned['karen_junior'] || newOwned['karen_senior'] || newOwned['karen_drh']) hd.karen = Math.max(0, gameTimeRef.current - 100);
       setHireDates(hd);
       // Marketplace : reset pour qu'elle se reconstruise avec les nouvelles capacités
       setMarketplace([]);
@@ -10529,7 +10180,7 @@ export default function App() {
     if (!def) { setPendingTensionEvent(null); return; }
 
     // Helper : une crise génère du stress chez le membre d'équipe concerné.
-    const STRESS_SETTERS = { fred: setFredStress, brigitte: setBrigitteStress, lenny: setLennyStress, karen: setKarenStress };
+    const STRESS_SETTERS = { fred: setFredStress, brigitte: setBrigitteStress, lenny: setLennyStress };
     const bumpStress = (staff, amount) => {
       const setter = STRESS_SETTERS[staff];
       if (setter && amount > 0) setter(s => Math.min(100, s + amount));
@@ -11134,7 +10785,6 @@ export default function App() {
     if (emp === 'fred') setFredMoral(clamp);
     else if (emp === 'brigitte') setBrigitteMoral(clamp);
     else if (emp === 'lenny') setLennyMoral(clamp);
-    else if (emp === 'karen') setKarenMoral(clamp);
   };
 
   // === RENTABILITÉ — buffer revenus 60s ===
@@ -11147,15 +10797,11 @@ export default function App() {
     while (buf.length > 0 && buf[0].t < t - 60) buf.shift();
   };
 
-  // === KAREN TEAM-BUILDING ===
-  // Karen Senior+ requise. Coût 300€. Boost prod ×1.25 pendant 60s. +12 moral à tous.
-  // Cooldown 240s, 120s si DRH.
-  // === ACTIONS RH (Phase 3+, débloquées par Karen) ===
-  // Conditions communes pour qu'une action soit faisable :
-  //  - Karen embauchée
-  //  - Karen pas en grève
+  // === ACTIONS RH ===
+  // Le joueur gère la RH lui-même depuis l'écran RH. Conditions communes pour
+  // qu'une action soit faisable :
   //  - Jauge fatigue < 100
-  //  - Action pas déjà utilisée cette année
+  //  - Quota annuel de l'action non épuisé
   //  - Fonds suffisants
   const RH_BREAKFAST_COST = 300;
   const RH_AFTERWORK_COST = 800;
@@ -11192,7 +10838,6 @@ export default function App() {
       const cur = typeof prev[kind] === 'number' ? prev[kind] : (prev[kind] ? 1 : 0);
       return { ...prev, [kind]: cur + 1 };
     });
-    // Actions RH en self-service : effet plein (plus de modulation Karen).
     const empBoost = (delta) => {
       const eff = Math.round(delta);
       if (!fredGrumpyRef.current) setFredMoral(m => Math.min(100, m + eff));
@@ -11207,7 +10852,7 @@ export default function App() {
       setEventNotif(t('rh.afterwork_done'));
     } else if (kind === 'teambuilding') {
       empBoost(12);
-      setKarenTeamBuildUntil(gameTimeRef.current + KAREN_TEAMBUILD_DURATION);
+      setTeamBuildUntil(gameTimeRef.current + TEAMBUILD_DURATION);
       setEventNotif(t('rh.teambuilding_done'));
     } else if (kind === 'individual') {
       // Entretien individuel : cible l'employé au moral le plus bas (+35 atténué)
@@ -11238,27 +10883,6 @@ export default function App() {
     }
     return true;
   };
-  // Boost Karen : vide la jauge RH 5× plus vite pendant 20s + stresse Karen
-  const triggerRhBoost = () => {
-    if (!ownedRef.current['karen_junior'] && !ownedRef.current['karen_senior'] && !ownedRef.current['karen_drh']) return false;
-    if (karenGrumpyRef.current) return false;
-    if (karenBurnedLock) return false;
-    if (gameTimeRef.current < rhBoostUntilRef.current) return false; // déjà actif
-    // Stress Karen (utilise même formule que triggerBoost)
-    const stressCur = karenStress;
-    const baseStress = { min: 15, range: 25 };
-    const moralFactor = 1 + ((100 - karenMoral) / 100) * 1.5;
-    let stressGain = (baseStress.min + Math.random() * baseStress.range) * moralFactor;
-    if (stressCur >= 80) stressGain *= 1.5;
-    if (ownedRef.current['salle_sport']) stressGain *= 0.75;
-    const newStress = Math.min(100, stressCur + stressGain);
-    setKarenStress(newStress);
-    if (newStress >= 100) {
-      setKarenBurnedLock(true);
-    }
-    setRhBoostUntil(gameTimeRef.current + RH_BOOST_DURATION);
-    return true;
-  };
 
   // Tick drain jauge RH + reset annuel des actions
   useEffect(() => {
@@ -11266,8 +10890,7 @@ export default function App() {
     const id = setInterval(() => {
       if (isPausedRef.current) return;
       // Drain
-      const isBoosted = gameTimeRef.current < rhBoostUntilRef.current;
-      const drain = isBoosted ? RH_FATIGUE_DRAIN_BOOSTED : RH_FATIGUE_DRAIN_NORMAL;
+      const drain = RH_FATIGUE_DRAIN_NORMAL;
       // Tick toutes les 100ms donc on convertit : drain est en unités/s
       if (rhFatigueRef.current > 0) {
         setRhFatigue(f => Math.max(0, f - drain * 0.1));
@@ -11295,7 +10918,6 @@ export default function App() {
     if (emp === 'brigitte') return currentBrigitteUpgrade ? currentBrigitteUpgrade.salary[brigitteSalaryLevel] : 0;
     if (emp === 'janice')   return 0; // agence marketing : pas de salaire (déblocage + campagnes payées)
     if (emp === 'lenny')    return lennyGrade             ? lennyGrade.salary[lennySalaryLevel]                : 0;
-    if (emp === 'karen')  { const id = ['karen_drh','karen_senior','karen_junior'].find(i => owned[i]); const u = id ? UPGRADES.find(x => x.id === id) : null; return u ? u.salary[karenSalaryLevel] : 0; }
     return 0;
   };
   const getBonusCost = (emp) => getEmpSalary(emp) * BONUS_COST_MULT;
@@ -11314,7 +10936,6 @@ export default function App() {
     const moralBefore =
       emp === 'fred' ? fredMoral :
       emp === 'brigitte' ? brigitteMoral :
-      emp === 'karen' ? karenMoral :
       lennyMoral;
     setMoney(m => m - cost);
     adjustMoralFor(emp, BONUS_MORAL_BOOST);
@@ -11493,7 +11114,6 @@ export default function App() {
         if (sb.brigitte > 0) setBrigitteGrumpy(false);
         if (sb.janice > 0)   setJaniceGrumpy(false);
         if (sb.lenny > 0)    setLennyGrumpy(false);
-        if (sb.karen > 0)    setKarenGrumpy(false);
         const hasBrigitteForResolve = !!(ownedRef.current['autosell'] || ownedRef.current['brigitte_compta'] || ownedRef.current['brigitte_ad']);
         if (hasBrigitteForResolve) {
           queuePopup({ type: 'character', speaker: 'Brigitte', text: t('wage.resolved') });
@@ -11555,17 +11175,14 @@ export default function App() {
     setFredSalaryLevel('bas');
     setBrigitteSalaryLevel('bas');
     setLennySalaryLevel('bas');
-    setKarenSalaryLevel('bas');
     setFredGrumpy(false);
     setBrigitteGrumpy(false);
     setJaniceGrumpy(false);
     setLennyGrumpy(false);
-    setKarenGrumpy(false);
     setFredMoral(70);
     setBrigitteMoral(70);
     setLennyMoral(70);
-    setKarenMoral(70);
-    setFredStress(0); setBrigitteStress(0); setLennyStress(0); setKarenStress(0);
+    setFredStress(0); setBrigitteStress(0); setLennyStress(0);
     setNotoriety(0);
     setSegFamille(30); setSegJeunesse(30); setSegPro(30); setSegLuxe(30); setSegEco(30);
     setBrandPositioning(null); setPositioningModalOpen(false);
@@ -11584,7 +11201,6 @@ export default function App() {
     setRhFatigue(0);
     setRhActionsUsed({ breakfast: false, afterwork: false, teambuilding: false, individual: false, mediation: false });
     setRhActionsYearIdx(0);
-    setRhBoostUntil(0);
     setRhOpen(false);
     setRobertCall1Triggered(false);
     setRobertCall2Triggered(false);
@@ -11671,19 +11287,16 @@ export default function App() {
     lastFrictionAtRef.current = 0;
     lastSabotageAtRef.current = -9999;
     setPosterCooldownUntil(0);
-    ecouterCooldownsRef.current = {};
-    setEcouterTick(0);
     pendingLennyDispatchRef.current.clear();
     // Réinitialise les marqueurs « une seule fois par an » des frictions.
     firedThisYearRef.current = { year: -1, ids: new Set() };
     // === Timers basés sur gameTime restants (même classe de bug que la pandémie) ===
     // Sans ça, une panne chaîne, un boost Brigitte/Janice ou un team-building
-    // Karen dont l'échéance vaut (gameTime + durée) survit au reset : gameTime
+    // dont l'échéance vaut (gameTime + durée) survit au reset : gameTime
     // repart à 0 mais l'échéance reste élevée → effet/cooldown fantôme actif.
     setChainBroken(null); chainBrokenRef.current = null;
     setBrigitteBoostUntil(0);
-    setKarenTeamBuildUntil(0); karenTeamBuildUntilRef.current = 0;
-    setKarenTeamBuildCooldownUntil(0); karenTeamBuildCooldownUntilRef.current = 0;
+    setTeamBuildUntil(0); teamBuildUntilRef.current = 0;
     setTutCooldownUntil(0);
     // Réinitialise le timing des bulles pour que le message d'accueil
     // (t_intro) s'affiche immédiatement (~100 ms) et ne soit pas bloqué par
@@ -13071,22 +12684,6 @@ export default function App() {
           0%, 100% { transform: scale(1); }
           50% { transform: scale(1.06); }
         }
-        /* Bouton ÉCOUTER (modal personnel, Karen malade) */
-        .ecouter-btn {
-          padding: 3px 8px;
-          margin-top: 4px;
-          font-family: 'ThinSep', 'JetBrains Mono', monospace;
-          font-size: 8px;
-          letter-spacing: 1.3px;
-          font-weight: 700;
-          background: var(--fg);
-          color: var(--bg);
-          border: 1px solid var(--fg);
-          cursor: pointer;
-          align-self: flex-start;
-        }
-        .ecouter-btn.ready { animation: bannerCtaPulse 1.1s ease-in-out infinite; }
-        .ecouter-btn.cooldown { opacity: 0.4; cursor: default; background: var(--bg); color: var(--fg); }
         .chain-repair-btn { margin-top: 4px; width: 100%; padding: 6px 10px; font-size: 9.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; cursor: pointer; border: 1.5px solid currentColor; border-radius: 4px; background: transparent; color: inherit; font-family: inherit; transition: opacity 0.12s; }
         .chain-repair-btn:hover:not(:disabled) { opacity: 0.7; }
         .chain-repair-btn:disabled { opacity: 0.45; cursor: not-allowed; }
@@ -16889,10 +16486,7 @@ export default function App() {
         .rh-fatigue-bar { height: 10px; background: var(--bg); border: 1px solid var(--line); position: relative; }
         .rh-fatigue-fill { height: 100%; background: var(--fg); transition: width 0.2s linear; }
         .rh-fatigue-fill.is-full { background: var(--fg); animation: rhFullPulse 1.2s ease-in-out infinite; }
-        .rh-fatigue-fill.is-boosted { background: var(--fg); animation: rhBoostPulse 1s ease-in-out infinite; }
-        @keyframes rhBoostPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
         @keyframes rhFullPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
-        .rh-boost-active-line { margin-top: 6px; font-size: 9px; color: var(--fg); font-weight: 700; letter-spacing: 1px; }
         .rh-actions-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
@@ -17520,12 +17114,12 @@ export default function App() {
               <div className="banner cat-positive banner-uniform">
                 <div className="banner-main">
                   <div className="banner-left"><span className="banner-title">{t('banner.teambuild_name')}</span></div>
-                  <div className="banner-right">{fmtInt(Math.ceil(karenTeamBuildUntil - gameTime))}s</div>
+                  <div className="banner-right">{fmtInt(Math.ceil(teamBuildUntil - gameTime))}s</div>
                 </div>
                 <div className="banner-sub">{t('banner.teambuild_fx')}</div>
               </div>
             )}
-            {wageArrears && !!(owned['autosell'] || owned['brigitte_compta'] || owned['brigitte_ad']) && !(fredGrumpy || brigitteGrumpy || janiceGrumpy || lennyGrumpy || karenGrumpy) && (() => {
+            {wageArrears && !!(owned['autosell'] || owned['brigitte_compta'] || owned['brigitte_ad']) && !(fredGrumpy || brigitteGrumpy || janiceGrumpy || lennyGrumpy) && (() => {
               return (
                 <div className="banner cat-negative banner-uniform">
                   <div className="banner-main">
@@ -17537,13 +17131,12 @@ export default function App() {
                 </div>
               );
             })()}
-            {(fredGrumpy || brigitteGrumpy || janiceGrumpy || lennyGrumpy || karenGrumpy) && (() => {
+            {(fredGrumpy || brigitteGrumpy || janiceGrumpy || lennyGrumpy) && (() => {
               const names = [];
               if (fredGrumpy) names.push('Fred');
               if (brigitteGrumpy) names.push('Brigitte');
               if (janiceGrumpy) names.push(t('agency.speaker'));
               if (lennyGrumpy) names.push('Lenny');
-              if (karenGrumpy) names.push('Karen');
               return (
                 <div className="banner cat-negative banner-uniform" onClick={() => setPersonnelOpen(true)} role="button" tabIndex={0}>
                   <div className="banner-main">
@@ -17993,7 +17586,6 @@ export default function App() {
                                 setFredMoral(m => Math.max(0, Math.min(100, m + d)));
                                 setBrigitteMoral(m => Math.max(0, Math.min(100, m + d)));
                                 setLennyMoral(m => Math.max(0, Math.min(100, m + d)));
-                                setKarenMoral(m => Math.max(0, Math.min(100, m + d)));
                               }
                               if (typeof e.oneShotNotoriety === 'number') {
                                 setNotoriety(n => Math.max(0, Math.min(100, n + e.oneShotNotoriety)));
@@ -18093,7 +17685,7 @@ export default function App() {
                         <button className="dev-btn" onClick={() => setBrigitteGrumpy(true)}>BRIG.</button>
                         <button className="dev-btn" onClick={() => setJaniceGrumpy(true)}>AGENCE</button>
                         <button className="dev-btn" onClick={() => setLennyGrumpy(true)}>LENNY</button>
-                        <button className="dev-btn" onClick={() => { setFredGrumpy(false); setBrigitteGrumpy(false); setJaniceGrumpy(false); setLennyGrumpy(false); setKarenGrumpy(false); }}>STOP GRÈVES</button>
+                        <button className="dev-btn" onClick={() => { setFredGrumpy(false); setBrigitteGrumpy(false); setJaniceGrumpy(false); setLennyGrumpy(false); }}>STOP GRÈVES</button>
                       </div>
                     </div>
                   )}
@@ -20210,7 +19802,7 @@ export default function App() {
           const totalMonthsRem = Math.floor((totalDays % 360) / 30);
           const finalEmployees = [
             owned['fred_stage'], owned['autosell'], owned['camion_1'],
-            owned['janice_jr'], owned['karen_junior'],
+            owned['janice_jr'],
           ].filter(Boolean).length;
           const ngPct = getPrestigeBonusPct();
           const ngCash = prestigeRuns * PRESTIGE_START_CASH;
@@ -20424,8 +20016,6 @@ export default function App() {
         {rhOpen && (() => {
           const fatiguePct = Math.round(rhFatigue);
           const fatigueBlocked = rhFatigue >= RH_FATIGUE_MAX;
-          const boostActive = gameTime < rhBoostUntil;
-          const boostLeft = Math.max(0, rhBoostUntil - gameTime);
           const yearNum = Math.floor(gameTime / (SEASON_DURATION * 4)) + 1;
           const actions = [
             { id: 'breakfast',    label: t('rh.breakfast'),    cost: RH_BREAKFAST_COST,    fx: t('rh.breakfast_fx'),    Icon: Coffee },
@@ -20453,14 +20043,8 @@ export default function App() {
                       <span className={`rh-fatigue-val ${fatigueBlocked ? 'is-full' : ''}`}>{fatiguePct}%</span>
                     </div>
                     <div className="rh-fatigue-bar">
-                      <div className={`rh-fatigue-fill ${fatigueBlocked ? 'is-full' : ''} ${boostActive ? 'is-boosted' : ''}`} style={{ width: `${fatiguePct}%` }} />
+                      <div className={`rh-fatigue-fill ${fatigueBlocked ? 'is-full' : ''}`} style={{ width: `${fatiguePct}%` }} />
                     </div>
-                    {boostActive && (
-                      <div className="rh-boost-active-line">
-                        <Zap size={11} strokeWidth={2.2} style={{ verticalAlign: '-2px', marginRight: 4 }} />
-                        {t('rh.boost_active')} · {Math.ceil(boostLeft)}s
-                      </div>
-                    )}
                   </div>
                   {/* Cartes actions */}
                   <div className="rh-actions-grid">
@@ -20508,7 +20092,7 @@ export default function App() {
           );
         })()}
 
-        {personnelOpen && (hasFred || hasBrigitte || hasJanice || hasLenny || !!(owned['karen_junior'] || owned['karen_senior'] || owned['karen_drh'])) && (() => {
+        {personnelOpen && (hasFred || hasBrigitte || hasJanice || hasLenny) && (() => {
           const semDur = SEASON_DURATION * 2;
           const semProgress = gameTime % semDur;
           const semLeft = semDur - semProgress;
@@ -20521,12 +20105,7 @@ export default function App() {
           const brigitteSalary = hasBrigitte ? _sal(currentBrigitteUpgrade.salary[brigitteSalaryLevel]) : 0;
           const janiceSalary = 0; // agence marketing : pas de salaire
           const lennySalary = hasLenny ? _sal(lennyGrade.salary[lennySalaryLevel]) : 0;
-          // Karen
-          const karenTierId = ['karen_drh', 'karen_senior', 'karen_junior'].find(id => owned[id]);
-          const karenUpg = karenTierId ? UPGRADES.find(u => u.id === karenTierId) : null;
-          const hasKaren = !!karenUpg;
-          const karenSalary = hasKaren ? _sal(karenUpg.salary[karenSalaryLevel]) : 0;
-          const totalSalary = fredSalary + brigitteSalary + janiceSalary + lennySalary + karenSalary;
+          const totalSalary = fredSalary + brigitteSalary + janiceSalary + lennySalary;
           const mins = Math.floor(semLeft / 60);
           const secs = Math.floor(semLeft % 60);
           const timeStr = `${mins}:${secs.toString().padStart(2, '0')}`;
@@ -20563,7 +20142,6 @@ export default function App() {
                     if (hasFred) morals.push(fredMoral);
                     if (hasBrigitte) morals.push(brigitteMoral);
                     if (hasLenny) morals.push(lennyMoral);
-                    if (!!(owned['karen_junior'] || owned['karen_senior'] || owned['karen_drh'])) morals.push(karenMoral);
                     const avgMoral = morals.length > 0 ? Math.round(morals.reduce((a, b) => a + b, 0) / morals.length) : 0;
                     const moralCls = avgMoral >= 70 ? 'high' : avgMoral >= 40 ? 'mid' : 'low';
                     // SCORE QUALITÉ : voir les améliorations de traitement de l'eau
@@ -20587,7 +20165,7 @@ export default function App() {
                         </span>
                         {(() => { const p = getMoralPenaltyLabel('fred', fredMoral); return p ? <span className={`personnel-status ${p.mood === 'crit' ? 'is-crit' : ''}`}>{p.label}</span> : null; })()}
                       </div>
-                      <span className="personnel-moral"><span className="moral-bar-label">{t('staff.moral')}</span><span className="moral-bar-value">{Math.round(fredMoral)}</span><div className="moral-bar-vertical"><div className={`moral-bar-fill moral-${fredMoral >= 80 ? 'high' : fredMoral >= 50 ? 'mid' : fredMoral >= 30 ? 'low' : 'crit'}`} style={{ height: `${Math.max(2, Math.min(100, fredMoral))}%` }} /></div></span>{renderEcouterBtn('fred', fredMoral, setFredMoral)}
+                      <span className="personnel-moral"><span className="moral-bar-label">{t('staff.moral')}</span><span className="moral-bar-value">{Math.round(fredMoral)}</span><div className="moral-bar-vertical"><div className={`moral-bar-fill moral-${fredMoral >= 80 ? 'high' : fredMoral >= 50 ? 'mid' : fredMoral >= 30 ? 'low' : 'crit'}`} style={{ height: `${Math.max(2, Math.min(100, fredMoral))}%` }} /></div></span>
                       {fredStress > 5 && (<div className="stress-bar-wrap"><span className="stress-bar-label">{t('staff.stress')}</span><div className="stress-bar"><div className={`stress-bar-fill ${fredStress >= 60 ? 'high' : ''}`} style={{ width: `${fredStress}%` }} /></div></div>)}
                       <div className="salary-slider-wrap">
                         <div className="salary-slider-labels">
@@ -20639,7 +20217,7 @@ export default function App() {
                         </span>
                         {(() => { const p = getMoralPenaltyLabel('brigitte', brigitteMoral); return p ? <span className={`personnel-status ${p.mood === 'crit' ? 'is-crit' : ''}`}>{p.label}</span> : null; })()}
                       </div>
-                      <span className="personnel-moral"><span className="moral-bar-label">{t('staff.moral')}</span><span className="moral-bar-value">{Math.round(brigitteMoral)}</span><div className="moral-bar-vertical"><div className={`moral-bar-fill moral-${brigitteMoral >= 80 ? 'high' : brigitteMoral >= 50 ? 'mid' : brigitteMoral >= 30 ? 'low' : 'crit'}`} style={{ height: `${Math.max(2, Math.min(100, brigitteMoral))}%` }} /></div></span>{renderEcouterBtn('brigitte', brigitteMoral, setBrigitteMoral)}
+                      <span className="personnel-moral"><span className="moral-bar-label">{t('staff.moral')}</span><span className="moral-bar-value">{Math.round(brigitteMoral)}</span><div className="moral-bar-vertical"><div className={`moral-bar-fill moral-${brigitteMoral >= 80 ? 'high' : brigitteMoral >= 50 ? 'mid' : brigitteMoral >= 30 ? 'low' : 'crit'}`} style={{ height: `${Math.max(2, Math.min(100, brigitteMoral))}%` }} /></div></span>
                       {brigitteStress > 5 && (<div className="stress-bar-wrap"><span className="stress-bar-label">{t('staff.stress')}</span><div className="stress-bar"><div className={`stress-bar-fill ${brigitteStress >= 60 ? 'high' : ''}`} style={{ width: `${brigitteStress}%` }} /></div></div>)}
                       <div className="salary-slider-wrap">
                         <div className="salary-slider-labels">
@@ -20699,7 +20277,7 @@ export default function App() {
                           </span>
                           {(() => { const p = getMoralPenaltyLabel('lenny', lennyMoral); return p ? <span className={`personnel-status ${p.mood === 'crit' ? 'is-crit' : ''}`}>{p.label}</span> : null; })()}
                         </div>
-                        <span className="personnel-moral"><span className="moral-bar-label">{t('staff.moral')}</span><span className="moral-bar-value">{Math.round(lennyMoral)}</span><div className="moral-bar-vertical"><div className={`moral-bar-fill moral-${lennyMoral >= 80 ? 'high' : lennyMoral >= 50 ? 'mid' : lennyMoral >= 30 ? 'low' : 'crit'}`} style={{ height: `${Math.max(2, Math.min(100, lennyMoral))}%` }} /></div></span>{renderEcouterBtn('lenny', lennyMoral, setLennyMoral)}
+                        <span className="personnel-moral"><span className="moral-bar-label">{t('staff.moral')}</span><span className="moral-bar-value">{Math.round(lennyMoral)}</span><div className="moral-bar-vertical"><div className={`moral-bar-fill moral-${lennyMoral >= 80 ? 'high' : lennyMoral >= 50 ? 'mid' : lennyMoral >= 30 ? 'low' : 'crit'}`} style={{ height: `${Math.max(2, Math.min(100, lennyMoral))}%` }} /></div></span>
                         {lennyStress > 5 && (<div className="stress-bar-wrap"><span className="stress-bar-label">{t('staff.stress')}</span><div className="stress-bar"><div className={`stress-bar-fill ${lennyStress >= 60 ? 'high' : ''}`} style={{ width: `${lennyStress}%` }} /></div></div>)}
                         <div className="salary-slider-wrap">
                           <div className="salary-slider-labels">
@@ -20738,61 +20316,6 @@ export default function App() {
                           {lennyGrumpy ? t('staff.lenny_unpaid') : `${t('staff.trip_speed')} : +${Math.round(effectiveBonus * 100)}% · ${lennyGrade.count} ${lennyGrade.count > 1 ? t('staff.trucks_managed') : t('staff.truck_managed')}`}
                         </div>
                         {renderBonusBtn('lenny')}
-                      </div>
-                    );
-                  })()}
-                  {hasKaren && (() => {
-                    return (
-                      <div className={`personnel-section ${karenStress >= 60 ? 'is-stressed' : ''}`}>
-                        <div className="personnel-name">
-                          <span className="personnel-name-left">
-                            <Firstname name="Karen" atRisk={karenMoral < MORAL_RESIGN_WARN} /> · {localizeField(karenUpg.gradeName, language)}
-                            {karenGrumpy && <span className="personnel-grumpy"> · {t('staff.on_strike')}</span>}
-                            {karenStress >= 60 && !karenGrumpy && <span className="personnel-stress-tag"> · {t('boost.stress_high')}</span>}
-                          </span>
-                          {(() => { const p = getMoralPenaltyLabel('karen', karenMoral); return p ? <span className={`personnel-status ${p.mood === 'crit' ? 'is-crit' : ''}`}>{p.label}</span> : null; })()}
-                        </div>
-                        <span className="personnel-moral"><span className="moral-bar-label">{t('staff.moral')}</span><span className="moral-bar-value">{Math.round(karenMoral)}</span><div className="moral-bar-vertical"><div className={`moral-bar-fill moral-${karenMoral >= 80 ? 'high' : karenMoral >= 50 ? 'mid' : karenMoral >= 30 ? 'low' : 'crit'}`} style={{ height: `${Math.max(2, Math.min(100, karenMoral))}%` }} /></div></span>
-                        {karenStress > 5 && (<div className="stress-bar-wrap"><span className="stress-bar-label">{t('staff.stress')}</span><div className="stress-bar"><div className={`stress-bar-fill ${karenStress >= 60 ? 'high' : ''}`} style={{ width: `${karenStress}%` }} /></div></div>)}
-                        <div className="salary-slider-wrap">
-                          <div className="salary-slider-labels">
-                            <span className={karenSalaryLevel === 'bas' ? 'active' : ''} onClick={() => setKarenSalaryLevel('bas')}>{t('staff.salary_low')}</span>
-                            <span className={karenSalaryLevel === 'std' ? 'active' : ''} onClick={() => setKarenSalaryLevel('std')}>{t('staff.salary_std')}</span>
-                            <span className={karenSalaryLevel === 'haut' ? 'active' : ''} onClick={() => setKarenSalaryLevel('haut')}>{t('staff.salary_high')}</span>
-                          </div>
-                          <div className="salary-slider-row">
-                            <button
-                              className="salary-slider-arrow"
-                              disabled={karenSalaryLevel === 'bas'}
-                              onClick={() => setKarenSalaryLevel(karenSalaryLevel === 'haut' ? 'std' : 'bas')}
-                              aria-label="−"
-                            >
-                              <ChevronLeft size={12} strokeWidth={2.5} />
-                            </button>
-                            <input
-                              type="range"
-                              min="0" max="2" step="1"
-                              value={karenSalaryLevel === 'bas' ? 0 : karenSalaryLevel === 'std' ? 1 : 2}
-                              onChange={e => setKarenSalaryLevel(['bas', 'std', 'haut'][+e.target.value])}
-                              className="salary-slider"
-                            />
-                            <button
-                              className="salary-slider-arrow"
-                              disabled={karenSalaryLevel === 'haut'}
-                              onClick={() => setKarenSalaryLevel(karenSalaryLevel === 'bas' ? 'std' : 'haut')}
-                              aria-label="+"
-                            >
-                              <ChevronRight size={12} strokeWidth={2.5} />
-                            </button>
-                          </div>
-                          <div className="salary-slider-amount">{fmtInt(karenUpg.salary[karenSalaryLevel])}€</div>
-                        </div>
-                        <div className="personnel-info">
-                          {karenGrumpy
-                            ? t('staff.karen_unpaid')
-                            : `${t('staff.karen_baseline')} +${owned['karen_drh'] ? 8 : owned['karen_senior'] ? 5 : 3}`}
-                        </div>
-                        {renderBonusBtn('karen')}
                       </div>
                     );
                   })()}
@@ -20847,7 +20370,7 @@ export default function App() {
                     </div>
                   </div>
 
-                  {(fredGrumpy || brigitteGrumpy || janiceGrumpy || lennyGrumpy || karenGrumpy) && (() => {
+                  {(fredGrumpy || brigitteGrumpy || janiceGrumpy || lennyGrumpy) && (() => {
                     const emergencyCost = Math.ceil(totalSalary * 1.5);
                     const canAfford = money >= emergencyCost;
                     return (
@@ -20861,7 +20384,6 @@ export default function App() {
                           setBrigitteGrumpy(false);
                           setJaniceGrumpy(false);
                           setLennyGrumpy(false);
-                          setKarenGrumpy(false);
                           setEventNotif(`${t('notif.strike_resolved')} · −${fmtInt(emergencyCost)}€`);
                         }}
                       >
@@ -21363,7 +20885,6 @@ export default function App() {
                     else if (id.includes('brigitte')) pk = 'brigitte';
                     else if (id.includes('fred')) pk = 'fred';
                     else if (id.includes('janice')) pk = 'janice';
-                    else if (id.includes('karen')) pk = 'karen';
                     else if (id.includes('lenny')) pk = 'lenny';
                     const psrc = pk && CHARACTER_PORTRAITS[pk];
                     return psrc ? (
