@@ -20,6 +20,8 @@ Les tests utilisent le lanceur intégré à Node.js. Le site est une application
 
 ## Progression retravaillée
 
+Sur ordinateur en paysage (à partir de 1 100 px), le jeu utilise deux colonnes : production et camions à gauche, améliorations à droite. Les cartes sont plus lisibles, avec trois ou quatre par rang selon la largeur ; la fenêtre des contrats est élargie. Les fenêtres et tutoriels restent hors des colonnes, avec un seul défilement de page. Les écrans plus étroits et le portrait conservent la disposition mobile.
+
 - Le bouton **Primes**, dans l'en-tête à côté du niveau, ouvre un parcours de 12 jalons : premiers clients, recrutement, automatisation, contrats, clients réguliers et Domination. Sa pastille compte les primes disponibles. Chaque prime se réclame une seule fois par partie ; le jeu se met en pause pendant la consultation.
 - Après la victoire et les 12 primes, des défis alternent contrats, volumes livrés et recettes supplémentaires. Les objectifs augmentent puis sont plafonnés, sans échéance réelle ni série quotidienne obligatoire.
 - Les premiers contrats comportent 6 livraisons au palier 1 et 8 au palier 2. Les conditions signées des contrats déjà en cours restent conservées.

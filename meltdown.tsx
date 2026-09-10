@@ -17,6 +17,7 @@ import { STAFF_TIERS, getStaffTier, getStaffUpgrade, getFredCycleDuration } from
 import { B2B_CONTRACTS } from './contracts';
 import { contractReputationEligible, completedContractsFromLoyalty, contractSigningIssue, contractResolutionDue, pickMarketContracts } from './game-rules';
 import { CareerLauncher } from './CareerPanel';
+import './desktop.css';
 import { tutorialEligible, tutorialFitsSurface, tutorialPriority, tutorialGapAfter, tutorialReadingTime, placeTutorial } from './tutorial-rules';
 import { perSecondChance, perTickChance, sabotageRiskMultiplier, vehicleBreakRiskMultiplier, applyStockLoss, eventGraceElapsed, pickWeightedEvent, tensionExpiryAction, normalizeEventState, normalizePendingInteractions } from './event-rules';
 import { monthlyPayroll, loanInstallment, restoredRevenueBaseline, offlineGrant } from './economy-rules';
@@ -16957,7 +16958,7 @@ export default function App() {
         }
       `}</style>
 
-      <div className={`md theme-${theme} ${inOutage ? 'is-outage' : ''}`}>
+      <div className={`md game-shell theme-${theme} ${inOutage ? 'is-outage' : ''}`}>
         {theme === 'retro' && <div className="crt-overlay" aria-hidden="true" />}
         <div className="hdr" ref={hdrRef}>
           <div className="brand-row">
@@ -20384,6 +20385,8 @@ export default function App() {
           );
         })()}
 
+        <div className="game-workspace">
+        <div className="game-console">
         <div className="season-strip">
           <div className="season-grid">
             <div className="season-left">
@@ -20609,6 +20612,8 @@ export default function App() {
           </>
         )}
 
+        </div>
+        <div className="game-development">
         {(phase < 4 || UPGRADE_FAMILIES.some(f => f.minPhase === 4 && !f.tiers.every(id => owned[id]))) && (<>
         <div className="upg-ttl">{t('ui.upgrades_title')}</div>
         <div className="upgs">
@@ -20784,6 +20789,9 @@ export default function App() {
           })}
         </div>
         </>)}
+
+        </div>
+        </div>
 
         <button className="reset" onClick={handleReset}>
           <RotateCcw size={11} strokeWidth={1.5} /> {t('footer.reset')}

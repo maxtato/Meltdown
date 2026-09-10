@@ -1,0 +1,206 @@
+/* Keep the original single-column flow on phones and portrait displays. */
+.game-workspace,
+.game-console,
+.game-development {
+  display: contents;
+}
+
+@media (min-width: 1100px) and (orientation: landscape) {
+  .md.game-shell {
+    max-width: 1360px;
+    padding: 32px 40px 56px;
+  }
+
+  .game-shell .hdr {
+    align-items: center;
+    padding-bottom: 24px;
+  }
+
+  .game-shell .game-workspace {
+    display: grid;
+    grid-template-columns: minmax(380px, 0.85fr) minmax(0, 1.15fr);
+    align-items: start;
+    gap: 36px;
+    margin-top: 28px;
+  }
+
+  .game-shell .game-console,
+  .game-shell .game-development {
+    display: block;
+    min-width: 0;
+  }
+
+  .game-shell .game-development {
+    padding-left: 28px;
+    border-left: 1px solid var(--line);
+  }
+
+  .game-console .season-strip {
+    padding-top: 0;
+  }
+
+  .game-console .menu-bar-top {
+    margin-top: 18px;
+  }
+
+  .game-console .menu-btn {
+    min-height: 48px;
+    gap: 5px;
+  }
+
+  .game-console .menu-btn-label {
+    font-size: 8px;
+    letter-spacing: 0;
+  }
+
+  .game-console .hero {
+    padding-top: 24px;
+    padding-bottom: 20px;
+  }
+
+  .game-console .hero-center {
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+
+  .game-console .acts {
+    margin: 22px 0 28px;
+  }
+
+  .game-console .prod-line {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  .game-development .upg-ttl {
+    min-height: 20px;
+    margin: 0 0 18px;
+    font-size: 11px;
+  }
+
+  .game-development .upgs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .game-development .upg {
+    min-height: 170px;
+    padding: 16px 12px 12px;
+  }
+
+  .game-development .upg-fam-label {
+    font-size: 8px;
+    letter-spacing: 1.3px;
+    line-height: 1.4;
+    margin-bottom: 7px;
+  }
+
+  .game-development .upg-name {
+    font-size: 12px;
+    line-height: 1.35;
+    margin-bottom: 5px;
+  }
+
+  .game-development .upg-desc {
+    font-size: 10px;
+    line-height: 1.5;
+    min-height: 30px;
+    margin-bottom: 12px;
+  }
+
+  .game-development .upg-cost {
+    font-size: 12px;
+    padding-top: 9px;
+  }
+
+  .game-development .upg-info {
+    width: 24px;
+    height: 24px;
+  }
+
+  .game-shell .market-modal {
+    max-width: 860px;
+  }
+
+  .game-shell .market-body {
+    padding: 20px;
+  }
+
+  .game-shell .market-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .game-shell .market-card {
+    padding: 14px 12px;
+    gap: 5px;
+  }
+
+  .game-shell .market-card-name {
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  .game-shell > .reset {
+    margin-top: 36px;
+  }
+}
+
+@media (min-width: 1500px) and (orientation: landscape) {
+  .game-development .upgs {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Laptop screens need room for actions as well as the brand overview. */
+@media (min-width: 1100px) and (max-height: 820px) and (orientation: landscape) {
+  .md.game-shell {
+    padding-top: 24px;
+  }
+
+  .game-shell .hdr {
+    padding-bottom: 18px;
+  }
+
+  .game-shell .game-workspace {
+    margin-top: 20px;
+  }
+
+  .game-console .menu-btn {
+    min-height: 42px;
+  }
+
+  .game-console .hero {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .game-console .hero-center {
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+
+  .game-console .cockpit-row {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .game-console .cockpit-cadran {
+    min-width: 0;
+    padding: 8px;
+  }
+
+  .game-console .cadran-header {
+    flex-wrap: wrap;
+    gap: 4px;
+    min-height: 24px;
+  }
+
+  .game-console .cadran-title {
+    letter-spacing: 1px;
+  }
+
+  .game-console .acts {
+    margin-top: 14px;
+    margin-bottom: 18px;
+  }
+}
