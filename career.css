@@ -1,13 +1,13 @@
-.career-launcher-row { display: flex; justify-content: flex-end; margin: 0 0 14px; min-width: 0; }
+.career-launcher-row { display: flex; justify-content: flex-end; margin: 0; min-width: 0; }
 .career-launcher {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   min-height: 44px;
   border: 1px solid var(--line, #ddd);
   border-radius: 0;
-  padding: 8px 12px;
+  padding: 8px;
   background: var(--bg, #fff);
   color: var(--m1, #666);
   font: inherit;

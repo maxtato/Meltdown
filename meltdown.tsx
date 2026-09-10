@@ -11,11 +11,17 @@ import {
   Cloud, Star, TrendingUp, TrendingDown, Tv, Flame, Volume2,
 } from 'lucide-react';
 import { TRANSLATIONS } from './i18n';
+import { upgradePrice, experienceFromTotals, recordUpgradePurchase, playerMarketShare, applyUpgradeNotorietyBonuses } from './progression-rules';
+import { createVictoryReceipt, chooseVictoryPerk, normalizeVictoryReceipt, normalizePrestigePerks, restorePrestigeReceipt } from './prestige-rules';
 import { STAFF_TIERS, getStaffTier, getStaffUpgrade, getFredCycleDuration } from './staff-rules';
 import { B2B_CONTRACTS } from './contracts';
+import { contractReputationEligible, completedContractsFromLoyalty, contractSigningIssue, contractResolutionDue, pickMarketContracts } from './game-rules';
 import { CareerLauncher } from './CareerPanel';
 import { tutorialEligible, tutorialFitsSurface, tutorialPriority, tutorialGapAfter, tutorialReadingTime, placeTutorial } from './tutorial-rules';
+import { perSecondChance, perTickChance, sabotageRiskMultiplier, vehicleBreakRiskMultiplier, applyStockLoss, eventGraceElapsed, pickWeightedEvent, tensionExpiryAction, normalizeEventState, normalizePendingInteractions } from './event-rules';
+import { monthlyPayroll, loanInstallment, restoredRevenueBaseline, offlineGrant } from './economy-rules';
 import { normalizeCareerProgress, claimCareerReward } from './career';
+import { preserveExperienceOnMigration } from './progression-rules';
 import { phoneCallFitsProgress, contractProfile, signedContract, deliverySpeedMultiplier, contractFitsCapacity, migrateLegacyContractQuantity, contractRevenue, elapsedMissionMonths } from './game-rules';
 
 // === ICÔNES PAR FAMILLE D'AMÉLIORATIONS ===
@@ -57,15 +63,16 @@ function loadPrestigeRuns() {
   return PRESTIGE_RUNS;
 }
 function savePrestigeRuns(n) {
-  PRESTIGE_RUNS = Math.max(0, n | 0);
+  PRESTIGE_RUNS = Number.isSafeInteger(n) ? Math.max(0, n) : 0;
   try { localStorage.setItem(PRESTIGE_KEY, String(PRESTIGE_RUNS)); } catch (e) {}
 }
 function loadPrestigePerks() {
-  try { const o = JSON.parse(localStorage.getItem(PRESTIGE_PERKS_KEY) || '{}'); PRESTIGE_PERKS = { prod: o.prod | 0, sell: o.sell | 0, cash: o.cash | 0, calm: o.calm | 0 }; } catch (e) { PRESTIGE_PERKS = { prod: 0, sell: 0, cash: 0, calm: 0 }; }
+  try { PRESTIGE_PERKS = normalizePrestigePerks(JSON.parse(localStorage.getItem(PRESTIGE_PERKS_KEY) || '{}')); }
+  catch (e) { PRESTIGE_PERKS = normalizePrestigePerks(null); }
   return PRESTIGE_PERKS;
 }
 function savePrestigePerks(p) {
-  PRESTIGE_PERKS = { prod: p.prod | 0, sell: p.sell | 0, cash: p.cash | 0, calm: p.calm | 0 };
+  PRESTIGE_PERKS = normalizePrestigePerks(p);
   try { localStorage.setItem(PRESTIGE_PERKS_KEY, JSON.stringify(PRESTIGE_PERKS)); } catch (e) {}
 }
 const TICK_MS = 100;
@@ -210,10 +217,10 @@ const SABOTAGE_RESIDUAL_WITH_SECURITY = 0.22;
 
 // === ÉVÉNEMENTS DE TENSION P3 ===
 // Crises majeures et opportunités énormes pour générer des hauts et bas dramatiques.
-// Chance par seconde, fréquences calibrées pour ~10-15 min entre chaque.
+// Independent per-second hazards share a 60 s cooldown; the full P3 pool totals ~0.020/s before eligibility and event locks.
 const TENSION_MIN_PHASE = 3;
 const TENSION_GRACE_AT_PHASE_START_SEC = 60; // 60s de grâce après entrée en P3
-const TENSION_COOLDOWN_SEC = 60; // pas 2 événements de tension dans 90s
+const TENSION_COOLDOWN_SEC = 60; // au moins 60 s entre deux propositions
 
 // Crises (gros impact négatif, choix de mitigation possible)
 const CRISIS_RAPPEL_CHANCE = 0.0008;   // ~21 min entre 2
@@ -291,11 +298,12 @@ function getBrigitteTierLevel(owned) {
 }
 function getBrigitteMaxContractTier(owned, salaryLevel, isGrumpy) {
   const tier = getBrigitteTierLevel(owned);
-  if (tier === 0) return 1; // pas de Brigitte → contrats T1 accessibles en direct
-  let maxTier = BRIGITTE_TIER_MATRIX[tier][salaryLevel] || 0;
-  if (isGrumpy) maxTier = 1; // grève douce : plafond T1
+  let maxTier = tier === 0 ? 1 : (BRIGITTE_TIER_MATRIX[tier][salaryLevel] || 1);
+  if (owned.reseau_diplomatique) maxTier = Math.max(maxTier, 7);
+  if (isGrumpy) maxTier = 1;
   return maxTier;
 }
+
 // Rentabilité d'un contrat — €/minute basé sur cycle complet aller-retour
 // Cycle ≈ 2 × deliveryTime (loading négligeable si stock plein)
 // Notation ★ basée sur seuils absolus (€/min) pour permettre la comparaison
@@ -348,20 +356,7 @@ function levelForXp(xp) {
   return 1;
 }
 function xpFromTotals(t, callsCount, owned) {
-  // === NIVEAU = MATURITÉ RÉELLE DE L'ENTREPRISE ===
-  // Moteur principal : le CA cumulé (moneyEarned). 1 € gagné ≈ 1 XP.
-  // + bonus structurel : chaque amélioration achetée matérialise un
-  //   investissement (« la boîte a grandi ») → +4000 XP / amélioration.
-  // + jalons légers (production, contrats, appels) pour éviter un
-  //   niveau plat en tout début de partie.
-  const upgradeCount = owned ? Object.keys(owned).filter(k => owned[k]).length : 0;
-  return Math.floor(
-    (t.moneyEarned || 0) * 1.0
-    + (t.produced || 0) * 0.05
-    + (t.contractsCompleted || 0) * 200
-    + (callsCount || 0) * 150
-    + upgradeCount * 4000
-  );
+  return experienceFromTotals(t, callsCount, owned);
 }
 
 const VEHICLE_BREAK_GOING = 0.00015;
@@ -412,7 +407,7 @@ const COMPETITORS_BY_KEY = Object.fromEntries(COMPETITORS.map(c => [c.key, c]));
 // réellement dépasser les concurrents (sinon la mission Concurrence est impossible).
 const RETAIL_IDS = ['hyper_sud', 'distri_national', 'maxi_hyper', 'carre_dor', 'profresh', 'bio_marche'];
 function computePlayerMarketShare(notoriety, reputation, signedRetailerCount) {
-  return Math.min(45, 3 + ((notoriety || 0) / 100) * 22 + ((reputation || 0) / 100) * 15 + (signedRetailerCount || 0) * 1.5);
+  return playerMarketShare(notoriety, reputation, signedRetailerCount);
 }
 function countSignedRetailers(lines) {
   if (!lines) return 0;
@@ -1566,7 +1561,7 @@ const UPGRADES = [
     longDesc: { fr: "Une réserve réfrigérée sur mesure : rayonnages, groupe froid dédié, sas d'entrée. +3000 places de stockage pour viser les gros contrats B2B sans saturer en permanence. Le palier de stockage central de la Phase 2.", en: "A custom refrigerated storeroom: shelving, dedicated cooling unit, entry airlock. +3000 storage slots to aim for the big B2B contracts without constantly maxing out. The core Phase 2 storage tier.", es: "Un almacén refrigerado a medida: estanterías, equipo de frío dedicado, esclusa de entrada. +3000 plazas de stock para apuntar a los grandes contratos B2B sin saturar siempre. El nivel central de almacenamiento de la Fase 2.", zh: "一间定制冷藏储藏室：货架、专用制冷机组、入口缓冲间。+3000个仓储位，让你瞄准大型B2B合同而不会一直爆仓。第2阶段的核心仓储档位。", ru: "Холодильная кладовая под заказ: стеллажи, отдельный холодильный агрегат, входной тамбур. +3000 ячеек хранения, чтобы целиться в крупные B2B-контракты, не упираясь постоянно в потолок. Центральный уровень хранения Фазы 2.", it: "Un magazzino refrigerato su misura: scaffalature, gruppo frigo dedicato, bussola d'ingresso. +3000 slot di stoccaggio per puntare ai grossi contratti B2B senza saturare di continuo. Il livello di stoccaggio centrale della Fase 2.", de: "Ein maßgefertigter Kühlraum: Regale, eigenes Kühlaggregat, Eingangsschleuse. +3000 Lagerplätze, um die großen B2B-Verträge anzupeilen, ohne ständig am Limit zu sein. Die zentrale Lagerstufe der Phase 2." },
     apply: s => ({ ...s, capBonus: s.capBonus + 3000 }) },
   { id: 'chambre_froide_indus', Icon: Snowflake, count: 1, destructible: false, phase: 3, name: { fr: 'Chambre froide industrielle', en: 'Industrial cold room', es: 'Cámara fría industrial', zh: "工业冷库", ru: "Промышленная холодильная камера", it: "Camera fredda industriale", de: "Industrielle Kühlkammer" }, desc: { fr: 'cap +3000 · fonte ×0.15', en: 'cap +3000 · melt ×0.15', es: 'cap +3000 · fundido ×0.15', zh: "容量 +3000 · 融化 ×0.15", ru: "ёмк +3000 · таяние ×0.15", it: "cap +3000 · fusione ×0.15", de: "Kap +3000 · Schmelze ×0.15" }, cost: 190000,
-    longDesc: { fr: "Tu installes une vraie chambre froide industrielle. 3000 places de stockage en plus et la fonte tombe à 30% de la normale. Tu peux constituer des stocks tampons solides pour les grosses commandes.", en: "You install a real industrial cold room. 3000 extra storage slots and melt drops to 30% of normal. You can build solid buffer stocks for large orders.", es: "Instalas una verdadera cámara fría industrial. 3000 plazas extra y el fundido cae al 30% del normal. Puedes constituir stocks tampón sólidos para grandes pedidos.", zh: "你安装一座真正的工业冷库。多3000个仓储位，融化降到正常的30%。可以为大订单构建坚实的缓冲库存。", ru: "Устанавливаете настоящую промышленную холодильную камеру. +3000 ячеек, таяние падает до 30% от нормы. Можно создавать надёжные буферные запасы для крупных заказов.", it: "Installi una vera camera fredda industriale. 3000 posti in più e la fusione scende al 30% del normale. Puoi costituire scorte cuscinetto solide per grandi ordini.", de: "Du installierst eine echte industrielle Kühlkammer. 3000 Lagerplätze mehr und Schmelze sinkt auf 30% des Normalen. Du kannst solide Pufferbestände für Großaufträge aufbauen." },
+    longDesc: {"fr":"Tu installes une vraie chambre froide industrielle. 3000 places de stockage en plus et la fonte tombe à 15% de la normale. Tu peux constituer des stocks tampons solides pour les grosses commandes.","en":"You install a real industrial cold room. 3000 extra storage slots and melt drops to 15% of normal. You can build solid buffer stocks for large orders.","es":"Instalas una verdadera cámara fría industrial. 3000 plazas extra y el fundido cae al 15% del normal. Puedes constituir stocks tampón sólidos para grandes pedidos.","zh":"你安装一座真正的工业冷库。多3000个仓储位，融化降到正常的15%。可以为大订单构建坚实的缓冲库存。","ru":"Устанавливаете настоящую промышленную холодильную камеру. +3000 ячеек, таяние падает до 15% от нормы. Можно создавать надёжные буферные запасы для крупных заказов.","it":"Installi una vera camera fredda industriale. 3000 posti in più e la fusione scende al 15% del normale. Puoi costituire scorte cuscinetto solide per grandi ordini.","de":"Du installierst eine echte industrielle Kühlkammer. 3000 Lagerplätze mehr und Schmelze sinkt auf 15% des Normalen. Du kannst solide Pufferbestände für Großaufträge aufbauen."},
     apply: s => ({ ...s, capBonus: s.capBonus + 3000, meltMult: s.meltMult * 0.15 }) },
   { id: 'maintenance_preventive', Icon: Wrench, count: 1, destructible: false, phase: 3, name: { fr: 'Maintenance préventive', en: 'Preventive maintenance', es: 'Mantenimiento preventivo', zh: "预防性维护", ru: "Профилактическое обслуживание", it: "Manutenzione preventiva", de: "Vorbeugende Wartung" }, desc: { fr: 'risque panne ÷4 · fonte réduite', en: 'breakdown risk ÷4 · less melt', es: 'riesgo avería ÷4 · menos fundido', zh: "故障风险 ÷4 · 减少融化", ru: "риск поломки ÷4 · меньше таяния", it: "rischio guasti ÷4 · meno fusione", de: "Ausfallrisiko ÷4 · weniger Schmelze" }, cost: 110000,
     longDesc: { fr: "Tu contractes une équipe de techniciens qui vérifie chaque mois tes appareils de froid (congélateurs, turbine, cryo) et ta chaîne. Les pannes de chaîne ET de tes appareils — d'autant plus fréquentes que ton usine grossit et qu'il fait chaud — voient leur risque divisé par 4, et la part de stock qui fond à chaque panne est réduite de moitié. (Les isolants passifs comme les sacs et caissons ne tombent pas en panne.) L'assurance-vie de ton outil de production dès que tu montes en cadence.", en: "You hire a technician team that checks your cold appliances (freezers, turbine, cryo) and your line every month. Chain AND appliance breakdowns — which get more frequent as your factory grows and the heat rises — see their risk divided by 4, and the share of stock that melts per breakdown is halved. (Passive insulation like bags and boxes never breaks down.) The life insurance of your production rig once you scale up.", es: "Contratas un equipo de técnicos que revisa cada mes tus aparatos de frío (congeladores, turbina, cryo) y tu línea. Las averías de línea Y de tus aparatos —cada vez más frecuentes según crece tu fábrica y sube el calor— ven su riesgo dividido por 4, y la parte de stock que se funde por avería se reduce a la mitad. (El aislante pasivo como bolsas y cajones no se avería.) El seguro de vida de tu producción en cuanto subes de cadencia.", zh: "你聘请技术团队每月检查你的制冷设备（冷柜、涡轮、深冷）和生产线。生产线和设备故障——工厂越大、天气越热就越频繁——风险降为四分之一，每次故障融化的库存减半。（保温袋、保温箱等被动隔热件不会故障。）当你提升产能时，这是你生产工具的人寿保险。", ru: "Вы нанимаете команду техников, которая ежемесячно проверяет ваши холодильные приборы (морозильники, турбина, крио) и линию. Поломки линии И приборов — тем более частые, чем больше фабрика и сильнее жара — снижают риск вчетверо, а доля запаса, тающая при каждой поломке, уменьшается вдвое. (Пассивная изоляция вроде пакетов и ящиков не ломается.) Страховка жизни производства, как только вы наращиваете темп.", it: "Assumi un team di tecnici che controlla ogni mese i tuoi apparecchi del freddo (congelatori, turbina, cryo) e la linea. I guasti di linea E degli apparecchi — sempre più frequenti man mano che la fabbrica cresce e il caldo aumenta — vedono il rischio diviso per 4, e la quota di scorta che si scioglie a ogni guasto è dimezzata. (Gli isolanti passivi come sacche e contenitori non si guastano.) L'assicurazione sulla vita della produzione appena sali di cadenza.", de: "Du beauftragst ein Technikerteam, das monatlich deine Kältegeräte (Gefriertruhen, Turbine, Cryo) und deine Linie prüft. Linien- UND Geräteausfälle — umso häufiger, je größer die Fabrik und je heißer es wird — sehen ihr Risiko geviertelt, und der bei jedem Ausfall schmelzende Bestandsanteil wird halbiert. (Passive Dämmung wie Beutel und Boxen fällt nicht aus.) Die Lebensversicherung deiner Produktion, sobald du hochskalierst." },
@@ -1606,8 +1601,8 @@ const UPGRADES = [
     longDesc: { fr: "Un système d'IA pilote en temps réel les itinéraires, anticipe le trafic, optimise les tournées. Tu gagnes 30% de livraisons en plus avec la même flotte.", en: "An AI system pilots routes in real-time, anticipates traffic, optimizes tours. You gain 30% more deliveries with the same fleet.", es: "Un sistema de IA pilota rutas en tiempo real, anticipa el tráfico, optimiza recorridos. Ganas un 30% más de entregas con la misma flota.", zh: "AI系统实时调度路线、预判交通、优化车次。同样车队可多送30%。", ru: "ИИ-система управляет маршрутами в реальном времени, предвидит пробки, оптимизирует рейсы. +30% доставок при том же парке.", it: "Un sistema IA pilota le rotte in tempo reale, anticipa il traffico, ottimizza i giri. Guadagni il 30% di consegne in più con la stessa flotta.", de: "Ein KI-System steuert Routen in Echtzeit, antizipiert Verkehr, optimiert Touren. +30% Lieferungen mit derselben Flotte." },
     apply: s => ({ ...s, truckColdMult: s.truckColdMult * 0.7, linesBonus: s.linesBonus + 1 }) },
   // === PHASE 3 — MEGA-UPGRADES TIER 2 ===
-  { id: 'ia_marketing', Icon: Megaphone, count: 1, destructible: false, phase: 3, name: { fr: 'IA marketing', en: 'Marketing AI', es: 'IA marketing', zh: "营销AI", ru: "ИИ-маркетинг", it: "IA marketing", de: "Marketing-KI" }, desc: { fr: 'Campagnes ×2.5 · demande +20%', en: 'Campaigns ×2.5 · demand +20%', es: 'Campañas ×2.5 · demanda +20%', zh: "营销活动 ×2.5 · 需求 +20%", ru: "Кампании ×2.5 · спрос +20%", it: "Campagne ×2.5 · domanda +20%", de: "Kampagnen ×2.5 · Nachfrage +20%" }, cost: 320000,
-    longDesc: { fr: "Tu déploies une IA qui apprend des comportements clients, ajuste les pubs en temps réel, prédit les pics de demande. Tes campagnes deviennent 2.5× plus efficaces.", en: "You deploy an AI that learns customer behaviors, adjusts ads in real-time, predicts demand peaks. Your campaigns become 2.5× more effective.", es: "Despliegas una IA que aprende comportamientos de clientes, ajusta anuncios en tiempo real, predice picos de demanda. Tus campañas son 2.5× más eficaces.", zh: "你部署AI学习客户行为、实时调整广告、预测需求高峰。营销活动效果 ×2.5。", ru: "Разворачиваете ИИ, изучающий поведение клиентов, корректирующий рекламу в реальном времени, предсказывающий пики спроса. Кампании в 2.5× эффективнее.", it: "Distribuisci un'IA che apprende i comportamenti dei clienti, regola gli annunci in tempo reale, prevede i picchi di domanda. Le campagne diventano 2.5× più efficaci.", de: "Du setzt eine KI ein, die Kundenverhalten lernt, Anzeigen in Echtzeit anpasst, Nachfragespitzen vorhersagt. Kampagnen werden 2.5× effektiver." },
+  { id: 'ia_marketing', Icon: Megaphone, count: 1, destructible: false, phase: 3, name: { fr: 'IA marketing', en: 'Marketing AI', es: 'IA marketing', zh: "营销AI", ru: "ИИ-маркетинг", it: "IA marketing", de: "Marketing-KI" }, desc: {"fr":"Campagnes ×2.5","en":"Campaigns ×2.5","es":"Campañas ×2.5","de":"Kampagnen ×2.5","it":"Campagne ×2.5","ru":"Кампании ×2.5","zh":"营销活动×2.5"}, cost: 320000,
+    longDesc: {"fr":"L’IA optimise tes campagnes. Leur multiplicateur passe à ×2,5 et remplace le multiplicateur précédent. L’effet final dépend de la campagne choisie.","en":"AI optimizes your campaigns. Their multiplier becomes ×2.5, replacing the previous multiplier. The final effect depends on the chosen campaign.","es":"La IA optimiza tus campañas. Su multiplicador pasa a ×2,5 y sustituye al anterior. El efecto final depende de la campaña elegida.","de":"KI optimiert deine Kampagnen. Ihr Multiplikator steigt auf ×2,5 und ersetzt den bisherigen. Der endgültige Effekt hängt von der gewählten Kampagne ab.","it":"L’IA ottimizza le campagne. Il loro moltiplicatore passa a ×2,5 e sostituisce quello precedente. L’effetto finale dipende dalla campagna scelta.","ru":"ИИ оптимизирует кампании. Их множитель становится ×2,5, заменяя прежний. Итоговый эффект зависит от выбранной кампании.","zh":"AI优化营销活动，将其倍率提升至×2.5，替代原有倍率。最终效果取决于所选活动。"},
     apply: s => ({ ...s, marketingMult: Math.max(s.marketingMult, 2.5) }) },
   { id: 'usine_bis', Icon: Factory, count: 1, destructible: false, phase: 3, name: { fr: 'Usine bis', en: 'Second factory', es: 'Fábrica bis', zh: "第二工厂", ru: "Вторая фабрика", it: "Fabbrica bis", de: "Zweite Fabrik" }, desc: { fr: 'prod ×1.16 · cap +6000', en: 'prod ×1.16 · cap +6000', es: 'prod ×1.16 · cap +6000', zh: "生产 ×1.16 · 容量 +6000", ru: "произв ×1.16 · ёмк +6000", it: "prod ×1.16 · cap +6000", de: "Prod ×1.16 · Kap +6000" }, cost: 780000,
     longDesc: { fr: "Tu duplique ton site de production : deuxième usine identique sur une autre zone. Production totale ×1.16. C'est le moment où ton entreprise passe à l'échelle nationale.", en: "You duplicate your production site: second identical factory in another zone. Total production ×1.16. This is when your company scales to national.", es: "Duplicas tu sitio de producción: segunda fábrica idéntica en otra zona. Producción total ×1.16. Es el momento en que tu empresa escala a nivel nacional.", zh: "你复制生产基地：在另一区域建相同工厂。总产量 ×1.16。公司迈向全国规模。", ru: "Дублируете производственную площадку: вторая идентичная фабрика в другой зоне. Общее производство ×1.16. Момент масштабирования до национального уровня.", it: "Duplichi il tuo sito di produzione: seconda fabbrica identica in un'altra zona. Produzione totale ×1.16. È il momento in cui la tua azienda scala a livello nazionale.", de: "Du duplizierst deinen Produktionsstandort: zweite identische Fabrik in einer anderen Zone. Gesamtproduktion ×1.16. Der Moment, in dem dein Unternehmen national wächst." },
@@ -1697,7 +1692,7 @@ const UPGRADES = [
     apply: s => ({ ...s, sellMult: s.sellMult * 1.06 }) },
   { id: 'logistique_ia', Icon: Truck, count: 1, destructible: false, phase: 3, name: { fr: 'Logistique optimisée IA', en: 'AI-optimized logistics', es: 'Logística optimizada IA', zh: "AI优化物流", ru: "Логистика, оптимизированная ИИ", it: "Logistica ottimizzata IA", de: "KI-optimierte Logistik" }, desc: { fr: 'transit ×0.6', en: 'transit ×0.6', es: 'tránsito ×0.6', zh: "运输 ×0.6", ru: "транзит ×0.6", it: "transito ×0.6", de: "Transit ×0.6" }, cost: 135000,
     longDesc: { fr: "Une IA route les camions en temps réel selon la circulation, la météo, les commandes. 40 % de temps de trajet en moins. Tes livreurs sont moins stressés et tes contrats B2B livrés plus rapidement.", en: "An AI routes trucks in real-time based on traffic, weather, orders. 40% less travel time. Your drivers are less stressed and B2B contracts delivered faster.", es: "Una IA enruta los camiones en tiempo real según tráfico, clima, pedidos. 40 % menos tiempo de trayecto. Tus repartidores menos estresados y contratos B2B entregados más rápido.", zh: "AI根据交通、天气、订单实时规划卡车路线。行程时间减少40%。司机压力更小，B2B合同交付更快。", ru: "ИИ маршрутизирует грузовики в реальном времени с учётом трафика, погоды, заказов. На 40% меньше времени в пути. Водители менее напряжены, B2B-контракты доставляются быстрее.", it: "Un'IA instrada i camion in tempo reale in base a traffico, meteo, ordini. 40% meno tempo di percorrenza. Autisti meno stressati e contratti B2B consegnati più velocemente.", de: "Eine KI routet LKW in Echtzeit nach Verkehr, Wetter, Aufträgen. 40% weniger Fahrzeit. Deine Fahrer weniger gestresst, B2B-Verträge schneller geliefert." },
-    apply: s => ({ ...s, transitMult: (s.transitMult || 1) * 0.6 }) },
+    apply: s => ({ ...s, deliverySpeedMult: s.deliverySpeedMult * 0.6 }) },
   { id: 'capteurs_iot', Icon: Activity, count: 1, destructible: false, phase: 3, name: { fr: 'Capteurs IoT production', en: 'IoT production sensors', es: 'Sensores IoT producción', zh: "IoT生产传感器", ru: "IoT-датчики производства", it: "Sensori IoT produzione", de: "IoT-Produktionssensoren" }, desc: { fr: 'prod ×1.08 · fonte ×0.85', en: 'prod ×1.08 · melt ×0.85', es: 'prod ×1.08 · fusión ×0.85', zh: "生产 ×1.08 · 融化 ×0.85", ru: "произв. ×1.25 · таяние ×0.85", it: "prod ×1.08 · fusione ×0.85", de: "Prod ×1.08 · Schmelze ×0.85" }, cost: 96000,
     longDesc: { fr: "Capteurs sur chaque machine : température, vibrations, débit d'eau. Données analysées en continu pour optimiser le rendement. Production ×1.08 et fonte ×0.85 grâce à la régulation fine de la chaîne du froid.", en: "Sensors on every machine: temperature, vibrations, water flow. Data analyzed continuously to optimize output. Production ×1.08 and melt ×0.85 thanks to fine cold chain regulation.", es: "Sensores en cada máquina: temperatura, vibraciones, caudal. Datos analizados en continuo para optimizar rendimiento. Producción ×1.08 y fusión ×0.85 gracias a regulación fina de cadena de frío.", zh: "每台机器装传感器：温度、振动、水流。数据持续分析以优化产能。生产×1.08，融化×0.85，得益于精细的冷链调节。", ru: "Датчики на каждой машине: температура, вибрации, расход воды. Данные анализируются непрерывно для оптимизации выхода. Производство ×1.08 и таяние ×0.85 благодаря тонкой регулировке холодовой цепи.", it: "Sensori su ogni macchina: temperatura, vibrazioni, portata acqua. Dati analizzati in continuo per ottimizzare il rendimento. Produzione ×1.08 e fusione ×0.85 grazie alla regolazione fine della catena del freddo.", de: "Sensoren an jeder Maschine: Temperatur, Vibrationen, Wasserdurchfluss. Daten kontinuierlich analysiert zur Output-Optimierung. Produktion ×1.08 und Schmelze ×0.85 dank feinjustierter Kühlkette." },
     apply: s => ({ ...s, prodSpeedMult: s.prodSpeedMult * 1.08, meltMult: s.meltMult * 0.85 }) },
@@ -1714,14 +1709,14 @@ const UPGRADES = [
     apply: s => ({ ...s, sellMult: s.sellMult * 1.05, notoBonus: (s.notoBonus || 0) + 10 }) },
   { id: 'energie_renouvelable', Icon: Zap, count: 1, destructible: false, phase: 3, name: { fr: 'Énergie 100% renouvelable', en: '100% renewable energy', es: 'Energía 100% renovable', zh: "100%可再生能源", ru: "100% возобновляемая энергия", it: "Energia 100% rinnovabile", de: "100% erneuerbare Energie" }, desc: { fr: 'charges ×0.5 · prix ×1.02', en: 'charges ×0.5 · price ×1.02', es: 'cargos ×0.5 · precio ×1.02', zh: "费用 ×0.5 · 价格 ×1.02", ru: "расходы ×0.5 · цена ×1.02", it: "spese ×0.5 · prezzo ×1.02", de: "Kosten ×0.5 · Preis ×1.02" }, cost: 690000,
     longDesc: { fr: "Tu équipes le site en panneaux solaires + éolienne + accumulateurs. Autonomie énergétique à 100%, charges divisées par deux. Bonus prix ×1.02 grâce au label vert et à la communication anti-greenwashing.", en: "You equip the site with solar panels + wind turbine + batteries. 100% energy autonomy, charges halved. Bonus price ×1.02 thanks to green label and anti-greenwashing communication.", es: "Equipas el sitio con paneles solares + eólica + baterías. Autonomía energética 100%, cargos divididos por dos. Bonus precio ×1.02 gracias a la etiqueta verde y comunicación anti-greenwashing.", zh: "你为基地装太阳能板+风力发电+蓄电池。100%能源自主，费用减半。绿色认证和反漂绿传播带来价格×1.02加成。", ru: "Оснащаешь объект солнечными панелями + ветряком + аккумуляторами. 100% энергонезависимость, расходы вдвое меньше. Бонус к цене ×1.02 благодаря зелёному лейблу и анти-гринвошинг-коммуникации.", it: "Equipaggi il sito con pannelli solari + eolico + batterie. Autonomia energetica 100%, spese dimezzate. Bonus prezzo ×1.02 grazie all'etichetta verde e comunicazione anti-greenwashing.", de: "Du stattest die Anlage mit Solar + Windrad + Akkus aus. 100% Energieautonomie, Kosten halbiert. Preisbonus ×1.02 dank Grünlabel und Anti-Greenwashing-Kommunikation." },
-    apply: s => ({ ...s, utilMult: (s.utilMult || 1) * 0.5, sellMult: s.sellMult * 1.02 }) },
+    apply: s => ({ ...s, utilityCostMult: (s.utilityCostMult || 1) * 0.5, sellMult: s.sellMult * 1.02 }) },
   { id: 'stockage_cryo_avance', Icon: Snowflake, count: 1, destructible: true, phase: 3, name: { fr: 'Stockage cryogénique avancé', en: 'Advanced cryogenic storage', es: 'Almacenamiento criogénico avanzado', zh: "高级深冷储存", ru: "Продвинутое криохранилище", it: "Stoccaggio criogenico avanzato", de: "Fortgeschrittene Cryo-Lagerung" }, desc: { fr: 'cap +9000 · fonte ×0.10', en: 'cap +9000 · melt ×0.10', es: 'cap +9000 · fusión ×0.10', zh: "容量 +9000 · 融化 ×0.10", ru: "ёмкость +9000 · таяние ×0.10", it: "cap +9000 · fusione ×0.10", de: "Kap +9000 · Schmelze ×0.10" }, cost: 560000,
     longDesc: { fr: "Chambre cryogénique à -80°C, 9 000 places de stock, fonte quasi-nulle (×0.10). Le rêve de tout glaçonnier : ton stock attend tranquillement les pics de demande. L'investissement qui change tout en P3.", en: "Cryogenic chamber at -80°C, 9,000 storage slots, near-zero melt (×0.10). Every ice-maker's dream: stock waits quietly for demand peaks. The investment that changes everything in P3.", es: "Cámara criogénica a -80°C, 9.000 plazas de stock, fusión casi nula (×0.10). El sueño de cualquier productor: el stock espera tranquilo los picos de demanda. La inversión que lo cambia todo en F3.", zh: "-80°C深冷库，9000储位，近零融化（×0.10）。每个制冰人的梦想：库存安静等需求高峰。P3阶段改变一切的投资。", ru: "Криогенная камера -80°C, 9 000 ячеек, почти нулевое таяние (×0.10). Мечта любого ледовара: запас спокойно ждёт пика спроса. Инвестиция, меняющая всё в P3.", it: "Camera criogenica a -80°C, 9 000 slot di stoccaggio, fusione quasi nulla (×0.10). Il sogno di ogni produttore: lo stock aspetta tranquillo i picchi di domanda. L'investimento che cambia tutto in P3.", de: "Cryo-Kammer bei -80°C, 9.000 Lagerplätze, fast null Schmelze (×0.10). Der Traum jedes Eisproduzenten: Bestand wartet ruhig auf Nachfragespitzen. Die Investition, die in P3 alles ändert." },
     apply: s => ({ ...s, capBonus: s.capBonus + 9000, meltMult: s.meltMult * 0.10 }) },
   { id: 'reseau_diplomatique', Icon: Globe, count: 1, destructible: false, phase: 3, name: { fr: 'Réseau diplomatique', en: 'Diplomatic network', es: 'Red diplomática', zh: "外交网络", ru: "Дипломатическая сеть", it: "Rete diplomatica", de: "Diplomatisches Netzwerk" }, desc: { fr: 'notoriété +15 · contrats T7 accessibles', en: 'noto +15 · T7 contracts unlocked', es: 'noto +15 · contratos T7 desbloqueados', zh: "声誉 +15 · T7合同解锁", ru: "известность +15 · контракты T7 открыты", it: "noto +15 · contratti T7 sbloccati", de: "Noto +15 · T7-Verträge freigeschaltet" }, cost: 780000,
     longDesc: { fr: "Tu embauches un consultant diplomatique (ancien ambassadeur) qui t'introduit dans les cercles d'influence. +15 notoriété instantanée, et l'accès aux contrats T7 ultra-prestigieux (palais, sommets internationaux) devient possible.", en: "You hire a diplomatic consultant (former ambassador) who introduces you in influence circles. +15 instant notoriety, and access to ultra-prestigious T7 contracts (palaces, international summits) opens up.", es: "Contratas a un consultor diplomático (ex embajador) que te introduce en círculos de influencia. +15 notoriedad instantánea, y se desbloquea acceso a contratos T7 ultra prestigiosos (palacios, cumbres internacionales).", zh: "你聘请一位外交顾问（前大使），把你引入影响力圈。即时+15声誉，超高威望T7合同（宫殿、国际峰会）通道开启。", ru: "Нанимаешь дипломатического консультанта (бывший посол), который вводит тебя в круги влияния. +15 известности мгновенно, открывается доступ к сверхпрестижным контрактам T7 (дворцы, международные саммиты).", it: "Assumi un consulente diplomatico (ex ambasciatore) che ti introduce nei circoli di influenza. +15 notorietà istantanei, e l'accesso a contratti T7 ultra-prestigiosi (palazzi, vertici internazionali) si apre.", de: "Du heuerst einen Diplomatie-Berater (Ex-Botschafter) an, der dich in Einflusskreise einführt. +15 Bekanntheit sofort, Zugang zu ultraprestigevollen T7-Verträgen (Paläste, internationale Gipfel) öffnet sich." },
     apply: s => ({ ...s, notoBonus: (s.notoBonus || 0) + 15, diplomaticAccess: true }) },
-  { id: 'rd_quantique', Icon: FlaskConical, count: 1, destructible: false, phase: 3, name: { fr: 'Cellule R&D quantique', en: 'Quantum R&D cell', es: 'Célula I+D cuántica', zh: "量子研发部门", ru: "Квантовое R&D подразделение", it: "Cellula R&D quantistica", de: "Quanten-F&E-Zelle" }, desc: { fr: 'prod ×1.10 · prix ×1.03 · fonte ×0.5', en: 'prod ×1.10 · price ×1.03 · melt ×0.5', es: 'prod ×1.10 · precio ×1.03 · fusión ×0.5', zh: "生产 ×1.10 · 价格 ×1.03 · 融化 ×0.5", ru: "произв. ×2 · цена ×1.03 · таяние ×0.5", it: "prod ×1.10 · prezzo ×1.03 · fusione ×0.5", de: "Prod ×1.10 · Preis ×1.03 · Schmelze ×0.5" }, cost: 1350000,
+  { id: 'rd_quantique', Icon: FlaskConical, count: 1, destructible: false, phase: 3, name: { fr: 'Cellule R&D quantique', en: 'Quantum R&D cell', es: 'Célula I+D cuántica', zh: "量子研发部门", ru: "Квантовое R&D подразделение", it: "Cellula R&D quantistica", de: "Quanten-F&E-Zelle" }, desc: {"fr":"prod ×1.10 · prix ×1.03 · fonte ×0.5","en":"prod ×1.10 · price ×1.03 · melt ×0.5","es":"prod ×1.10 · precio ×1.03 · fusión ×0.5","zh":"生产 ×1.10 · 价格 ×1.03 · 融化 ×0.5","ru":"произв. ×1.10 · цена ×1.03 · таяние ×0.5","it":"prod ×1.10 · prezzo ×1.03 · fusione ×0.5","de":"Prod ×1.10 · Preis ×1.03 · Schmelze ×0.5"}, cost: 1350000,
     longDesc: { fr: "Cellule de recherche quantique : 8 doctorants, équipement à 12M€. Brevets sur la cristallisation supercritique de l'eau. Production ×1.10, prix ×1.03, fonte ×0.5. La R&D qui transforme ton entreprise en référence mondiale technologique.", en: "Quantum research cell: 8 PhD students, €12M equipment. Patents on supercritical water crystallization. Production ×1.10, price ×1.03, melt ×0.5. R&D that turns your company into a global tech reference.", es: "Célula investigación cuántica: 8 doctorandos, equipamiento de 12M€. Patentes en cristalización supercrítica del agua. Producción ×1.10, precio ×1.03, fusión ×0.5. I+D que convierte tu empresa en referencia tecnológica mundial.", zh: "量子研究部门：8名博士生，1200万欧元设备。超临界水结晶专利。生产×1.10，价格×1.03，融化×0.5。把公司变成全球技术标杆的研发。", ru: "Квантовое исследовательское подразделение: 8 аспирантов, оборудование на 12 млн€. Патенты на сверхкритическую кристаллизацию воды. Производство ×1.10, цена ×1.03, таяние ×0.5. R&D, превращающий компанию в мирового технологического лидера.", it: "Cellula ricerca quantistica: 8 dottorandi, attrezzatura da 12M€. Brevetti sulla cristallizzazione supercritica dell'acqua. Produzione ×1.10, prezzo ×1.03, fusione ×0.5. R&D che trasforma l'azienda in riferimento tecnologico mondiale.", de: "Quanten-Forschungszelle: 8 Doktoranden, 12M€-Ausstattung. Patente auf überkritische Wasserkristallisation. Produktion ×1.10, Preis ×1.03, Schmelze ×0.5. F&E, das dein Unternehmen zur globalen Tech-Referenz macht." },
     apply: s => ({ ...s, prodSpeedMult: s.prodSpeedMult * 1.10, sellMult: s.sellMult * 1.03, meltMult: s.meltMult * 0.5 }) },
 
@@ -1738,9 +1733,9 @@ const UPGRADES = [
       zh: "此职级为基础产量增加每秒30个冰块。弗雷德以1.5秒为一个生产周期。实际产量取决于设备、薪资、士气和事件，请查看显示的生产速率。"
     },
     apply: s => ({ ...s, passiveProd: s.passiveProd + 30, fredCycle: 1.5 }) },
-  { id: 'brigitte_legende', Icon: Crown, count: 1, destructible: false, phase: 3, name: { fr: 'Brigitte Légende', en: 'Brigitte the Legend', es: 'Brigitte Leyenda', zh: "传奇布丽吉特", ru: "Брижит Легенда", it: "Brigitte Leggenda", de: "Brigitte die Legende" }, desc: { fr: 'prix ×1.10 · contrats T7 +30%', en: 'price ×1.10 · T7 contracts +30%', es: 'precio ×1.10 · contratos T7 +30%', zh: "价格 ×1.10 · T7合同 +30%", ru: "цена ×1.10 · T7-контракты +30%", it: "prezzo ×1.10 · contratti T7 +30%", de: "Preis ×1.10 · T7-Verträge +30%" }, cost: 220000, requireUnlock: 'brigitte_ad',
+  { id: 'brigitte_legende', Icon: Crown, count: 1, destructible: false, phase: 3, name: { fr: 'Brigitte Légende', en: 'Brigitte the Legend', es: 'Brigitte Leyenda', zh: "传奇布丽吉特", ru: "Брижит Легенда", it: "Brigitte Leggenda", de: "Brigitte die Legende" }, desc: {"fr":"prix ×1.10 · contrats T6–7 selon salaire","en":"price ×1.10 · T6–7 contracts by salary","es":"precio ×1.10 · contratos T6–7 según sueldo","de":"Preis ×1.10 · T6–7-Verträge je nach Gehalt","it":"prezzo ×1.10 · contratti T6–7 secondo stipendio","ru":"цена ×1.10 · контракты T6–7 по зарплате","zh":"价格×1.10 · 按薪资开放T6–7合同"}, cost: 220000, requireUnlock: 'brigitte_ad',
     salary: { bas: 2800, std: 4200, haut: 6500 }, salaryRole: 'brigitte', gradeName: { fr: "Directrice Générale Adjointe", en: "Deputy CEO", es: "Directora General Adjunta", zh: "副总裁", ru: "Заместитель генерального", it: "Vice Direttrice Generale", de: "Stellvertretende Geschäftsführerin" },
-    longDesc: { fr: "Brigitte est devenue ton numéro 2 incontournable. Elle négocie les contrats T7 avec une autorité que personne ne questionne, ferme les portes en pleine réunion quand un client dépasse, et signe les chèques sans regarder. Le respect total du milieu. Augmentation salaire ×1.5.", en: "Brigitte has become your indispensable number 2. She negotiates T7 contracts with unquestioned authority, slams doors mid-meeting when a client oversteps, signs checks without looking. Total industry respect. ×1.5 salary increase.", es: "Brigitte se ha vuelto tu número 2 imprescindible. Negocia contratos T7 con autoridad incuestionable, cierra puertas en plena reunión cuando un cliente se pasa, firma cheques sin mirar. Respeto total del sector. Salario ×1.5.", zh: "布丽吉特已成为你不可或缺的二号人物。以无可置疑的权威谈判T7合同，客户出格时会议中途摔门而出，签支票不看。行业完全尊敬。工资×1.5。", ru: "Брижит стала твоим незаменимым номером 2. Ведёт переговоры по T7-контрактам с непререкаемым авторитетом, хлопает дверьми посреди встречи, когда клиент перегибает, подписывает чеки не глядя. Тотальное уважение в отрасли. Зарплата ×1.5.", it: "Brigitte è diventata il tuo numero 2 indispensabile. Negozia contratti T7 con autorità indiscussa, sbatte le porte a metà riunione quando un cliente esagera, firma assegni senza guardare. Rispetto totale del settore. Stipendio ×1.5.", de: "Brigitte ist deine unverzichtbare Nummer 2. Sie verhandelt T7-Verträge mit unbestrittener Autorität, schlägt mitten in Meetings Türen zu, wenn ein Kunde übertreibt, unterzeichnet Schecks ungesehen. Totaler Respekt der Branche. Gehalt ×1.5." },
+    longDesc: {"fr":"Brigitte devient ton numéro 2. Le prix de vente est multiplié par 1,10. Selon son salaire : bas, contrats jusqu’au T6 et bonus de négociation de 20 % ; standard, T7 et 27 % ; haut, T7 et 35 %. Consulte sa fiche pour le salaire mensuel.","en":"Brigitte becomes your number two. Sale price is multiplied by 1.10. By salary: low unlocks up to T6 with a 20% negotiation bonus; standard, T7 and 27%; high, T7 and 35%. Check her card for monthly pay.","es":"Brigitte se convierte en tu número dos. El precio de venta se multiplica por 1,10. Según sueldo: bajo, hasta T6 y bonus de negociación del 20 %; estándar, T7 y 27 %; alto, T7 y 35 %. Consulta su ficha para ver el sueldo mensual.","de":"Brigitte wird deine Nummer zwei. Der Verkaufspreis steigt auf das 1,10-Fache. Je nach Gehalt: niedrig bis T6 und 20 % Verhandlungsbonus; Standard T7 und 27 %; hoch T7 und 35 %. Das Monatsgehalt steht auf ihrer Karte.","it":"Brigitte diventa il tuo braccio destro. Il prezzo di vendita si moltiplica per 1,10. Secondo stipendio: basso, fino a T6 e bonus negoziazione del 20%; standard, T7 e 27%; alto, T7 e 35%. Consulta la scheda per lo stipendio mensile.","ru":"Брижит становится твоим заместителем. Цена продажи умножается на 1,10. Низкая зарплата: контракты до T6 и бонус переговоров 20 %; стандартная: T7 и 27 %; высокая: T7 и 35 %. Ежемесячная зарплата указана в её карточке.","zh":"布丽吉特成为你的副手，售价乘以1.10。低薪档开放最高T6合同，谈判加成为20%；标准档开放T7，加成27%；高薪档开放T7，加成35%。月薪请查看员工卡片。"},
     apply: s => ({ ...s, sellMult: s.sellMult * 1.10, hasBrigitte: true, brigitteLegend: true }) },
 ];
 
@@ -1916,10 +1911,14 @@ const TUTORIAL_STEPS = [
     }, targetSel: '.level-circle', side: 'bottom', delay: 1500,
     canShow: s => !!s.dismissed.t_revenus && s.currentXp > 0, autoClose: null },
   { id: 't_rep', text: {
-      fr: "Ça c'est ta réputation. Elle monte avec les bons contrats (humanitaires, urgents, locaux) et descend quand tu acceptes des deals louches, quand tu rates des livraisons, ou quand tu paies pas tes factures. Sous 20, plus aucun client B2B ne signe avec toi.",
-      en: "This is your reputation. It rises with ethical contracts (humanitarian, urgent, local) and falls when you accept shady deals, fail deliveries, or skip bills. Below 20, no B2B client will sign with you.",
-      es: "Esta es tu reputación. Sube con buenos contratos (humanitarios, urgentes, locales) y baja cuando aceptas tratos turbios, fallas entregas o no pagas facturas. Por debajo de 20, ningún cliente B2B firma contigo.", zh: "这是你的声誉。它随道德合同（人道、紧急、本地）而上升，随你接受可疑交易、配送失败或拖欠账单而下降。低于20，没有B2B客户会与你签约。", ru: "Это ваша репутация. Растёт с этичными контрактами (гуманитарные, срочные, локальные) и падает, когда вы принимаете мутные сделки, проваливаете доставки или пропускаете счета. Ниже 20 ни один B2B-клиент не подпишет с вами.", it: "Questa è la tua reputazione. Sale con contratti etici (umanitari, urgenti, locali) e cala quando accetti deal loschi, fallisci consegne o salti bollette. Sotto 20, nessun cliente B2B firmerà con te.", de: "Das ist dein Ruf. Er steigt mit ethischen Verträgen (humanitär, dringend, lokal) und fällt, wenn du zwielichtige Deals annimmst, Lieferungen verpatzt oder Rechnungen auslässt. Unter 20 unterschreibt kein B2B-Kunde mit dir."
-    }, targetSel: '.rep-bar', side: 'bottom', delay: 600,
+      "fr": "La réputation reflète la confiance de tes clients. Honore tes contrats pour la faire monter ; les échecs et certaines décisions la font baisser. Sous 20, les petits contrats LOCAL de palier 1 restent accessibles pour regagner leur confiance.",
+      "en": "Reputation reflects your clients’ trust. Complete contracts to raise it; failures and some decisions lower it. Below 20, small tier-1 LOCAL jobs remain available to rebuild trust.",
+      "es": "La reputación refleja la confianza de tus clientes. Cumple contratos para aumentarla; los fallos y algunas decisiones la reducen. Por debajo de 20, los pequeños contratos LOCAL de nivel 1 permiten recuperarla.",
+      "de": "Der Ruf zeigt das Vertrauen deiner Kunden. Er steigt durch erfüllte Verträge und sinkt bei Fehlschlägen oder manchen Entscheidungen. Unter 20 bleiben kleine LOCAL-Aufträge der Stufe 1 verfügbar, um Vertrauen zurückzugewinnen.",
+      "it": "La reputazione riflette la fiducia dei clienti. Completa i contratti per aumentarla; fallimenti e alcune scelte la riducono. Sotto 20 restano disponibili i piccoli contratti LOCAL di livello 1 per recuperare fiducia.",
+      "ru": "Репутация отражает доверие клиентов. Выполняйте контракты, чтобы повысить её; неудачи и некоторые решения снижают её. Ниже 20 доступны небольшие LOCAL-контракты 1-го уровня, помогающие вернуть доверие.",
+      "zh": "声誉代表客户的信任。完成合同能提升声誉，失败和某些决定会使其下降。低于20时，仍可接取1级LOCAL小型订单来重建信任。"
+}, targetSel: '.rep-bar', side: 'bottom', delay: 600,
     canShow: s => s.reputation !== 50, autoClose: null },
   { id: 't_saison', text: {
       fr: "Quatre saisons, quatre cycles à maîtriser. L'été : tout le monde veut des glaçons mais ton stock fond vite. L'hiver : la demande baisse, mais tout gèle naturellement. Joue avec.",
@@ -2868,259 +2867,49 @@ const B2B_BY_ID = Object.fromEntries(B2B_CONTRACTS.map(c => [c.id, c]));
 const UPGRADE_THANKS = {
   // FRED — production
   // (fred_stage n'a pas de remerciement : c'est la 1ère embauche, déjà gérée par hire_intro.fred)
-  fred: { speaker: 'Fred',
-    fr: "Embauché. Officiel. J'ai signé un vrai contrat et la machine m'a reconnu comme l'un des siens. 20 glaçons toutes les 4 secondes. Je ne sais pas si je progresse ou si je deviens un accessoire.",
-    en: "Hired. Official. I signed a real contract and the machine recognized me as one of its own. 20 ice cubes every 4 seconds. I'm not sure if I'm progressing or becoming an accessory.",
-    es: "Contratado. Oficial. Firmé un contrato de verdad y la máquina me ha reconocido como uno de los suyos. 20 cubitos cada 4 segundos. No sé si avanzo o si me convierto en un accesorio.",
-    zh: "正式入职。签了真合同，机器把我认作了自己人。每4秒出20块冰。我分不清是在升职，还是在变成它的配件。",
-    ru: "Принят. Официально. Подписал настоящий контракт, и машина признала меня своим. 20 кубиков каждые 4 секунды. Не уверен, расту я или становлюсь её аксессуаром.",
-    it: "Assunto. Ufficiale. Ho firmato un vero contratto e la macchina mi ha riconosciuto come uno dei suoi. 20 cubetti ogni 4 secondi. Non so se sto progredendo o diventando un accessorio.",
-    de: "Eingestellt. Offiziell. Ich habe einen echten Vertrag unterschrieben, und die Maschine hat mich als einen der ihren anerkannt. 20 Eiswürfel alle 4 Sekunden. Ich weiß nicht, ob ich vorankomme oder zu einem Zubehör werde." },
-  fred_perma: { speaker: 'Fred',
-    fr: "Senior, déjà. J'ai survécu aux cycles, aux bacs, aux bruits suspects et à la pause de 11h que personne ne prend. 36 glaçons toutes les 3 secondes. Je commence à penser en cubes.",
-    en: "Senior already. I've survived the cycles, the trays, the suspicious noises and the 11am break nobody takes. 36 ice cubes every 3 seconds. I'm starting to think in cubes.",
-    es: "Sénior, ya. He sobrevivido a los ciclos, las cubeteras, los ruidos sospechosos y la pausa de las 11 que nadie hace. 36 cubitos cada 3 segundos. Empiezo a pensar en cubos.",
-    zh: "已经是高级了。我熬过了循环、冰格、可疑声响，还有那个谁都不休的上午十一点的茶歇。每3秒出36块冰。我开始用方块思考了。",
-    ru: "Уже сеньор. Я пережил циклы, лотки, подозрительные звуки и одиннадцатичасовой перерыв, который никто не берёт. 36 кубиков каждые 3 секунды. Начинаю мыслить кубиками.",
-    it: "Senior, già. Ho sopravvissuto ai cicli, alle vaschette, ai rumori sospetti e alla pausa delle 11 che nessuno prende. 36 cubetti ogni 3 secondi. Comincio a pensare in cubetti.",
-    de: "Senior, schon. Ich habe die Zyklen überlebt, die Schalen, die verdächtigen Geräusche und die 11-Uhr-Pause, die niemand macht. 36 Eiswürfel alle 3 Sekunden. Ich fange an, in Würfeln zu denken." },
-  fred_chef: { speaker: 'Fred',
-    fr: "Chef d'atelier. Très bien. Je vais manager la production avec calme, méthode et un regard fixe vers les machines. 49 glaçons toutes les 2,5 secondes. Les nouveaux auront droit à une formation complète, silence compris.",
-    en: "Workshop manager. Very well. I'll manage production with calm, method and a fixed stare at the machines. 49 ice cubes every 2.5 seconds. The newcomers will get a full training, silence included.",
-    es: "Jefe de taller. Muy bien. Voy a gestionar la producción con calma, método y una mirada fija hacia las máquinas. 49 cubitos cada 2,5 segundos. Los novatos recibirán una formación completa, silencio incluido.",
-    zh: "车间主任。好。我会带着冷静、方法和对机器的凝视去管理生产。每2.5秒出49块冰。新人能得到一套完整培训，连沉默也包含在内。",
-    ru: "Начальник цеха. Очень хорошо. Я буду руководить производством спокойно, методично, не отрывая взгляда от машин. 49 кубиков каждые 2,5 секунды. Новенькие получат полноценное обучение, включая тишину.",
-    it: "Capo officina. Molto bene. Gestirò la produzione con calma, metodo e uno sguardo fisso verso le macchine. 49 cubetti ogni 2,5 secondi. I nuovi avranno diritto a una formazione completa, silenzio compreso.",
-    de: "Werkstattleiter. Sehr gut. Ich werde die Produktion mit Ruhe, Methode und einem fixierten Blick auf die Maschinen managen. 49 Eiswürfel alle 2,5 Sekunden. Die Neuen bekommen eine vollständige Ausbildung, Schweigen inklusive." },
-  fred_dir: { speaker: 'Fred',
-    fr: "Directeur des Opérations. Ça fait sérieux, surtout pour quelqu'un qui passe encore ses journées à écouter du froid travailler. 66 glaçons toutes les 2 secondes. Toute l'équipe suit la cadence, même ceux qui regrettent.",
-    en: "Director of Operations. Sounds serious, especially for someone who still spends his days listening to cold at work. 66 ice cubes every 2 seconds. The whole team keeps the cadence, even those who regret it.",
-    es: "Director de Operaciones. Suena serio, sobre todo para alguien que sigue pasando los días escuchando trabajar al frío. 66 cubitos cada 2 segundos. Todo el equipo sigue el ritmo, incluso los que se arrepienten.",
-    zh: "运营总监。听着挺正式，尤其是对一个还在天天听冷气干活的人来说。每2秒出66块冰。整个团队跟得上节奏，连那些后悔的人也跟着。",
-    ru: "Директор по операциям. Звучит солидно, особенно для того, кто всё ещё слушает работу холода целыми днями. 66 кубиков каждые 2 секунды. Вся команда держит темп — даже те, кто жалеет.",
-    it: "Direttore delle Operazioni. Suona serio, soprattutto per uno che passa ancora le giornate ad ascoltare lavorare il freddo. 66 cubetti ogni 2 secondi. Tutta la squadra tiene la cadenza, anche quelli che se ne pentono.",
-    de: "Operations Director. Klingt seriös, besonders für jemanden, der seine Tage immer noch damit verbringt, der Kälte beim Arbeiten zuzuhören. 66 Eiswürfel alle 2 Sekunden. Das ganze Team hält die Taktung, auch die, die es bereuen." },
+  fred: {"speaker":"Fred","fr":"Embauché. +6 GL/s · cycle 4s.","en":"Hired. +6 IC/s · cycle 4s.","es":"Contratado. +6 CB/s · ciclo 4s.","de":"Eingestellt. +6 EW/s · Zyklus 4s.","it":"Assunto. +6 CB/s · ciclo 4s.","ru":"Принят. +6 К/с · цикл 4с.","zh":"正式入职。签了真合同，机器把我认作了自己人。每4秒出20块冰。我分不清是在升职，还是在变成它的配件。 +6 冰块/秒 · 周期 4秒."},
+  fred_perma: {"speaker":"Fred","fr":"Senior, déjà. +7 GL/s · cycle 3s.","en":"Senior already. +7 IC/s · cycle 3s.","es":"Sénior, ya. +7 CB/s · ciclo 3s.","de":"Senior, schon. +7 EW/s · Zyklus 3s.","it":"Senior, già. +7 CB/s · ciclo 3s.","ru":"Уже сеньор. +7 К/с · цикл 3с.","zh":"已经是高级了。我熬过了循环、冰格、可疑声响，还有那个谁都不休的上午十一点的茶歇。每3秒出36块冰。我开始用方块思考了。 +7 冰块/秒 · 周期 3秒."},
+  fred_chef: {"speaker":"Fred","fr":"Chef d'atelier. +7 GL/s · cycle 2.5s.","en":"Workshop manager. +7 IC/s · cycle 2.5s.","es":"Jefe de taller. +7 CB/s · ciclo 2.5s.","de":"Werkstattleiter. +7 EW/s · Zyklus 2.5s.","it":"Capo officina. +7 CB/s · ciclo 2.5s.","ru":"Начальник цеха. +7 К/с · цикл 2.5с.","zh":"车间主任。好。我会带着冷静、方法和对机器的凝视去管理生产。每2.5秒出49块冰。新人能得到一套完整培训，连沉默也包含在内。 +7 冰块/秒 · 周期 2.5秒."},
+  fred_dir: {"speaker":"Fred","fr":"Directeur des Opérations. +12 GL/s · cycle 2s.","en":"Director of Operations. +12 IC/s · cycle 2s.","es":"Director de Operaciones. +12 CB/s · ciclo 2s.","de":"Operations Director. +12 EW/s · Zyklus 2s.","it":"Direttore delle Operazioni. +12 CB/s · ciclo 2s.","ru":"Директор по операциям. +12 К/с · цикл 2с.","zh":"运营总监。听着挺正式，尤其是对一个还在天天听冷气干活的人来说。每2秒出66块冰。整个团队跟得上节奏，连那些后悔的人也跟着。 +12 冰块/秒 · 周期 2秒."},
 
   // BRIGITTE — commerciale / comptable
   // (autosell n'a pas de remerciement : c'est la 1ère embauche, déjà gérée par hire_intro.brigitte)
-  brigitte_compta: { speaker: 'Brigitte',
-    fr: "Comptable. Parfait. Contrats Niveau 4 à 6 ouverts, comptes propres, colonnes alignées. Si une erreur existe, je la trouverai. Si elle n'existe pas, je créerai une ligne pour la surveiller.",
-    en: "Accountant. Perfect. Tier 4-6 contracts open, clean books, aligned columns. If an error exists, I'll find it. If it doesn't, I'll create a line to watch over it.",
-    es: "Contable. Perfecto. Contratos de Nivel 4 a 6 abiertos, cuentas limpias, columnas alineadas. Si hay un error, lo encontraré. Si no lo hay, crearé una línea para vigilarlo.",
-    zh: "会计。完美。4–6级合同打开，账目清爽，列对齐。如果有错，我会找出来。如果没有，我也会单独建一行盯着。",
-    ru: "Бухгалтер. Отлично. Контракты Уровня 4-6 открыты, счета в порядке, колонки выровнены. Если ошибка есть, я её найду. Если нет — заведу строку, чтобы за ней присматривать.",
-    it: "Contabile. Perfetto. Contratti di Livello 4-6 aperti, conti puliti, colonne allineate. Se esiste un errore, lo troverò. Se non esiste, creerò una riga per sorvegliarlo.",
-    de: "Buchhalterin. Perfekt. Verträge Stufe 4 bis 6 offen, saubere Konten, ausgerichtete Spalten. Wenn ein Fehler existiert, finde ich ihn. Wenn nicht, lege ich eine Zeile an, um ihn zu überwachen." },
-  brigitte_ad: { speaker: 'Brigitte',
-    fr: "Assistante de Direction. On quitte la petite paperasse, on entre dans la salle où les gens parlent fort avec des dossiers fins. Contrats premium ouverts, marge +5 %. Je veux être consultée avant les idées brillantes.",
-    en: "Executive Assistant. We're leaving the small paperwork behind, entering the room where people speak loud with thin folders. Premium contracts open, +5% margin. I want to be consulted before the brilliant ideas.",
-    es: "Asistente de Dirección. Dejamos atrás el papeleo menor, entramos en la sala donde la gente habla alto con expedientes finos. Contratos premium abiertos, margen +5 %. Quiero que se me consulte antes de las ideas brillantes.",
-    zh: "执行助理。小杂事就到这儿了，我们进了那种夹着薄文件、说话大声的房间。高端合同打开，利润+5%。下次有「绝妙主意」之前，先咨询我。",
-    ru: "Помощник директора. Мелкая бумажная работа позади, мы входим в комнату, где люди говорят громко с тонкими папками. Премиум-контракты открыты, маржа +5 %. Я хочу, чтобы со мной советовались до гениальных идей.",
-    it: "Assistente di Direzione. Lasciamo le piccole scartoffie, entriamo nella stanza dove la gente parla forte con cartelle sottili. Contratti premium aperti, margine +5%. Voglio essere consultata prima delle idee brillanti.",
-    de: "Direktionsassistentin. Wir lassen den Kleinkram hinter uns und betreten den Raum, in dem Leute laut sprechen mit dünnen Akten. Premium-Verträge offen, Marge +5 %. Ich möchte vor den brillanten Ideen konsultiert werden." },
+  brigitte_compta: {"speaker":"Brigitte","fr":"Comptable. Débloque contrats T4-6.","en":"Accountant. Unlocks T4-6 contracts.","es":"Contable. Desbloquea contratos N4-6.","de":"Buchhalterin. Schaltet T4-6-Verträge frei.","it":"Contabile. Sblocca contratti L4-6.","ru":"Бухгалтер. Открывает контракты У4-6.","zh":"会计。完美。4–6级合同打开，账目清爽，列对齐。如果有错，我会找出来。如果没有，我也会单独建一行盯着。 解锁4-6级合同."},
+  brigitte_ad: {"speaker":"Brigitte","fr":"Assistante de Direction. Débloque contrats premium.","en":"Executive Assistant. Unlocks premium contracts.","es":"Asistente de Dirección. Desbloquea contratos premium.","de":"Direktionsassistentin. Schaltet Premium-Verträge frei.","it":"Assistente di Direzione. Sblocca contratti premium.","ru":"Помощник директора. Открывает премиум-контракты.","zh":"执行助理。小杂事就到这儿了，我们进了那种夹着薄文件、说话大声的房间。高端合同打开，利润+5%。下次有「绝妙主意」之前，先咨询我。 解锁高端合同."},
 
   // LENNY — logistique
   // (camion_1 n'a pas de remerciement : c'est la 1ère embauche, déjà gérée par hire_intro.lenny)
-  camion_2: { speaker: 'Lenny',
-    fr: "Chef de Tournée. Très bien. Un vrai 5 tonnes, ça change du véhicule qui tousse dans les ronds points. 250 glaçons par trajet. Deux tournées propres, zéro poésie, beaucoup de frein moteur.",
-    en: "Route Manager. Very well. A real 5-tonner, a change from the vehicle that coughs in roundabouts. 250 ice cubes per run. Two clean routes, zero poetry, plenty of engine brake.",
-    es: "Jefe de Ruta. Muy bien. Un 5 toneladas de verdad, un cambio respecto al vehículo que tose en las rotondas. 250 cubitos por viaje. Dos rutas limpias, cero poesía, mucho freno motor.",
-    zh: "路线经理。好。一辆真正的5吨车，跟那辆在环岛上咳嗽的车不可同日而语。每趟250块冰。两条干净的线路，零浪漫，全是发动机制动。",
-    ru: "Начальник маршрутов. Очень хорошо. Настоящая пятитонка — не та машина, что кашляет на кольцевых. 250 кубиков за рейс. Два чистых маршрута, ноль поэзии, много торможения двигателем.",
-    it: "Responsabile Tratte. Molto bene. Un vero 5 tonnellate, è un altro mondo rispetto al veicolo che tossiva nelle rotonde. 250 cubetti a tratta. Due tratte pulite, zero poesia, molto freno motore.",
-    de: "Tourenleiter. Sehr gut. Ein echter 5-Tonner, das ist eine andere Nummer als das Gefährt, das in Kreisverkehren hustete. 250 Eiswürfel pro Fahrt. Zwei saubere Touren, null Poesie, viel Motorbremse." },
-  camion_3: { speaker: 'Lenny',
-    fr: "Responsable Logistique. Là, on parle sérieux. Semi remorque, 3000 glaçons par trajet, festivals, casinos, export. Je vais organiser ça comme un puzzle, sauf que le puzzle pèse plusieurs tonnes.",
-    en: "Logistics Lead. Now we're talking serious. Semi-trailer, 3000 ice cubes per run, festivals, casinos, export. I'll organize this like a puzzle, except the puzzle weighs several tons.",
-    es: "Responsable de Logística. Ahora hablamos en serio. Semirremolque, 3000 cubitos por viaje, festivales, casinos, exportación. Lo organizo como un puzle, solo que el puzle pesa varias toneladas.",
-    zh: "物流主管。这就开始动真格的了。半挂车，每趟3000块冰，节庆、赌场、出口。我会像拼拼图一样安排，只不过这个拼图重好几吨。",
-    ru: "Руководитель логистики. Тут уже серьёзно. Полуприцеп, 3000 кубиков за рейс, фестивали, казино, экспорт. Я организую это как пазл, только пазл весит несколько тонн.",
-    it: "Capo Logistica. Adesso si fa sul serio. Semirimorchio, 3000 cubetti a tratta, festival, casinò, export. Lo organizzo come un puzzle, solo che pesa diverse tonnellate.",
-    de: "Logistikleiter. Jetzt wird es ernst. Sattelzug, 3000 Eiswürfel pro Fahrt, Festivals, Casinos, Export. Ich organisiere das wie ein Puzzle, nur dass das Puzzle mehrere Tonnen wiegt." },
-  camion_4: { speaker: 'Lenny',
-    fr: "Directeur Logistique. J'ai un titre de bureau et une âme de cabine. Quatre livraisons en parallèle, ça se pilote avec des tableaux, des cafés froids et un mépris sain pour les embouteillages.",
-    en: "Logistics Director. I've got an office title and a cab soul. Four parallel deliveries — that's piloted with spreadsheets, cold coffees, and a healthy contempt for traffic jams.",
-    es: "Director Logístico. Tengo un título de oficina y un alma de cabina. Cuatro entregas en paralelo se pilotan con tablas, cafés fríos y un desprecio sano por los atascos.",
-    zh: "物流总监。我有办公室头衔和驾驶室灵魂。四单平行配送，靠表格、冷咖啡，以及对堵车的健康鄙视来驾驭。",
-    ru: "Директор по логистике. У меня кабинетный титул и душа от кабины. Четыре доставки параллельно — это пилотируется таблицами, холодным кофе и здоровым презрением к пробкам.",
-    it: "Direttore Logistica. Ho un titolo da ufficio e un'anima da cabina. Quattro consegne in parallelo si pilotano con tabelle, caffè freddi e un sano disprezzo per gli ingorghi.",
-    de: "Logistikdirektor. Ich habe einen Bürotitel und eine Kabinenseele. Vier parallele Lieferungen pilotiert man mit Tabellen, kaltem Kaffee und einer gesunden Verachtung für Staus." },
+  camion_2: {"speaker":"Lenny","fr":"Chef de Tournée. +1 camion 5T · cap 500 GL.","en":"Route Manager. +1 5T truck · cap 500 IC.","es":"Jefe de Ruta. +1 camión 5T · cap 500 CB.","de":"Tourenleiter. +1 5T-LKW · Kap 500 EW.","it":"Responsabile Tratte. +1 camion 5T · cap 500 CB.","ru":"Начальник маршрутов. +1 грузовик 5Т · ёмк 500 К.","zh":"路线经理。好。一辆真正的5吨车，跟那辆在环岛上咳嗽的车不可同日而语。每趟250块冰。两条干净的线路，零浪漫，全是发动机制动。 +1辆5吨卡车 · 容量500冰块."},
+  camion_3: {"speaker":"Lenny","fr":"Responsable Logistique. +1 semi-remorque · cap 3000 GL.","en":"Logistics Lead. +1 semi-trailer · cap 3000 IC.","es":"Responsable de Logística. +1 semirremolque · cap 3000 CB.","de":"Logistikleiter. +1 Sattelzug · Kap 3000 EW.","it":"Capo Logistica. +1 semirimorchio · cap 3000 CB.","ru":"Руководитель логистики. +1 полуприцеп · ёмк 3000 К.","zh":"物流主管。这就开始动真格的了。半挂车，每趟3000块冰，节庆、赌场、出口。我会像拼拼图一样安排，只不过这个拼图重好几吨。 +1辆半挂车 · 容量3000冰块."},
+  camion_4: {"speaker":"Lenny","fr":"Directeur Logistique. +1 semi · cap livr. 6000.","en":"Logistics Director. +1 semi-trailer · cap 6000.","es":"Director Logístico. +1 semirremolque · cap 6000.","de":"Logistikdirektor. +1 Sattelzug · Kap 6000.","it":"Direttore Logistica. +1 semirimorchio · cap 6000.","ru":"Директор по логистике. +1 полуприцеп · ёмк 6000.","zh":"物流总监。我有办公室头衔和驾驶室灵魂。四单平行配送，靠表格、冷咖啡，以及对堵车的健康鄙视来驾驭。 +1辆半挂车 · 容量6000."},
 
   // === P1 — Infra (commentaires des persos existants) ===
-  voisin_jacques: { speaker: 'Fred',
-    fr: "Jacques d'en face ? J'l'ai croisé deux fois devant chez lui, mec sympa. Sa cuisine est nickel, on peut clairement caser vos bacs là-bas. +30 places, je porte les premiers, vous inquiétez pas.",
-    en: "Jacques across the street? Ran into him twice outside his place, nice guy. His kitchen is spotless, we can totally stash your trays over there. +30 spots, I'll carry the first ones over, no worries.",
-    es: "¿Jacques el de enfrente? Me lo crucé dos veces delante de su casa, buen tío. Su cocina está impecable, podemos meter sus cubetas ahí. +30 plazas, las primeras las llevo yo, no se preocupe.",
-    zh: "对门那个雅克？我在他家门口碰到他两次，人不错。他的厨房很干净，咱们完全可以把您的盘子放那儿。多30个位置，头几个我帮您搬过去，别担心。",
-    ru: "Жак напротив? Сталкивался с ним пару раз у его калитки, нормальный мужик. Кухня у него чистая, ваши поддоны туда вполне влезут. +30 мест, первые я сам отнесу, не переживайте.",
-    it: "Jacques di fronte? L'ho incrociato due volte davanti a casa sua, tipo simpatico. La sua cucina è pulitissima, ci stanno tranquillamente le sue vaschette. +30 posti, le prime gliele porto io, stia tranquillo.",
-    de: "Jacques gegenüber? Hab ihn zweimal vor seiner Tür getroffen, netter Typ. Seine Küche ist blitzblank, da kriegen wir Ihre Schalen locker rein. +30 Plätze, die ersten trage ich Ihnen rüber, keine Sorge." },
-  canettes_fred: { speaker: 'Fred',
-    fr: "Le pack de canettes ! Patron, j'vous embrasserais. Caféine + sucre, j'tiens trois cycles d'affilée sans broncher. +5% sur tout.",
-    en: "The can pack! Boss, I could kiss you. Caffeine + sugar, I knock out three cycles in a row no problem. +5% on everything.",
-    es: "¡El pack de latas! Jefe, le besaría. Cafeína + azúcar, aguanto tres ciclos seguidos sin rechistar. +5% en todo.",
-    zh: "整箱罐装饮料！老板，我都想亲您一口。咖啡因加糖，我能连干三个周期不喘气。全线+5%。",
-    ru: "Упаковка банок! Шеф, расцеловал бы вас. Кофеин и сахар, отрабатываю три цикла подряд и не моргаю. +5% на всё.",
-    it: "Il pack di lattine! Capo, la bacerei. Caffeina + zucchero, reggo tre cicli di fila senza fiatare. +5% su tutto.",
-    de: "Das Dosenpaket! Chef, ich könnt Sie knutschen. Koffein und Zucker, ich pack drei Zyklen am Stück ohne Mucken. +5% auf alles." },
-  etiqueteuse: { speaker: 'Fred',
-    fr: "L'étiqueteuse, ça c'est malin. Fini les feutres au pif. Les clients voient « Artisan local » et ils sortent 10% de plus, j'comprends pas pourquoi mais bon.",
-    en: "The labeler, now that's smart. No more sharpie scribbles. Customers see 'Local Artisan' and they pony up 10% more, I don't get why but okay.",
-    es: "La etiquetadora, esto sí que es listo. Adiós a los rotuladores. Los clientes ven 'Artesano Local' y sueltan un 10% más, no lo entiendo pero bueno.",
-    zh: "贴标机，这招高明。再也不用马克笔乱涂了。客人看到「本地工匠」就乖乖多掏10%，我不懂为啥，反正挺好。",
-    ru: "Этикетировщик — это умно. Никаких больше каракулей маркером. Клиенты видят «Местный ремесленник» и платят на 10% больше, не понимаю почему, но ладно.",
-    it: "L'etichettatrice, questa è furba. Basta scarabocchi col pennarello. I clienti vedono 'Artigiano Locale' e sganciano il 10% in più, non capisco perché ma vabbè.",
-    de: "Der Etikettierer, das ist clever. Kein Filzstift-Gekrakel mehr. Kunden sehen 'Lokaler Handwerker' und zahlen 10% mehr, kapier ich nicht, aber okay." },
+  voisin_jacques: {"speaker":"Fred","fr":"Jacques d'en face ? +30 cap (prête sa cuisine).","en":"Jacques across the street? +30 cap (lends his kitchen).","es":"¿Jacques el de enfrente? +30 cap (presta su cocina).","de":"Jacques gegenüber? +30 Kap (leiht seine Küche).","it":"Jacques di fronte? +30 cap (presta la cucina).","ru":"Жак напротив? +30 ёмкость (одалживает кухню).","zh":"对门那个雅克？我在他家门口碰到他两次，人不错。他的厨房很干净，咱们完全可以把您的盘子放那儿。多30个位置，头几个我帮您搬过去，别担心。 +30 容量（借用厨房）."},
+  canettes_fred: {"speaker":"Fred","fr":"Le pack de canettes ! prod ×1.05.","en":"The can pack! prod ×1.05.","es":"¡El pack de latas! prod ×1.05.","de":"Das Dosenpaket! Prod ×1.05.","it":"Il pack di lattine! prod ×1.05.","ru":"Упаковка банок! произв ×1.05.","zh":"整箱罐装饮料！老板，我都想亲您一口。咖啡因加糖，我能连干三个周期不喘气。全线+5%。 生产 ×1.05."},
+  etiqueteuse: {"speaker":"Fred","fr":"L'étiqueteuse, ça c'est malin. prix ×1.13.","en":"The labeler, now that's smart. price ×1.13.","es":"La etiquetadora, esto sí que es listo. precio ×1.13.","de":"Der Etikettierer, das ist clever. Preis ×1.13.","it":"L'etichettatrice, questa è furba. prezzo ×1.13.","ru":"Этикетировщик — это умно. цена ×1.13.","zh":"贴标机，这招高明。再也不用马克笔乱涂了。客人看到「本地工匠」就乖乖多掏10%，我不懂为啥，反正挺好。 价格 ×1.13."},
 
   // === P2 — Infra ===
-  comptable_senior: { speaker: 'Brigitte',
-    fr: "Me voilà comptable senior. Je monte en grade, je gère tout plus finement maintenant. Coûts admin divisés par deux, marge +5%. C'est pas trop tôt.",
-    en: "I'm a senior accountant now. Moving up a grade, I handle everything more sharply. Admin costs halved, margin +5%. Not a moment too soon.",
-    es: "Ahora soy contable senior. Subo de categoría, gestiono todo con más finura. Costes admin divididos a la mitad, margen +5%. Ya tocaba.",
-    zh: "我现在是高级会计了。升了一级，处理一切都更精细。行政成本减半，利润+5%。早该这样了。",
-    ru: "Теперь я старший бухгалтер. Иду на повышение, веду всё точнее. Админ-расходы пополам, маржа +5%. Давно пора.",
-    it: "Ora sono contabile senior. Salgo di grado, gestisco tutto con più precisione. Costi amministrativi dimezzati, margine +5%. Era ora.",
-    de: "Ich bin jetzt Senior-Buchhalterin. Ich steige auf, regle alles präziser. Admin-Kosten halbiert, Marge +5%. Wird auch Zeit." },
-  salle_blanche_basique: { speaker: 'Fred',
-    fr: "Salle blanche basique, patron. C'est plus du garage là. Filtration HEPA, tenue bleue, j'ai l'impression d'être dans un docu sur la NASA. Prix +12%.",
-    en: "Basic cleanroom, boss. This ain't a garage anymore. HEPA filtration, blue suit, I feel like I'm in a NASA documentary. Price +12%.",
-    es: "Sala blanca básica, jefe. Esto ya no es un garaje. Filtración HEPA, traje azul, parece que estoy en un documental de la NASA. Precio +12%.",
-    zh: "基础洁净室，老板。这可不是车库了。HEPA过滤、蓝色防护服，我觉得自己像在NASA纪录片里。价格+12%。",
-    ru: "Базовая чистая комната, шеф. Это уже не гараж. HEPA-фильтрация, синий комбинезон, чувствую себя как в документалке про NASA. Цена +12%.",
-    it: "Camera bianca base, capo. Non è più un garage. Filtrazione HEPA, tuta blu, mi sembra di stare in un documentario della NASA. Prezzo +12%.",
-    de: "Basis-Reinraum, Chef. Das ist keine Garage mehr. HEPA-Filtration, blauer Anzug, ich komm mir vor wie in einer NASA-Doku. Preis +12%." },
-  hub_regional: { speaker: 'Lenny',
-    fr: "Hub régional, patron. Deux dépôts secondaires, je raccourcis les tournées de 33%. Mes chauffeurs voient leur famille plus souvent, vous avez pas idée du bien que ça fait.",
-    en: "Regional hub, boss. Two satellite depots, I cut routes by 33%. My drivers see their families more often, you have no idea how much that helps.",
-    es: "Hub regional, jefe. Dos depósitos secundarios, recorto las rutas un 33%. Mis chóferes ven a sus familias más a menudo, no se imagina el bien que hace.",
-    zh: "区域枢纽，老板。两个二级仓库，路线缩短33%。我的司机们能多见家人，这种好处您想象不到。",
-    ru: "Региональный хаб, шеф. Два дополнительных склада, маршруты сокращены на 33%. Мои водители чаще видят семью, вы не представляете, насколько это важно.",
-    it: "Hub regionale, capo. Due depositi secondari, accorcio i giri del 33%. I miei autisti vedono di più le famiglie, non ha idea di quanto faccia bene.",
-    de: "Regional-Hub, Chef. Zwei Nebenlager, ich kürze Touren um 33%. Meine Fahrer sehen öfter ihre Familien, Sie ahnen nicht, wieviel das bringt." },
-  ligne_semi_auto: { speaker: 'Fred',
-    fr: "Ligne semi-auto. Patron c'est plus le même métier. Les bacs se remplissent, gèlent, se démoulent tout seuls. Moi j'surveille les écrans et j'fais un café de temps en temps.",
-    en: "Semi-auto line. Boss, this isn't the same job anymore. Trays fill up, freeze, demold by themselves. I just watch the screens and make coffee now and then.",
-    es: "Línea semi-automática. Jefe, ya no es el mismo trabajo. Las cubetas se llenan, se congelan, se desmoldan solas. Yo vigilo las pantallas y me hago un café de vez en cuando.",
-    zh: "半自动生产线。老板，这已经不是同一份工作了。冰格自动注水、冷冻、脱模。我就盯着屏幕，时不时煮个咖啡。",
-    ru: "Полуавтоматическая линия. Шеф, это уже другая профессия. Поддоны сами наполняются, замораживаются, выгружаются. Я смотрю на экраны и время от времени варю кофе.",
-    it: "Linea semi-auto. Capo non è più lo stesso mestiere. Le vaschette si riempiono, congelano, sformano da sole. Io guardo gli schermi e mi faccio un caffè ogni tanto.",
-    de: "Halbautomatische Linie. Chef, das ist nicht mehr derselbe Job. Schalen füllen sich, frieren, entformen sich von selbst. Ich schau auf die Bildschirme und mach hin und wieder Kaffee." },
-  entrepot_xl: { speaker: 'Lenny',
-    fr: "Entrepôt XL, double quai. Patron, on peut charger deux camions à la fois. 10 000 places en plus. Faudra juste que j'embauche, j'peux pas tout faire.",
-    en: "XL warehouse, double dock. Boss, we can load two trucks at once. 10,000 extra spots. I'll just need to hire, can't do it all myself.",
-    es: "Almacén XL, doble muelle. Jefe, podemos cargar dos camiones a la vez. 10 000 plazas más. Habrá que contratar, no puedo hacerlo todo solo.",
-    zh: "XL级仓库，双装货位。老板，可以同时装两辆车。多10000个位置。得招人了，我一个人忙不过来。",
-    ru: "Склад XL, двойной док. Шеф, можно грузить два грузовика одновременно. +10 000 мест. Придётся нанимать, один всё не потяну.",
-    it: "Magazzino XL, doppia banchina. Capo, possiamo caricare due camion alla volta. 10 000 posti in più. Mi toccherà assumere, non posso fare tutto io.",
-    de: "XL-Lager, Doppelrampe. Chef, wir können zwei LKW gleichzeitig laden. 10 000 Plätze mehr. Muss nur einstellen, kann nicht alles allein machen." },
+  comptable_senior: {"speaker":"Brigitte","fr":"Me voilà comptable senior. prix ×1.05 · charges ×0.8.","en":"I'm a senior accountant now. price ×1.05 · costs ×0.8.","es":"Ahora soy contable senior. precio ×1.05 · cargas ×0.8.","de":"Ich bin jetzt Senior-Buchhalterin. Preis ×1.05 · Kosten ×0.8.","it":"Ora sono contabile senior. prezzo ×1.05 · spese ×0.8.","ru":"Теперь я старший бухгалтер. цена ×1.05 · расходы ×0.8.","zh":"我现在是高级会计了。升了一级，处理一切都更精细。行政成本减半，利润+5%。早该这样了。 价格 ×1.05 · 费用 ×0.8."},
+  salle_blanche_basique: {"speaker":"Fred","fr":"Salle blanche basique, patron. prix ×1.10.","en":"Basic cleanroom, boss. price ×1.10.","es":"Sala blanca básica, jefe. precio ×1.10.","de":"Basis-Reinraum, Chef. Preis ×1.10.","it":"Camera bianca base, capo. prezzo ×1.10.","ru":"Базовая чистая комната, шеф. цена ×1.10.","zh":"基础洁净室，老板。这可不是车库了。HEPA过滤、蓝色防护服，我觉得自己像在NASA纪录片里。价格+12%。 价格 ×1.10."},
+  hub_regional: {"speaker":"Lenny","fr":"Hub régional, patron. +2 dépôts · trajets ÷1.5.","en":"Regional hub, boss. +2 depots · trips ÷1.5.","es":"Hub regional, jefe. +2 depósitos · trayectos ÷1.5.","de":"Regional-Hub, Chef. +2 Depots · Fahrten ÷1.5.","it":"Hub regionale, capo. +2 depositi · tragitti ÷1.5.","ru":"Региональный хаб, шеф. +2 склада · поездки ÷1.5.","zh":"区域枢纽，老板。两个二级仓库，路线缩短33%。我的司机们能多见家人，这种好处您想象不到。 +2 仓库 · 行程 ÷1.5."},
+  ligne_semi_auto: {"speaker":"Fred","fr":"Ligne semi-auto. prod ×1.83.","en":"Semi-auto line. prod ×1.83.","es":"Línea semi-automática. prod ×1.83.","de":"Halbautomatische Linie. Prod ×1.83.","it":"Linea semi-auto. prod ×1.83.","ru":"Полуавтоматическая линия. произв ×1.83.","zh":"半自动生产线。老板，这已经不是同一份工作了。冰格自动注水、冷冻、脱模。我就盯着屏幕，时不时煮个咖啡。 生产 ×1.83."},
+  entrepot_xl: {"speaker":"Lenny","fr":"Entrepôt XL, double quai. +4000 cap.","en":"XL warehouse, double dock. +4000 cap.","es":"Almacén XL, doble muelle. +4000 cap.","de":"XL-Lager, Doppelrampe. +4000 Kap.","it":"Magazzino XL, doppia banchina. +4000 cap.","ru":"Склад XL, двойной док. +4000 ёмкость.","zh":"XL级仓库，双装货位。老板，可以同时装两辆车。多10000个位置。得招人了，我一个人忙不过来。 +4000 容量."},
 
   // === P3 — Mega-upgrades commentées par les persos ===
-  usine_etendue: { speaker: 'Fred',
-    fr: "Usine étendue ! Patron on a cassé le mur avec le voisin. L'espace explose. Capacité ×1,5, production +20%. J'ai pleuré quand la cloison est tombée, j'sais pas pourquoi.",
-    en: "Extended factory! Boss we busted the wall through to the neighbor. Space explodes. Capacity ×1.5, production +20%. I cried when the wall came down, don't know why.",
-    es: "¡Fábrica ampliada! Jefe, hemos tirado el muro del vecino. El espacio explota. Capacidad ×1,5, producción +20%. Lloré cuando cayó el tabique, no sé por qué.",
-    zh: "厂房扩建！老板，咱们把邻居家那堵墙打通了。空间爆增。容量×1.5，产能+20%。墙倒下那刻我哭了，不知道为啥。",
-    ru: "Расширенный завод! Шеф, мы пробили стену к соседу. Площадь взрывается. Ёмкость ×1,5, производство +20%. Я плакал, когда стена упала, сам не знаю почему.",
-    it: "Fabbrica estesa! Capo abbiamo abbattuto il muro col vicino. Lo spazio esplode. Capacità ×1,5, produzione +20%. Ho pianto quando è caduto il tramezzo, non so perché.",
-    de: "Erweiterte Fabrik! Chef, wir haben die Wand zum Nachbarn durchbrochen. Der Platz explodiert. Kapazität ×1,5, Produktion +20%. Ich hab geweint, als die Wand fiel, weiß nicht warum." },
-  auto_lignes: { speaker: 'Fred',
-    fr: "Automatisation totale. Patron, j'me sens un peu inutile, mais en vrai j'fais des trucs hyper importants. Capteurs partout, production ×2, marge +8%. Ouf.",
-    en: "Full line automation. Boss, I feel a bit useless, but actually I do really important stuff. Sensors everywhere, production ×2, margin +8%. Phew.",
-    es: "Automatización total de líneas. Jefe, me siento un poco inútil, pero en realidad hago cosas súper importantes. Sensores por todas partes, producción ×2, margen +8%. Uf.",
-    zh: "整线全自动化。老板，我感觉自己有点没用，但其实我干的事可重要了。到处都是传感器，产能×2，利润+8%。呼。",
-    ru: "Полная автоматизация. Шеф, чувствую себя слегка ненужным, но на самом деле делаю очень важные вещи. Датчики везде, производство ×2, маржа +8%. Ух.",
-    it: "Automazione totale delle linee. Capo, mi sento un po' inutile, ma in realtà faccio cose importantissime. Sensori ovunque, produzione ×2, margine +8%. Uff.",
-    de: "Vollautomatisierung. Chef, ich fühl mich leicht überflüssig, aber eigentlich mach ich super wichtige Sachen. Sensoren überall, Produktion ×2, Marge +8%. Puh." },
-  salle_blanche_iso5: { speaker: 'Fred',
-    fr: "Salle blanche ISO 5, niveau pharmaceutique. Patron, on est devenus très très propres. Tenue intégrale, j'me change cinq fois par jour, mais le prix de vente fait +30% donc on va dire que ça vaut le coup.",
-    en: "ISO 5 cleanroom, pharmaceutical level. Boss, we've become very very clean. Full suit, I change five times a day, but the price tag goes +30% so I guess it's worth it.",
-    es: "Sala blanca ISO 5, nivel farmacéutico. Jefe, nos hemos vuelto muy muy limpios. Traje integral, me cambio cinco veces al día, pero el precio sube +30% así que digamos que merece la pena.",
-    zh: "ISO 5级洁净室，制药级别。老板，咱们变得非常非常干净。全套防护服，我一天换五次衣服，不过售价+30%，所以应该是值得的。",
-    ru: "Чистая комната ISO 5, фармацевтический уровень. Шеф, мы стали очень-очень чистыми. Полный костюм, переодеваюсь пять раз в день, но цена продажи +30%, так что окупается.",
-    it: "Camera bianca ISO 5, livello farmaceutico. Capo, siamo diventati molto molto puliti. Tuta integrale, mi cambio cinque volte al giorno, ma il prezzo di vendita fa +30% quindi diciamo che ne vale la pena.",
-    de: "ISO-5-Reinraum, Pharma-Niveau. Chef, wir sind sehr, sehr sauber geworden. Vollanzug, ich zieh mich fünfmal am Tag um, aber der Preis macht +30%, also lohnt sich's wohl." },
-  hub_logi_ia: { speaker: 'Lenny',
-    fr: "Hub logistique IA. Patron, c'est de la science-fiction. L'IA me dit où aller en temps réel, +30% de livraisons. Bon, des fois elle se trompe, mais j'la corrige.",
-    en: "AI logistics hub. Boss, this is sci-fi. AI tells me where to go in real time, +30% deliveries. Sometimes it gets it wrong, but I correct it.",
-    es: "Hub logístico IA. Jefe, esto es ciencia ficción. La IA me dice a dónde ir en tiempo real, +30% de entregas. A veces se equivoca, pero la corrijo.",
-    zh: "AI物流枢纽。老板，这是科幻片啊。AI实时告诉我去哪儿，+30%交付量。它偶尔出错，但我会纠正它。",
-    ru: "ИИ-логистический хаб. Шеф, это научная фантастика. ИИ говорит, куда ехать, в реальном времени, +30% доставок. Иногда ошибается, но я её поправляю.",
-    it: "Hub logistico IA. Capo, è fantascienza. L'IA mi dice dove andare in tempo reale, +30% di consegne. A volte sbaglia, ma la correggo io.",
-    de: "KI-Logistik-Hub. Chef, das ist Science-Fiction. Die KI sagt mir in Echtzeit, wo's hingeht, +30% Lieferungen. Mal liegt sie daneben, aber ich korrigier sie." },
-  usine_bis: { speaker: 'Fred',
-    fr: "Usine bis ! Patron deux usines maintenant. C'est officiel, j'ai un clone. Bon, en vrai c'est juste un deuxième site, mais l'idée m'plaît. Production ×2.",
-    en: "Second factory! Boss two factories now. It's official, I have a clone. Well, actually it's just a second site, but I like the idea. Production ×2.",
-    es: "¡Segunda fábrica! Jefe, dos fábricas ya. Es oficial, tengo un clon. Bueno, en realidad es solo una segunda planta, pero la idea me mola. Producción ×2.",
-    zh: "二号厂！老板，咱们有两个厂了。这下我有克隆体了。好吧，其实就是第二个生产基地，但我喜欢这想法。产能×2。",
-    ru: "Второй завод! Шеф, теперь у нас два. Официально, у меня клон. Ну, на самом деле это просто вторая площадка, но идея мне нравится. Производство ×2.",
-    it: "Fabbrica bis! Capo due fabbriche adesso. È ufficiale, ho un clone. Beh, in realtà è solo un secondo sito, ma l'idea mi piace. Produzione ×2.",
-    de: "Zweitfabrik! Chef, zwei Fabriken jetzt. Ist offiziell, ich hab 'nen Klon. Naja, eigentlich nur 'n zweiter Standort, aber die Idee gefällt mir. Produktion ×2." },
-  formation_interne: { speaker: 'Fred',
-    fr: "Centre de formation interne, patron. On forme nos gens nous-mêmes, ils montent en compétence. +7 % de cadence sur toute la chaîne et +10 de moral de base. Ça paie, croyez-moi.",
-    en: "In-house training center, boss. We train our people ourselves, they grow in skills. +7% pace across the whole line and +10 baseline morale. It pays off, trust me.",
-    es: "Centro de formación interno, jefe. Formamos a nuestra gente nosotros mismos, crecen en competencia. +7 % de ritmo en toda la cadena y +10 de moral de base. Vale la pena, créame.",
-    zh: "内部培训中心，老板。我们自己培训员工，他们的技能成长。基础士气+10。生产力×1.4，士气+10。很值，相信我。",
-    ru: "Внутренний учебный центр, шеф. Учим своих сами, они растут в компетенциях. +7 % темпа по всей линии и +10 к базовой морали. Окупается, поверьте.",
-    it: "Centro di formazione interno, capo. Formiamo i nostri da soli, crescono in competenze. +7 % di ritmo su tutta la linea e +10 di morale di base. Rende, mi creda.",
-    de: "Internes Schulungszentrum, Chef. Wir bilden unsere Leute selbst aus, sie wachsen in Kompetenz. +7 % Takt auf der ganzen Linie und +10 Grundmoral. Es zahlt sich aus, glauben Sie mir." },
-  robotisation: { speaker: 'Fred',
-    fr: "Robotisation partielle, patron. La moitié des postes remplacés, moral -15 en permanence. Nécessaire, peut-être. Mais c'est dur à encaisser.",
-    en: "Partial robotization, boss. Half the jobs replaced, morale -15 permanently. Maybe necessary. But it's hard to swallow.",
-    es: "Robotización parcial, jefe. La mitad de los puestos sustituidos, moral -15 permanente. Quizás necesario. Pero es duro de tragar.",
-    zh: "部分机器人化，老板。一半岗位被替代，士气永久-15。也许是必要的。但很难受。",
-    ru: "Частичная роботизация, шеф. Половина должностей заменены, мораль -15 навсегда. Возможно, нужно. Но это тяжело принять.",
-    it: "Robotizzazione parziale, capo. Metà dei posti sostituiti, morale -15 permanente. Forse necessario. Ma è dura da digerire.",
-    de: "Teil-Robotisierung, Chef. Die Hälfte der Stellen ersetzt, Moral -15 dauerhaft. Vielleicht nötig. Aber schwer zu verkraften." },
-  usine_2_0: { speaker: 'Fred',
-    fr: "Usine 2.0. Patron. Ouvre les yeux. Tout connecté, tout temps-réel. J'comprends pas tout mais ça fait ×5 sur tout. J'vais juste appuyer sur les boutons et faire semblant d'être à l'aise.",
-    en: "Factory 2.0. Boss. Open your eyes. All connected, all real-time. I don't get all of it but it's ×5 on everything. I'll just push the buttons and pretend I know what I'm doing.",
-    es: "Fábrica 2.0. Jefe. Abre los ojos. Todo conectado, todo en tiempo real. No lo entiendo todo pero hace ×5 en todo. Yo voy a pulsar los botones y disimular que controlo.",
-    zh: "工厂2.0。老板，您睁大眼睛看看。全部联网，全部实时。我不全懂，但所有项目都×5。我就装作很懂的样子，按按钮。",
-    ru: "Завод 2.0. Шеф. Открывай глаза. Всё подключено, всё в реальном времени. Не всё понимаю, но это ×5 на всё. Буду просто жать на кнопки и делать вид, что в теме.",
-    it: "Fabbrica 2.0. Capo. Apri gli occhi. Tutto connesso, tutto in tempo reale. Non capisco tutto ma fa ×5 su tutto. Schiaccerò i bottoni e farò finta di esserne all'altezza.",
-    de: "Fabrik 2.0. Chef. Augen auf. Alles vernetzt, alles in Echtzeit. Ich versteh nicht alles, aber es macht ×5 auf alles. Ich drück einfach die Knöpfe und tu so, als wüsst ich was." },
-  hub_national: { speaker: 'Lenny',
-    fr: "Hub national. Patron, dix camions, un dépôt dans chaque grande ville. On livre n'importe où sous 24h. C'est plus de la livraison, c'est de la logistique de guerre.",
-    en: "National hub. Boss, ten trucks, a depot in every major city. We deliver anywhere within 24h. That's not delivery anymore, that's military logistics.",
-    es: "Hub nacional. Jefe, diez camiones, un depósito en cada gran ciudad. Entregamos en cualquier sitio en 24h. Esto ya no es reparto, es logística militar.",
-    zh: "全国枢纽。老板，十辆车，每个大城市一个仓库。任何地方24小时内送达。这已经不是配送了，是军事级物流。",
-    ru: "Национальный хаб. Шеф, десять грузовиков, склад в каждом крупном городе. Доставляем куда угодно за 24 часа. Это уже не доставка, это военная логистика.",
-    it: "Hub nazionale. Capo, dieci camion, un deposito in ogni grande città. Consegniamo ovunque entro 24h. Non è più consegna, è logistica di guerra.",
-    de: "National-Hub. Chef, zehn LKW, ein Depot in jeder Großstadt. Wir liefern überall innerhalb von 24h. Das ist keine Lieferung mehr, das ist Militärlogistik." },
+  usine_etendue: {"speaker":"Fred","fr":"Usine étendue ! cap +3000 · prod ×1.07.","en":"Extended factory! cap +3000 · prod ×1.07.","es":"¡Fábrica ampliada! cap +3000 · prod ×1.07.","de":"Erweiterte Fabrik! Kap +3000 · Prod ×1.07.","it":"Fabbrica estesa! cap +3000 · prod ×1.07.","ru":"Расширенный завод! ёмк +3000 · произв ×1.07.","zh":"厂房扩建！老板，咱们把邻居家那堵墙打通了。空间爆增。容量×1.5，产能+20%。墙倒下那刻我哭了，不知道为啥。 容量 +3000 · 生产 ×1.07."},
+  auto_lignes: {"speaker":"Fred","fr":"Automatisation totale. prod ×1.16 · prix ×1.05.","en":"Full line automation. prod ×1.16 · price ×1.05.","es":"Automatización total de líneas. prod ×1.16 · precio ×1.05.","de":"Vollautomatisierung. Prod ×1.16 · Preis ×1.05.","it":"Automazione totale delle linee. prod ×1.16 · prezzo ×1.05.","ru":"Полная автоматизация. произв ×1.16 · цена ×1.05.","zh":"整线全自动化。老板，我感觉自己有点没用，但其实我干的事可重要了。到处都是传感器，产能×2，利润+8%。呼。 生产 ×1.16 · 价格 ×1.05."},
+  salle_blanche_iso5: {"speaker":"Fred","fr":"Salle blanche ISO 5, niveau pharmaceutique. prix ×1.07.","en":"ISO 5 cleanroom, pharmaceutical level. price ×1.07.","es":"Sala blanca ISO 5, nivel farmacéutico. precio ×1.07.","de":"ISO-5-Reinraum, Pharma-Niveau. Preis ×1.07.","it":"Camera bianca ISO 5, livello farmaceutico. prezzo ×1.07.","ru":"Чистая комната ISO 5, фармацевтический уровень. цена ×1.07.","zh":"ISO 5级洁净室，制药级别。老板，咱们变得非常非常干净。全套防护服，我一天换五次衣服，不过售价+30%，所以应该是值得的。 价格 ×1.07."},
+  hub_logi_ia: {"speaker":"Lenny","fr":"Hub logistique IA. transit ×0.7 · +1 ligne.","en":"AI logistics hub. transit ×0.7 · +1 line.","es":"Hub logístico IA. tránsito ×0.7 · +1 línea.","de":"KI-Logistik-Hub. Transit ×0.7 · +1 Linie.","it":"Hub logistico IA. transito ×0.7 · +1 linea.","ru":"ИИ-логистический хаб. транзит ×0.7 · +1 линия.","zh":"AI物流枢纽。老板，这是科幻片啊。AI实时告诉我去哪儿，+30%交付量。它偶尔出错，但我会纠正它。 运输 ×0.7 · +1 路线."},
+  usine_bis: {"speaker":"Fred","fr":"Usine bis ! prod ×1.16 · cap +6000.","en":"Second factory! prod ×1.16 · cap +6000.","es":"¡Segunda fábrica! prod ×1.16 · cap +6000.","de":"Zweitfabrik! Prod ×1.16 · Kap +6000.","it":"Fabbrica bis! prod ×1.16 · cap +6000.","ru":"Второй завод! произв ×1.16 · ёмк +6000.","zh":"二号厂！老板，咱们有两个厂了。这下我有克隆体了。好吧，其实就是第二个生产基地，但我喜欢这想法。产能×2。 生产 ×1.16 · 容量 +6000."},
+  formation_interne: {"speaker":"Fred","fr":"Centre de formation interne, patron. prod ×1.07 · moral +10.","en":"In-house training center, boss. prod ×1.07 · morale +10.","es":"Centro de formación interno, jefe. prod ×1.07 · moral +10.","de":"Internes Schulungszentrum, Chef. Prod ×1.07 · Moral +10.","it":"Centro di formazione interno, capo. prod ×1.07 · morale +10.","ru":"Внутренний учебный центр, шеф. произв ×1.07 · мораль +10.","zh":"内部培训中心，老板。我们自己培训员工，他们的技能成长。基础士气+10。生产力×1.4，士气+10。很值，相信我。 生产 ×1.07 · 士气 +10."},
+  robotisation: {"speaker":"Fred","fr":"Robotisation partielle, patron. prod ×1.07 · salaires ÷2 · moral −15.","en":"Partial robotization, boss. prod ×1.07 · payroll ÷2 · morale −15.","es":"Robotización parcial, jefe. prod ×1.07 · nóminas ÷2 · moral −15.","de":"Teil-Robotisierung, Chef. Prod ×1.07 · Lohnkosten ÷2 · Moral −15.","it":"Robotizzazione parziale, capo. prod ×1.07 · stipendi ÷2 · morale −15.","ru":"Частичная роботизация, шеф. произв ×1.07 · зарплаты ÷2 · мораль −15.","zh":"部分机器人化，老板。一半岗位被替代，士气永久-15。也许是必要的。但很难受。 生产 ×1.07 · 工资 ÷2 · 士气 −15."},
+  usine_2_0: {"speaker":"Fred","fr":"Usine 2.0. prod ×1.33 · prix ×1.05 · cap +12000.","en":"Factory 2.0. prod ×1.33 · price ×1.05 · cap +12000.","es":"Fábrica 2.0. prod ×1.33 · precio ×1.05 · cap +12000.","de":"Fabrik 2.0. Prod ×1.33 · Preis ×1.05 · Kap +12000.","it":"Fabbrica 2.0. prod ×1.33 · prezzo ×1.05 · cap +12000.","ru":"Завод 2.0. произв ×1.33 · цена ×1.05 · ёмк +12000.","zh":"工厂2.0。老板，您睁大眼睛看看。全部联网，全部实时。我不全懂，但所有项目都×5。我就装作很懂的样子，按按钮。 生产 ×1.33 · 价格 ×1.05 · 容量 +12000."},
+  hub_national: {"speaker":"Lenny","fr":"Hub national. transit ×0.5 · +4 lignes.","en":"National hub. transit ×0.5 · +4 lines.","es":"Hub nacional. tránsito ×0.5 · +4 líneas.","de":"National-Hub. Transit ×0.5 · +4 Linien.","it":"Hub nazionale. transito ×0.5 · +4 linee.","ru":"Национальный хаб. транзит ×0.5 · +4 линии.","zh":"全国枢纽。老板，十辆车，每个大城市一个仓库。任何地方24小时内送达。这已经不是配送了，是军事级物流。 运输 ×0.5 · +4 路线."},
 
-  fred_legende: { speaker: 'Fred',
-    fr: "Légende. Je ne sais pas qui a validé ce titre, mais il est gravé sur une plaque et personne ne discute avec une plaque. 7 lignes tournent sous mes yeux. Les glaçons sortent, les candidats arrivent, mon café gèle avant la pause.",
-    en: "Legend. I don't know who signed off on this title, but it's engraved on a plaque and no one argues with a plaque. 7 lines run under my eyes. Ice cubes come out, candidates show up, my coffee freezes before the break.",
-    es: "Leyenda. No sé quién validó este título, pero está grabado en una placa y con una placa nadie discute. 7 líneas giran ante mis ojos. Salen cubitos, llegan candidatos, mi café se congela antes de la pausa.",
-    zh: "传奇。我不知道是谁批了这个头衔，但它已经刻在牌子上，没人会跟一块牌子争。我眼前有7条线在转。冰块出，应聘者来，我的咖啡在休息前先冻上了。",
-    ru: "Легенда. Не знаю, кто утвердил этот титул, но он выгравирован на табличке, а с табличкой никто не спорит. У меня перед глазами крутятся 7 линий. Кубики выходят, кандидаты приходят, мой кофе замерзает раньше перерыва.",
-    it: "Leggenda. Non so chi abbia approvato questo titolo, ma è inciso su una targa e con una targa nessuno discute. 7 linee girano davanti ai miei occhi. I cubetti escono, i candidati arrivano, il mio caffè si congela prima della pausa.",
-    de: "Legende. Ich weiß nicht, wer diesen Titel abgesegnet hat, aber er steht auf einer Plakette, und mit einer Plakette diskutiert niemand. 7 Linien laufen unter meinen Augen. Die Eiswürfel kommen raus, Bewerber tauchen auf, mein Kaffee gefriert noch vor der Pause." },
-  brigitte_legende: { speaker: 'Brigitte',
-    fr: "Numéro 2. Enfin un titre qui correspond à mon niveau de contrôle réel. Les contrats T7 passent par moi, les clients trop confiants aussi. Prix ×1,10, contrats T7 +30 %. Je signe, je ferme la porte, je dors très bien.",
-    en: "Number 2. Finally a title that matches my actual level of control. T7 contracts go through me, so do overconfident clients. Price ×1.10, T7 contracts +30%. I sign, I close the door, I sleep very well.",
-    es: "Número 2. Por fin un título a la altura de mi nivel real de control. Los contratos T7 pasan por mí, los clientes demasiado confiados también. Precio ×1,10, contratos T7 +30 %. Firmo, cierro la puerta, duermo muy bien.",
-    zh: "二号人物。终于有个职位配得上我实际掌控的程度。T7合同从我手上过，自信过头的客户也一样。价格×1.10，T7合同+30%。签，关门，睡得很好。",
-    ru: "Номер два. Наконец-то титул, соответствующий моему реальному уровню контроля. Контракты T7 идут через меня, и слишком самоуверенные клиенты тоже. Цена ×1,10, контракты T7 +30 %. Подписываю, закрываю дверь, сплю отлично.",
-    it: "Numero 2. Finalmente un titolo all'altezza del mio reale livello di controllo. I contratti T7 passano da me, anche i clienti troppo sicuri di sé. Prezzo ×1,10, contratti T7 +30%. Firmo, chiudo la porta, dormo benissimo.",
-    de: "Nummer 2. Endlich ein Titel, der zu meinem tatsächlichen Kontrollniveau passt. T7-Verträge laufen über mich, übermütige Kunden auch. Preis ×1,10, T7-Verträge +30 %. Ich unterschreibe, ich schließe die Tür, ich schlafe sehr gut." },
-  camion_5: { speaker: 'Lenny',
-    fr: "Cinquième camion ajouté. On commence à ressembler à une flotte et moins à un voisin qui rend service. 5 livraisons en parallèle. Je vais devoir nommer les camions, sinon je vais m'attacher aux mauvais.",
-    en: "Fifth truck added. We're starting to look like a fleet and less like a neighbor doing a favor. 5 parallel deliveries. I'll have to name the trucks — otherwise I'll get attached to the wrong ones.",
-    es: "Quinto camión añadido. Empezamos a parecer una flota y menos un vecino que hace un favor. 5 entregas en paralelo. Voy a tener que ponerles nombre a los camiones, si no me encariño con los equivocados.",
-    zh: "加了第五辆卡车。我们开始像一支车队，而不是热心帮忙的邻居。5单平行配送。我得开始给卡车起名了，不然会喜欢上不该喜欢的那几辆。",
-    ru: "Пятый грузовик добавлен. Начинаем выглядеть как автопарк, а не как сосед, который делает одолжение. 5 доставок параллельно. Придётся дать грузовикам имена — иначе привяжусь не к тем.",
-    it: "Quinto camion aggiunto. Cominciamo a sembrare una flotta e meno il vicino che fa un favore. 5 consegne in parallelo. Dovrò dare un nome ai camion, altrimenti mi affeziono a quelli sbagliati.",
-    de: "Fünfter LKW dazu. Wir sehen langsam wie eine Flotte aus und weniger wie ein Nachbar, der einen Gefallen tut. 5 parallele Lieferungen. Ich muss den LKWs Namen geben, sonst hänge ich an den falschen." },
-  camion_6: { speaker: 'Lenny',
-    fr: "Sixième camion. Là, ce n'est plus une tournée, c'est une migration organisée de glaçons. 6 livraisons en parallèle, 16000 de capacité. Si tout part en même temps, même le planning transpire.",
-    en: "Sixth truck. This isn't a route anymore, it's an organized migration of ice cubes. 6 parallel deliveries, 16,000 capacity. If everything leaves at once, even the schedule sweats.",
-    es: "Sexto camión. Esto ya no es una ruta, es una migración organizada de cubitos. 6 entregas en paralelo, 16 000 de capacidad. Si todo sale a la vez, hasta la planificación suda.",
-    zh: "第六辆卡车。这已经不叫线路了，是冰块的有组织迁徙。6单平行配送，1.6万容量。要是同时出发，连排班表都会冒汗。",
-    ru: "Шестой грузовик. Это уже не маршрут — это организованная миграция кубиков. 6 доставок параллельно, ёмкость 16 000. Если всё уходит одновременно, даже расписание потеет.",
-    it: "Sesto camion. Non è più una tratta, è una migrazione organizzata di cubetti. 6 consegne in parallelo, 16000 di capacità. Se parte tutto insieme, suda anche il planning.",
-    de: "Sechster LKW. Das ist keine Tour mehr, das ist eine organisierte Migration von Eiswürfeln. 6 parallele Lieferungen, 16.000 Kapazität. Wenn alles gleichzeitig losfährt, schwitzt selbst der Plan." },
+  fred_legende: {"speaker":"Fred","fr":"Légende. +30 GL/s · cycle 1.5s.","en":"Legend. +30 IC/s · cycle 1.5s.","es":"Leyenda. +30 CB/s · ciclo 1.5s.","de":"Legende. +30 EW/s · Zyklus 1.5s.","it":"Leggenda. +30 CB/s · ciclo 1.5s.","ru":"Легенда. +30 К/с · цикл 1.5с.","zh":"传奇。我不知道是谁批了这个头衔，但它已经刻在牌子上，没人会跟一块牌子争。我眼前有7条线在转。冰块出，应聘者来，我的咖啡在休息前先冻上了。 +30 冰/秒 · 周期 1.5秒."},
+  brigitte_legende: {"speaker":"Brigitte","fr":"Numéro 2. prix ×1.10 · contrats T6–7 selon salaire.","en":"Number 2. price ×1.10 · T6–7 contracts by salary.","es":"Número 2. precio ×1.10 · contratos T6–7 según sueldo.","de":"Nummer 2. Preis ×1.10 · T6–7-Verträge je nach Gehalt.","it":"Numero 2. prezzo ×1.10 · contratti T6–7 secondo stipendio.","ru":"Номер два. цена ×1.10 · контракты T6–7 по зарплате.","zh":"二号人物。终于有个职位配得上我实际掌控的程度。T7合同从我手上过，自信过头的客户也一样。价格×1.10，T7合同+30%。签，关门，睡得很好。 价格×1.10 · 按薪资开放T6–7合同."},
+  camion_5: {"speaker":"Lenny","fr":"Cinquième camion ajouté. +1 semi · cap livr. 10000.","en":"Fifth truck added. +1 semi-trailer · cap 10000.","es":"Quinto camión añadido. +1 semirremolque · cap 10000.","de":"Fünfter LKW dazu. +1 Sattelzug · Kap 10000.","it":"Quinto camion aggiunto. +1 semirimorchio · cap 10000.","ru":"Пятый грузовик добавлен. +1 полуприцеп · ёмк 10000.","zh":"加了第五辆卡车。我们开始像一支车队，而不是热心帮忙的邻居。5单平行配送。我得开始给卡车起名了，不然会喜欢上不该喜欢的那几辆。 +1辆半挂车 · 容量10000."},
+  camion_6: {"speaker":"Lenny","fr":"Sixième camion. +1 semi · cap livr. 16000.","en":"Sixth truck. +1 semi-trailer · cap 16000.","es":"Sexto camión. +1 semirremolque · cap 16000.","de":"Sechster LKW. +1 Sattelzug · Kap 16000.","it":"Sesto camion. +1 semirimorchio · cap 16000.","ru":"Шестой грузовик. +1 полуприцеп · ёмк 16000.","zh":"第六辆卡车。这已经不叫线路了，是冰块的有组织迁徙。6单平行配送，1.6万容量。要是同时出发，连排班表都会冒汗。 +1辆半挂车 · 容量16000."},
   // (janice_jr = engagement de l'agence marketing : déjà couvert par hire_intro.janice, pas de remerciement Janice)
 };
 
@@ -3621,6 +3410,8 @@ function computeStats(owned) {
   for (const u of UPGRADES) {
     if (owned[u.id]) s = u.apply(s);
   }
+  // Apply after all truck tiers so a later max-cap upgrade cannot erase this multiplier.
+  if (owned['deuxieme_zone_depot']) s.truckMaxCap *= 1.5;
   // === CAP DURS de fin de chaîne ===
   // Évite l'explosion exponentielle des multiplicateurs cumulés en endgame.
   // Cibles : revenus endgame ~150-200k€/mois, cumul partie ~3-5M€.
@@ -3750,79 +3541,15 @@ const INCIDENT_VARIANTS = {
 
 const randomLife = () => MARKET_MIN_LIFE + Math.random() * (MARKET_MAX_LIFE - MARKET_MIN_LIFE);
 
-function makeInitialMarketplace(brigitteMaxTier, maxCap, truckMaxCap, notoriety, excludeIds = [], targetSize = null, currentPhase = 1, rejections = {}, currentGameTime = 0, owned = {}) {
-  if (brigitteMaxTier === 0 || truckMaxCap === 0) return [];
-  const eligible = B2B_CONTRACTS.filter(c =>
-    c.brigitteTier <= brigitteMaxTier &&
-    contractFitsCapacity(applyContractDynamics(c, owned, notoriety).qty, maxCap, truckMaxCap) &&
-    (!c.notorietyMin || notoriety >= c.notorietyMin) &&
-    !excludeIds.includes(c.id) &&
-    !isContractInQuarantine(c.id, rejections, currentGameTime)
-  );
-  const target = targetSize != null ? targetSize : rollMarketTarget();
-  // Phase 3+ : marketplace retail-only avec chance rare d'un gros B2B exceptionnel (tier 5+)
-  if (currentPhase >= 3) {
-    const retail = eligible.filter(c => c.archetype === 'RETAIL');
-    const premiumB2B = eligible.filter(c => c.archetype !== 'RETAIL' && (c.brigitteTier || 0) >= 5);
-    // Mid-tier (T3-4 non-retail) : réintégrés en P3 UNIQUEMENT s'ils sont réalisables
-    // côté qualité — évite la "zone morte" où ces contrats n'apparaissaient nulle part.
-    const midB2B = eligible.filter(c => c.archetype !== 'RETAIL'
-      && (c.brigitteTier || 0) >= 3 && (c.brigitteTier || 0) < 5
-      && isContractQualityFeasible(c, owned, 0));
-    const result = [];
-    const shuffledRetail = [...retail].sort(() => Math.random() - 0.5);
-    const shuffledPremium = [...premiumB2B].sort(() => Math.random() - 0.5);
-    const shuffledMid = [...midB2B].sort(() => Math.random() - 0.5);
-    let premiumIdx = 0;
-    let retailIdx = 0;
-    let midIdx = 0;
-    const slots = Math.min(target, MARKETPLACE_SIZE);
-    for (let i = 0; i < slots; i++) {
-      const r = Math.random();
-      // 15% gros B2B prestige (T5+) · 15% mid-tier (T3-4 réalisables) · sinon retail
-      if (premiumIdx < shuffledPremium.length && r < 0.15) {
-        result.push({ contractId: shuffledPremium[premiumIdx].id, expiresIn: randomLife() });
-        premiumIdx++;
-      } else if (midIdx < shuffledMid.length && r < 0.30) {
-        result.push({ contractId: shuffledMid[midIdx].id, expiresIn: randomLife() });
-        midIdx++;
-      } else if (retailIdx < shuffledRetail.length) {
-        result.push({ contractId: shuffledRetail[retailIdx].id, expiresIn: randomLife() });
-        retailIdx++;
-      } else if (premiumIdx < shuffledPremium.length) {
-        result.push({ contractId: shuffledPremium[premiumIdx].id, expiresIn: randomLife() });
-        premiumIdx++;
-      } else if (midIdx < shuffledMid.length) {
-        result.push({ contractId: shuffledMid[midIdx].id, expiresIn: randomLife() });
-        midIdx++;
-      }
-    }
-    return result;
-  }
-  // Phase 1-2 : on ne propose QUE des contrats réalisables avec la qualité
-  // actuelle. Les contrats exigeant de la qualité (PREMIUM/LUXE/RETAIL) sont
-  // ainsi réservés à la Phase 3, quand les upgrades qualité existent.
-  const feasible = eligible.filter(c => isContractQualityFeasible(c, owned, 0));
-  const slots = Math.min(target, MARKETPLACE_SIZE);
-  // Biais vers les contrats rémunérateurs (gros VOLUME / tier élevé) pour
-  // densifier le revenu de la Phase 2 maintenant que le premium est verrouillé.
-  const lucrative = feasible.filter(c => c.archetype === 'VOLUME' || (c.brigitteTier || 0) >= 3);
-  const regular   = feasible.filter(c => !(c.archetype === 'VOLUME' || (c.brigitteTier || 0) >= 3));
-  const shuffledLuc = [...lucrative].sort(() => Math.random() - 0.5);
-  const shuffledReg = [...regular].sort(() => Math.random() - 0.5);
-  const result = [];
-  let li = 0, ri = 0;
-  for (let i = 0; i < slots; i++) {
-    const wantLucrative = Math.random() < 0.55; // ~55% des emplacements = contrat rémunérateur
-    if (wantLucrative && li < shuffledLuc.length) {
-      result.push({ contractId: shuffledLuc[li++].id, expiresIn: randomLife() });
-    } else if (ri < shuffledReg.length) {
-      result.push({ contractId: shuffledReg[ri++].id, expiresIn: randomLife() });
-    } else if (li < shuffledLuc.length) {
-      result.push({ contractId: shuffledLuc[li++].id, expiresIn: randomLife() });
-    }
-  }
-  return result;
+function makeInitialMarketplace(brigitteMaxTier, maxCap, truckMaxCap, notoriety, excludeIds = [], targetSize = null, currentPhase = 1, rejections = {}, currentGameTime = 0, owned = {}, recentIds = [], segments = {}, reputation = 100) {
+  const candidates = B2B_CONTRACTS.map(c => applyContractDynamics(c, owned, notoriety));
+  const chosen = pickMarketContracts(candidates, {
+    phase: currentPhase, maxTier: brigitteMaxTier, storage: maxCap, truck: truckMaxCap, notoriety,
+    excludedIds: excludeIds,
+    quarantinedIds: candidates.filter(c => isContractInQuarantine(c.id, rejections, currentGameTime)).map(c => c.id),
+    recentIds, segments, reputation,
+  }, targetSize == null ? rollMarketTarget() : targetSize);
+  return chosen.map(c => ({ contractId: c.id, expiresIn: randomLife() }));
 }
 
 function repairCostFor(c) {
@@ -3971,7 +3698,7 @@ function getContractAvailability(c, ctx) {
     });
   }
   // 2) Réputation
-  if (ctx.reputation < 20) {
+  if (!contractReputationEligible(c, ctx.reputation)) {
     reasons.push({
       key: 'low_rep',
       label: { fr: 'Réputation trop basse', en: 'Reputation too low', es: 'Reputación demasiado baja', zh: '声誉太低', ru: 'Слишком низкая репутация', it: 'Reputazione troppo bassa', de: 'Ruf zu niedrig' },
@@ -4123,6 +3850,10 @@ function ScrollAlert() {
 export default function App() {
   const [theme, setTheme] = useState('light');
   const [phase, setPhase] = useState(1);
+  const phaseStartedAtRef = useRef({ 1: 0 });
+  const lastDisruptionAtRef = useRef(-9999);
+  const lastSabotageIdRef = useRef(null);
+  const resolveTensionEventRef = useRef(null);
   const [stock, setStock] = useState(0);
   const [money, setMoney] = useState(0);
   const [owned, setOwned] = useState({});
@@ -4271,16 +4002,50 @@ export default function App() {
   // Déclenchée quand les 5 missions P3 sont validées. Reste possible de continuer
   // à jouer après (mode sandbox). Le joueur peut rouvrir la modale via le bouton MISSIONS.
   const [victoryAchieved, setVictoryAchieved] = useState(false);
+  const [prestigeReceipt, setPrestigeReceipt] = useState<ReturnType<typeof normalizeVictoryReceipt>>(null);
+  const prestigeReceiptRef = useRef<ReturnType<typeof normalizeVictoryReceipt>>(null);
+  const [upgradeNotorietyAwards, setUpgradeNotorietyAwards] = useState<string[]>([]);
+  const upgradeNotorietyAwardsRef = useRef<string[]>([]);
   // New Game+ : nombre de Dominations accumulées (miroir UI du stockage prestige persistant).
   const [prestigeRuns, setPrestigeRuns] = useState(0);
   const [prestigePerks, setPrestigePerks] = useState({ prod: 0, sell: 0, cash: 0, calm: 0 });
   const [prestigeChoiceOpen, setPrestigeChoiceOpen] = useState(false); // Lot 7 — modale de choix d'héritage à la victoire
   useEffect(() => { setPrestigeRuns(loadPrestigeRuns()); setPrestigePerks(loadPrestigePerks()); }, []);
   // Lot 7 — choisir un héritage de prestige (perk) : incrémente + persiste + ferme la modale.
+  const persistPrestigeReceipt = (receipt, at = gameTimeRef.current) => {
+    try {
+      const next = {
+        ...saveStateRef.current,
+        stock: stockRef.current, money: moneyRef.current, owned: ownedRef.current,
+        totals: totalsRef.current, gameTime: gameTimeRef.current,
+        victoryAchieved: true, victoryTimestamp: victoryTimestamp ?? at,
+        prestigeReceipt: receipt, upgradeNotorietyAwards: upgradeNotorietyAwardsRef.current,
+        savedAt: Date.now(),
+      };
+      const payload = JSON.stringify(next);
+      // Synchronous durable receipt first. Never increment global prestige if this fails.
+      localStorage.setItem(SAVE_KEY, payload);
+      try { window.storage.set(SAVE_KEY, payload).catch(() => {}); } catch (e) {}
+      saveStateRef.current = next;
+      setLastSaveAt(next.savedAt);
+      return true;
+    } catch (e) { return false; }
+  };
+  const restoreGlobalPrestige = (receipt) => {
+    const restored = restorePrestigeReceipt(loadPrestigeRuns(), loadPrestigePerks(), receipt);
+    savePrestigeRuns(restored.runs);
+    savePrestigePerks(restored.perks);
+    setPrestigeRuns(restored.runs);
+    setPrestigePerks(restored.perks);
+  };
   const choosePrestigePerk = (perkId) => {
-    const next = { ...PRESTIGE_PERKS, [perkId]: (PRESTIGE_PERKS[perkId] || 0) + 1 };
-    savePrestigePerks(next);
-    setPrestigePerks(next);
+    const next = chooseVictoryPerk(prestigeReceiptRef.current, perkId, loadPrestigePerks());
+    if (!next) return;
+    if (!persistPrestigeReceipt(next)) return;
+    // Update the synchronous guard before any React render or second click.
+    prestigeReceiptRef.current = next;
+    setPrestigeReceipt(next);
+    restoreGlobalPrestige(next);
     setPrestigeChoiceOpen(false);
   };
   // Arc Némésis Glacier Frères : map des beats déjà déclenchés (persisté).
@@ -4291,6 +4056,9 @@ export default function App() {
   const [victoryTimestamp, setVictoryTimestamp] = useState(null);
   // === Incidents internes ===
   const [pendingIncident, setPendingIncident] = useState(null); // {kind, victim(s), text, moralImpact}
+  const pendingIncidentRef = useRef(null);
+  useEffect(() => { pendingIncidentRef.current = pendingIncident; }, [pendingIncident]);
+  const lastIncidentCheckAtRef = useRef(0);
   const lastIncidentAtRef = useRef(0); // gameTime du dernier incident pour cooldown
   const [rhFatigue, setRhFatigue] = useState(0); // 0-100
   const [rhActionsUsed, setRhActionsUsed] = useState({ breakfast: false, afterwork: false, teambuilding: false, individual: false, mediation: false });
@@ -4334,6 +4102,27 @@ export default function App() {
   // Contrat terminé : { lineIdx, contractId, success: bool, secondChance: bool, bonus: number, totalRevenue: number }
   const [contractEnded, setContractEnded] = useState(null);
   const contractEndedRef = useRef(null);
+  const [contractEndQueue, setContractEndQueue] = useState([]);
+  const contractEndQueueRef = useRef([]);
+  const enqueueContractEnd = (event) => {
+    const queue = contractEndQueueRef.current;
+    if (queue.some(e => e.lineIdx === event.lineIdx && e.contractId === event.contractId)) return;
+    const next = [...queue, event];
+    contractEndQueueRef.current = next;
+    setContractEndQueue(next);
+    if (!contractEndedRef.current) {
+      contractEndedRef.current = next[0];
+      setContractEnded(next[0]);
+      isPausedRef.current = true;
+    }
+  };
+  const advanceContractEndQueue = () => {
+    const next = contractEndQueueRef.current.slice(1);
+    contractEndQueueRef.current = next;
+    setContractEndQueue(next);
+    contractEndedRef.current = next[0] || null;
+    setContractEnded(next[0] || null);
+  };
   // Fidélité client : { [contractId]: nombre de contrats honorés avec succès }
   const [clientLoyalty, setClientLoyalty] = useState({});
   const clientLoyaltyRef = useRef({});
@@ -4349,6 +4138,14 @@ export default function App() {
   const marketTargetRef = useRef(2);
   useEffect(() => { marketTargetRef.current = marketTarget; }, [marketTarget]);
   const [nextMarketReroll, setNextMarketReroll] = useState(0);
+  const [marketHistory, setMarketHistory] = useState([]);
+  const marketHistoryRef = useRef([]);
+  const rememberMarketOffers = (ids) => {
+    if (!ids.length) return;
+    const next = [...marketHistoryRef.current.filter(id => !ids.includes(id)), ...ids].slice(-12);
+    marketHistoryRef.current = next;
+    setMarketHistory(next);
+  };
   const [cyberLockout, setCyberLockout] = useState(0); // secondes restantes
   const [stockBurnFlash, setStockBurnFlash] = useState(0); // gameTime du dernier sabotage frigo (flash visuel)
   const stockBurnFlashRef = useRef(0);
@@ -4447,7 +4244,7 @@ export default function App() {
   const [phaseTransitionText, setPhaseTransitionText] = useState({ main: '', sub: '' });
   const [completedCalls, setCompletedCalls] = useState([]);
   const [nextCallAt, setNextCallAt] = useState(() => CALL_FIRST_MIN + Math.random() * (CALL_FIRST_MAX - CALL_FIRST_MIN));
-  const [lastInsuranceCancel, setLastInsuranceCancel] = useState(0);
+  const [lastInsuranceCancel, setLastInsuranceCancel] = useState(-9999); // game time of the last insured loss
   const [totals, setTotals] = useState({
     produced: 0, sold: 0, delivered: 0, melted: 0,
     moneyEarned: 0, contractsCompleted: 0,
@@ -4570,7 +4367,7 @@ export default function App() {
   const freezingLeftRef = useRef(0);
   const autumnRushLeftRef = useRef(0);
   const lastEventAtRef = useRef(0); // gameTime du dernier déclenchement d'event (guard 5s)
-  const lastInsuranceCancelRef = useRef(0);
+  const lastInsuranceCancelRef = useRef(-9999);
   const currentCallRef = useRef(null);
   const nextCallAtRef = useRef(CALL_FIRST_MIN);
   const completedCallsRef = useRef([]);
@@ -4711,9 +4508,9 @@ export default function App() {
   useEffect(() => { phaseRef.current = phase; }, [phase]);
   useEffect(() => { linesRef.current = lines; }, [lines]);
   useEffect(() => {
-    isPausedRef.current = isPaused || screen !== 'game' || careerOpen
+    isPausedRef.current = isPaused || screen !== 'game' || careerOpen || Boolean(contractEnded)
       || activeTutorial === 't_welcome' || pendingTutorial === 't_welcome';
-  }, [isPaused, screen, careerOpen, activeTutorial, pendingTutorial]);
+  }, [isPaused, screen, careerOpen, activeTutorial, pendingTutorial, contractEnded]);
   useEffect(() => { try { localStorage.setItem('meltdown:lang', language); } catch (e) {} }, [language]);
   const t = tFor(language);
   useEffect(() => { reputationRef.current = reputation; }, [reputation]);
@@ -4724,6 +4521,9 @@ export default function App() {
   useEffect(() => { nextCallAtRef.current = nextCallAt; }, [nextCallAt]);
   useEffect(() => { completedCallsRef.current = completedCalls; }, [completedCalls]);
   useEffect(() => { gameTimeRef.current = gameTime; }, [gameTime]);
+  useEffect(() => {
+    if (loaded && phaseStartedAtRef.current[phase] == null) phaseStartedAtRef.current[phase] = gameTimeRef.current;
+  }, [loaded, phase]);
   useEffect(() => { lennyBoostUntilRef.current = lennyBoostUntil; }, [lennyBoostUntil]);
   useEffect(() => { fredBoostUntilRef.current = fredBoostUntil; }, [fredBoostUntil]);
   useEffect(() => { activeEventRef.current = activeEvent; }, [activeEvent]);
@@ -4775,6 +4575,7 @@ export default function App() {
     }
     if (urgent) { setPopupMessage(payload); return; }
     const tryShow = () => {
+      if (isPausedRef.current) return false;
       // Bloqué si une bulle (popup ou tutoriel) est déjà visible
       if (popupMessageRef.current || activeTutorialRef.current || pendingTutorialRef.current) return false;
       const since = Date.now() - lastBubbleClosedAtRef.current;
@@ -4937,7 +4738,7 @@ export default function App() {
           // Règle "1×/an" pour les events d'ambiance ponctuels (ex. fête de quartier) :
           // un même ponctuel ne se redéclenche pas dans la même année de jeu.
           .filter(e => e.category !== 'ponctuel' || canFireThisYear(e.id));
-        if (eligible.length > 0) {
+        if (eligible.length > 0 && reserveDisruptionSlot(now)) {
           const totalWeight = eligible.reduce((a, e) => a + (e.weight || 1), 0);
           let r = Math.random() * totalWeight;
           let picked = eligible[0];
@@ -5165,23 +4966,19 @@ export default function App() {
   };
 
   // === DÉTECTION VICTOIRE ===
-  // Surveille en permanence l'état des 5 missions P3.
-  // Quand toutes validées la première fois : déclenche la modale victoire.
   useEffect(() => {
-    if (phase < 3) return;
-    if (victoryAchieved) return;
-    const mp = getMissionProgress();
-    if (mp.allDone) {
-      setVictoryAchieved(true);
-      setVictoryModalOpen(true);
-      setVictoryTimestamp(gameTime);
-      // New Game+ : cette Domination octroie un palier de prestige permanent
-      // + un héritage au choix (perk). (Une seule fois par partie grâce au garde !victoryAchieved.)
-      savePrestigeRuns(PRESTIGE_RUNS + 1);
-      setPrestigeRuns(PRESTIGE_RUNS);
-      setPrestigeChoiceOpen(true);
-    }
-  }, [phase, notoriety, reputation, competitors, lines, phase3Semesters, victoryAchieved, gameTime]);
+    if (!loaded || screen !== 'game' || phase < 3 || victoryAchieved || prestigeReceiptRef.current) return;
+    if (!getMissionProgress().allDone) return;
+    const receipt = createVictoryReceipt(loadPrestigeRuns());
+    if (!persistPrestigeReceipt(receipt, gameTime)) return;
+    prestigeReceiptRef.current = receipt;
+    setPrestigeReceipt(receipt);
+    setVictoryAchieved(true);
+    setVictoryTimestamp(gameTime);
+    restoreGlobalPrestige(receipt);
+    setVictoryModalOpen(true);
+    setPrestigeChoiceOpen(true);
+  }, [loaded, screen, phase, notoriety, reputation, competitors, lines, phase3Semesters, victoryAchieved, gameTime]);
 
   // Helper: modificateurs cumulés de l'événement météo / crise durable actif
   const getEventMods = () => {
@@ -5213,7 +5010,26 @@ export default function App() {
     if (Object.values(activeFrictionsRef.current || {}).some(f => f && f.expiresAt > g)) return true;
     if (heatwaveLeftRef.current > 0 || droughtLeftRef.current > 0 || outageLeftRef.current > 0 || autumnRushLeftRef.current > 0) return true;
     if (cyberLockoutRef.current > 0) return true;
+    if (stockBurnFlashRef.current > 0 && g - stockBurnFlashRef.current < 30) return true;
+    if (pendingIncidentRef.current) return true;
     return false;
+  };
+  const reserveDisruptionSlot = (now) => {
+    if (isPausedRef.current || anyEventActiveNow() || popupMessageRef.current
+      || currentCallRef.current || contractEndedRef.current || raiseRequestRef.current || poachingRequestRef.current
+      || now - lastDisruptionAtRef.current < 5) return false;
+    lastDisruptionAtRef.current = now;
+    lastEventAtRef.current = now;
+    return true;
+  };
+  const offerTension = (id) => {
+    const now = gameTimeRef.current;
+    if (!reserveDisruptionSlot(now)) return false;
+    const pending = { id, expiresAt: now + 15 };
+    pendingTensionEventRef.current = pending;
+    lastTensionAtRef.current = now;
+    setPendingTensionEvent(pending);
+    return true;
   };
 
   // === Stress decay toutes les 6s real-time.
@@ -6697,10 +6513,10 @@ export default function App() {
   const upLennySalary = hasLenny ? lennyGrade.salary[lennySalaryLevel] : 0;
   // La robotisation allège la masse salariale de moitié : la projection doit
   // refléter ce qui sera réellement prélevé.
-  const upSalaryRaw = Math.round((upFredSalary + upBrigitteSalary + upJaniceSalary + upLennySalary) * salaryMult(owned));
-  // 6 PREMIERS MOIS offerts (équivalent ancien 1er semestre).
-  const upSalaryOffered = _currentMonthNum < MONTHS_PER_SEMESTER;
-  const upSalary = upSalaryOffered ? 0 : Math.round(upSalaryRaw / MONTHS_PER_SEMESTER);
+  const upSalaryRaw = monthlyPayroll([upFredSalary, upBrigitteSalary, upJaniceSalary, upLennySalary], salaryMult(owned)) * MONTHS_PER_SEMESTER;
+  // Seul le premier mois est offert, comme dans le prélèvement réel.
+  const upSalaryOffered = _currentMonthNum < 1;
+  const upSalary = upSalaryOffered ? 0 : upSalaryRaw / MONTHS_PER_SEMESTER;
 
   // Facture utilités MENSUELLE estimée (extrapolation depuis conso du
   // mois en cours). Projetée sur le mois complet.
@@ -6727,16 +6543,17 @@ export default function App() {
   const upUtilityTotal = upUtilityNext * _utilityBillsInSemester;
 
   // Prêt bancaire (versement mensuel)
-  const upLoan = activeLoan ? Math.min(activeLoan.remaining, Math.ceil(activeLoan.totalDue / LOAN_DURATION_SEMESTERS)) : 0;
+  const upLoan = loanInstallment(activeLoan);
+  const upRevenueTax = phase >= 2 ? Math.round(Math.max(0, (totals.moneyEarned || 0) - lastBilledMoneyEarnedRef.current) * CHARGE_CA_PCT) : 0;
 
   // Total à provisionner sur le prochain mois (P1-3 ; P4 a son propre calcul)
-  const upTotal = upSalary + upUtilityTotal + upLoan;
+  const upTotal = (upSalary + upUtilityTotal + upLoan + upRevenueTax) * chargeExoMult(_currentMonthNum);
 
   // === Affichage de l'imminent ===
   // MENSUALISÉ : toutes les charges (utilités + salaires + prêt) tombent
   // ensemble chaque mois. Plus de distinction saison/semestre.
   const _nextIsSemester = true; // tout tombe au mois (cumul complet)
-  const upcomingAmount = upUtilityNext + upSalary + upLoan;
+  const upcomingAmount = upTotal;
   const upcomingIn = _secondsToNextMonth;
   const upNextEventIn = upcomingIn;
 
@@ -6930,22 +6747,19 @@ export default function App() {
     if (!exoIntroShownRef.current) setExoIntroShown(true);
   }, [loaded, screen]);
 
-  // === Message d'annonce SÉCURITÉ (Phase 3) ===
-  // ~30 s après l'entrée en Phase 3, Brigitte prévient que la
-  // concurrence devient agressive. Tant que ce message n'est pas
-  // affiché : famille SÉCURITÉ masquée + AUCUN sabotage possible.
-  // Une seule fois (securityIntroShown persiste dans la save).
+  // Security is announced in game time and only acknowledged after its bubble is rendered.
   useEffect(() => {
-    if (!loaded || screen !== 'game') return;
-    if (securityIntroShownRef.current) return;
-    if (phase !== 3) return;
-    const tm = setTimeout(() => {
-      if (securityIntroShownRef.current) return;
-      queuePopup({ type: 'character', speaker: 'Brigitte', text: t('security.intro') });
+    if (!loaded || screen !== 'game' || phase !== 3 || securityIntroShownRef.current || isPausedRef.current) return;
+    if (popupMessage?.eventId === 'security-intro') {
+      securityIntroShownRef.current = true;
       setSecurityIntroShown(true);
-    }, 30000);
-    return () => clearTimeout(tm);
-  }, [loaded, screen, phase]);
+      return;
+    }
+    if (!eventGraceElapsed(gameTime, phaseStartedAtRef.current[3], 30)
+      || tutorialSurface.blocked || personnelOpen || callModalOpen || activeTutorial || pendingTutorial
+      || Date.now() - lastBubbleClosedAtRef.current < BUBBLE_GAP_MS) return;
+    setPopupMessage({ type: 'character', speaker: 'Brigitte', eventId: 'security-intro', text: t('security.intro') });
+  }, [loaded, screen, phase, gameTime, popupMessage, isPaused, careerOpen, personnelOpen, callModalOpen, activeTutorial, pendingTutorial]);
 
   // Information stays long enough to read; contextual hints never lock the game.
   useEffect(() => {
@@ -7101,18 +6915,22 @@ export default function App() {
   useEffect(() => {
     (async () => {
       try {
-        // Tentative 1 : window.storage (artifact-scoped)
-        let raw = null;
-        try {
-          const r = await window.storage.get(SAVE_KEY);
-          if (r) raw = r.value;
-        } catch (e) {}
-        // Fallback : localStorage (domaine-scoped, survit aux changements d'artifact)
-        if (!raw) {
-          try { raw = localStorage.getItem(SAVE_KEY); } catch (e) {}
-        }
+        const candidates = [];
+        const addCandidate = (value) => {
+          try {
+            const candidate = typeof value === 'string' ? JSON.parse(value) : value;
+            if (candidate && typeof candidate === 'object' && !Array.isArray(candidate)) candidates.push(candidate);
+          } catch (e) {}
+        };
+        try { const result = await window.storage.get(SAVE_KEY); if (result) addCandidate(result.value); } catch (e) {}
+        try { addCandidate(localStorage.getItem(SAVE_KEY)); } catch (e) {}
+        const timestamp = value => typeof value.savedAt === 'number' && Number.isFinite(value.savedAt) ? value.savedAt : 0;
+        const newest = candidates.reduce((best, candidate) => !best || timestamp(candidate) >= timestamp(best) ? candidate : best, null);
+        const raw = newest ? JSON.stringify(newest) : null;
         if (raw) {
           const s = JSON.parse(raw);
+          const restoredEvents = normalizeEventState(s.eventState, s.gameTime || 0, Math.min(3, s.phase || 1),
+            { events: EVENT_TYPES, frictions: FRICTION_EVENTS, incidents: INCIDENT_VARIANTS });
           setStock(s.stock || 0);
           setMoney(s.money || 0);
           setOwned(s.owned || {});
@@ -7146,6 +6964,35 @@ export default function App() {
             return l;
           });
           setLines(loadedLines);
+          linesRef.current = loadedLines;
+          const interactions = normalizePendingInteractions(s, s.gameTime || 0, PHONE_CALLS_BY_ID);
+          // Recover a legacy narrative call that was triggered but never saved or heard.
+          if (!interactions.currentCall) {
+            const missingRobert = s.phase === 1 && s.robertCall1Triggered && !(s.completedCalls || []).includes('robert_warehouse') ? 'robert_warehouse'
+              : s.phase === 2 && s.robertCall2Triggered && !s.robertCall2Heard && !(s.completedCalls || []).includes('robert_office') ? 'robert_office' : null;
+            if (missingRobert) interactions.currentCall = { id: missingRobert, startedAt: s.gameTime || 0 };
+          }
+          currentCallRef.current = interactions.currentCall; setCurrentCall(interactions.currentCall);
+          pendingDeliveriesRef.current = interactions.pendingDeliveries; setPendingDeliveries(interactions.pendingDeliveries);
+          phaseStartedAtRef.current = restoredEvents.phaseStartedAt;
+          heatwaveLeftRef.current = restoredEvents.heatwaveLeft; setHeatwaveLeft(restoredEvents.heatwaveLeft);
+          droughtLeftRef.current = restoredEvents.droughtLeft; setDroughtLeft(restoredEvents.droughtLeft);
+          outageLeftRef.current = restoredEvents.outageLeft; setOutageLeft(restoredEvents.outageLeft);
+          autumnRushLeftRef.current = restoredEvents.autumnRushLeft; setAutumnRushLeft(restoredEvents.autumnRushLeft);
+          stockBurnFlashRef.current = restoredEvents.stockBurnFlash; setStockBurnFlash(restoredEvents.stockBurnFlash);
+          activeEventRef.current = restoredEvents.activeEvent; setActiveEvent(restoredEvents.activeEvent);
+          nextEventAtRef.current = restoredEvents.nextEventAt; setNextEventAt(restoredEvents.nextEventAt);
+          activeFrictionsRef.current = restoredEvents.activeFrictions; setActiveFrictions(restoredEvents.activeFrictions);
+          pendingTensionEventRef.current = restoredEvents.pendingTensionEvent; setPendingTensionEvent(restoredEvents.pendingTensionEvent);
+          activeTensionEffectRef.current = restoredEvents.activeTensionEffect; setActiveTensionEffect(restoredEvents.activeTensionEffect);
+          activeMegacontractRef.current = restoredEvents.activeMegacontract; setActiveMegacontract(restoredEvents.activeMegacontract);
+          pendingIncidentRef.current = restoredEvents.pendingIncident; setPendingIncident(restoredEvents.pendingIncident);
+          lastIncidentAtRef.current = restoredEvents.lastIncidentAt; lastIncidentCheckAtRef.current = s.gameTime || 0;
+          lastFrictionAtRef.current = restoredEvents.lastFrictionAt; lastTensionAtRef.current = restoredEvents.lastTensionAt;
+          lastSabotageAtRef.current = restoredEvents.lastSabotageAt; lastSabotageIdRef.current = restoredEvents.lastSabotageId;
+          lastEventAtRef.current = restoredEvents.lastEventAt; lastDisruptionAtRef.current = restoredEvents.lastDisruptionAt;
+          lastInsuranceCancelRef.current = restoredEvents.lastInsuranceClaimAt; setLastInsuranceCancel(restoredEvents.lastInsuranceClaimAt);
+          firedThisYearRef.current = { year: restoredEvents.firedThisYear.year, ids: new Set(restoredEvents.firedThisYear.ids) };
           setMarketplace(s.marketplace || []);
           const fl = s.freezingLeft;
           const ft = s.freezingTotal;
@@ -7158,15 +7005,34 @@ export default function App() {
           }
           if (typeof s.fredCycleAccum === 'number') fredCycleAccumRef.current = s.fredCycleAccum;
           if (s.totals) {
-            setTotals(s.totals);
-            totalsRef.current = { ...s.totals };
+            const corrected = s.contractCompletionV2 ? s.totals : {
+              ...s.totals, contractsCompleted: completedContractsFromLoyalty(s.clientLoyalty),
+            };
+            const migrated = preserveExperienceOnMigration(s.totals, corrected, Array.isArray(s.completedCalls) ? s.completedCalls.length : 0, s.owned || {});
+            setTotals(migrated);
+            totalsRef.current = { ...migrated };
+            s.totals = migrated; // The offline grant must build on the corrected counters and preserved XP.
           }
+          const loadedMarketHistory = Array.isArray(s.marketHistory) ? s.marketHistory.filter(id => typeof id === 'string' && B2B_BY_ID[id]).slice(-12) : [];
+          marketHistoryRef.current = loadedMarketHistory;
+          setMarketHistory(loadedMarketHistory);
+          contractSuccessStreakRef.current = Number.isSafeInteger(s.contractSuccessStreak) && s.contractSuccessStreak >= 0 ? s.contractSuccessStreak : 0;
+          const loadedContractQueue = Array.isArray(s.contractEndQueue) ? s.contractEndQueue.filter(e => e && Number.isInteger(e.lineIdx)
+            && loadedLines[e.lineIdx]?.contractId === e.contractId && loadedLines[e.lineIdx]?.contractEndedTriggered).slice(0, loadedLines.length) : [];
+          contractEndQueueRef.current = loadedContractQueue;
+          setContractEndQueue(loadedContractQueue);
+          contractEndedRef.current = loadedContractQueue[0] || null;
+          setContractEnded(loadedContractQueue[0] || null);
+          lastBilledMoneyEarnedRef.current = restoredRevenueBaseline(s.lastBilledMoneyEarned, s.totals?.moneyEarned || 0);
           const loadedCareer = normalizeCareerProgress(s.careerProgress);
+          if (!s.contractCompletionV2 && loadedCareer.challenge) {
+            loadedCareer.challenge.baseline.contractsCompleted = completedContractsFromLoyalty(s.clientLoyalty);
+          }
           careerProgressRef.current = loadedCareer;
           setCareerProgress(loadedCareer);
-          if (typeof s.lastInsuranceCancel === 'number') {
-            setLastInsuranceCancel(s.lastInsuranceCancel);
-          }
+          s.careerProgress = loadedCareer;
+          s.contractCompletionV2 = true;
+          // Insurance now uses the validated game-time counter in eventState.
           // Appareil tombé en panne et pas encore racheté. On ne restaure que si
           // l'amélioration est effectivement absente : une sauvegarde d'avant le
           // rachat, rouverte après, ne doit pas ressortir l'alerte.
@@ -7192,7 +7058,22 @@ export default function App() {
           if (typeof s.fredStress === 'number') setFredStress(s.fredStress);
           if (typeof s.brigitteStress === 'number') setBrigitteStress(s.brigitteStress);
           if (typeof s.lennyStress === 'number') setLennyStress(s.lennyStress);
-          if (typeof s.notoriety === 'number') setNotoriety(s.notoriety);
+          // Old copies of these upgrades had no effect. Credit missing bonuses once, with a receipt.
+          const repairedNotoriety = applyUpgradeNotorietyBonuses(s.owned || {}, s.notoriety || 0, s.upgradeNotorietyAwards);
+          if (repairedNotoriety.added > 0) {
+            try {
+              // Preserve savedAt so this migration does not consume the offline time window.
+              const repaired = { ...s, notoriety: repairedNotoriety.notoriety, upgradeNotorietyAwards: repairedNotoriety.awardedIds };
+              const payload = JSON.stringify(repaired);
+              localStorage.setItem(SAVE_KEY, payload);
+              try { await window.storage.set(SAVE_KEY, payload); } catch (e) {}
+              Object.assign(s, repaired);
+            } catch (e) {}
+          }
+          const awardIds = Array.isArray(s.upgradeNotorietyAwards) ? s.upgradeNotorietyAwards : [];
+          upgradeNotorietyAwardsRef.current = awardIds;
+          setUpgradeNotorietyAwards(awardIds);
+          if (typeof s.notoriety === 'number') { notorietyRef.current = s.notoriety; setNotoriety(s.notoriety); }
           if (typeof s.segFamille === 'number') setSegFamille(s.segFamille);
           if (typeof s.segJeunesse === 'number') setSegJeunesse(s.segJeunesse);
           if (typeof s.segPro === 'number') setSegPro(s.segPro);
@@ -7247,7 +7128,17 @@ export default function App() {
           if (s.wageArrears && typeof s.wageArrears === 'object') setWageArrears(s.wageArrears);
           if (Array.isArray(s.activeLawsuits)) setActiveLawsuits(s.activeLawsuits);
           if (Array.isArray(s.lawsuitHistory)) setLawsuitHistory(s.lawsuitHistory);
-          if (typeof s.victoryAchieved === 'boolean') setVictoryAchieved(s.victoryAchieved);
+          const receipt = normalizeVictoryReceipt(s.prestigeReceipt);
+          prestigeReceiptRef.current = receipt;
+          setPrestigeReceipt(receipt);
+          setVictoryAchieved(Boolean(s.victoryAchieved || receipt));
+          if (receipt) {
+            // Replaying a target is safe whether global writes happened before interruption or not.
+            restoreGlobalPrestige(receipt);
+            setPrestigeChoiceOpen(receipt.pendingPerk);
+            setVictoryModalOpen(receipt.pendingPerk);
+          }
+          // Legacy victories without receipts keep their achievement, with no new prestige award.
           if (s.glacierBeats && typeof s.glacierBeats === 'object') setGlacierBeats(s.glacierBeats);
           if (typeof s.victoryTimestamp === 'number') setVictoryTimestamp(s.victoryTimestamp);
           if (Array.isArray(s.salaryMissMonths)) salaryMissMonthsRef.current = s.salaryMissMonths;
@@ -7266,7 +7157,13 @@ export default function App() {
           if (s.activeCampaign && typeof s.activeCampaign === 'object') setActiveCampaign(s.activeCampaign);
           if (typeof s.campaignsLaunched === 'number') setCampaignsLaunched(s.campaignsLaunched);
           if (typeof s.nextMarketReroll === 'number') setNextMarketReroll(s.nextMarketReroll);
-          if (typeof s.cyberLockout === 'number') setCyberLockout(s.cyberLockout);
+          const loadedMarketTarget = Number.isFinite(s.marketTarget) ? Math.max(1, Math.min(6, Math.floor(s.marketTarget))) : 2;
+          marketTargetRef.current = loadedMarketTarget;
+          setMarketTarget(loadedMarketTarget);
+          if (Number.isFinite(s.cyberLockout)) {
+            cyberLockoutRef.current = Math.max(0, Math.min(90, s.cyberLockout));
+            setCyberLockout(cyberLockoutRef.current);
+          }
           if (s.activeLoan) setActiveLoan(s.activeLoan);
           if (typeof s.loansTaken === 'number') setLoansTaken(s.loansTaken);
           if (typeof s.sellThreshold === 'number') setSellThreshold(s.sellThreshold);
@@ -7315,17 +7212,23 @@ export default function App() {
                 const canSellOffline = hasAutoSell || hasActiveTrucks;
                 if (prodRate > 0 && canSellOffline) {
                   const sellPrice = BASE_SELL_PRICE * (stats.sellMult || 1);
-                  const offlineRevenue = Math.round(prodRate * effSec * sellPrice * OFFLINE_SELL_THROTTLE);
-                  if (offlineRevenue > 0) {
-                    setMoney(m => m + offlineRevenue);
-                    setTotals(t => ({ ...t, moneyEarned: (t.moneyEarned || 0) + offlineRevenue }));
+                  const grant = offlineGrant(s, Date.now(), prodRate, sellPrice, canSellOffline);
+                  if (grant) {
+                    // Commit the reward and its time anchor together before making it available.
+                    // An immediate reload can never collect the same absence twice.
+                    const payload = JSON.stringify(grant.save);
+                    localStorage.setItem(SAVE_KEY, payload);
+                    try { await window.storage.set(SAVE_KEY, payload); } catch (e) {}
+                    Object.assign(s, grant.save);
+                    setMoney(grant.save.money);
+                    setTotals(grant.save.totals);
+                    totalsRef.current = { ...grant.save.totals };
                     // Popup recap différé pour laisser l'écran se monter.
-                    const minutesAway = Math.max(1, Math.round(cappedSec / 60));
-                    const capped = realElapsedSec > OFFLINE_CAP_SEC;
+                    const offlineText = tFor(s.language || language);
                     setTimeout(() => {
                       setPopupMessage({
                         type: 'narrator',
-                        text: `Bon retour. Pendant tes ${minutesAway} min d'absence : +${fmtInt(offlineRevenue)} €${capped ? ' (cap 2 h atteint)' : ''}.`,
+                        text: fill(offlineText('offline.recap'), { minutes: grant.minutes, amount: fmtInt(grant.amount), cap: grant.capped ? offlineText('offline.cap') : '' }),
                       });
                     }, 1500);
                   }
@@ -7384,6 +7287,18 @@ export default function App() {
   useEffect(() => {
     saveStateRef.current = {
       stock, money, owned, gameTime, phase, reputation, lines, marketplace, freezingLeft, freezingTotal, fredCycleLeft, fredCycleTotal,
+      currentCall, pendingDeliveries,
+      eventState: {
+        version: 1, heatwaveLeft, droughtLeft, outageLeft, autumnRushLeft, stockBurnFlash,
+        activeEvent, nextEventAt, activeFrictions, pendingTensionEvent, activeTensionEffect, activeMegacontract,
+        pendingIncident: pendingIncident ? { kind: pendingIncident.kind, variantIndex: pendingIncident.variantIndex ?? INCIDENT_VARIANTS[pendingIncident.kind]?.indexOf(pendingIncident.variant) } : null,
+        lastIncidentAt: lastIncidentAtRef.current, lastFrictionAt: lastFrictionAtRef.current,
+        lastTensionAt: lastTensionAtRef.current, lastSabotageAt: lastSabotageAtRef.current,
+        lastEventAt: lastEventAtRef.current, lastDisruptionAt: lastDisruptionAtRef.current,
+        lastSabotageId: lastSabotageIdRef.current, lastInsuranceClaimAt: lastInsuranceCancelRef.current,
+        phaseStartedAt: phaseStartedAtRef.current,
+        firedThisYear: { year: firedThisYearRef.current.year, ids: Array.from(firedThisYearRef.current.ids) },
+      },
       fredCycleAccum: fredCycleAccumRef.current,
       totals, lastInsuranceCancel, completedCalls, nextCallAt, meltTutorialShown, brokenGear,
       fredSalaryLevel, brigitteSalaryLevel, lennySalaryLevel,
@@ -7394,6 +7309,10 @@ export default function App() {
       sickUntil,
       monthlyV2: true, // refonte mensuelle : marqueur de migration
       contractRulesV2: true, // quantités signées cohérentes ; migration legacy appliquée une fois
+      contractCompletionV2: true,
+      contractSuccessStreak: contractSuccessStreakRef.current,
+      contractEndQueue,
+      marketHistory,
       achievementsUnlocked,
       careerProgress,
       contractRejections,
@@ -7405,7 +7324,11 @@ export default function App() {
       hireDates, lastRaiseDecision, lastBonusAt, birthdays, salaryDebt, showProfitability, devUnlocked,
       wageArrears, salaryMissMonths: salaryMissMonthsRef.current,
       activeLawsuits, lawsuitHistory,
-      victoryAchieved, victoryTimestamp,
+      // The receipt ref is committed synchronously; an older effect must not overwrite it.
+      victoryAchieved: victoryAchieved || Boolean(prestigeReceiptRef.current),
+      victoryTimestamp: victoryTimestamp ?? (prestigeReceiptRef.current ? saveStateRef.current.victoryTimestamp : null),
+      prestigeReceipt: prestigeReceiptRef.current,
+      upgradeNotorietyAwards: upgradeNotorietyAwardsRef.current,
       trialAnnounced: trialAnnouncedRef.current,
       rhFatigue, rhActionsUsed, rhActionsYearIdx,
       robertCall1Triggered, robertCall2Triggered, robertCall2Heard, phase3LastStageAt,
@@ -7418,6 +7341,7 @@ export default function App() {
       // Phrases popup personnage déjà vues (one-shot par phrase, persistant).
       seenPopupTexts: Array.from(seenPopupTextsRef.current),
       seasonStartTotals: seasonStartTotalsRef.current, seasonFuel: seasonFuelRef.current, lastBilledSeason: lastBilledSeasonRef.current,
+      lastBilledMoneyEarned: lastBilledMoneyEarnedRef.current,
       language,
     };
   });
@@ -7496,7 +7420,10 @@ export default function App() {
   useEffect(() => {
     if (phase >= 2 && marketplace.length === 0 && brigitteMaxTier > 0 && rawStats.truckMaxCap > 0) {
       const signedIds = lines.map(l => l.contractId).filter(Boolean);
-      setMarketplace(makeInitialMarketplace(brigitteMaxTier, maxCap, rawStats.truckMaxCap, notoriety, signedIds, null, phase, contractRejections, gameTime, owned));
+      const fresh = makeInitialMarketplace(brigitteMaxTier, usableCap, rawStats.truckMaxCap, notoriety, signedIds, marketTargetRef.current, phase, contractRejections, gameTime, owned, marketHistoryRef.current, { famille: segFamille, jeunesse: segJeunesse, pro: segPro, luxe: segLuxe, eco: segEco }, reputation);
+      rememberMarketOffers(fresh.map(m => m.contractId));
+      marketplaceRef.current = fresh;
+      setMarketplace(fresh);
     }
   }, [phase, owned, brigitteMaxTier, maxCap, rawStats.truckMaxCap, notoriety]);
 
@@ -7647,7 +7574,7 @@ export default function App() {
         const _phaseFactor = phaseRef.current >= 3 ? 1.5 : 1;
         const intensity = (1 + 0.35 * (_fc - 1)) * _heatFactor * _phaseFactor;
         const natChance = (0.00075 * intensity) / (hasMaintenance ? 4 : 1); // /s
-        if (Math.random() < natChance * dt) {
+        if (Math.random() < perSecondChance(natChance, dt) && reserveDisruptionSlot(gameTimeRef.current)) {
           // Durée qui scale avec la taille de l'opé (arrêt plus coûteux à grande échelle).
           const dur = Math.round(14 + 3 * (_fc - 1) + (phaseRef.current >= 3 ? 6 : 0));
           setChainBroken({
@@ -7659,132 +7586,113 @@ export default function App() {
           // La maintenance amortit la perte (joints/groupes froids tenus).
           const lossPct = hasMaintenance ? 0.05 : 0.12;
           const _melted = Math.floor(stockRef.current * lossPct);
-          if (_melted > 0) setStock(s => Math.max(0, s - _melted));
+          if (_melted > 0) { stockRef.current = Math.max(0, stockRef.current - _melted); setStock(stockRef.current); }
           setEventNotif(fill(t('notif.chain_break'), { dur, gl: fmtInt(_melted) }));
         }
       }
 
-      // === SABOTAGE (Phase 3 UNIQUEMENT, notoriety thresholds, délai de grâce SABOTAGE_GRACE_SEASONS saisons) ===
-      // En Phase 4 : plus AUCUN sabotage (table rase P4, mécaniques propres).
-      // PRÉREQUIS : le message d'annonce sécurité doit avoir été lu —
-      // aucun sabotage tant que le joueur n'a pas été prévenu.
-      if (phaseRef.current === 3 && securityIntroShownRef.current && gameTimeRef.current >= SEASON_DURATION * SABOTAGE_GRACE_SEASONS) {
+      // One sabotage family per turn; security and insurance modify its actual hazard.
+      if (phaseRef.current === 3 && securityIntroShownRef.current
+          && eventGraceElapsed(gameTimeRef.current, phaseStartedAtRef.current[3], SEASON_DURATION * SABOTAGE_GRACE_SEASONS)) {
         const curNoto = notorietyRef.current;
-        const curOwned = ownedRef.current;
-        const curStatsForImmune = computeStats(curOwned);
-        const sabotageCooldownActive = (gameTimeRef.current - lastSabotageAtRef.current) < SABOTAGE_COOLDOWN_SEC;
-
-        // La sécurité réduit fortement la fréquence (résiduel) mais ne supprime
-        // jamais le risque : une faille reste toujours possible.
-        const residPneus = curStatsForImmune.immunePneus ? SABOTAGE_RESIDUAL_WITH_SECURITY : 1;
-        const residAvis  = curStatsForImmune.immuneAvis  ? SABOTAGE_RESIDUAL_WITH_SECURITY : 1;
-        const residCyber = curStatsForImmune.immuneCyber ? SABOTAGE_RESIDUAL_WITH_SECURITY : 1;
-        const residFrigo = curStatsForImmune.immuneFrigo ? SABOTAGE_RESIDUAL_WITH_SECURITY : 1;
-        // 1. Pneus crevés (noto ≥ 15)
-        if (!sabotageCooldownActive && curNoto >= 15 && Math.random() < SABOTAGE_PNEUS_CHANCE * residPneus * dt) {
-          triggerSabotageTires();
+        const security = computeStats(ownedRef.current);
+        const sabotageCooldownActive = gameTimeRef.current - lastSabotageAtRef.current < SABOTAGE_COOLDOWN_SEC;
+        const options = [
+          { id: 'pneus', minNoto: 15, rate: SABOTAGE_PNEUS_CHANCE, run: triggerSabotageTires },
+          { id: 'avis', minNoto: 25, rate: SABOTAGE_AVIS_CHANCE, run: triggerSabotageFakeReviews },
+          { id: 'cyber', minNoto: 35, rate: SABOTAGE_CYBER_CHANCE, run: triggerSabotageCyber },
+          { id: 'frigo', minNoto: 45, rate: SABOTAGE_FRIGO_CHANCE, run: triggerSabotageFreezer },
+        ].filter(item => curNoto >= item.minNoto && (item.id !== 'pneus' || linesRef.current.some(line => line?.contractId && !line.broken)))
+          .map(item => ({ ...item, weight: item.rate * sabotageRiskMultiplier(security, item.id as 'pneus' | 'avis' | 'cyber' | 'frigo') }));
+        const totalRate = options.reduce((sum, item) => sum + item.weight, 0);
+        if (!sabotageCooldownActive && Math.random() < perSecondChance(totalRate, dt) && reserveDisruptionSlot(gameTimeRef.current)) {
+          const picked = pickWeightedEvent(options, lastSabotageIdRef.current);
+          if (picked) {
+            lastSabotageAtRef.current = gameTimeRef.current;
+            lastSabotageIdRef.current = picked.id;
+            picked.run();
+          }
         }
-        // 2. Faux avis (noto ≥ 25)
-        if (!sabotageCooldownActive && curNoto >= 25 && Math.random() < SABOTAGE_AVIS_CHANCE * residAvis * dt) {
-          triggerSabotageFakeReviews();
-        }
-        // 3. Cyberattaque (noto ≥ 35)
-        if (!sabotageCooldownActive && curNoto >= 35 && Math.random() < SABOTAGE_CYBER_CHANCE * residCyber * dt) {
-          triggerSabotageCyber();
-        }
-        // 4. Sabotage frigo / stock (noto ≥ 45)
-        if (!sabotageCooldownActive && curNoto >= 45 && Math.random() < SABOTAGE_FRIGO_CHANCE * residFrigo * dt) {
-          triggerSabotageFreezer();
-        }
-
-        // === ÉVÉNEMENTS DE TENSION P3 (crises + opportunités) ===
-        // Conditions communes : P3, pas d'événement de tension actif, cooldown respecté
+      }
+      {
+        // Crises et opportunités adaptées à chaque phase, avec grâce et délai commun.
         const tensionCooldownActive = (gameTimeRef.current - lastTensionAtRef.current) < TENSION_COOLDOWN_SEC;
         const hasPendingTension = !!pendingTensionEventRef.current;
         const hasActiveTension = !!activeTensionEffectRef.current || !!activeMegacontractRef.current;
-        if (phaseRef.current >= 1 && !tensionCooldownActive && !hasPendingTension && !hasActiveTension && !anyEventActiveNow()) {
+        if (phaseRef.current >= 1 && phaseRef.current <= 3 && gameTimeRef.current >= 180
+          && eventGraceElapsed(gameTimeRef.current, phaseStartedAtRef.current[phaseRef.current], 60) && !tensionCooldownActive && !hasPendingTension && !hasActiveTension && !anyEventActiveNow()) {
           const inP3 = phaseRef.current >= 3;
           const inP2plus = phaseRef.current >= 2;
           const inP1 = phaseRef.current === 1;
           // === Crises P3 (gros impact) ===
           // Crise 1 : RAPPEL SANITAIRE
-          if (inP3 && Math.random() < CRISIS_RAPPEL_CHANCE * dt) {
-            setPendingTensionEvent({ id: 'crisis_rappel', expiresAt: gameTimeRef.current + 15 });
-            lastTensionAtRef.current = gameTimeRef.current;
+          if (inP3 && Math.random() < perSecondChance(CRISIS_RAPPEL_CHANCE, dt)) {
+            offerTension('crisis_rappel');
           }
           // Crise 2 : CRISE MÉDIATIQUE VIRALE
-          else if (inP3 && Math.random() < CRISIS_VIRAL_CHANCE * dt) {
-            setPendingTensionEvent({ id: 'crisis_viral', expiresAt: gameTimeRef.current + 15 });
-            lastTensionAtRef.current = gameTimeRef.current;
+          else if (inP3 && Math.random() < perSecondChance(CRISIS_VIRAL_CHANCE, dt)) {
+            offerTension('crisis_viral');
           }
           // Crise 3 : GRÈVE TRANSPORT
-          else if (inP3 && Math.random() < CRISIS_STRIKE_CHANCE * dt && linesRef.current.some(l => l && l.contractId)) {
+          else if (inP3 && Math.random() < perSecondChance(CRISIS_STRIKE_CHANCE, dt) && linesRef.current.some(l => l && l.contractId)) {
             // Ne déclenche que si au moins un camion est actif
-            setPendingTensionEvent({ id: 'crisis_strike', expiresAt: gameTimeRef.current + 15 });
-            lastTensionAtRef.current = gameTimeRef.current;
+            offerTension('crisis_strike');
           }
           // Crise P3 narrative : L'ENVELOPPE DE PATRICE GLACIER (rare, marquant)
-          else if (inP3 && Math.random() < CRISIS_GLACIER_CHANCE * dt && moneyRef.current >= 40000) {
-            setPendingTensionEvent({ id: 'crisis_glacier', expiresAt: gameTimeRef.current + 15 });
-            lastTensionAtRef.current = gameTimeRef.current;
+          else if (inP3 && Math.random() < perSecondChance(CRISIS_GLACIER_CHANCE, dt) && moneyRef.current >= 40000) {
+            offerTension('crisis_glacier');
           }
           // Opportunité 1 : MÉGA-CONTRAT
-          else if (inP3 && Math.random() < OPP_MEGACONTRACT_CHANCE * dt) {
-            setPendingTensionEvent({ id: 'opp_megacontract', expiresAt: gameTimeRef.current + 15 });
-            lastTensionAtRef.current = gameTimeRef.current;
+          else if (inP3 && Math.random() < perSecondChance(OPP_MEGACONTRACT_CHANCE, dt)) {
+            offerTension('opp_megacontract');
           }
           // Opportunité 2 : INTERVIEW TV
-          else if (inP3 && Math.random() < OPP_TVINTERVIEW_CHANCE * dt) {
-            setPendingTensionEvent({ id: 'opp_tvinterview', expiresAt: gameTimeRef.current + 15 });
-            lastTensionAtRef.current = gameTimeRef.current;
+          else if (inP3 && Math.random() < perSecondChance(OPP_TVINTERVIEW_CHANCE, dt)) {
+            offerTension('opp_tvinterview');
           }
           // Opportunité 3 : PARI BOURSIER
-          else if (inP3 && Math.random() < OPP_BOURSE_CHANCE * dt && moneyRef.current >= 10000) {
-            setPendingTensionEvent({ id: 'opp_bourse', expiresAt: gameTimeRef.current + 15 });
-            lastTensionAtRef.current = gameTimeRef.current;
+          else if (inP3 && Math.random() < perSecondChance(OPP_BOURSE_CHANCE, dt) && moneyRef.current >= 10000) {
+            offerTension('opp_bourse');
           }
           // Opportunité P3 catastrophique : TOUT OU RIEN (risque de Game Over)
-          else if (inP3 && Math.random() < OPP_ALLIN_CHANCE * dt && moneyRef.current >= 20000) {
-            setPendingTensionEvent({ id: 'opp_allin', expiresAt: gameTimeRef.current + 15 });
-            lastTensionAtRef.current = gameTimeRef.current;
+          else if (inP3 && Math.random() < perSecondChance(OPP_ALLIN_CHANCE, dt) && moneyRef.current >= 20000) {
+            offerTension('opp_allin');
           }
           // === Enjeux mid-game (éligibles dès la P2) ===
           // Crise P2 : PANNE CHAMBRE FROIDE
-          else if (inP2plus && Math.random() < CRISIS_COLDROOM_CHANCE * dt) {
-            setPendingTensionEvent({ id: 'crisis_coldroom', expiresAt: gameTimeRef.current + 15 });
-            lastTensionAtRef.current = gameTimeRef.current;
+          else if (inP2plus && Math.random() < perSecondChance(CRISIS_COLDROOM_CHANCE, dt)) {
+            offerTension('crisis_coldroom');
           }
           // Crise P2 : LITIGE FACTURE CLIENT
-          else if (inP2plus && Math.random() < CRISIS_INVOICE_CHANCE * dt) {
-            setPendingTensionEvent({ id: 'crisis_invoice', expiresAt: gameTimeRef.current + 15 });
-            lastTensionAtRef.current = gameTimeRef.current;
+          else if (inP2plus && Math.random() < perSecondChance(CRISIS_INVOICE_CHANCE, dt)) {
+            offerTension('crisis_invoice');
           }
           // Opportunité P2 : RUSH FESTIVAL
-          else if (inP2plus && Math.random() < OPP_FESTIVAL_CHANCE * dt) {
-            setPendingTensionEvent({ id: 'opp_festival', expiresAt: gameTimeRef.current + 15 });
-            lastTensionAtRef.current = gameTimeRef.current;
+          else if (inP2plus && Math.random() < perSecondChance(OPP_FESTIVAL_CHANCE, dt)) {
+            offerTension('opp_festival');
           }
           // === Premiers dilemmes (P1) — petites décisions dès le début ===
           // Crise P1 : VOISIN MÉCONTENT
-          else if (inP1 && Math.random() < CRISIS_VOISIN_CHANCE * dt) {
-            setPendingTensionEvent({ id: 'crisis_voisin', expiresAt: gameTimeRef.current + 15 });
-            lastTensionAtRef.current = gameTimeRef.current;
+          else if (inP1 && Math.random() < perSecondChance(CRISIS_VOISIN_CHANCE, dt)) {
+            offerTension('crisis_voisin');
           }
           // Opportunité P1 : COMMANDE EXPRESS DU CAFÉ D'EN BAS
-          else if (inP1 && Math.random() < OPP_CAFE_CHANCE * dt && stockRef.current >= 20) {
-            setPendingTensionEvent({ id: 'opp_cafe', expiresAt: gameTimeRef.current + 15 });
-            lastTensionAtRef.current = gameTimeRef.current;
+          else if (inP1 && Math.random() < perSecondChance(OPP_CAFE_CHANCE, dt) && stockRef.current >= 20) {
+            offerTension('opp_cafe');
           }
           // === Events "racket" (data-driven) — si aucun event bespoke n'a tiré ===
           else {
             for (const rk of RACKET_KEYS) {
               const rd = EVENT_TYPES[rk];
               if (!rd || phaseRef.current < rd.minPhase) continue;
+              // Fixed-price rackets belong to an established business; the early garage keeps its bespoke dilemmas.
+              const severe = !!(rd.refuse?.loseTruckLine || rd.refuse?.notorietyDivBy || (rd.cost || 0) >= 8000);
+              if (phaseRef.current < 2 || (severe && phaseRef.current < 3)) continue;
+              if ((rd.cost || 0) > 0 && totalsRef.current.moneyEarned < rd.cost * 3) continue;
               // Le vol de camion n'a de sens que si au moins un camion tourne.
               if (rk === 'racket_vol_camion' && !linesRef.current.some(l => l && l.contractId)) continue;
-              if (Math.random() < (rd.chance || 0.0005) * dt) {
-                setPendingTensionEvent({ id: rk, expiresAt: gameTimeRef.current + 15 });
-                lastTensionAtRef.current = gameTimeRef.current;
+              if (Math.random() < perSecondChance(rd.chance || 0.0005, dt)) {
+                offerTension(rk);
                 break;
               }
             }
@@ -7801,6 +7709,7 @@ export default function App() {
       if (activeMegacontractRef.current && gameTimeRef.current >= activeMegacontractRef.current.expiresAt) {
         // Délai écoulé : échec
         const mc = activeMegacontractRef.current;
+        activeMegacontractRef.current = null;
         setActiveMegacontract(null);
         const def = EVENT_TYPES[mc.id] || EVENT_TYPES.opp_megacontract;
         let notoPen = 0;
@@ -7815,8 +7724,10 @@ export default function App() {
       }
       // Auto-expire la modale si pas de décision (ou si expiresAt est invalide → on ferme net).
       if (pendingTensionEventRef.current && (!Number.isFinite(pendingTensionEventRef.current.expiresAt) || gameTimeRef.current >= pendingTensionEventRef.current.expiresAt)) {
-        setPendingTensionEvent(null);
-        setTensionMinimized(false);
+        const pending = pendingTensionEventRef.current;
+        const definition = EVENT_TYPES[pending.id];
+        if (definition && Number.isFinite(pending.expiresAt)) resolveTensionEventRef.current?.(tensionExpiryAction(definition));
+        else { pendingTensionEventRef.current = null; setPendingTensionEvent(null); setTensionMinimized(false); }
       }
 
       // === FRICTIONS — cleanup des frictions expirées ===
@@ -7844,7 +7755,7 @@ export default function App() {
       // Probabilité de tirer une friction : ~1 toutes les ~90s en moyenne
       const FRICTION_BASE_CHANCE = 0.011; // par seconde
       if (!isFirstYearForFriction && !fricCooldownActive && !anyEventActiveNow()
-          && Math.random() < FRICTION_BASE_CHANCE * dt) {
+          && Math.random() < perSecondChance(FRICTION_BASE_CHANCE, dt)) {
         const curPhase = phaseRef.current;
         // Contexte pour les prérequis : ce qui est actif/débloqué en jeu
         const curOwn = ownedRef.current;
@@ -7884,7 +7795,7 @@ export default function App() {
             const _winterMult = seasonIdxRef.current === 0 ? 1.5 : 1;
             return { ...f, weight: (f.weight || 1) * _winterMult };
           });
-        if (eligible.length > 0) {
+        if (eligible.length > 0 && reserveDisruptionSlot(gameTimeRef.current)) {
           // Tirage pondéré
           const totalW = eligible.reduce((s, f) => s + (f.weight || 1), 0);
           let r = Math.random() * totalW;
@@ -7916,6 +7827,7 @@ export default function App() {
           if (typeof e.oneShotStockPct === 'number') {
             const cur = stockRef.current;
             const newSt = Math.max(0, cur * (1 + e.oneShotStockPct));
+            stockRef.current = newSt;
             setStock(newSt);
           }
           if (typeof e.oneShotMoneyPct === 'number') {
@@ -7967,7 +7879,7 @@ export default function App() {
       }
 
       // P3 only : Débauchage et autres logiques
-      if (phaseRef.current === 3 && securityIntroShownRef.current && gameTimeRef.current >= SEASON_DURATION * SABOTAGE_GRACE_SEASONS) {
+      if (phaseRef.current === 3 && securityIntroShownRef.current && eventGraceElapsed(gameTimeRef.current, phaseStartedAtRef.current[3], SEASON_DURATION * SABOTAGE_GRACE_SEASONS)) {
         const curNoto = notorietyRef.current;
         const curOwned = ownedRef.current;
 
@@ -7981,10 +7893,10 @@ export default function App() {
           const hasP = curOwned['autosell'] || curOwned['brigitte_compta'] || curOwned['brigitte_ad'];
           const hasKa = curOwned['janice_jr'] || curOwned['janice_senior'] || curOwned['janice_dir'];
           const hasL = TRUCK_IDS.some(id => curOwned[id]);
-          if (hasK && hd.fred && curT - hd.fred >= minTenure) eligible.push('fred');
-          if (hasP && hd.brigitte && curT - hd.brigitte >= minTenure) eligible.push('brigitte');
-          if (hasKa && hd.janice && curT - hd.janice >= minTenure) eligible.push('janice');
-          if (hasL && hd.lenny && curT - hd.lenny >= minTenure) eligible.push('lenny');
+          if (hasK && Number.isFinite(hd.fred) && curT - hd.fred >= minTenure) eligible.push('fred');
+          if (hasP && Number.isFinite(hd.brigitte) && curT - hd.brigitte >= minTenure) eligible.push('brigitte');
+          if (hasKa && Number.isFinite(hd.janice) && curT - hd.janice >= minTenure) eligible.push('janice');
+          if (hasL && Number.isFinite(hd.lenny) && curT - hd.lenny >= minTenure) eligible.push('lenny');
           if (eligible.length > 0) {
             const pick = eligible[Math.floor(Math.random() * eligible.length)];
             setPoachingRequest({ employee: pick, by: 'Glacier Frères', startedAt: curT });
@@ -8094,14 +8006,14 @@ export default function App() {
         // mais on ne la prélève PAS ici : elle est stockée et intégrée
         // au paiement GLOBAL (salaires + charges) du même mois, pour
         // n'avoir qu'un seul prélèvement et un seul bandeau cohérent.
-        const prevSeasonIdx = Math.floor(gameTimeRef.current / SEASON_DURATION) % 4;
+        const prevSeasonIdx = Math.floor((gameTimeRef.current - 0.001) / SEASON_DURATION) % 4;
         const prevSeason = SEASONS[prevSeasonIdx];
         const start = seasonStartTotalsRef.current;
         const seasonProd = Math.max(0, totalsRef.current.produced - start.produced);
         const freezerCount = 1 + (ownedRef.current['mini_freezer'] ? 1 : 0) + (ownedRef.current['pro_freezer'] ? 2 : 0);
         const bill0 = computeUtilitiesBill(freezerCount, seasonProd, seasonFuelRef.current, prevSeason.utilMult);
-        const bill = Math.max(0, bill0);
-        if (bill > 0 && !isFirstYear) {
+        const bill = Math.max(0, bill0 * (curStats.utilityCostMult || 1));
+        if (bill > 0 && curSeasonAbsolute > 1) {
           // Cumule (au cas où plusieurs mois passent d'un coup).
           pendingUtilityBillRef.current += bill;
           setLastUtilBill(bill);
@@ -8162,7 +8074,7 @@ export default function App() {
           totalsRef.current = { ...totalsRef.current, heatwavesSurvived: (totalsRef.current.heatwavesSurvived || 0) + 1 };
           setTotals(t => ({ ...t, heatwavesSurvived: (t.heatwavesSurvived || 0) + 1 }));
         }
-      } else if (phaseRef.current < 4 && !isFirstYear && canTriggerEvent && seasonIdxRef.current === 2 && canFireThisYear('heatwave') && Math.random() < HEATWAVE_CHANCE) {
+      } else if (phaseRef.current < 4 && !isFirstYear && canTriggerEvent && seasonIdxRef.current === 2 && canFireThisYear('heatwave') && Math.random() < perTickChance(HEATWAVE_CHANCE, dt) && reserveDisruptionSlot(evtNow)) {
         // P1-3 uniquement. Table rase en P4 : l'effet POP ICE sera
         // reconstruit via de futurs events spécifiques Phase 4.
         const dur = 25 + Math.random() * 20;
@@ -8173,7 +8085,7 @@ export default function App() {
       }
       if (droughtLeftRef.current > 0) {
         setDroughtLeft(l => Math.max(0, l - dt));
-      } else if (phaseRef.current < 4 && !isFirstYear && canTriggerEvent && heatwaveLeftRef.current === 0 && seasonIdxRef.current === 2 && canFireThisYear('drought') && Math.random() < DROUGHT_CHANCE) {
+      } else if (phaseRef.current < 4 && !isFirstYear && canTriggerEvent && heatwaveLeftRef.current === 0 && seasonIdxRef.current === 2 && canFireThisYear('drought') && Math.random() < perTickChance(DROUGHT_CHANCE, dt) && reserveDisruptionSlot(evtNow)) {
         const dur = 30 + Math.random() * 15;
         setDroughtLeft(dur);
         droughtLeftRef.current = dur;
@@ -8182,7 +8094,7 @@ export default function App() {
       }
       if (outageLeftRef.current > 0) {
         setOutageLeft(l => Math.max(0, l - dt));
-      } else if (phaseRef.current < 4 && !isFirstYear && canTriggerEvent && heatwaveLeftRef.current === 0 && droughtLeftRef.current === 0 && seasonIdxRef.current === 0 && canFireThisYear('outage') && Math.random() < OUTAGE_CHANCE) {
+      } else if (phaseRef.current < 4 && !isFirstYear && canTriggerEvent && heatwaveLeftRef.current === 0 && droughtLeftRef.current === 0 && seasonIdxRef.current === 0 && canFireThisYear('outage') && Math.random() < perTickChance(OUTAGE_CHANCE, dt) && reserveDisruptionSlot(evtNow)) {
         const dur = 32;
         setOutageLeft(dur);
         outageLeftRef.current = dur;
@@ -8191,7 +8103,7 @@ export default function App() {
       }
       if (autumnRushLeftRef.current > 0) {
         setAutumnRushLeft(l => Math.max(0, l - dt));
-      } else if (phaseRef.current < 4 && !isFirstYear && canTriggerEvent && heatwaveLeftRef.current === 0 && droughtLeftRef.current === 0 && outageLeftRef.current === 0 && seasonIdxRef.current === 3 && Math.random() < AUTUMN_RUSH_CHANCE) {
+      } else if (phaseRef.current < 4 && !isFirstYear && canTriggerEvent && heatwaveLeftRef.current === 0 && droughtLeftRef.current === 0 && outageLeftRef.current === 0 && seasonIdxRef.current === 3 && Math.random() < perTickChance(AUTUMN_RUSH_CHANCE, dt) && reserveDisruptionSlot(evtNow)) {
         const dur = AUTUMN_RUSH_MIN + Math.random() * (AUTUMN_RUSH_MAX - AUTUMN_RUSH_MIN);
         setAutumnRushLeft(dur);
         autumnRushLeftRef.current = dur; // sync immédiat anti-doublon
@@ -8201,14 +8113,14 @@ export default function App() {
       // La maintenance préventive divise le risque de panne des appareils par 4.
       const _hasMaintBreak = !!ownedRef.current['maintenance_preventive'];
       const breakChance = (isFirstYear || phaseRef.current >= 4) ? 0 : (heatwaveLeftRef.current > 0 ? BREAKDOWN_CHANCE_HEAT : BREAKDOWN_CHANCE_BASE) * curStats.destructionMult / (_hasMaintBreak ? 4 : 1);
-      if (Math.random() < breakChance) {
+      if (Math.random() < perTickChance(breakChance, dt)) {
         const eligible = UPGRADES.filter(u => u.destructible && ownedRef.current[u.id]);
         if (eligible.length > 0) {
           const victim = eligible[Math.floor(Math.random() * eligible.length)];
           // Check cold insurance
           const hasInsurance = !!ownedRef.current['cold_insurance'];
-          const now = Date.now();
-          if (hasInsurance && now - lastInsuranceCancelRef.current > 5 * 60 * 1000) {
+          const now = gameTimeRef.current;
+          if (hasInsurance && now - lastInsuranceCancelRef.current >= 300) {
             lastInsuranceCancelRef.current = now;
             setLastInsuranceCancel(now);
             setEventNotif(t('notif.insurance_saved'));
@@ -8355,10 +8267,10 @@ export default function App() {
         for (const pd of pendingDeliveriesRef.current) {
           // Stock pertinent selon le produit du contrat (P4) ou stock
           // glaçon (P1-3 : pd.product absent).
-          const stockNow = stockRef.current;
+          const stockNow = newStock;
           if (stockNow >= pd.needStock) {
             // Livré ! → on retire du stock.
-            setStock(s => Math.max(0, s - pd.needStock));
+            newStock = Math.max(0, newStock - pd.needStock);
             totalsRef.current.sold += pd.needStock;
             if (pd.reward) {
               if (pd.reward.money) {
@@ -8380,7 +8292,7 @@ export default function App() {
             // Timeout sans avoir livré : pénalité
             setReputation(r => Math.max(0, Math.min(100, r - 6)));
             setNotoriety(n => Math.max(0, Math.min(100, n - 2)));
-            setEventNotif(`${localizeField(pd.title, language).toUpperCase()} · ${t('notif.not_delivered_full')} · −3 ${t('notif.rep_abbr')} · −2 ${t('notif.noto_abbr')}`);
+            setEventNotif(`${localizeField(pd.title, language).toUpperCase()} · ${t('notif.not_delivered_full')} · −6 ${t('notif.rep_abbr')} · −2 ${t('notif.noto_abbr')}`);
             // Pop Brigitte si elle est embauchée
             if (getBrigitteTierLevel(ownedRef.current) > 0) {
               setTimeout(() => {
@@ -8392,6 +8304,7 @@ export default function App() {
           }
         }
         if (stillPending.length !== pendingDeliveriesRef.current.length) {
+          pendingDeliveriesRef.current = stillPending;
           setPendingDeliveries(stillPending);
         }
       }
@@ -8458,6 +8371,7 @@ export default function App() {
           if (totalDue > 0) {
             const curMoney = moneyRef.current;
             if (curMoney >= totalDue) {
+              moneyRef.current = curMoney - totalDue;
               setMoney(m => m - totalDue);
               // (Bandeau « PAIE DU MOIS » retiré à la demande : le
               // prélèvement reste effectif, simplement plus de notif.)
@@ -8534,7 +8448,7 @@ export default function App() {
           const arr = wageArrearsRef.current;
           if (arr) {
             const _mNum = prevSemester;
-            if (arr.struckMonth < 0 && _mNum > arr.missedMonth) {
+            if (arr.struckMonth === -1 && _mNum > arr.missedMonth) {
               // Le mois de tolérance est passé sans règlement → GRÈVE
               // pour tout ce mois (employés dont le salaire était dû).
               const sb = arr.salariesByEmp || {};
@@ -8574,9 +8488,10 @@ export default function App() {
         if (activeLoanRef.current && prevSemester >= 1 && !_firstYearExo) {
           const loan = activeLoanRef.current;
           // Versement = remaining / semestersLeft (s'adapte si remboursement partiel manuel)
-          const payment = Math.min(loan.remaining, Math.ceil(loan.totalDue / LOAN_DURATION_SEMESTERS));
+          const payment = loanInstallment(loan);
           const curMoney = moneyRef.current;
           if (curMoney >= payment) {
+            moneyRef.current = curMoney - payment;
             setMoney(m => m - payment);
             const newRemaining = loan.remaining - payment;
             const newSemestersLeft = loan.semestersLeft - 1;
@@ -8589,7 +8504,8 @@ export default function App() {
             }
           } else {
             // Insolvable — pénalité dure : la trésorerie passe en négatif
-            const owed = activeLoan.remaining;
+            const owed = loan.remaining;
+            moneyRef.current = curMoney - owed;
             setMoney(m => m - owed);
             setReputation(r => Math.max(0, r - LOAN_OVERDUE_REP_LOSS));
             setFredGrumpy(true);
@@ -8620,8 +8536,8 @@ export default function App() {
             if (!hasFn) return;
             if (isGrumpy) return; // exclus si en grève
             if (level === 'haut') return;
-            if (!hd[id] || curT - hd[id] < minTenure) return;
-            if (ld[id] && curT - ld[id] < cooldown) return;
+            if (!Number.isFinite(hd[id]) || curT - hd[id] < minTenure) return;
+            if (Number.isFinite(ld[id]) && curT - ld[id] < cooldown) return;
             eligible.push({ id, fromLevel: level, toLevel: level === 'bas' ? 'std' : 'haut' });
           };
 
@@ -8659,37 +8575,23 @@ export default function App() {
           // Une même quantité signée alimente chargement, fonte, carburant et paiement.
           const c = signedContract(cBase, line);
 
-          // === Check expiration globale du contrat (avant tout)
-          // Si déjà une modale de fin de contrat ouverte, on ne re-trigger pas
-          if (line.contractExpiresAt != null && curGameTime > line.contractExpiresAt
-              && (line.deliveriesDone || 0) < (line.deliveriesTarget || 999)
-              && !contractEndedRef.current) {
-            const totalRev = line.revenueAccum || 0;
-            setReputation(r => Math.max(0, r - 12));
-            // Plus de seconde chance : un contrat raté est définitivement
-            // perdu, le joueur se fait engueuler et perd de la réputation.
-            setContractEnded({
-              lineIdx: idx, contractId: line.contractId, success: false,
-              secondChance: false, bonus: 0, totalRevenue: totalRev,
-              deliveriesDone: line.deliveriesDone || 0, deliveriesTarget: line.deliveriesTarget || 0
-            });
-            // Le camion termine son trajet en cours mais ne reprend pas
-            // On retourne la ligne telle quelle, juste avec un flag
-            return { ...line, contractEndedTriggered: true };
-          }
-          // Si la modale est déjà ouverte pour cette ligne, on fige le camion
+          // Apply every resolution only once, regardless of another dialog or a reload.
           if (line.contractEndedTriggered) {
-            // Self-heal : si plus aucune modale n'est ouverte (contractEndedRef.current null),
-            // libère la ligne pour éviter le blocage
-            if (!contractEndedRef.current) {
-              return {
-                contractId: null, truckPos: 0, truckPhase: 'idle',
-                broken: false, brokenMsg: null, meltAccum: 0,
-                deliveriesDone: 0, deliveriesTarget: 0, contractExpiresAt: null, revenueAccum: 0,
-                tripsCompleted: 0, pauseLeft: 0, nextPauseAt: 4, contractEndedTriggered: false
-              };
+            if (!contractEndQueueRef.current.some(e => e.lineIdx === idx && e.contractId === line.contractId)) {
+              return { contractId: null, truckPos: 0, truckPhase: 'idle', broken: false, brokenMsg: null, meltAccum: 0 };
             }
             return line;
+          }
+          if (contractResolutionDue(line, curGameTime) === 'failure') {
+            const penalty = Math.round(12 * (curStats.b2bPenaltyMult || 1));
+            setReputation(r => Math.max(0, r - penalty));
+            contractSuccessStreakRef.current = 0;
+            enqueueContractEnd({
+              lineIdx: idx, contractId: line.contractId, success: false, secondChance: false,
+              bonus: 0, totalRevenue: line.revenueAccum || 0, penalty,
+              deliveriesDone: line.deliveriesDone || 0, deliveriesTarget: line.deliveriesTarget || 0,
+            });
+            return { ...line, contractEndedTriggered: true };
           }
 
           // === Lenny en grève : camion figé sur place (pas de progression)
@@ -8730,7 +8632,7 @@ export default function App() {
             const baseChance = isLoaded ? VEHICLE_BREAK_GOING : VEHICLE_BREAK_RETURNING;
             const heatMult = curHeat > 1 ? VEHICLE_BREAK_HEATWAVE_MULT : 1;
             const yearProtection = gameTimeRef.current < SEASON_DURATION * 4 ? 0 : 1;
-            if (Math.random() < baseChance * heatMult * yearProtection) {
+            if (yearProtection && Math.random() < perTickChance(baseChance, dt, 0.1, vehicleBreakRiskMultiplier(curStats, evModsForTruck, heatMult))) {
               isBroken = true;
               brokenMsg = VEHICLE_BREAK_MESSAGES[Math.floor(Math.random() * VEHICLE_BREAK_MESSAGES.length)];
               breakdownTriggered = c.name;
@@ -8842,7 +8744,6 @@ export default function App() {
               newLinePopups[idx] = { text: popText, ts: Date.now() };
               truckPhase = 'returning';
               totalsRef.current.delivered += deliveredQty;
-              totalsRef.current.contractsCompleted += 1;
               totalsRef.current.moneyEarned += revenue;
               // Essence accumulée : qty × deliveryTime × tarif
               seasonFuelRef.current += c.qty * c.deliveryTime * UTIL_FUEL_PER_GL_S * fricForB2B.fuelMult;
@@ -8939,6 +8840,7 @@ export default function App() {
                   else if (remainingFrac > 0.05) { bonus += Math.round(totalRev * 0.06); punctual = true; }
                 }
                 if (success) {
+                  totalsRef.current.contractsCompleted += 1;
                   moneyDelta += bonus;
                   totalsRef.current.moneyEarned += bonus;
                   // Contrat honoré : +2 réputation de base, +1 de plus si ponctuel.
@@ -8962,13 +8864,13 @@ export default function App() {
                   }
                 } else {
                   // Échec : pénalité réputation (plus de seconde chance) + série brisée.
-                  setReputation(r => Math.max(0, r - 10));
+                  setReputation(r => Math.max(0, r - Math.round(12 * (curStats.b2bPenaltyMult || 1))));
                   contractSuccessStreakRef.current = 0;
                 }
                 // Trigger modale (sera affichée par React, ne bloque pas le tick)
                 // Plus de seconde chance : un contrat raté est terminé.
                 const secondChance = false;
-                setContractEnded({
+                enqueueContractEnd({
                   lineIdx: idx,
                   contractId: line.contractId,
                   success,
@@ -9096,112 +8998,21 @@ export default function App() {
           if (cyberLockoutRef.current > 0 && marketplaceRef.current.length > 0) setMarketplace([]);
           // Friction blockMarket : on ne vide pas la marketplace, juste on ne rajoute rien
         } else {
-        const refreshed = [];
-        for (const item of marketplaceRef.current) {
-          const newExpires = item.expiresIn - dt;
-          if (newExpires > 0) refreshed.push({ ...item, expiresIn: newExpires });
-        }
-        const newlyAddedIds = [];
-        // === POSITIONNEMENT MARKETING : segment courant du joueur ===
-        // Sert à (1) préférer fortement les contrats réalisables et (2) garantir
-        // qu'au moins un contrat faisable est proposé. Couvre TOUS les segments,
-        // pas seulement "famille" (chaque archétype/retail vise un segment cible).
-        const segNowR = {
-          famille: segFamilleRef.current, jeunesse: segJeunesseRef.current,
-          pro: segProRef.current, luxe: segLuxeRef.current, eco: segEcoRef.current,
-        };
-        const segMet = (c) => !(c.targetSegment && c.minSegment) ||
-          (typeof segNowR[c.targetSegment] === 'number' && segNowR[c.targetSegment] >= c.minSegment);
-        // "Faisable maintenant" = segment cible atteint ET qualité suffisante.
-        // (slot camion / réputation sont des blocages runtime, pas intrinsèques.)
-        const isFeasibleNow = (c) => segMet(c) && isContractQualityFeasible(c, ownedRef.current, 0);
-        while (refreshed.length < marketTargetRef.current) {
-          const usedIds = new Set([...signedIds, ...refreshed.map(m => m.contractId)]);
-          const curMaxTier = getBrigitteMaxContractTier(ownedRef.current, brigitteSalaryLevelRef.current, brigitteGrumpyRef.current);
-          if (curMaxTier === 0 || curStats.truckMaxCap === 0) break;
-          const curMaxCap = BASE_CAP + curStats.capBonus;
-          let eligible = B2B_CONTRACTS.filter(c =>
-            c.brigitteTier <= curMaxTier &&
-            contractFitsCapacity(applyContractDynamics(c, ownedRef.current, notorietyRef.current).qty, curMaxCap, curStats.truckMaxCap) &&
-            (!c.notorietyMin || notorietyRef.current >= c.notorietyMin) &&
-            !usedIds.has(c.id)
-          );
-          // Phase 3+ : retail-only + chance rare d'un B2B premium tier 5+
-          if (phaseRef.current >= 3) {
-            const premiumB2B = eligible.filter(c => c.archetype !== 'RETAIL' && (c.brigitteTier || 0) >= 5);
-            // On évite que les retail dont le segment cible est encore trop bas
-            // saturent le marché et masquent les contrats réalisables.
-            const retailAll = eligible.filter(c => c.archetype === 'RETAIL');
-            const retailOk = retailAll.filter(segMet);
-            // 12% de chance de laisser apparaître un contrat "aspirationnel"
-            // (segment encore trop bas) pour montrer la cible à viser.
-            const retail = (retailOk.length > 0 && Math.random() >= 0.12) ? retailOk : retailAll;
-            if (Math.random() < 0.15 && premiumB2B.length > 0) {
-              eligible = premiumB2B;
-            } else if (retail.length > 0) {
-              eligible = retail;
-            } else {
-              eligible = premiumB2B;
-            }
-          }
-          if (eligible.length === 0) break;
-          // === Pondération : rareté (prix) × forte préférence pour les contrats
-          // réalisables d'après notre positionnement (segment + qualité). Cela
-          // varie les propositions tout en évitant un marché 100% verrouillé.
-          const revenues = eligible.map(c => (c.qty || 0) * (c.pricePerCube || 0));
-          const minRev = Math.max(1, Math.min(...revenues));
-          const weights = eligible.map((c, i) => {
-            // Plus c'est cher, plus la rareté grandit : 1 (le moins cher) → 0.1 (le plus cher)
-            const ratio = revenues[i] / minRev;
-            let w = Math.max(0.05, 1 / ratio);
-            if (isFeasibleNow(c)) w *= 6; // contrats faisables nettement plus probables
-            return w;
-          });
-          const totalW = weights.reduce((a, b) => a + b, 0);
-          let rng = Math.random() * totalW;
-          let pickIdx = 0;
-          for (let i = 0; i < weights.length; i++) {
-            rng -= weights[i];
-            if (rng <= 0) { pickIdx = i; break; }
-          }
-          const pick = eligible[pickIdx];
-          refreshed.push({ contractId: pick.id, expiresIn: randomLife() });
-          newlyAddedIds.push(pick.id);
-        }
-        // === GARANTIE : au moins un contrat faisable proposé ===
-        // Si après remplissage aucun contrat affiché n'est réalisable avec le
-        // positionnement / la qualité actuels, on remplace un slot fraîchement
-        // ajouté par un contrat faisable (s'il en existe un éligible).
-        if (refreshed.length > 0 && marketTargetRef.current > 0) {
-          const hasFeasible = refreshed.some(m => {
-            const c = B2B_BY_ID[m.contractId];
-            return c && isFeasibleNow(c);
-          });
-          if (!hasFeasible) {
-            const usedIds = new Set([...signedIds, ...refreshed.map(m => m.contractId)]);
-            const curMaxTier = getBrigitteMaxContractTier(ownedRef.current, brigitteSalaryLevelRef.current, brigitteGrumpyRef.current);
-            const curMaxCap = BASE_CAP + curStats.capBonus;
-            const feasiblePool = B2B_CONTRACTS.filter(c =>
-              c.brigitteTier <= curMaxTier &&
-              contractFitsCapacity(applyContractDynamics(c, ownedRef.current, notorietyRef.current).qty, curMaxCap, curStats.truckMaxCap) &&
-              (!c.notorietyMin || notorietyRef.current >= c.notorietyMin) &&
-              !usedIds.has(c.id) &&
-              isFeasibleNow(c)
-            );
-            if (feasiblePool.length > 0) {
-              const repl = feasiblePool[Math.floor(Math.random() * feasiblePool.length)];
-              // Remplace de préférence un slot fraîchement ajouté (pas un contrat
-              // déjà affiché de longue date que le joueur pourrait viser).
-              let replaceAt = -1;
-              for (let i = refreshed.length - 1; i >= 0; i--) {
-                if (newlyAddedIds.includes(refreshed[i].contractId)) { replaceAt = i; break; }
-              }
-              if (replaceAt < 0) replaceAt = refreshed.length - 1;
-              refreshed[replaceAt] = { contractId: repl.id, expiresIn: randomLife() };
-              if (!newlyAddedIds.includes(repl.id)) newlyAddedIds.push(repl.id);
-            }
-          }
-        }
+        const surviving = marketplaceRef.current.map(m => ({ ...m, expiresIn: m.expiresIn - dt })).filter(m => m.expiresIn > 0);
+        const currentMap = new Map(surviving.map(m => [m.contractId, m]));
+        const candidateDynamics = B2B_CONTRACTS.map(c => applyContractDynamics(c, ownedRef.current, notorietyRef.current));
+        const chosen = pickMarketContracts(candidateDynamics, {
+          phase: phaseRef.current,
+          maxTier: getBrigitteMaxContractTier(ownedRef.current, brigitteSalaryLevelRef.current, brigitteGrumpyRef.current),
+          storage: maxCapNow, truck: curStats.truckMaxCap, notoriety: notorietyRef.current, reputation: reputationRef.current,
+          excludedIds: signedIds,
+          quarantinedIds: candidateDynamics.filter(c => isContractInQuarantine(c.id, contractRejectionsRef.current, gameTimeRef.current)).map(c => c.id),
+          currentIds: surviving.map(m => m.contractId), recentIds: marketHistoryRef.current,
+          segments: { famille: segFamilleRef.current, jeunesse: segJeunesseRef.current, pro: segProRef.current, luxe: segLuxeRef.current, eco: segEcoRef.current },
+        }, marketTargetRef.current);
+        const refreshed = chosen.map(c => currentMap.get(c.id) || { contractId: c.id, expiresIn: randomLife() });
+        const newlyAddedIds = refreshed.filter(m => !currentMap.has(m.contractId)).map(m => m.contractId);
+        rememberMarketOffers(newlyAddedIds);
         setMarketplace(refreshed);
 
         // === BRIGITTE CONSEIL : nouveau contrat plus rentable que le pire en cours
@@ -9210,31 +9021,36 @@ export default function App() {
         if (hasBrigitteForAdvice && phaseRef.current >= 2 && newlyAddedIds.length > 0
             && !popupMessageRef.current && !brigitteGrumpyRef.current
             && (gameTimeRef.current - lastBrigitteAdviceRef.current) > 90) {
-          const activeContracts = updated.filter(l => l.contractId).map(l => B2B_BY_ID[l.contractId]).filter(Boolean);
+          const activeContracts = updated.filter(l => l.contractId && !l.contractEndedTriggered)
+            .map(l => B2B_BY_ID[l.contractId] ? signedContract(B2B_BY_ID[l.contractId], l) : null).filter(Boolean);
           if (activeContracts.length > 0) {
             const adviceBrigitteBonus = getBrigitteEffectiveBonus(ownedRef.current, brigitteSalaryLevelRef.current, brigitteGrumpyRef.current);
             const revPerMin = (c) => (c.qty * c.pricePerCube * (1 + adviceBrigitteBonus)) / (c.deliveryTime * 2 + 2) * 60;
             const worstActive = Math.min(...activeContracts.map(revPerMin));
-            const newContractObjs = newlyAddedIds.map(id => B2B_BY_ID[id]).filter(Boolean);
+            const newContractObjs = candidateDynamics.filter(c => newlyAddedIds.includes(c.id)
+              && getContractAvailability(c, {
+                noSlot: false, reputation: reputationRef.current, maxCap: maxCapNow, truckMaxCap: curStats.truckMaxCap,
+                segments: { famille: segFamilleRef.current, jeunesse: segJeunesseRef.current, pro: segProRef.current, luxe: segLuxeRef.current, eco: segEcoRef.current },
+              }).available);
             const bestNew = newContractObjs.reduce((best, c) => revPerMin(c) > revPerMin(best) ? c : best, newContractObjs[0]);
             if (bestNew && revPerMin(bestNew) > worstActive * 1.4 && Math.random() < 0.34) {
               const lang = language;
               const advices = {
                 fr: [
                   "Patron, j'ai vu passer un contrat qui paie nettement mieux que certains qu'on traite. Jetez un œil au marché.",
-                  "Y'a du juteux qui vient d'arriver. Faudrait peut-être lâcher du lest sur les contrats les moins rentables.",
+                  "Un bon client vient d'arriver. Regardez pour votre prochaine tournée : abandonner un contrat en cours coûte de la réputation.",
                   "Le marché bouge. J'ai repéré une opportunité bien grasse, regardez."
                 ],
                 en: [
                   "Boss, a new contract just popped up that pays a lot better than some we're running. Worth a look.",
-                  "Something juicy hit the market. Maybe drop the weakest contracts and grab it.",
+                  "A promising client just arrived. Consider them for your next route: abandoning a current contract costs reputation.",
                   "Market's moving. Spotted a fat opportunity, check it out."
                 ],
                 es: [
                   "Jefe, acaba de salir un contrato que paga bastante mejor que algunos en curso. Échale un vistazo.",
-                  "Algo jugoso entró al mercado. Quizás suelta los menos rentables y pídelo.",
+                  "Ha llegado un buen cliente. Míralo para tu próxima ruta: abandonar un contrato en curso cuesta reputación.",
                   "El mercado se mueve. Vi una oportunidad gorda, mírala."
-                ], zh: ["老板，刚冒出一个新合同，付得比我们在跑的一些好得多。值得一看。", "市场上来了个肥差。也许放掉最弱的合同抓住它。", "市场在动。发现一个大机会，去看看。"], ru: ["Босс, только что появился новый контракт, который платит намного лучше некоторых из тех, что мы ведём. Стоит взглянуть.", "На рынок зашло что-то сочное. Может, брось контракты послабее и возьми этот.", "Рынок движется. Заметил хорошую возможность, взгляни."], it: ["Capo, è appena spuntato un nuovo contratto che paga molto meglio di alcuni che stiamo facendo. Vale un'occhiata.", "È arrivato qualcosa di succoso sul mercato. Forse molla i contratti più deboli e prendi quello.", "Il mercato si muove. Avvistata una bella opportunità, dacci un'occhiata."], de: ["Chef, ein neuer Vertrag ist aufgetaucht, der deutlich besser zahlt als manche, die wir fahren. Lohnt einen Blick.","Etwas Saftiges ist auf den Markt gekommen. Vielleicht die schwächsten Verträge fallen lassen und es greifen.","Der Markt bewegt sich. Hab eine fette Gelegenheit gesehen, sieh sie dir an."]
+                ], zh: ["老板，刚冒出一个新合同，付得比我们在跑的一些好得多。值得一看。", "市场上来了一位好客户。可以考虑安排下一轮配送；放弃现有合同会损失声誉。", "市场在动。发现一个大机会，去看看。"], ru: ["Босс, только что появился новый контракт, который платит намного лучше некоторых из тех, что мы ведём. Стоит взглянуть.", "Появился выгодный клиент. Рассмотрите его для следующего рейса: отказ от текущего контракта снижает репутацию.", "Рынок движется. Заметил хорошую возможность, взгляни."], it: ["Capo, è appena spuntato un nuovo contratto che paga molto meglio di alcuni che stiamo facendo. Vale un'occhiata.", "È arrivato un buon cliente. Valutalo per la prossima consegna: abbandonare un contratto in corso costa reputazione.", "Il mercato si muove. Avvistata una bella opportunità, dacci un'occhiata."], de: ["Chef, ein neuer Vertrag ist aufgetaucht, der deutlich besser zahlt als manche, die wir fahren. Lohnt einen Blick.","Ein guter Kunde ist dazugekommen. Prüfe ihn für die nächste Tour: Einen laufenden Vertrag aufzugeben kostet Ruf.","Der Markt bewegt sich. Hab eine fette Gelegenheit gesehen, sieh sie dir an."]
               };
               const pool = advices[lang] || advices.fr;
               const msg = pickUnseen(pool);
@@ -9249,6 +9065,7 @@ export default function App() {
 
       // Anti-NaN : un stock NaN bloquerait toute vente — on le verrouille à une valeur finie.
       if (!Number.isFinite(newStock)) newStock = 0;
+      stockRef.current = newStock;
       setStock(newStock);
       } catch (err) {
         console.error('[Meltdown tick error]', err);
@@ -9277,13 +9094,15 @@ export default function App() {
       try {
         if (isPausedRef.current) return;
         if (phaseRef.current < INCIDENT_MIN_PHASE) return;
-        if (pendingIncident) return; // déjà un incident actif
+        if (pendingIncidentRef.current) return; // déjà un incident actif
         if (popupMessageRef.current) return; // popup en cours, attendre
         const nowG = gameTimeRef.current;
+        const elapsed = Math.max(0, Math.min(10, nowG - lastIncidentCheckAtRef.current));
+        lastIncidentCheckAtRef.current = nowG;
         if ((nowG - lastIncidentAtRef.current) < INCIDENT_MIN_GAP_SEC) return;
-        // Probabilité par seconde × 10 (tick de 10s) — varie selon la phase
+        // Probabilité proportionnelle au temps de jeu réellement écoulé.
         const chancePerSec = INCIDENT_CHANCE_PER_SEC_BY_PHASE[phaseRef.current] || INCIDENT_CHANCE_PER_SEC_BY_PHASE[2];
-        if (Math.random() > chancePerSec * 10) return;
+        if (Math.random() >= perSecondChance(chancePerSec, elapsed)) return;
         // Détermine quels employés sont disponibles ET avec assez d'ancienneté
         const hd = hireDatesRef.current || {};
         const empAvailable = {};
@@ -9291,10 +9110,10 @@ export default function App() {
         const hasBrigAny = !!(ownedRef.current['autosell'] || ownedRef.current['brigitte_compta'] || ownedRef.current['brigitte_ad']);
         const hasJanAny  = !!(ownedRef.current['janice_jr'] || ownedRef.current['janice_senior'] || ownedRef.current['janice_dir']);
         const hasLenAny  = TRUCK_IDS.some(id => ownedRef.current[id]);
-        empAvailable.fred     = hasFredAny && hd.fred     && (nowG - hd.fred)     >= INCIDENT_TENURE_MIN && !fredGrumpyRef.current;
-        empAvailable.brigitte = hasBrigAny && hd.brigitte && (nowG - hd.brigitte) >= INCIDENT_TENURE_MIN && !brigitteGrumpyRef.current;
+        empAvailable.fred     = hasFredAny && Number.isFinite(hd.fred) && (nowG - hd.fred)     >= INCIDENT_TENURE_MIN && !fredGrumpyRef.current;
+        empAvailable.brigitte = hasBrigAny && Number.isFinite(hd.brigitte) && (nowG - hd.brigitte) >= INCIDENT_TENURE_MIN && !brigitteGrumpyRef.current;
         empAvailable.janice   = false; // agence marketing : jamais victime d'incidents RH (personnage retiré)
-        empAvailable.lenny    = hasLenAny  && hd.lenny    && (nowG - hd.lenny)    >= INCIDENT_TENURE_MIN && !lennyGrumpyRef.current;
+        empAvailable.lenny    = hasLenAny  && Number.isFinite(hd.lenny) && (nowG - hd.lenny)    >= INCIDENT_TENURE_MIN && !lennyGrumpyRef.current;
         const availableEmps = Object.keys(empAvailable).filter(k => empAvailable[k]);
         if (availableEmps.length === 0) return;
         // Tirer un type d'incident
@@ -9310,14 +9129,17 @@ export default function App() {
         // Pick aléatoire parmi les variantes éligibles
         const variant = eligible[Math.floor(Math.random() * eligible.length)];
         // Marquer le cooldown
+        if (!reserveDisruptionSlot(nowG)) return;
         lastIncidentAtRef.current = nowG;
         // Stocker l'incident pour affichage UI (modale dédiée ou popup narrateur)
-        setPendingIncident({ kind, variant });
+        const incident = { kind, variant, variantIndex: variants.indexOf(variant) };
+        pendingIncidentRef.current = incident;
+        setPendingIncident(incident);
       } catch (err) {
         console.error('[Meltdown incident tick error]', err);
       }
     };
-    const id = setInterval(tick, 10000); // toutes les 10s
+    const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, [loaded, screen, pendingIncident]);
 
@@ -9495,7 +9317,9 @@ export default function App() {
   };
 
   const triggerSabotageCyber = () => {
-    setStock(s => Math.floor(s * 0.5));
+    stockRef.current = Math.floor(applyStockLoss(stockRef.current, 0.5).stock);
+    setStock(stockRef.current);
+    cyberLockoutRef.current = 90;
     setCyberLockout(90); // 1 min 30 — assez douloureux mais sans casser le rythme
     setEventNotif(t('notif.cyberattack'));
     setReputation(r => Math.max(0, r - 8)); // fuite/incident public : image entachée
@@ -9505,9 +9329,9 @@ export default function App() {
     setLennyMoral(m => Math.max(0, m - 8));
     lastSabotageAtRef.current = gameTimeRef.current;
     const msg = {
-      fr: "Cyberattaque sur les systèmes de gestion. Contrats, téléphone, banque et marketing sont coupés pendant 90 secondes. La production continue. Pas de rançon : juste vous couper du marché.",
-      en: "Cyberattack on the management systems. Contracts, phone, bank and marketing are down for 90 seconds. Production continues. No ransom: just cutting you off from the market.",
-      es: "Ciberataque a los sistemas de gestión. Contratos, teléfono, banco y marketing cortados durante 90 segundos. La producción sigue. Sin rescate: solo cortarte del mercado.", zh: "对管理系统的网络攻击。合同、电话、银行和营销中断90秒。生产继续。无赎金：只是把你从市场切断。", ru: "Кибератака на системы управления. Контракты, телефон, банк и маркетинг не работают 90 секунд. Производство продолжается. Без выкупа: просто отрезать вас от рынка.", it: "Cyberattacco ai sistemi gestionali. Contratti, telefono, banca e marketing fuori uso per 90 secondi. La produzione continua. Nessun riscatto: solo tagliarti fuori dal mercato.", de: "Cyberangriff auf die Verwaltungssysteme. Verträge, Telefon, Bank und Marketing sind 90 Sekunden lang offline. Die Produktion läuft weiter. Kein Lösegeld: Sie schneiden dich nur vom Markt ab."
+      fr: "Cyberattaque sur les systèmes de gestion : la moitié du stock est perdue. Contrats, téléphone, banque et marketing sont coupés pendant 90 secondes. La production continue.",
+      en: "Cyberattack on the management systems: half the stock is lost. Contracts, phone, bank and marketing are down for 90 seconds. Production continues.",
+      es: "Ciberataque a los sistemas de gestión: se pierde la mitad del stock. Contratos, teléfono, banco y marketing quedan cortados durante 90 segundos. La producción sigue.", zh: "管理系统遭到网络攻击：一半库存损失。合同、电话、银行和营销中断90秒，生产继续。", ru: "Кибератака на системы управления: половина запасов потеряна. Контракты, телефон, банк и маркетинг недоступны 90 секунд. Производство продолжается.", it: "Cyberattacco ai sistemi gestionali: metà della scorta è persa. Contratti, telefono, banca e marketing fuori uso per 90 secondi. La produzione continua.", de: "Cyberangriff auf die Verwaltungssysteme: Die Hälfte des Bestands geht verloren. Verträge, Telefon, Bank und Marketing sind 90 Sekunden offline. Die Produktion läuft weiter."
     };
     setPopupMessage({ type: 'sabotage', text: msg[sabLangNow()] || msg.fr });
   };
@@ -9519,8 +9343,10 @@ export default function App() {
     const curStats = computeStats(ownedRef.current);
     const curMaxCap = BASE_CAP + curStats.capBonus;
     const cappedTo = Math.floor(curMaxCap / 3);
-    setStock(s => Math.min(s, cappedTo));
-    setStockBurnFlash(gameTimeRef.current);
+    stockRef.current = Math.min(stockRef.current, cappedTo);
+    setStock(stockRef.current);
+    stockBurnFlashRef.current = gameTimeRef.current;
+    setStockBurnFlash(stockBurnFlashRef.current);
     setEventNotif(t('notif.stock_burned'));
     totalsRef.current.destructions += 1;
     setReputation(r => Math.max(0, r - 8)); // incident grave : confiance entamée
@@ -9841,8 +9667,29 @@ export default function App() {
     setRaiseRequest(null);
   };
 
+  const recordProgressionPurchase = (id, unlockedPhase) => {
+    const nextOwned = { ...ownedRef.current, [id]: true };
+    const nextTotals = recordUpgradePurchase(totalsRef.current, id, nextOwned);
+    const bonus = applyUpgradeNotorietyBonuses(nextOwned, notorietyRef.current, upgradeNotorietyAwardsRef.current);
+    ownedRef.current = nextOwned;
+    totalsRef.current = nextTotals;
+    notorietyRef.current = bonus.notoriety;
+    upgradeNotorietyAwardsRef.current = bonus.awardedIds;
+    setOwned(nextOwned);
+    setTotals({ ...nextTotals });
+    setNotoriety(bonus.notoriety);
+    setUpgradeNotorietyAwards(bonus.awardedIds);
+    const nextPhase = unlockedPhase || phaseRef.current;
+    if (unlockedPhase) { phaseRef.current = unlockedPhase; setPhase(unlockedPhase); }
+    saveStateRef.current = {
+      ...saveStateRef.current, owned: nextOwned, totals: nextTotals,
+      phase: nextPhase, money: moneyRef.current, notoriety: bonus.notoriety, upgradeNotorietyAwards: bonus.awardedIds,
+    };
+    saveNowRef.current();
+  };
+
   const handleUpgClick = (u) => {
-    if (owned[u.id]) return;
+    if (ownedRef.current[u.id]) return;
     // Friction "Inspection du travail" ou "Pénurie de matériaux" : upgrades verrouillés
     const fricUpg = aggregateFrictionEffects(activeFrictions, gameTime);
     if (fricUpg.blockUpgrades) {
@@ -9850,16 +9697,8 @@ export default function App() {
       return;
     }
     // Plan de formation : tous les paliers d'employés supérieurs à 50% du coût
-    const TRAINABLE_IDS = new Set([
-      'fred', 'fred_perma', 'fred_chef', 'fred_dir',
-      'brigitte_compta', 'brigitte_ad',
-      'janice_senior', 'janice_dir',
-      'camion_2', 'camion_3', 'camion_4', 'camion_5', 'camion_6'
-    ]);
-    const effectiveCost = (ownedRef.current['plan_formation'] && TRAINABLE_IDS.has(u.id))
-      ? Math.round(u.cost * 0.5)
-      : u.cost;
-    if (money < effectiveCost) return;
+    const effectiveCost = upgradePrice(u, ownedRef.current);
+    if (moneyRef.current < effectiveCost) return;
     // Interception narrative pour le nouveau siège (Phase 2 → 3)
     if (u.id === 'agence_marketing') {
       setAgenceModalOpen(true);
@@ -9870,8 +9709,9 @@ export default function App() {
       setWarehouseModalOpen(true);
       return;
     }
-    setMoney(m => m - effectiveCost);
-    setOwned(o => ({ ...o, [u.id]: true }));
+    moneyRef.current = Math.max(0, moneyRef.current - effectiveCost);
+    setMoney(moneyRef.current);
+    recordProgressionPurchase(u.id, u.phaseUnlock);
     // Message de remerciement du personnage si l'upgrade le concerne
     // (promotion d'un employé). Apparaît juste après l'achat, en popup
     // standard (urgent=false), avec ton du personnage et explication du boost.
@@ -9948,15 +9788,16 @@ export default function App() {
   const confirmWarehouseBail = () => {
     const u = UPGRADES.find(x => x.id === 'rent_warehouse');
     if (!u) { setWarehouseModalOpen(false); return; }
-    if (owned[u.id]) { setWarehouseModalOpen(false); return; }
-    if (money < u.cost) { setWarehouseModalOpen(false); return; }
-    setMoney(m => m - u.cost);
+    if (ownedRef.current[u.id]) { setWarehouseModalOpen(false); return; }
+    if (moneyRef.current < u.cost) { setWarehouseModalOpen(false); return; }
+    moneyRef.current = Math.max(0, moneyRef.current - u.cost);
+    setMoney(moneyRef.current);
     setWarehouseModalOpen(false);
     setPhaseTransitionText({ dur: t('transition.dur_two_weeks'), later: t('transition.later_line'), main: t('transition.two_weeks_later'), sub: t('transition.warehouse_moving') });
     setPhase3Transition(true);
     // Application Phase 2 à mi-parcours
     setTimeout(() => {
-      setOwned(o => ({ ...o, [u.id]: true }));
+      recordProgressionPurchase(u.id, u.phaseUnlock);
       if (u.phaseUnlock) {
         setPhase(u.phaseUnlock);
       }
@@ -9978,16 +9819,17 @@ export default function App() {
     // Achat narratif du nouveau siège : bascule P2 → P3, +500 cap, débloque l'agence marketing
     const u = UPGRADES.find(x => x.id === 'agence_marketing');
     if (!u) { setAgenceModalOpen(false); return; }
-    if (owned[u.id]) { setAgenceModalOpen(false); return; }
-    if (money < u.cost) { setAgenceModalOpen(false); return; }
-    setMoney(m => m - u.cost);
+    if (ownedRef.current[u.id]) { setAgenceModalOpen(false); return; }
+    if (moneyRef.current < u.cost) { setAgenceModalOpen(false); return; }
+    moneyRef.current = Math.max(0, moneyRef.current - u.cost);
+    setMoney(moneyRef.current);
     setAgenceModalOpen(false);
     // Lance la transition « un mois plus tard »
     setPhaseTransitionText({ dur: t('transition.dur_one_month'), later: t('transition.later_line'), main: t('transition.month_later'), sub: t('transition.office_moving') });
     setPhase3Transition(true);
     // À mi-parcours de l'animation (1.2s), on applique le passage en Phase 3
     setTimeout(() => {
-      setOwned(o => ({ ...o, [u.id]: true }));
+      recordProgressionPurchase(u.id, u.phaseUnlock);
       if (u.phaseUnlock) {
         setPhase(u.phaseUnlock);
       }
@@ -10255,7 +10097,22 @@ export default function App() {
     const pending = pendingTensionEventRef.current;
     if (!pending) return;
     const def = EVENT_TYPES[pending.id];
-    if (!def) { setPendingTensionEvent(null); return; }
+    if (!def) { pendingTensionEventRef.current = null; setPendingTensionEvent(null); return; }
+    if (gameTimeRef.current >= pending.expiresAt) action = tensionExpiryAction(def);
+    let requiredMoney = 0;
+    if (action === 'mitigate') requiredMoney = def.racket ? (def.cost || 0)
+      : pending.id === 'crisis_strike' ? linesRef.current.filter(line => line?.contractId).length * def.mitigationCostPerTruck
+      : (def.mitigationCost || 0);
+    if (action === 'accept') requiredMoney = def.racket ? (def.cost || 0) : (def.betAmount || 0);
+    if ((requiredMoney > 0 && moneyRef.current < requiredMoney) || (action === 'accept' && pending.id === 'opp_allin' && moneyRef.current <= 0)) {
+      setEventNotif(t('notif.insufficient_funds')); return;
+    }
+    if (action === 'accept' && pending.id === 'opp_cafe' && stockRef.current < 1) {
+      setEventNotif(t('notif.stock_too_low')); return;
+    }
+    pendingTensionEventRef.current = null;
+    setPendingTensionEvent(null);
+    lastDisruptionAtRef.current = gameTimeRef.current;
 
     // Helper : une crise génère du stress chez le membre d'équipe concerné.
     const STRESS_SETTERS = { fred: setFredStress, brigitte: setBrigitteStress, lenny: setLennyStress };
@@ -10274,7 +10131,7 @@ export default function App() {
       if (eff.notorietyDivBy) setNotoriety(n => Math.max(0, Math.floor(n / eff.notorietyDivBy)));
       if (typeof eff.reputation === 'number') setReputation(r => Math.max(0, Math.min(100, r + eff.reputation)));
       if (typeof eff.money === 'number') setMoney(m => Math.max(0, m + eff.money));
-      if (typeof eff.stockPct === 'number') setStock(s => Math.max(0, Math.floor(s * (1 + eff.stockPct))));
+      if (typeof eff.stockPct === 'number') { stockRef.current = Math.max(0, Math.floor(stockRef.current * (1 + eff.stockPct))); setStock(stockRef.current); }
       if (eff.sellMult && eff.duration && !activeTensionEffectRef.current) { setActiveTensionEffect({ id: eventId, expiresAt: gameTimeRef.current + eff.duration, sellMult: eff.sellMult }); madeBanner = true; }
       if (eff.blockContracts && !activeTensionEffectRef.current) { setActiveTensionEffect({ id: eventId, expiresAt: gameTimeRef.current + eff.blockContracts, blockTrucks: true }); madeBanner = true; }
       if (eff.loseTruckLine) setStolenTrucks(s => s + 1);
@@ -10432,7 +10289,7 @@ export default function App() {
         setEventNotif(t('notif.tech_paid'));
       } else {
         const lost = Math.floor(stockRef.current * (def.stockLossPct || 0.3));
-        setStock(s => Math.max(0, s - lost));
+        stockRef.current = Math.max(0, stockRef.current - lost); setStock(stockRef.current);
         setActiveTensionEffect({ id: pending.id, expiresAt: gameTimeRef.current + def.durableEffect.duration, sellMult: def.durableEffect.sellMult });
         bumpStress('fred', def.stressOn.ignore);
         setEventNotif(fill(t('notif.stock_melted'), { gl: fmtInt(lost) }));
@@ -10539,7 +10396,7 @@ export default function App() {
         // Anti-NaN : repli sur le prix de base si effectiveSell est invalide.
         const _sell = Number.isFinite(effectiveSell) ? effectiveSell : BASE_SELL_PRICE;
         const revenue = Math.round(qty * _sell * (def.cafePriceMult || 3) * 100) / 100;
-        setStock(s => Math.max(0, s - qty));
+        stockRef.current = Math.max(0, stockRef.current - qty); setStock(stockRef.current);
         setMoney(m => m + revenue);
         totalsRef.current.moneyEarned += revenue;
         totalsRef.current.sold += qty;
@@ -10573,52 +10430,50 @@ export default function App() {
     setPendingTensionEvent(null);
   };
 
+  useEffect(() => { resolveTensionEventRef.current = resolveTensionEvent; });
+
   const handleSign = (contractId) => {
-    // Calcul robuste : si `lines` est en retard sur `maxLines` (sync via useEffect),
-    // on complète d'abord avec les slots manquants, puis on signe.
     const cBase = B2B_BY_ID[contractId];
     if (!cBase) return;
-    // Applique les dynamiques (noto + qualité, priceAdjust=1 par défaut)
-    const c = applyContractDynamics(cBase, owned, notoriety, 1.0);
-    const availability = getContractAvailability(c, {
-      noSlot: lines.filter(l => l.contractId).length >= maxLines,
-      reputation, maxCap: usableCap, truckMaxCap: stats.truckMaxCap,
-      segments: { famille: segFamille, jeunesse: segJeunesse, pro: segPro, luxe: segLuxe, eco: segEco },
+    const currentLines = linesRef.current;
+    const item = marketplaceRef.current.find(m => m.contractId === contractId);
+    const friction = aggregateFrictionEffects(activeFrictionsRef.current, gameTimeRef.current);
+    const issue = contractSigningIssue(cBase, {
+      offerExpiresIn: item?.expiresIn,
+      alreadySigned: currentLines.some(l => l.contractId === contractId),
+      maxTier: getBrigitteMaxContractTier(ownedRef.current, brigitteSalaryLevelRef.current, brigitteGrumpyRef.current),
+      notoriety: notorietyRef.current,
+      marketBlocked: cyberLockoutRef.current > 0 || friction.blockMarket,
+      quarantined: isContractInQuarantine(contractId, contractRejectionsRef.current, gameTimeRef.current),
     });
-    if (!availability.available) {
-      setEventNotif(localizeField(availability.reasons[0].label, language));
-      return;
-    }
+    if (issue) { setEventNotif(t('market.locked')); return; }
+    const c = applyContractDynamics(cBase, ownedRef.current, notorietyRef.current);
+    const availability = getContractAvailability(c, {
+      noSlot: currentLines.filter(l => l.contractId).length >= maxLines,
+      reputation: reputationRef.current, maxCap: usableCap, truckMaxCap: stats.truckMaxCap,
+      segments: { famille: segFamilleRef.current, jeunesse: segJeunesseRef.current, pro: segProRef.current, luxe: segLuxeRef.current, eco: segEcoRef.current },
+    });
+    if (!availability.available) { setEventNotif(localizeField(availability.reasons[0].label, language)); return; }
     const profile = getContractProfile(c);
-    // Fidélité : un client déjà honoré paie une prime à la re-signature.
     const loyaltyCount = clientLoyaltyRef.current[contractId] || 0;
     const loyMult = loyaltyPriceMult(loyaltyCount);
-    const signedPrice = c.pricePerCube * loyMult;
-    setLines(prev => {
-      // Étape 1 : compléter `prev` avec les slots manquants jusqu'à maxLines
-      let next = prev.slice();
-      while (next.length < maxLines) {
-        next.push({ contractId: null, truckPos: 0, truckPhase: 'idle', broken: false, brokenMsg: null, meltAccum: 0 });
-      }
-      // Étape 2 : trouver le premier slot libre
-      const idx = next.findIndex(l => !l.contractId);
-      if (idx === -1) return prev; // aucune place : on annule
-      next[idx] = {
-        contractId, truckPos: 0, truckPhase: 'waiting_stock', broken: false, brokenMsg: null, meltAccum: 0,
-        deliveriesDone: 0,
-        deliveriesTarget: profile.maxDeliveries,
-        contractStartedAt: gameTime,
-        contractExpiresAt: gameTime + profile.globalDeadlineSec,
-        revenueAccum: 0,
-        tripsCompleted: 0, pauseLeft: 0, nextPauseAt: 3 + Math.floor(Math.random() * 4),
-        // Dynamiques snapshot à la signature (qty et prix figés ; prime fidélité incluse)
-        dynQty: c.qty, dynPrice: signedPrice,
-      };
-      return next;
-    });
-    setMarketplace(prev => prev.filter(m => m.contractId !== contractId));
-    // Moral: premium B2B (tier 5+) → +5 collectif
-    if (cBase && cBase.brigitteTier && cBase.brigitteTier >= 5) adjustMoralAll(5);
+    const next = currentLines.slice();
+    while (next.length < maxLines) next.push({ contractId: null, truckPos: 0, truckPhase: 'idle', broken: false, brokenMsg: null, meltAccum: 0 });
+    const idx = next.findIndex(l => !l.contractId);
+    if (idx < 0) return;
+    next[idx] = {
+      contractId, truckPos: 0, truckPhase: 'waiting_stock', broken: false, brokenMsg: null, meltAccum: 0,
+      deliveriesDone: 0, deliveriesTarget: profile.maxDeliveries,
+      contractStartedAt: gameTimeRef.current, contractExpiresAt: gameTimeRef.current + profile.globalDeadlineSec,
+      revenueAccum: 0, tripsCompleted: 0, pauseLeft: 0, nextPauseAt: 3 + Math.floor(Math.random() * 4),
+      dynQty: c.qty, dynPrice: c.pricePerCube * loyMult,
+    };
+    linesRef.current = next;
+    setLines(next);
+    const remainingOffers = marketplaceRef.current.filter(m => m.contractId !== contractId);
+    marketplaceRef.current = remainingOffers;
+    setMarketplace(remainingOffers);
+    if ((cBase.brigitteTier || 0) >= 5) adjustMoralAll(5);
     // Narratif : client fidèle qui repasse commande.
     if (loyaltyCount >= 1) {
       const pct = Math.round((loyMult - 1) * 100);
@@ -10640,6 +10495,7 @@ export default function App() {
     setLines(prev => prev.map((l, i) => i === lineIdx ? {
       contractId: null, truckPos: 0, truckPhase: 'idle', broken: false, brokenMsg: null, meltAccum: 0
     } : l));
+    contractSuccessStreakRef.current = 0;
     setReputation(r => Math.max(0, r - RESIGN_REP_LOSS));
     setEventNotif(`${t('notif.contract_cancelled')} · −${RESIGN_REP_LOSS} ${t('notif.reputation')}`);
   };
@@ -10674,7 +10530,8 @@ export default function App() {
     const line = lines[lineIdx];
     if (!line || !line.broken) return;
     if (line.repairUntil && line.repairUntil > gameTime) return; // déjà en cours de réparation
-    const c = B2B_BY_ID[line.contractId];
+    const cBase = B2B_BY_ID[line.contractId];
+    const c = cBase ? signedContract(cBase, line) : null;
     if (!c) return;
     const cost = repairCostFor(c);
     if (money < cost) return;
@@ -11239,6 +11096,15 @@ export default function App() {
   }, [loaded, screen, language]);
 
   const performReset = () => {
+    phaseStartedAtRef.current = { 1: 0 };
+    lastDisruptionAtRef.current = -9999; lastSabotageIdRef.current = null;
+    lastIncidentAtRef.current = 0; lastIncidentCheckAtRef.current = 0;
+    pendingIncidentRef.current = null; setPendingIncident(null);
+    pendingTensionEventRef.current = null; setPendingTensionEvent(null);
+    activeMegacontractRef.current = null; setActiveMegacontract(null);
+    currentCallRef.current = null; pendingDeliveriesRef.current = []; setPendingDeliveries([]);
+    lastTensionAtRef.current = 0; lastEventAtRef.current = 0;
+    lastInsuranceCancelRef.current = -9999;
     setCareerOpen(false);
     tutorialDismissedAtRef.current = {};
     tutorialPendingRef.current = null;
@@ -11256,9 +11122,16 @@ export default function App() {
     lastBilledMoneyEarnedRef.current = 0;
     // Réinitialise l'état de victoire/narratif pour permettre de re-gagner (et rejouer l'histoire).
     setVictoryAchieved(false); setVictoryModalOpen(false); setVictoryTimestamp(null);
+    prestigeReceiptRef.current = null; setPrestigeReceipt(null); setPrestigeChoiceOpen(false);
+    upgradeNotorietyAwardsRef.current = []; setUpgradeNotorietyAwards([]);
     setGlacierBeats({}); glacierFiredRef.current = {};
     setClientLoyalty({}); clientLoyaltyRef.current = {};
     contractSuccessStreakRef.current = 0;
+    contractEndQueueRef.current = [];
+    setContractEndQueue([]);
+    contractEndedRef.current = null;
+    marketHistoryRef.current = [];
+    setMarketHistory([]);
     setStolenTrucks(0); stolenTrucksRef.current = 0;
     setGameTime(0); setHeatwaveLeft(0); setDroughtLeft(0); setOutageLeft(0);
     setTempJitter(0);
@@ -11267,7 +11140,7 @@ export default function App() {
     fredCycleAccumRef.current = 0;
     fredCycleLeftRef.current = 0;
     setAutumnRushLeft(0);
-    setLastInsuranceCancel(0);
+    setLastInsuranceCancel(-9999);
     meltTutorialShownRef.current = false;
     setMeltTutorialShown(false);
     setFredSalaryLevel('bas');
@@ -11367,7 +11240,7 @@ export default function App() {
     setStatusMsg('');
     setPops([]);
     setLinePopups({});
-    totalsRef.current = { produced: 0, sold: 0, delivered: 0, melted: 0, moneyEarned: 0, contractsCompleted: 0, destructions: 0, vehicleBreakdowns: 0 };
+    totalsRef.current = { produced: 0, sold: 0, delivered: 0, melted: 0, moneyEarned: 0, contractsCompleted: 0, destructions: 0, vehicleBreakdowns: 0, lawsuitsTotal: 0, lawsuitsWon: 0, heatwavesSurvived: 0, firedCount: 0, refusalsCount: 0 };
     setTotals({ ...totalsRef.current });
     // === Nettoyage explicite des événements actifs / timers / cooldowns ===
     // Sans ça, une pandémie, un sabotage ou un arrêt maladie peut survivre
@@ -12542,13 +12415,13 @@ export default function App() {
           52% { opacity: 1; }
         }
         .md { max-width: 520px; margin: 0 auto; padding: 24px 22px 80px; min-height: 100vh; background: var(--bg); color: var(--fg); font-family: 'ThinSep', 'JetBrains Mono', ui-monospace, monospace; -webkit-font-smoothing: antialiased; transition: background 0.3s ease, color 0.3s ease; position: relative; }
-        .hdr { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 24px; border-bottom: 1px solid var(--fg); }
+        .hdr { display: flex; flex-wrap: wrap; gap: 16px 12px; justify-content: space-between; align-items: flex-start; padding-bottom: 24px; border-bottom: 1px solid var(--fg); }
         .brand-row { display: flex; align-items: flex-end; gap: 12px; }
         .brand-icon { flex-shrink: 0; color: var(--fg); margin-bottom: 18px; }
         .ttl { font-family: 'ThinSep', 'Major Mono Display', monospace; font-size: 30px; letter-spacing: 1px; line-height: 1; }
         .ttl-sub { font-weight: 300; font-size: 9px; letter-spacing: 4px; color: var(--m1); margin-top: 7px; }
-        .meta-block { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
-        .toggle-row { display: flex; gap: 6px; }
+        .meta-block { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; margin-left: auto; }
+        .toggle-row { display: flex; align-items: flex-start; gap: 6px; }
         .toggle { background: transparent; border: 1px solid var(--line); width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--fg); border-radius: 0; transition: all 0.15s ease; }
         .toggle:hover { border-color: var(--fg); }
         .toggle.paused { background: var(--fg); color: var(--bg); border-color: var(--fg); animation: pausedPulse 1.4s ease-in-out infinite; }
@@ -17105,6 +16978,7 @@ export default function App() {
           </div>
           <div className="meta-block">
             <div className="toggle-row">
+              <CareerLauncher snapshot={careerSnapshot} progress={careerProgress} onClaim={claimCareer} language={language} open={careerOpen} onOpenChange={setCareerOpen} />
               <div className="level-with-rep">
                 <div className="level-rep-row">
                   <div
@@ -17518,7 +17392,7 @@ export default function App() {
                   <label>PHASE</label>
                   <div style={{ display: 'flex', gap: 4 }}>
                     <button className={`dev-pill ${phase === 1 ? 'on' : ''}`} onClick={() => setPhase(1)}>01</button>
-                    <button className={`dev-pill ${phase === 2 ? 'on' : ''}`} onClick={() => { setPhase(2); if (marketplace.length === 0) setMarketplace(makeInitialMarketplace(brigitteMaxTier, maxCap, rawStats.truckMaxCap, notoriety, [], null, 2, contractRejections, gameTime, owned)); }}>02</button>
+                    <button className={`dev-pill ${phase === 2 ? 'on' : ''}`} onClick={() => { setPhase(2); if (marketplace.length === 0) setMarketplace(makeInitialMarketplace(brigitteMaxTier, maxCap, rawStats.truckMaxCap, notoriety, [], null, 2, contractRejections, gameTime, owned, marketHistoryRef.current, { famille: segFamille, jeunesse: segJeunesse, pro: segPro, luxe: segLuxe, eco: segEco }, reputation)); }}>02</button>
                     <button className={`dev-pill ${phase === 3 ? 'on' : ''}`} onClick={() => { setPhase(3); setPhase3TriggerStage(3); }}>03</button>
                   </div>
                 </div>
@@ -18029,7 +17903,7 @@ export default function App() {
                             setEventNotif('AUCUN EMPLOYÉ');
                           }
                         }}>FORCE DÉBAUCH.</button>
-                        <button className="dev-btn" onClick={() => setMarketplace(makeInitialMarketplace(brigitteMaxTier, maxCap, rawStats.truckMaxCap, notoriety, lines.map(l => l.contractId).filter(Boolean), null, phase, contractRejections, gameTime, owned))}>RESET MARKET</button>
+                        <button className="dev-btn" onClick={() => setMarketplace(makeInitialMarketplace(brigitteMaxTier, maxCap, rawStats.truckMaxCap, notoriety, lines.map(l => l.contractId).filter(Boolean), null, phase, contractRejections, gameTime, owned, marketHistoryRef.current, { famille: segFamille, jeunesse: segJeunesse, pro: segPro, luxe: segLuxe, eco: segEco }, reputation))}>RESET MARKET</button>
                         <button className="dev-btn" onClick={() => setPopupMessage({ type: 'narrator', text: 'Le téléphone sonne. Personne ne répond.' })}>POPUP NARR. TEST</button>
                         <button className="dev-btn" onClick={() => {
                           // Force un procès lambda pour tester juridique
@@ -18223,11 +18097,11 @@ export default function App() {
                         if (!triggerBoost('brigitte')) return;
                         const signedIds = lines.map(l => l.contractId).filter(Boolean);
                         const newSize = Math.max(marketTarget, Math.min(MARKETPLACE_SIZE, marketTarget + 2));
-                        const fresh = makeInitialMarketplace(
-                          brigitteMaxTier, maxCap, rawStats.truckMaxCap, notoriety, signedIds, newSize, phase, contractRejections, gameTime, owned
-                        );
+                        const fresh = makeInitialMarketplace(brigitteMaxTier, usableCap, rawStats.truckMaxCap, notoriety, signedIds, newSize, phase, contractRejections, gameTime, owned, marketHistoryRef.current, { famille: segFamille, jeunesse: segJeunesse, pro: segPro, luxe: segLuxe, eco: segEco }, reputation);
+                        rememberMarketOffers(fresh.map(m => m.contractId));
                         setMarketplace(fresh);
-                        setMarketTarget(fresh.length);
+                        setMarketTarget(newSize);
+                        marketTargetRef.current = newSize;
                         setBrigitteBoostUntil(gameTime + BRIGITTE_BOOST_DURATION);
                       },
                     })}
@@ -18872,6 +18746,7 @@ export default function App() {
                     </div>
                   );
                 })()}
+                {reputation < 20 && contractReputationEligible(c, reputation) && <div className="modal-narrative">{t('contract.rebuild_trust')}</div>}
                 {capacityBlocked && <div className="modal-narrative">{localizeField({ fr: 'Capacité insuffisante', en: 'Insufficient capacity', es: 'Capacidad insuficiente', de: 'Kapazität unzureichend', it: 'Capacità insufficiente', ru: 'Недостаточная вместимость', zh: '容量不足' }, language)} · {c.qty} / {Math.floor(Math.min(usableCap, stats.truckMaxCap))} GL</div>}
                 {marketItem && (() => {
                   // Phase 3 — Segment gating
@@ -18891,16 +18766,16 @@ export default function App() {
                       <div className="modal-actions">
                         <button
                           className="modal-btn modal-btn-accept"
-                          disabled={noSlot || reputation < 20 || segLow || qualityBlocked || capacityBlocked}
+                          disabled={noSlot || !contractReputationEligible(c, reputation) || segLow || qualityBlocked || capacityBlocked}
                           onClick={() => {
-                            if (!noSlot && reputation >= 20 && !segLow && !qualityBlocked && !capacityBlocked) {
+                            if (!noSlot && contractReputationEligible(c, reputation) && !segLow && !qualityBlocked && !capacityBlocked) {
                               handleSign(contractDetailId);
                               setContractDetailId(null);
                               setShowMarket(false);
                             }
                           }}
                         >
-                          {reputation < 20 ? t('modal.low_rep') : segLow ? t('modal.low_segment') : noSlot ? t('modal.no_truck') : qualityBlocked ? (language === 'fr' ? 'QUALITÉ INSUFFISANTE' : language === 'en' ? 'QUALITY TOO LOW' : language === 'es' ? 'CALIDAD INSUFICIENTE' : language === 'de' ? 'QUALITÄT ZU NIEDRIG' : language === 'it' ? 'QUALITÀ INSUFFICIENTE' : language === 'ru' ? 'НИЗКОЕ КАЧЕСТВО' : '质量不足') : t('modal.sign')}
+                          {!contractReputationEligible(c, reputation) ? t('modal.low_rep') : segLow ? t('modal.low_segment') : noSlot ? t('modal.no_truck') : qualityBlocked ? (language === 'fr' ? 'QUALITÉ INSUFFISANTE' : language === 'en' ? 'QUALITY TOO LOW' : language === 'es' ? 'CALIDAD INSUFICIENTE' : language === 'de' ? 'QUALITÄT ZU NIEDRIG' : language === 'it' ? 'QUALITÀ INSUFFICIENTE' : language === 'ru' ? 'НИЗКОЕ КАЧЕСТВО' : '质量不足') : t('modal.sign')}
                         </button>
                       </div>
                     </>
@@ -19623,7 +19498,7 @@ export default function App() {
               truckPhase: 'waiting_stock', truckPos: 0, meltAccum: 0,
               tripsCompleted: 0, pauseLeft: 0, nextPauseAt: 3 + Math.floor(Math.random() * 4)
             } : l));
-            setContractEnded(null);
+            advanceContractEndQueue();
           };
           const handleRelease = () => {
             // Libère le slot
@@ -19633,7 +19508,7 @@ export default function App() {
               deliveriesDone: 0, deliveriesTarget: 0, contractExpiresAt: null, revenueAccum: 0,
               tripsCompleted: 0, pauseLeft: 0, nextPauseAt: 4, contractEndedTriggered: false
             } : l));
-            setContractEnded(null);
+            advanceContractEndQueue();
           };
           // Narratif scénaristique
           let title, body, primaryLabel, primaryAction, secondaryLabel, secondaryAction;
@@ -20574,7 +20449,6 @@ export default function App() {
 
         {/* Hero stock display (both phases) */}
         {renderHero()}
-        <CareerLauncher snapshot={careerSnapshot} progress={careerProgress} onClaim={claimCareer} language={language} open={careerOpen} onOpenChange={setCareerOpen} />
 
         {phase < 4 && hasFred && fredCycleTotal > 0 && (() => {
           const progress = 1 - fredCycleLeft / fredCycleTotal;
@@ -20783,7 +20657,7 @@ export default function App() {
                 break;
               }
               let sortKey;
-              if (nextUpg) sortKey = nextUpg.cost;
+              if (nextUpg) sortKey = upgradePrice(nextUpg, owned);
               else if (lockedTier) sortKey = 1e9;
               else sortKey = 1e10;
               return { family, sortKey };
@@ -20825,8 +20699,9 @@ export default function App() {
 
             if (nextUpgrade) {
               state = 'buy';
-              const afford = money >= nextUpgrade.cost;
-              actionLabel = `${fmtInt(nextUpgrade.cost)} €`;
+              const price = upgradePrice(nextUpgrade, owned);
+              const afford = money >= price;
+              actionLabel = `${fmtInt(price)} €`;
               displayUpgrade = nextUpgrade;
               disabled = !afford;
               onClick = () => handleUpgClick(nextUpgrade);
@@ -20920,7 +20795,8 @@ export default function App() {
         {infoUpgrade && (() => {
           const isOwned = !!owned[infoUpgrade.id];
           const isLocked = infoUpgrade.phase > phase;
-          const canAfford = money >= infoUpgrade.cost;
+          const price = upgradePrice(infoUpgrade, owned);
+          const canAfford = money >= price;
           const canBuy = !isOwned && !isLocked && canAfford;
           return (
           <div className="modal-backdrop" onClick={() => setInfoUpgrade(null)}>
@@ -20938,7 +20814,7 @@ export default function App() {
                 </div>
                 <div className="modal-row">
                   <span className="modal-lbl">{t('upg.cost')}</span>
-                  <span className="modal-val">{fmtInt(infoUpgrade.cost)}€</span>
+                  <span className="modal-val">{fmtInt(price)}€</span>
                 </div>
                 {infoUpgrade.destructible && (
                   <div className="modal-row">
@@ -20963,7 +20839,7 @@ export default function App() {
                     setInfoUpgrade(null);
                   }}
                 >
-                  {isOwned ? t('upg.owned') : isLocked ? `→ PHASE 0${infoUpgrade.phase}` : !canAfford ? t('upg.not_enough') : `${t('upg.buy')} · ${fmtInt(infoUpgrade.cost)}€`}
+                  {isOwned ? t('upg.owned') : isLocked ? `→ PHASE 0${infoUpgrade.phase}` : !canAfford ? t('upg.not_enough') : `${t('upg.buy')} · ${fmtInt(price)}€`}
                 </button>
                 <button className="modal-btn modal-btn-cancel" onClick={() => setInfoUpgrade(null)}>{t('btn.close')}</button>
               </div>
