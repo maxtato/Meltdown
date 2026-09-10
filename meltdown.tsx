@@ -1808,13 +1808,13 @@ const UPGRADE_FAMILIES = [
 
 const TUTORIAL_STEPS = [
   { id: 't_welcome', text: {
-      fr: "Un garage, un congélateur, une ambition : bâtir ton empire du glaçon. Commence par produire, vends avant la fonte, puis investis dans ton équipe. Tes premiers clients t’attendent.",
-      en: "A garage, a freezer, one ambition: build your ice empire. Start producing, sell before the ice melts, then invest in your team. Your first customers are waiting.",
-      es: "Un garaje, un congelador y una ambición: construir tu imperio del hielo. Produce, vende antes de que se derrita e invierte en tu equipo. Tus primeros clientes te esperan.",
-      de: "Eine Garage, eine Gefriertruhe, ein Ziel: dein Eiswürfelimperium aufbauen. Produziere, verkaufe vor der Schmelze und investiere in dein Team. Die ersten Kunden warten.",
-      it: "Un garage, un congelatore, un’ambizione: costruire il tuo impero del ghiaccio. Produci, vendi prima che si sciolga e investi nella squadra. I primi clienti ti aspettano.",
-      ru: "Гараж, морозильник и одна цель: построить ледяную империю. Производите, продавайте до таяния и вкладывайте в команду. Первые покупатели уже ждут.",
-      zh: "一间车库、一台冷冻柜、一个目标：建立你的冰块帝国。先生产，趁冰块融化前卖出，再投资你的团队。第一批顾客正在等你。"
+      fr: "Un congélateur, un garage, et l'idée de vendre des glaçons pendant que la planète chauffe. Aucun consultant n'aurait approuvé ce business. Et pourtant te voilà. Congèle, vends avant que ça fonde, embauche, bâtis une marque, survis aux saisons. Stupide ? Peut-être. Addictif ? Définitivement.",
+      en: "A freezer, a garage, and the idea of selling ice cubes while the planet heats up. No consultant would have approved this business. And yet, here you are. Freeze, sell before it melts, hire, build a brand, survive the seasons. Stupid? Maybe. Addictive? Definitely.",
+      es: "Un congelador, un garaje, y la idea de vender cubitos mientras el planeta se calienta. Ningún consultor habría aprobado este negocio. Y aquí estás. Congela, vende antes de que se funda, contrata, construye una marca, sobrevive las estaciones. ¿Estúpido? Quizás. ¿Adictivo? Por supuesto.",
+      de: "Eine Gefriertruhe, eine Garage und die Idee, Eiswürfel zu verkaufen, während der Planet sich aufheizt. Kein Berater hätte dieses Geschäft abgesegnet. Und doch bist du hier. Einfrieren, verkaufen bevor es schmilzt, einstellen, eine Marke aufbauen, die Jahreszeiten überleben. Dumm? Vielleicht. Süchtig machend? Definitiv.",
+      it: "Un congelatore, un garage e l'idea di vendere cubetti di ghiaccio mentre il pianeta si surriscalda. Nessun consulente avrebbe approvato questo business. Eppure, eccoti qui. Congela, vendi prima che si sciolga, assumi, costruisci un marchio, sopravvivi alle stagioni. Stupido? Forse. Coinvolgente? Decisamente.",
+      ru: "Морозильник, гараж и идея продавать кубики льда, пока планета нагревается. Ни один консультант не одобрил бы этот бизнес. И всё же вы здесь. Замораживайте, продавайте до таяния, нанимайте, стройте бренд, выживайте в сезонах. Глупо? Может быть. Затягивает? Определённо.",
+      zh: "一台冷冻柜、一间车库，以及在地球变暖时卖冰块的念头。没有顾问会批准这门生意。然而，你就在这里。冷冻、趁融化前卖出、招人、打造品牌、熬过四季。蠢吗？也许。上瘾吗？绝对。"
     }, targetSel: null, side: 'center', delay: 100, isIntro: true,
     canShow: s => s.phase === 1 && s.ownedCount === 0 && s.totals.produced === 0 && s.totals.sold === 0, autoClose: null },
   { id: 't_congeler', text: {
