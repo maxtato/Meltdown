@@ -18,7 +18,7 @@ import { B2B_CONTRACTS } from './contracts';
 import { contractReputationEligible, completedContractsFromLoyalty, contractSigningIssue, contractResolutionDue, pickMarketContracts } from './game-rules';
 import { CareerLauncher } from './CareerPanel';
 import './desktop.css';
-import { tutorialEligible, tutorialFitsSurface, tutorialPriority, tutorialGapAfter, tutorialReadingTime, placeTutorial } from './tutorial-rules';
+import { tutorialEligible, tutorialFitsSurface, tutorialPriority, tutorialIsOnboarding, tutorialGapAfter, tutorialReadingTime, placeTutorial } from './tutorial-rules';
 import { perSecondChance, perTickChance, sabotageRiskMultiplier, vehicleBreakRiskMultiplier, applyStockLoss, eventGraceElapsed, pickWeightedEvent, tensionExpiryAction, normalizeEventState, normalizePendingInteractions } from './event-rules';
 import { monthlyPayroll, loanInstallment, restoredRevenueBaseline, offlineGrant } from './economy-rules';
 import { normalizeCareerProgress, claimCareerReward } from './career';
@@ -1821,14 +1821,14 @@ const TUTORIAL_STEPS = [
       fr: 'Clique ici pour congeler tes premiers glaçons.',
       en: 'Click here to freeze your first ice cubes.',
       es: 'Pulsa aquí para congelar tus primeros cubitos.', zh: "点这里冷冻你的第一批冰块。", ru: "Нажмите сюда, чтобы заморозить первые кубики.", it: "Clicca qui per congelare i tuoi primi cubetti.", de: "Klicke hier, um deine ersten Eiswürfel einzufrieren."
-    }, targetSel: '.acts .btn-primary', side: 'top', delay: 1000, chainFast: true,
-    canShow: s => !s.hasFred && s.freezingLeft <= 0, autoClose: s => s.totals.produced >= 8 },
+    }, targetSel: '[data-tutorial-target="freeze"]', side: 'top', delay: 100,
+    canShow: s => !s.hasFred, autoClose: s => s.freezingLeft > 0 || s.totals.produced > 0 },
   { id: 't_vendre', text: {
       fr: 'Vends quelques glaçons pour gagner tes premiers euros.',
       en: 'Sell a few ice cubes to earn your first cash.',
       es: 'Vende unos cubitos para ganar tu primer dinero.', zh: "卖几块冰赚到你的第一笔现金。", ru: "Продайте несколько кубиков, чтобы заработать первые деньги.", it: "Vendi qualche cubetto per guadagnare i tuoi primi soldi.", de: "Verkaufe ein paar Eiswürfel, um dein erstes Geld zu verdienen."
-    }, targetSel: '.acts .btn:nth-child(2)', side: 'top', delay: 800, chainFast: true,
-    canShow: s => s.totals.produced > 0 && s.stock >= 1, autoClose: s => s.totals.sold > 0 },
+    }, targetSel: '[data-tutorial-target="sell"]', side: 'top', delay: 100,
+    canShow: s => s.phase === 1 && s.totals.produced > 0 && s.stock >= 1, autoClose: s => s.totals.sold > 0 },
   { id: 't_revenus', text: {
       fr: "Première vente ! Ce compteur affiche ta trésorerie disponible. Elle finance tes améliorations et les prochaines factures : garde une réserve avant chaque achat.",
       en: "First sale! This counter shows your available cash. It pays for upgrades and upcoming bills: keep a reserve before each purchase.",
@@ -1837,8 +1837,8 @@ const TUTORIAL_STEPS = [
       it: "Prima vendita! Questo contatore mostra la liquidità disponibile. Serve per migliorie e prossime bollette: conserva una riserva prima di ogni acquisto.",
       ru: "Первая продажа! Счётчик показывает доступные деньги. Они нужны для улучшений и будущих счетов: оставляйте резерв перед каждой покупкой.",
       zh: "第一笔销售！这里显示你的可用现金，用于升级和支付即将到来的账单。每次购买前都留出一些储备。"
-    }, targetSel: '.cash-mini', side: 'bottom', delay: 800,
-    canShow: s => s.totals.sold > 0 && s.money > 0, autoClose: null },
+    }, targetSel: '.cash-mini', side: 'bottom', delay: 100,
+    canShow: s => s.phase === 1 && s.totals.sold > 0 && s.money > 0, autoClose: null },
   { id: 't_rentab', text: {
       fr: "La rentabilité mensuelle est une estimation : revenus récents moins charges prévues. Elle varie avec les ventes. Consulte le détail et la prochaine échéance pour savoir combien garder en réserve.",
       en: "Monthly profit is an estimate: recent revenue minus expected expenses. It changes with sales. Check the breakdown and the next bill to plan your cash reserve.",
@@ -1873,8 +1873,8 @@ const TUTORIAL_STEPS = [
       fr: 'Investis ta trésorerie dans des améliorations. Clique sur une carte pour son détail.',
       en: 'Invest your cash in upgrades. Tap a card to see details.',
       es: 'Invierte tu dinero en mejoras. Toca una tarjeta para ver detalles.', zh: "把现金投入升级。点击卡片查看详情。", ru: "Вкладывайте наличные в улучшения. Нажмите на карточку для деталей.", it: "Investi la tua liquidità in migliorie. Tocca una carta per i dettagli.", de: "Investiere dein Geld in Upgrades. Tippe eine Karte für Details an."
-    }, targetSel: '[data-family-id="prod_industrielle"]', side: 'top', delay: 600,
-    canShow: s => s.money >= 5 && s.ownedCount === 0, autoClose: s => s.ownedCount > 0 },
+    }, targetSel: '[data-family-id="prod_industrielle"]', side: 'top', delay: 100,
+    canShow: s => s.phase === 1 && s.money > 0 && s.ownedCount === 0 && !!s.dismissed.t_revenus, autoClose: s => s.ownedCount > 0 || s.upgradeOpen },
   { id: 't_salary', text: {
       fr: "Ton équipe commence à grandir. Ouvre le panneau ÉQUIPE pour voir les salaires et leurs effets. Le stage de Fred est gratuit ; ses promotions ajoutent un salaire mensuel à prévoir dans ta trésorerie.",
       en: "Your team is growing. Open the STAFF panel to review pay and its effects. Fred’s internship is unpaid; his promotions add a monthly salary to your budget.",
@@ -1910,7 +1910,7 @@ const TUTORIAL_STEPS = [
       ru: "Уровень отражает активность компании. Производство, продажи, выполненные контракты, принятые звонки и купленные улучшения дают опыт. Точные условия открытия указаны в карточках.",
       zh: "等级反映公司的经营活动。生产、销售、完成合同、接受来电和购买升级都会积累经验。各信息卡会显示具体的解锁条件。"
     }, targetSel: '.level-circle', side: 'bottom', delay: 1500,
-    canShow: s => !!s.dismissed.t_revenus && s.currentXp > 0, autoClose: null },
+    canShow: s => (!!s.dismissed.t_revenus || s.phase >= 2) && s.currentXp > 0, autoClose: null },
   { id: 't_rep', text: {
       "fr": "La réputation reflète la confiance de tes clients. Honore tes contrats pour la faire monter ; les échecs et certaines décisions la font baisser. Sous 20, les petits contrats LOCAL de palier 1 restent accessibles pour regagner leur confiance.",
       "en": "Reputation reflects your clients’ trust. Complete contracts to raise it; failures and some decisions lower it. Below 20, small tier-1 LOCAL jobs remain available to rebuild trust.",
@@ -4427,17 +4427,10 @@ export default function App() {
   // Persisté dans la sauvegarde. Reset uniquement à New Game.
   const seenPopupTextsRef = useRef(new Set());
   // === GARDE-FOU ANTI-EMPILEMENT DES BULLES ===
-  // Verrou global partagé tutoriels + popups : une seule bulle visible
-  // à la fois, et une bulle non urgente ne peut apparaître que 2 s
-  // APRÈS la fermeture de la précédente. Exceptions urgentes (téléphone,
-  // sabotages) : chemin direct, ignorent le verrou.
-  // 5 s minimum entre deux bulles (consigne joueur) pour éviter le « pop pop pop »
-  // qui rend le tuto invisible.
+  // Une seule bulle à la fois. Les popups narratifs laissent une seconde
+  // de respiration ; le parcours initial utilise son propre rythme plus rapide.
   const BUBBLE_GAP_MS = 1000;
   const lastBubbleClosedAtRef = useRef(0); // Date.now() de la dernière fermeture (tuto OU popup)
-  // Bypass ponctuel : après la fermeture de l'intro, on veut enchaîner rapidement
-  // sur le 1er tuto (t_congeler) sans attendre cooldown ni bubble gap.
-  const _bypassBubbleGapOnceRef = useRef(false);
   const queuedPopupRef = useRef(null);     // popup non urgent en attente du créneau
   const queuedPopupTimerRef = useRef(null);
   const lastPopupSeasonAbsRef = useRef(-1); // saison absolue du dernier popup (pour reset)
@@ -4546,17 +4539,7 @@ export default function App() {
   useEffect(() => { salaryDebtRef.current = salaryDebt; }, [salaryDebt]);
   useEffect(() => { popupMessageRef.current = popupMessage; }, [popupMessage]);
 
-  // Horodate la fermeture de TOUTE bulle (popup ou tutoriel) pour
-  // alimenter le garde-fou anti-empilement (délai de 2 s avant la
-  // bulle non urgente suivante). Détecte la transition visible→fermé.
   const _hadBubbleRef = useRef(false);
-  useEffect(() => {
-    const visibleNow = !!(popupMessage || activeTutorial);
-    if (_hadBubbleRef.current && !visibleNow) {
-      lastBubbleClosedAtRef.current = Date.now();
-    }
-    _hadBubbleRef.current = visibleNow;
-  }, [popupMessage, activeTutorial]);
   // Nettoyage du timer de file d'attente au démontage
   useEffect(() => () => {
     if (queuedPopupTimerRef.current) clearInterval(queuedPopupTimerRef.current);
@@ -6614,7 +6597,7 @@ export default function App() {
   const tutorialRuntimeRef = useRef(null);
   const tutorialPendingRef = useRef(null);
   const deferredTutorialsRef = useRef({});
-  const lastTutorialInputRef = useRef(0);
+  const lastTutorialScrollRef = useRef(0);
   const tutorialContext = {
     totals, money, stock, maxCap, gameTime, freezingLeft,
     ownedCount: Object.values(owned).filter(Boolean).length,
@@ -6624,7 +6607,7 @@ export default function App() {
     linesBonus: rawStats.linesBonus, signedCount: lines.filter(l => l.contractId).length,
     notoriety, campaignsLaunched, activeLawsuitsCount: activeLawsuits.length,
     currentXp: xpFromTotals(totals, completedCalls.length, owned), reputation, upcomingAmount,
-    hireDates, dismissed: tutorialDismissed, dismissedAt: tutorialDismissedAtRef.current,
+    hireDates, upgradeOpen: !!infoUpgrade, dismissed: tutorialDismissed, dismissedAt: tutorialDismissedAtRef.current,
     activeHazard: inHeatwave || inDrought || inOutage,
     now: Date.now(),
   };
@@ -6657,18 +6640,40 @@ export default function App() {
     clearPendingTutorial();
     setTutCooldownUntil(Date.now() + tutorialGapAfter(id));
   };
-  const deferTutorial = (retryAfter = 1200) => {
+  const deferTutorial = (retryAfter = 300) => {
     const id = activeTutorialRef.current || pendingTutorialRef.current;
     if (id) deferredTutorialsRef.current[id] = Date.now() + retryAfter;
     activeTutorialRef.current = null;
     setActiveTutorial(null);
     clearPendingTutorial();
-    setTutCooldownUntil(Date.now() + 1200);
   };
 
+  // Some tools have both a mobile and desktop entry: anchor to the visible one.
+  const tutorialTarget = (step) => {
+    if (!step?.targetSel) return null;
+    return Array.from(document.querySelectorAll(step.targetSel)).find(element => {
+      const rect = element.getBoundingClientRect();
+      const style = getComputedStyle(element);
+      return rect.width > 0 && rect.height > 0 && style.visibility !== 'hidden'
+        && Number(style.opacity) !== 0 && rect.bottom > 0 && rect.top < innerHeight
+        && rect.right > 0 && rect.left < innerWidth;
+    }) || null;
+  };
+  const advanceTutorial = (id) => {
+    closeTutorial(id);
+    if (id === 't_revenus' && Object.values(owned).every(value => !value)) {
+      const card = document.querySelector('[data-family-id="prod_industrielle"]');
+      if (card) {
+        const rect = card.getBoundingClientRect();
+        if (rect.top < 12 || rect.bottom > innerHeight - 12) {
+          card.scrollIntoView({ block: 'center', behavior: 'instant' });
+        }
+      }
+    }
+  };
   const tutorialTargetVisible = (step) => {
     if (!step.targetSel) return true;
-    const target = document.querySelector(step.targetSel);
+    const target = tutorialTarget(step);
     if (!target || target.matches(':disabled, [aria-disabled="true"]')) return false;
     const style = getComputedStyle(target);
     const rect = target.getBoundingClientRect();
@@ -6681,14 +6686,10 @@ export default function App() {
   useEffect(() => {
     const recordInput = (event) => {
       if (event.target instanceof Element && event.target.closest('.tut-bubble')) return;
-      lastTutorialInputRef.current = Date.now();
+      lastTutorialScrollRef.current = Date.now();
     };
-    document.addEventListener('pointerdown', recordInput, true);
-    document.addEventListener('keydown', recordInput, true);
     document.addEventListener('scroll', recordInput, true);
     return () => {
-      document.removeEventListener('pointerdown', recordInput, true);
-      document.removeEventListener('keydown', recordInput, true);
       document.removeEventListener('scroll', recordInput, true);
     };
   }, []);
@@ -6713,15 +6714,16 @@ export default function App() {
           && tutorialPriority(step.id) < tutorialPriority(active.id) && eligible(step))) deferTutorial();
         return;
       }
-      const quiet = (step) => step.isIntro || Date.now() - lastTutorialInputRef.current >= (tutorialPriority(step.id) <= 2 ? 250 : 650);
+      // Non-blocking hints may appear while playing; only wait for scrolling to settle.
+      const quiet = (step) => step.isIntro || Date.now() - lastTutorialScrollRef.current >= 180;
       const ready = (step) => (tutorialPriority(step.id) <= 2 || Date.now() >= cooldown)
-        && Date.now() - lastBubbleClosedAtRef.current >= (step.isIntro ? 0 : 800);
+        && Date.now() - lastBubbleClosedAtRef.current >= (step.isIntro ? 0 : tutorialIsOnboarding(step.id) ? 250 : 800);
       const pending = tutorialPendingRef.current;
       if (pending) {
         const step = TUTORIAL_STEPS.find(item => item.id === pending.id);
         // Recheck after the delay: no stale advice after a purchase, navigation or pause.
         if (!step || !eligible(step) || !ready(step)) { clearPendingTutorial(); return; }
-        if (!quiet(step)) { pending.readyAt = Date.now() + Math.min(800, step.delay || 0); return; }
+        if (!quiet(step)) return;
         if (Date.now() < pending.readyAt) return;
         activeTutorialRef.current = step.id;
         setActiveTutorial(step.id);
@@ -6736,7 +6738,7 @@ export default function App() {
         setPendingTutorial(next.id);
       }
     };
-    const interval = setInterval(check, 250);
+    const interval = setInterval(check, 100);
     return () => clearInterval(interval);
   }, [loaded]);
 
@@ -6775,6 +6777,12 @@ export default function App() {
 
   const [tutPos, setTutPos] = useState(null);
   const tutBubbleRef = useRef(null);
+  // A failed layout attempt was never seen: it must not postpone other advice.
+  useEffect(() => {
+    const visibleNow = !!(popupMessage || (activeTutorial && tutPos?.posReady && tutPos.id === activeTutorial));
+    if (_hadBubbleRef.current && !visibleNow) lastBubbleClosedAtRef.current = Date.now();
+    _hadBubbleRef.current = visibleNow;
+  }, [popupMessage, activeTutorial, tutPos?.posReady, tutPos?.id]);
   useEffect(() => {
     if (!activeTutorial) { setTutPos(null); return; }
     const step = TUTORIAL_STEPS.find(item => item.id === activeTutorial);
@@ -6785,19 +6793,17 @@ export default function App() {
       const width = bubble?.offsetWidth || Math.min(wide ? 340 : 240, innerWidth - 24);
       const height = bubble?.offsetHeight || 100;
       if (step.isIntro) {
-        setTutPos({ top: Math.max(8, (innerHeight - height) / 2), left: Math.max(8, (innerWidth - width) / 2), tail: 'none', wide: true, posReady });
+        setTutPos({ id: step.id, top: Math.max(8, (innerHeight - height) / 2), left: Math.max(8, (innerWidth - width) / 2), tail: 'none', wide: true, posReady });
         return;
       }
       if (!tutorialTargetVisible(step)) { deferTutorial(); return; }
-      const target = step.targetSel ? document.querySelector(step.targetSel)?.getBoundingClientRect() : null;
+      const target = tutorialTarget(step)?.getBoundingClientRect() || null;
       const protectedRects = Array.from(document.querySelectorAll('.acts, .menu-bar, .modal-actions, .call-close-x, .career-launcher'))
         .filter(element => element.getClientRects().length > 0)
         .map(element => element.getBoundingClientRect());
       const position = placeTutorial(width, height, { width: innerWidth, height: innerHeight }, target, step.side, protectedRects);
-      if (!position) { deferTutorial(15000); return; }
-      const tailLeft = target ? Math.max(14, Math.min(width - 14, target.left + target.width / 2 - position.left)) : null;
-      const tailTop = target ? Math.max(14, Math.min(height - 14, target.top + target.height / 2 - position.top)) : null;
-      setTutPos({ ...position, tailLeft, tailTop, wide, posReady });
+      if (!position) { deferTutorial(1500); return; }
+      setTutPos({ ...position, id: step.id, wide, posReady });
     };
     compute(false);
     let second = 0;
@@ -11112,7 +11118,7 @@ export default function App() {
     deferredTutorialsRef.current = {};
     activeTutorialRef.current = null;
     pendingTutorialRef.current = null;
-    lastTutorialInputRef.current = 0;
+    lastTutorialScrollRef.current = 0;
     setTutCooldownUntil(0);
     const freshCareer = normalizeCareerProgress(null);
     careerProgressRef.current = freshCareer;
@@ -11274,7 +11280,6 @@ export default function App() {
     // (t_intro) s'affiche immédiatement (~100 ms) et ne soit pas bloqué par
     // le bubble-gap d'une bulle vue lors d'une partie précédente.
     lastBubbleClosedAtRef.current = 0;
-    _bypassBubbleGapOnceRef.current = true;
     setHasSave(false);
   };
   const handleReset = () => setResetConfirmOpen(true);
@@ -13793,9 +13798,11 @@ export default function App() {
         @keyframes tut-pop { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
         .tut-close { position: absolute; top: 2px; right: 2px; width: 32px; height: 32px; background: transparent; border: none; color: var(--fg); cursor: pointer; font-size: 16px; line-height: 1; display: flex; align-items: center; justify-content: center; font-family: inherit; padding: 0; pointer-events: auto; }
         .tut-close:hover { background: var(--line-soft); }
+        .tut-next { display: block; margin-top: 10px; padding: 6px 8px; min-height: 32px; border: 1px solid var(--fg); background: var(--bg); color: var(--fg); font: inherit; cursor: pointer; pointer-events: auto; }
+        .tut-next:hover { background: var(--fg); color: var(--bg); }
         .tut-start { display: block; width: 100%; margin-top: 20px; min-height: 44px; padding: 10px 16px; background: var(--fg); color: var(--bg); border: 1px solid var(--fg); font: inherit; cursor: pointer; }
         .tut-paused { margin-top: 14px; color: var(--m1); font-size: 10px; }
-        .tut-close:focus-visible, .tut-start:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+        .tut-close:focus-visible, .tut-start:focus-visible, .tut-next:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
         @media (prefers-reduced-motion: reduce) { .tut-bubble, .tut-bubble-intro { animation: none !important; } }
         .tut-tail { position: absolute; width: 0; height: 0; }
         .tut-tail-outer { position: absolute; width: 0; height: 0; }
@@ -20533,6 +20540,7 @@ export default function App() {
             })
           ) : (
             <button
+              data-tutorial-target="freeze"
               className={`btn btn-primary ${freezingLeft > 0 && !atCap && !inOutage ? 'is-cycling' : ''}`}
               onClick={handleProduce}
               disabled={atCap || inOutage || freezingLeft > 0}
@@ -20548,7 +20556,7 @@ export default function App() {
           )}
           {phase === 1 ? (
             <>
-              <button className="btn" onClick={handleSell} disabled={displayStock < 1}>
+              <button className="btn" data-tutorial-target="sell" onClick={handleSell} disabled={displayStock < 1}>
                 <Coins size={13} strokeWidth={1.8} /> {niceThird(maxCap)}
               </button>
               <button className="btn" onClick={handleSellAll} disabled={displayStock < 1}>
@@ -20990,6 +20998,13 @@ export default function App() {
                 </div>
               )}
               <div>{localizeField(activeTutStep.text, language)}</div>
+              {!activeTutStep.isIntro && !activeTutStep.autoClose && (
+                <button type="button" className="tut-next" onClick={() => advanceTutorial(activeTutStep.id)}>
+                  {localizeField(activeTutStep.id === 't_revenus' && Object.values(owned).every(value => !value)
+                    ? { fr: 'Voir les améliorations', en: 'See upgrades', es: 'Ver mejoras', de: 'Upgrades ansehen', it: 'Vedi migliorie', ru: 'Показать улучшения', zh: '查看升级' }
+                    : { fr: 'Compris', en: 'Got it', es: 'Entendido', de: 'Verstanden', it: 'Capito', ru: 'Понятно', zh: '明白了' }, language)}
+                </button>
+              )}
               {activeTutStep.isIntro && <>
                 <div className="tut-paused">{localizeField({ fr: 'Le jeu est en pause pendant cette présentation.', en: 'The game is paused during this introduction.', es: 'El juego está en pausa durante esta presentación.', de: 'Das Spiel pausiert während dieser Einführung.', it: 'Il gioco è in pausa durante questa presentazione.', ru: 'Во время этого вступления игра на паузе.', zh: '阅读介绍期间，游戏暂停。' }, language)}</div>
                 <button type="button" className="tut-start" onClick={() => closeTutorial(activeTutStep.id)}>{localizeField({ fr: 'À moi de jouer', en: 'Let’s play', es: 'A jugar', de: 'Los geht’s', it: 'Si gioca', ru: 'Начать игру', zh: '开始游戏' }, language)}</button>
@@ -20998,11 +21013,11 @@ export default function App() {
                 <>
                   <div
                     className={`tut-tail-outer tail-${tutPos.tail}-outer`}
-                    style={tutPos.tailLeft != null ? { left: tutPos.tailLeft } : { top: tutPos.tailTop }}
+                    style={['top', 'bottom'].includes(tutPos.tail) ? { left: tutPos.tailLeft } : { top: tutPos.tailTop }}
                   />
                   <div
                     className={`tut-tail tail-${tutPos.tail}`}
-                    style={tutPos.tailLeft != null ? { left: tutPos.tailLeft } : { top: tutPos.tailTop }}
+                    style={['top', 'bottom'].includes(tutPos.tail) ? { left: tutPos.tailLeft } : { top: tutPos.tailTop }}
                   />
                 </>
               )}

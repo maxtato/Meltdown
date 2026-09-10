@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   placeTutorial, tutorialEligible, tutorialFitsSurface, tutorialGapAfter,
-  tutorialPriority, tutorialReadingTime,
+  tutorialPriority, tutorialIsOnboarding, tutorialReadingTime,
 } from '../tutorial-rules.ts';
 import type { TutorialRect, TutorialStep, TutorialSurface } from '../tutorial-rules.ts';
 
@@ -94,11 +94,13 @@ test('contextual help and the first actions rank ahead of general explanations',
 });
 
 test('the first controls follow promptly and later lessons leave time to play', () => {
-  assert.ok(tutorialGapAfter('t_welcome') <= 1000);
-  assert.ok(tutorialGapAfter('t_congeler') <= 2000);
-  assert.ok(tutorialGapAfter('t_vendre') >= 15000);
-  assert.ok(tutorialGapAfter('t_revenus') >= 15000);
-  assert.ok(tutorialGapAfter('t_phase2') >= 15000);
+  for (const id of ['t_welcome', 't_congeler', 't_vendre', 't_revenus', 't_upgrades']) {
+    assert.ok(tutorialIsOnboarding(id));
+    assert.ok(tutorialGapAfter(id) <= 300, 'no long pause breaks the first actions');
+  }
+  assert.equal(tutorialIsOnboarding('t_phase2'), false);
+  assert.ok(tutorialGapAfter('t_phase2') >= 5000);
+  assert.ok(tutorialPriority('t_revenus') < tutorialPriority('t_upgrades'));
 });
 
 test('reading time accommodates longer translations without endless hints', () => {
@@ -149,20 +151,107 @@ test('an unanchored hint uses a free edge instead of covering a protected menu',
   assert.ok(position.top > menu.top + menu.height);
 });
 
-test('long mobile guidance falls back to a free corner without a misleading arrow', () => {
+test('anchored guidance is postponed instead of jumping to a distant free corner', () => {
   const viewport = { width: 390, height: 844 };
   const target = { left: 310, top: 20, width: 60, height: 50 };
   const headerControls = { left: 0, top: 0, width: 390, height: 220 };
   const position = placeTutorial(240, 250, viewport, target, 'bottom', [headerControls]);
-  assert.ok(position, 'free space away from the crowded header should still allow the advice');
-  assert.equal(position.tail, 'none');
-  const bubble = { ...position, width: 240, height: 250 };
-  assertClear(bubble, target);
-  assertClear(bubble, headerControls);
-  assert.ok(position.left >= 8 && position.left + bubble.width <= viewport.width - 8);
-  assert.ok(position.top >= 8 && position.top + bubble.height <= viewport.height - 8);
+  assert.equal(position, null, 'the only free area is more than 134 px from the control');
   assert.equal(placeTutorial(240, 250, viewport, target, 'bottom', [{ left: 0, top: 0, ...viewport }]), null,
-    'corner fallbacks must also be rejected when protected controls occupy all available space');
+    'a fully protected viewport has no acceptable placement');
+});
+
+function assertArrowPointsAtTarget(position: NonNullable<ReturnType<typeof placeTutorial>>, target: TutorialRect, viewport: { width: number; height: number }) {
+  assert.notEqual(position.tail, 'none', 'anchored advice always keeps its arrow');
+  if (position.tail === 'top' || position.tail === 'bottom') {
+    assert.equal(position.tailTop, null);
+    assert.notEqual(position.tailLeft, null);
+    const x = position.left + position.tailLeft!;
+    assert.ok(x >= Math.max(0, target.left) && x <= Math.min(viewport.width, target.left + target.width), 'the vertical arrow must face the visible target');
+  } else {
+    assert.equal(position.tailLeft, null);
+    assert.notEqual(position.tailTop, null);
+    const y = position.top + position.tailTop!;
+    assert.ok(y >= Math.max(0, target.top) && y <= Math.min(viewport.height, target.top + target.height), 'the horizontal arrow must face the visible target');
+  }
+}
+
+test('a side placement slides inside the top and bottom viewport edges', () => {
+  const viewport = { width: 390, height: 844 };
+  for (const top of [24, 800]) {
+    const target = { left: 310, top, width: 60, height: 24 };
+    const position = placeTutorial(240, 150, viewport, target, 'left');
+    assert.ok(position);
+    assert.equal(position.tail, 'right');
+    assert.equal(position.left, 56);
+    assert.ok(position.top >= 8 && position.top + 150 <= viewport.height - 8);
+    assertClear({ ...position, width: 240, height: 150 }, target);
+    assertArrowPointsAtTarget(position, target, viewport);
+  }
+});
+
+test('an adjacent bubble slides parallel to its target to clear a protected control', () => {
+  const viewport = { width: 760, height: 450 };
+  const target = { left: 200, top: 300, width: 300, height: 40 };
+  const obstacle = { left: 420, top: 140, width: 300, height: 130 };
+  const position = placeTutorial(240, 100, viewport, target, 'top', [obstacle]);
+  assert.ok(position);
+  assert.equal(position.tail, 'bottom');
+  assert.equal(position.top, 186);
+  assert.equal(position.left, 172);
+  assertClear({ ...position, width: 240, height: 100 }, obstacle);
+  assertClear({ ...position, width: 240, height: 100 }, target);
+  assertArrowPointsAtTarget(position, target, viewport);
+});
+
+test('mobile cash guidance stays alongside the cash control above the menu', () => {
+  const viewport = { width: 390, height: 844 };
+  const target = { left: 310, top: 140, width: 60, height: 24 };
+  const menu = { left: 20, top: 220, width: 350, height: 40 };
+  const position = placeTutorial(240, 150, viewport, target, 'bottom', [menu]);
+  assert.ok(position);
+  assert.equal(position.tail, 'right');
+  assert.equal(position.left, 56);
+  assert.ok(position.top + 150 <= menu.top - 8);
+  assertClear({ ...position, width: 240, height: 150 }, target);
+  assertClear({ ...position, width: 240, height: 150 }, menu);
+  assertArrowPointsAtTarget(position, target, viewport);
+});
+
+test('a protected group around the target uses its nearby outer edge', () => {
+  const viewport = { width: 390, height: 844 };
+  const target = { left: 310, top: 140, width: 60, height: 24 };
+  const group = { left: 0, top: 100, width: 390, height: 110 };
+  const menu = { left: 20, top: 220, width: 350, height: 40 };
+  const position = placeTutorial(240, 150, viewport, target, 'bottom', [group, menu]);
+  assert.ok(position);
+  assert.equal(position.tail, 'top');
+  assert.equal(position.top, 274);
+  assert.ok(position.top - target.top - target.height <= 134);
+  for (const rect of [target, group, menu]) assertClear({ ...position, width: 240, height: 150 }, rect);
+  assertArrowPointsAtTarget(position, target, viewport);
+});
+
+test('the arrow points to the visible center of a partly scrolled target', () => {
+  const viewport = { width: 390, height: 844 };
+  const target = { left: 310, top: -30, width: 60, height: 100 };
+  const position = placeTutorial(240, 110, viewport, target, 'left');
+  assert.ok(position);
+  assert.equal(position.tail, 'right');
+  assert.equal(position.top + position.tailTop!, 35);
+  assertArrowPointsAtTarget(position, target, viewport);
+  assert.equal(placeTutorial(240, 110, viewport, { ...target, top: -200 }), null);
+});
+
+test('a preferred but detached side yields to space directly beside the target', () => {
+  const viewport = { width: 800, height: 600 };
+  const target = { left: 350, top: 300, width: 100, height: 40 };
+  const obstacle = { left: 300, top: 180, width: 200, height: 90 };
+  const position = placeTutorial(240, 100, viewport, target, 'top', [obstacle]);
+  assert.ok(position);
+  assert.equal(position.tail, 'top');
+  assert.equal(position.top, 354);
+  assertArrowPointsAtTarget(position, target, viewport);
 });
 
 test('a hint is postponed when the viewport has no safe space', () => {
