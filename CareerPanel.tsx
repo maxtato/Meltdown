@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useId, useRef } from 'react';
 import { getCareerView } from './career';
 import type { CareerGoalView, CareerProgress, CareerSnapshot } from './career';
 import './career.css';
@@ -6,6 +6,7 @@ import './career.css';
 type Language = 'fr' | 'en' | 'es' | 'it' | 'de' | 'ru' | 'zh';
 type GoalCopy = [title: string, hint: string];
 interface Copy {
+  rewards: string; close: string; paused: string; available: string;
   title: string; claimed: string; ready: string; ongoing: string; received: string;
   claim: string; route: string; phase: string; next: string; complete: string;
   challenge: string; challengesDone: string; endless: string; start: string; startHint: string;
@@ -16,6 +17,7 @@ interface Copy {
 
 const COPY: Record<Language, Copy> = {
   fr: {
+    rewards: 'Primes', close: 'Fermer les primes', paused: 'Jeu en pause pendant la consultation.', available: 'Primes à récupérer',
     title: 'Ton parcours', claimed: 'primes reçues', ready: 'Prime disponible', ongoing: 'En cours', received: 'Prime reçue',
     claim: 'Réclamer la prime', route: 'Voir le parcours', phase: 'Phase', next: 'À suivre', complete: 'Parcours accompli',
     challenge: 'Défi', challengesDone: 'défis accomplis', endless: 'Les défis se renouvellent après chaque prime. Avance à ton rythme, sans limite de temps.',
@@ -42,6 +44,7 @@ const COPY: Record<Language, Copy> = {
     },
   },
   en: {
+    rewards: 'Rewards', close: 'Close rewards', paused: 'The game is paused while you browse.', available: 'Rewards available',
     title: 'Your journey', claimed: 'rewards claimed', ready: 'Reward ready', ongoing: 'In progress', received: 'Reward claimed',
     claim: 'Claim reward', route: 'View journey', phase: 'Phase', next: 'Up next', complete: 'Journey complete',
     challenge: 'Challenge', challengesDone: 'challenges completed', endless: 'A new challenge follows each reward. Progress at your own pace, with no time limit.',
@@ -68,6 +71,7 @@ const COPY: Record<Language, Copy> = {
     },
   },
   es: {
+    rewards: 'Premios', close: 'Cerrar premios', paused: 'El juego está en pausa mientras los consultas.', available: 'Premios disponibles',
     title: 'Tu recorrido', claimed: 'premios recibidos', ready: 'Premio disponible', ongoing: 'En curso', received: 'Premio recibido',
     claim: 'Recibir premio', route: 'Ver recorrido', phase: 'Fase', next: 'A continuación', complete: 'Recorrido completado',
     challenge: 'Reto', challengesDone: 'retos completados', endless: 'Cada premio abre un nuevo reto. Avanza a tu ritmo, sin límite de tiempo.',
@@ -94,6 +98,7 @@ const COPY: Record<Language, Copy> = {
     },
   },
   it: {
+    rewards: 'Premi', close: 'Chiudi i premi', paused: 'Il gioco è in pausa mentre li consulti.', available: 'Premi disponibili',
     title: 'Il tuo percorso', claimed: 'premi riscossi', ready: 'Premio disponibile', ongoing: 'In corso', received: 'Premio riscosso',
     claim: 'Riscuoti il premio', route: 'Vedi il percorso', phase: 'Fase', next: 'Prossimi obiettivi', complete: 'Percorso completato',
     challenge: 'Sfida', challengesDone: 'sfide completate', endless: 'Ogni premio apre una nuova sfida. Avanza al tuo ritmo, senza limiti di tempo.',
@@ -120,6 +125,7 @@ const COPY: Record<Language, Copy> = {
     },
   },
   de: {
+    rewards: 'Prämien', close: 'Prämien schließen', paused: 'Das Spiel pausiert, während du die Prämien ansiehst.', available: 'Verfügbare Prämien',
     title: 'Dein Weg', claimed: 'Prämien erhalten', ready: 'Prämie verfügbar', ongoing: 'In Arbeit', received: 'Prämie erhalten',
     claim: 'Prämie abholen', route: 'Weg ansehen', phase: 'Phase', next: 'Als Nächstes', complete: 'Weg abgeschlossen',
     challenge: 'Aufgabe', challengesDone: 'Aufgaben erfüllt', endless: 'Nach jeder Prämie folgt eine neue Aufgabe. Spiele in deinem Tempo, ohne Zeitlimit.',
@@ -146,6 +152,7 @@ const COPY: Record<Language, Copy> = {
     },
   },
   ru: {
+    rewards: 'Награды', close: 'Закрыть награды', paused: 'Игра на паузе, пока ты смотришь награды.', available: 'Доступные награды',
     title: 'Твой путь', claimed: 'наград получено', ready: 'Награда доступна', ongoing: 'В процессе', received: 'Награда получена',
     claim: 'Забрать награду', route: 'Посмотреть путь', phase: 'Этап', next: 'Далее', complete: 'Путь пройден',
     challenge: 'Испытание', challengesDone: 'испытаний пройдено', endless: 'После каждой награды появляется новое испытание. Играй в своём темпе, без ограничения времени.',
@@ -172,6 +179,7 @@ const COPY: Record<Language, Copy> = {
     },
   },
   zh: {
+    rewards: '奖励', close: '关闭奖励', paused: '查看奖励期间，游戏暂停。', available: '可领取奖励',
     title: '你的成长之路', claimed: '份奖励已领取', ready: '奖励可领取', ongoing: '进行中', received: '奖励已领取',
     claim: '领取奖励', route: '查看成长之路', phase: '阶段', next: '接下来的目标', complete: '成长之路已完成',
     challenge: '挑战', challengesDone: '项挑战已完成', endless: '每次领取奖励后都会开启新挑战。没有时间限制，按自己的节奏推进。',
@@ -206,6 +214,76 @@ export interface CareerPanelProps {
   progress: CareerProgress;
   onClaim: (id: string) => void;
   language: string;
+}
+
+export interface CareerLauncherProps extends CareerPanelProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+/** The parent pauses the simulation whenever this controlled dialog is open. */
+export function CareerLauncher({ open, onOpenChange, ...panelProps }: CareerLauncherProps) {
+  const lang: Language = Object.prototype.hasOwnProperty.call(COPY, panelProps.language) ? panelProps.language as Language : 'fr';
+  const copy = COPY[lang];
+  const view = getCareerView(panelProps.snapshot, panelProps.progress);
+  const readyCount = view.goals.filter(goal => goal.complete && !goal.claimed).length
+    + (view.featured?.kind === 'challenge' && view.featured.complete ? 1 : 0);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const launcherRef = useRef<HTMLButtonElement>(null);
+  const dialogId = useId();
+  const titleId = useId();
+  const descriptionId = useId();
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (open && !dialog.open) dialog.showModal();
+    if (!open && dialog.open) dialog.close();
+  }, [open]);
+
+  return <div className="career-launcher-row">
+    <button
+      ref={launcherRef}
+      type="button"
+      className={`career-launcher${readyCount > 0 ? ' career-launcher-ready' : ''}`}
+      aria-haspopup="dialog"
+      aria-expanded={open}
+      aria-controls={dialogId}
+      onClick={() => onOpenChange(true)}
+    >
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M8 3h8v5a4 4 0 0 1-8 0V3Z" />
+        <path d="M8 5H4v2a4 4 0 0 0 4 4m8-6h4v2a4 4 0 0 1-4 4M12 12v6m-4 3v-3h8v3M6 21h12" />
+      </svg>
+      <span>{copy.rewards}</span>
+      {readyCount > 0 && <span className="career-launcher-badge" aria-label={`${copy.available} : ${readyCount}`}>{readyCount}</span>}
+    </button>
+    <dialog
+      ref={dialogRef}
+      id={dialogId}
+      className="career-dialog"
+      aria-labelledby={titleId}
+      aria-describedby={descriptionId}
+      onCancel={event => { event.preventDefault(); onOpenChange(false); }}
+      onClose={() => { onOpenChange(false); launcherRef.current?.focus({ preventScroll: true }); }}
+      onClick={event => {
+        if (event.target !== event.currentTarget) return;
+        const bounds = event.currentTarget.getBoundingClientRect();
+        if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) onOpenChange(false);
+      }}
+    >
+      <div className="career-dialog-header">
+        <div>
+          <h2 id={titleId}>{copy.rewards}</h2>
+          <p id={descriptionId}>{copy.paused}</p>
+        </div>
+        <button type="button" className="career-dialog-close" aria-label={copy.close} onClick={() => onOpenChange(false)}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+        </button>
+      </div>
+      {open && <CareerPanel {...panelProps} />}
+    </dialog>
+  </div>;
 }
 
 export function CareerPanel({ snapshot, progress, onClaim, language }: CareerPanelProps) {

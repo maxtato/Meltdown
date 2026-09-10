@@ -1,3 +1,83 @@
+.career-launcher-row { display: flex; justify-content: flex-end; margin: 0 0 14px; min-width: 0; }
+.career-launcher {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  border: 1px solid var(--line, #ddd);
+  border-radius: 0;
+  padding: 8px 12px;
+  background: var(--bg, #fff);
+  color: var(--m1, #666);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.career-launcher:hover, .career-launcher-ready { border-color: var(--fg, #111); color: var(--fg, #111); }
+.career-launcher-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  background: var(--fg, #111);
+  color: var(--bg, #fff);
+  font-size: 10px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.career-dialog {
+  width: min(520px, calc(100% - 24px));
+  max-width: 520px;
+  max-height: 85vh;
+  max-height: 85dvh;
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--fg, #111);
+  border-radius: 0;
+  box-sizing: border-box;
+  color: var(--fg, #111);
+  background: var(--bg, #fff);
+  font: inherit;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.career-dialog::backdrop { background: rgb(0 0 0 / 55%); }
+.career-dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--line, #ddd);
+  background: var(--bg, #fff);
+}
+.career-dialog-header h2 { margin: 0; font: inherit; font-size: 15px; font-weight: 700; }
+.career-dialog-header p { margin: 7px 0 0; color: var(--m1, #666); font-size: 10px; line-height: 1.5; }
+.career-dialog-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  margin: -8px -8px 0 0;
+  border: 1px solid transparent;
+  border-radius: 0;
+  padding: 0;
+  background: var(--bg, #fff);
+  color: var(--m1, #666);
+  cursor: pointer;
+}
+.career-dialog-close:hover { border-color: var(--line, #ddd); color: var(--fg, #111); }
+.career-launcher:focus-visible, .career-dialog-close:focus-visible { outline: 2px solid var(--fg, #111); outline-offset: 2px; }
+.career-dialog .career-panel { border: 0; margin: 0; }
 .career-panel {
   color: var(--fg, #111);
   background: var(--bg, #fff);

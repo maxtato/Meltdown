@@ -20,12 +20,13 @@ Les tests utilisent le lanceur intégré à Node.js. Le site est une application
 
 ## Progression retravaillée
 
-- Un parcours visible de 12 jalons relie les premiers clients, le recrutement, l'automatisation, les contrats, les clients réguliers et la Domination. Chaque prime se réclame une seule fois par partie.
+- Le bouton **Primes** ouvre un parcours de 12 jalons : premiers clients, recrutement, automatisation, contrats, clients réguliers et Domination. Sa pastille compte les primes disponibles. Chaque prime se réclame une seule fois par partie ; le jeu se met en pause pendant la consultation.
 - Après la victoire et les 12 primes, des défis alternent contrats, volumes livrés et recettes supplémentaires. Les objectifs augmentent puis sont plafonnés, sans échéance réelle ni série quotidienne obligatoire.
 - Les premiers contrats comportent 6 livraisons au palier 1 et 8 au palier 2. Les conditions signées des contrats déjà en cours restent conservées.
 - Les appels avancés utilisent le chiffre d'affaires pour leur déblocage. Les volumes signés sont identiques au chargement, au paiement et à l'affichage ; les offres doivent tenir dans le stock et les camions.
 - Les bonus de vitesse de Lenny accélèrent les tournées. Les grades légendaires de Fred et Brigitte sont reconnus pour les cycles et les salaires. La Pérennité avance chaque mois joué en phase 3.
 - Les explications du tutoriel, du stockage, des salaires, de la victoire et du prestige sont alignées avec les règles.
+- Les conseils sont revalidés après leur délai, liés à une commande visible et reportés pendant les fenêtres de gestion. Ils laissent les commandes accessibles et disparaissent lorsque l'action est accomplie. Les explications générales sont espacées de 15 secondes ; les appels et l'aide contextuelle restent prioritaires. L'accueil suspend le jeu jusqu'au bouton « À moi de jouer » ; les conseils ordinaires laissent la partie avancer.
 
 ## Sauvegardes et compatibilité
 
@@ -37,6 +38,6 @@ La migration `contractRulesV2` adapte uniquement les anciennes cargaisons dont l
 
 ## Vérification
 
-Les règles de carrière, les contrats, les volumes, la vitesse, la progression mensuelle et les grades salariés disposent de tests de régression dans `tests/`. Les nouveaux modules sont séparés du composant historique pour faciliter de futurs équilibrages.
+Les règles de carrière, les contrats, les volumes, la vitesse, la progression mensuelle, les grades salariés et le contexte/placement des tutoriels disposent de 38 tests de régression dans `tests/`. Les nouveaux modules sont séparés du composant historique pour faciliter de futurs équilibrages.
 
 Les durées d'une partie complète et l'équilibrage à très long terme doivent encore être mesurés auprès de joueurs. Les défis renouvelables étendent la progression ; ils ne remplacent pas des chapitres narratifs supplémentaires.
