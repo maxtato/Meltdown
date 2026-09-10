@@ -11,7 +11,11 @@ import {
   Cloud, Star, TrendingUp, TrendingDown, Tv, Flame, Volume2,
 } from 'lucide-react';
 import { TRANSLATIONS } from './i18n';
+import { STAFF_TIERS, getStaffTier, getStaffUpgrade, getFredCycleDuration } from './staff-rules';
 import { B2B_CONTRACTS } from './contracts';
+import { CareerPanel } from './CareerPanel';
+import { normalizeCareerProgress, claimCareerReward } from './career';
+import { phoneCallFitsProgress, contractProfile, signedContract, deliverySpeedMultiplier, contractFitsCapacity, migrateLegacyContractQuantity, contractRevenue, elapsedMissionMonths } from './game-rules';
 
 // === ICÔNES PAR FAMILLE D'AMÉLIORATIONS ===
 // Mapping pour le picto en haut à droite de chaque carte d'upgrade.
@@ -316,17 +320,6 @@ function getBrigitteEffectiveBonus(owned, salaryLevel, isGrumpy) {
   if (tier === 0) return 0;
   const bonus = BRIGITTE_BONUS_MATRIX[tier][salaryLevel] || 0.15;
   return bonus * (isGrumpy ? 0.5 : 1);
-}
-
-// Durée du cycle de Fred selon son grade (en secondes)
-// Plus le grade est élevé, plus son cycle est court (Fred opère plus de freezers en parallèle)
-function getFredCycleDuration(tierId) {
-  if (tierId === 'fred_dir') return 2;
-  if (tierId === 'fred_chef') return 2.5;
-  if (tierId === 'fred_perma') return 3;
-  if (tierId === 'fred') return 4;
-  if (tierId === 'fred_stage') return 4;
-  return 0; // pas de Fred → pas de cycle
 }
 
 // Multiplicateur de prix « eau premium » — logique de REMPLACEMENT :
@@ -1372,7 +1365,15 @@ const UPGRADES = [
     apply: s => ({ ...s, capBonus: s.capBonus + 50 }) },
   { id: 'fred_stage',     Icon: User,      count: 1, destructible: false, phase: 1, name: { fr: 'Stagiaire Fred', en: 'Intern Fred', es: 'Becario Fred', zh: "实习生弗雷德", ru: "Стажёр Фред", it: "Stagista Fred", de: "Praktikant Fred" }, desc: { fr: '+5 GL/s · cycle 4s', en: '+5 IC/s · cycle 4s', es: '+5 CB/s · ciclo 4s', zh: "+5 冰块/秒 · 周期 4秒", ru: "+5 К/с · цикл 4с", it: "+5 CB/s · ciclo 4s", de: "+5 EW/s · Zyklus 4s" }, cost: 50,
     salary: { bas: 0, std: 0, haut: 0 }, salaryRole: 'fred', gradeName: { fr: "Stagiaire", en: "Intern", es: "Becario", zh: "实习生", ru: "Стажёр", it: "Stagista", de: "Praktikant" },
-    longDesc: { fr: "Fred débarque en stage non rémunéré, motivé à prouver qu'il peut tenir une machine. Il enchaîne les cycles de 4s et produit 18 glaçons d'un coup. C'est ton premier pas vers une production automatique, indispensable pour ne plus tout faire à la main.", en: "Fred shows up as an unpaid intern, eager to prove he can keep a machine running. He runs 4-second cycles and produces 18 ice cubes at a time. Your first step toward automated production, essential to stop doing everything by hand.", es: "Fred aparece como becario sin sueldo, con ganas de demostrar que puede mantener una máquina en marcha. Encadena ciclos de 4s y produce 18 cubitos a la vez. Tu primer paso hacia la producción automática, esencial para dejar de hacer todo a mano.", zh: "弗雷德以无薪实习生的身份出现，急着证明他能让机器一直转下去。他连续执行4秒周期，每次产18块冰。你迈向自动生产的第一步，摆脱事事亲手的必备一环。", ru: "Фред появляется как неоплачиваемый стажёр, готовый доказать, что он умеет держать машину в работе. Он гонит 4-секундные циклы и производит по 18 кубиков за раз. Твой первый шаг к автоматизированному производству, необходимо, чтобы перестать делать всё вручную.", it: "Fred si presenta come stagista non pagato, motivato a dimostrare che sa tenere in marcia una macchina. Incatena cicli da 4 secondi e produce 18 cubetti alla volta. Il tuo primo passo verso una produzione automatica, essenziale per smettere di fare tutto a mano.", de: "Fred taucht als unbezahlter Praktikant auf, motiviert zu beweisen, dass er eine Maschine am Laufen halten kann. Er fährt 4-Sekunden-Zyklen und produziert 18 Eiswürfel auf einmal. Dein erster Schritt zur automatisierten Produktion, essenziell, um nicht mehr alles von Hand zu machen." },
+    longDesc: {
+      fr: "Ce palier ajoute 5 glaçons par seconde à la production de base. Fred travaille par cycles de 4 s. La quantité réellement produite dépend de tes équipements, de son salaire, de son moral et des événements. Consulte le débit affiché pour mesurer le résultat.",
+      en: "This tier adds 5 ice cubes per second to base production. Fred works in 4s cycles. Actual output depends on equipment, salary, morale and events. Check the displayed rate to see the result.",
+      es: "Este nivel añade 5 cubitos por segundo a la producción base. Fred trabaja en ciclos de 4s. La producción real depende del equipo, sueldo, moral y eventos. Consulta el ritmo mostrado para ver el resultado.",
+      de: "Diese Stufe erhöht die Grundproduktion um 5 Eiswürfel pro Sekunde. Fred arbeitet in 4s-Zyklen. Der tatsächliche Ertrag hängt von Ausstattung, Gehalt, Moral und Ereignissen ab. Die angezeigte Rate zeigt das Ergebnis.",
+      it: "Questo livello aggiunge 5 cubetti al secondo alla produzione base. Fred lavora in cicli di 4s. La produzione effettiva dipende da attrezzature, stipendio, morale ed eventi. Consulta il ritmo indicato per vedere il risultato.",
+      ru: "Этот уровень добавляет 5 кубиков в секунду к базовому производству. Фред работает циклами по 4 с. Фактический выпуск зависит от оборудования, зарплаты, морали и событий. Результат виден в показателе производства.",
+      zh: "此职级为基础产量增加每秒5个冰块。弗雷德以4秒为一个生产周期。实际产量取决于设备、薪资、士气和事件，请查看显示的生产速率。"
+    },
     apply: s => ({ ...s, passiveProd: s.passiveProd + 5 }) },
   { id: 'flyers',          Icon: Megaphone, count: 1, destructible: false, phase: 1, name: { fr: 'Flyers de quartier', en: 'Neighborhood flyers', es: 'Folletos de barrio', zh: "街区传单", ru: "Листовки по району", it: "Volantini di quartiere", de: "Nachbarschafts-Flyer" }, desc: { fr: 'prix ×1.10', en: 'price ×1.10', es: 'precio ×1.10', zh: "价格 ×1.10", ru: "цена ×1.10", it: "prezzo ×1.10", de: "Preis ×1.10" }, cost: 150,
     longDesc: { fr: "Tu colles des flyers chez les commerçants du quartier. Le prix de vente directe (le prix spot du marché) est multiplié par 1.10. Aucun effet sur les contrats B2B en Phase 2, c'est uniquement pour le spot.", en: "You stick flyers up at local shops. The direct sell price (the spot market price) is multiplied by 1.10. No effect on B2B contracts in Phase 2, this is for spot sales only.", es: "Pegas folletos en los comercios del barrio. El precio de venta directa (el precio spot del mercado) se multiplica por 1.10. Sin efecto en los contratos B2B en Fase 2, esto es solo para spot.", zh: "你在本地商店张贴传单。直接售价（现货市场价）乘以1.10。第2阶段对B2B合同无效,,仅限现货销售。", ru: "Вы расклеиваете листовки в местных лавках. Прямая цена продажи (спот-цена рынка) умножается на 1.10. Не влияет на B2B-контракты в Фазе 2, это только для спот-продаж.", it: "Affiggi volantini nei negozi locali. Il prezzo di vendita diretta (il prezzo spot di mercato) è moltiplicato per 1.10. Nessun effetto sui contratti B2B in Fase 2, questo vale solo per le vendite spot.", de: "Du hängst Flyer in lokalen Läden auf. Der Direktverkaufspreis (Spotmarktpreis) wird mit 1.10 multipliziert. Keine Wirkung auf B2B-Verträge in Phase 2, nur für Spotverkäufe." },
@@ -1381,7 +1382,7 @@ const UPGRADES = [
     longDesc: { fr: "Un caisson isotherme professionnel. Il rajoute 120 places de stockage, le palier intermédiaire essentiel avant l'investissement du Congélateur Pro. Idéal pour absorber les pics de production une fois Fred au travail.", en: "A professional insulated chest. Adds 120 storage slots, the essential intermediate tier before investing in the Pro Freezer. Ideal for absorbing production spikes once Fred is at work.", es: "Un caisson isotérmico profesional. Añade 120 plazas de stock, el escalón intermedio esencial antes de invertir en el Congelador Pro. Ideal para absorber picos de producción una vez Fred está trabajando.", zh: "专业保温箱。增加120个仓储位,,投资专业冷冻柜前必备的中间档。弗雷德上岗后吸收产量高峰的理想选择。", ru: "Профессиональный изотермический ящик. Добавляет 120 ячеек хранения, необходимый промежуточный уровень перед вложением в Про-морозильник. Идеален для поглощения пиков производства, когда Фред уже работает.", it: "Una cassa termica professionale. Aggiunge 120 slot di stoccaggio, il livello intermedio essenziale prima di investire nel Congelatore Pro. Ideale per assorbire i picchi di produzione una volta che Fred è al lavoro.", de: "Eine professionelle Isoliertruhe. 120 zusätzliche Lagerplätze, die wichtige Zwischenstufe vor der Profi-Gefriertruhe. Ideal, um Produktionsspitzen aufzufangen, sobald Fred arbeitet." },
     apply: s => ({ ...s, capBonus: s.capBonus + 120 }) },
   { id: 'cold_turbine',    Icon: Snowflake, count: 1, destructible: true,  phase: 1, name: { fr: 'Turbine externe', en: 'External turbine', es: 'Turbina externa', zh: "外置涡轮", ru: "Внешняя турбина", it: "Turbina esterna", de: "Externe Turbine" }, desc: { fr: 'fonte ×0.5', en: 'melt ×0.5', es: 'fundido ×0.5', zh: "融化 ×0.5", ru: "таяние ×0.5", it: "fusione ×0.5", de: "Schmelze ×0.5" }, cost: 250,
-    longDesc: { fr: "Une turbine externe à fixer sur tes congélateurs existants. Elle pousse de l'air froid dans les compartiments et réduit la fonte de 30% (×0.7). Investissement malin pour souffler en été sans casser ta tirelire, en attendant le Congélateur Pro.", en: "An external turbine to mount on your existing freezers. It blows cold air into the compartments and reduces melt by 30% (×0.7). Smart investment to ride out the summer without breaking the bank, while you save up for the Pro Freezer.", es: "Una turbina externa para montar en tus congeladores existentes. Sopla aire frío en los compartimentos y reduce el fundido un 30% (×0.7). Inversión inteligente para aguantar el verano sin arruinarte, mientras ahorras para el Congelador Pro.", zh: "安装在现有冷冻柜上的外置涡轮。它向隔间吹冷气，融化减少30%（×0.7）。在不破产的情况下熬过夏天的明智投资,,同时攒钱买专业冷冻柜。", ru: "Внешняя турбина для установки на имеющиеся морозильники. Она нагнетает холодный воздух в отсеки и снижает таяние на 30% (×0.7). Умное вложение, чтобы пережить лето без разорения, пока копите на Про-морозильник.", it: "Una turbina esterna da montare sui congelatori esistenti. Soffia aria fredda nei comparti e riduce la fusione del 30% (×0.7). Investimento intelligente per superare l'estate senza svenarsi, mentre metti da parte per il Congelatore Pro.", de: "Eine externe Turbine zur Montage an deinen bestehenden Gefriertruhen. Sie bläst Kaltluft in die Fächer und senkt die Schmelze um 30% (×0.7). Clevere Investition, um den Sommer ohne großen Aufwand zu überstehen, während du für die Profi-Gefriertruhe sparst." },
+    longDesc: { fr: "Une turbine externe à fixer sur tes congélateurs existants. Elle pousse de l'air froid dans les compartiments et réduit la fonte de 50% (×0.5). Investissement malin pour souffler en été sans casser ta tirelire, en attendant le Congélateur Pro.", en: "An external turbine to mount on your existing freezers. It blows cold air into the compartments and reduces melt by 50% (×0.5). Smart investment to ride out the summer without breaking the bank, while you save up for the Pro Freezer.", es: "Una turbina externa para montar en tus congeladores existentes. Sopla aire frío en los compartimentos y reduce el fundido un 50% (×0.5). Inversión inteligente para aguantar el verano sin arruinarte, mientras ahorras para el Congelador Pro.", zh: "安装在现有冷冻柜上的外置涡轮。它向隔间吹冷气，融化减少50%（×0.5）。在不破产的情况下熬过夏天的明智投资,,同时攒钱买专业冷冻柜。", ru: "Внешняя турбина для установки на имеющиеся морозильники. Она нагнетает холодный воздух в отсеки и снижает таяние на 50% (×0.5). Умное вложение, чтобы пережить лето без разорения, пока копите на Про-морозильник.", it: "Una turbina esterna da montare sui congelatori esistenti. Soffia aria fredda nei comparti e riduce la fusione del 50% (×0.5). Investimento intelligente per superare l'estate senza svenarsi, mentre metti da parte per il Congelatore Pro.", de: "Eine externe Turbine zur Montage an deinen bestehenden Gefriertruhen. Sie bläst Kaltluft in die Fächer und senkt die Schmelze um 50% (×0.5). Clevere Investition, um den Sommer ohne großen Aufwand zu überstehen, während du für die Profi-Gefriertruhe sparst." },
     apply: s => ({ ...s, meltMult: s.meltMult * 0.5 }) },
   { id: 'cold_water',      Icon: Droplets,  count: 1, destructible: false, phase: 1, name: { fr: 'Eau pré-refroidie', en: 'Pre-chilled water', es: 'Agua pre-enfriada', zh: "预冷水", ru: "Предохлаждённая вода", it: "Acqua pre-raffreddata", de: "Vorgekühltes Wasser" }, desc: { fr: 'prod ×1.10', en: 'prod ×1.10', es: 'prod ×1.10', zh: "生产 ×1.10", ru: "произв ×1.10", it: "prod ×1.10", de: "Prod ×1.10" }, cost: 350,
     longDesc: { fr: "Tu pré-refroidis ton eau au frigo avant de la mettre au congélo. La production passive (Fred et co.) est accélérée de 10%. Petit gain individuel, gros gain cumulé sur la durée.", en: "You pre-chill your water in the fridge before freezing it. Passive production (Fred and co.) speeds up by 10%. Small individual gain, big cumulative gain over time.", es: "Pre-enfrías el agua en la nevera antes de congelarla. La producción pasiva (Fred y compañía) se acelera un 10%. Pequeña ganancia individual, gran ganancia acumulada con el tiempo.", zh: "冷冻前先在冰箱里预冷水。被动生产（弗雷德等）加速10%。单次收益小，长期累积收益大。", ru: "Вы предварительно охлаждаете воду в холодильнике перед заморозкой. Пассивное производство (Фред и ко.) ускоряется на 10%. Малый индивидуальный выигрыш, большой накопительный со временем.", it: "Pre-raffreddi l'acqua nel frigo prima di congelarla. La produzione passiva (Fred e soci) accelera del 10%. Piccolo guadagno individuale, grande guadagno cumulativo nel tempo.", de: "Du kühlst dein Wasser im Kühlschrank vor dem Einfrieren vor. Die passive Produktion (Fred & Co.) wird 10% schneller. Kleiner Einzelgewinn, großer kumulativer Gewinn mit der Zeit." },
@@ -1391,7 +1392,15 @@ const UPGRADES = [
     apply: s => ({ ...s, prodSpeedMult: s.prodSpeedMult * 1.13 }) },
   { id: 'fred',           Icon: User,      count: 1, destructible: false, phase: 1, name: { fr: 'Fred Embauché', en: 'Fred Hired', es: 'Fred Contratado', zh: "弗雷德, 已聘", ru: "Фред, Принят", it: "Fred Assunto", de: "Fred Eingestellt" }, desc: { fr: '+6 GL/s · cycle 4s', en: '+6 IC/s · cycle 4s', es: '+6 CB/s · ciclo 4s', zh: "+6 冰块/秒 · 周期 4秒", ru: "+6 К/с · цикл 4с", it: "+6 CB/s · ciclo 4s", de: "+6 EW/s · Zyklus 4s" }, cost: 150,
     salary: { bas: 15, std: 30, haut: 45 }, salaryRole: 'fred', gradeName: { fr: "Embauché", en: "Hired", es: "Contratado", zh: "已聘", ru: "Принят", it: "Assunto", de: "Eingestellt" },
-    longDesc: { fr: "Fred passe en poste : fini le stage, place à un vrai contrat. Cycles rapides de 4s : 20 glaçons sortent à chaque cycle. C'est ton premier salarié officiel.", en: "Fred steps up: no more intern status, he's a real employee now. Fast 4-second cycles: 20 ice cubes per cycle. Your first official employee.", es: "Fred sube de puesto: se acabó el período de prácticas, ahora es un empleado de verdad. Ciclos rápidos de 4s: 20 cubitos por ciclo. Tu primer empleado oficial.", zh: "弗雷德正式上岗：实习结束，正经员工了。快速4秒周期：每周期20块冰。你的第一位正式员工。", ru: "Фред получает должность: со стажировкой покончено, теперь он настоящий сотрудник. Быстрые 4-секундные циклы: 20 кубиков за цикл. Ваш первый официальный сотрудник.", it: "Fred sale di grado: finito lo stage, ora è un vero dipendente. Cicli rapidi da 4 secondi: 20 cubetti per ciclo. Il tuo primo dipendente ufficiale.", de: "Fred wird übernommen: Praktikum vorbei, jetzt ist er ein richtiger Mitarbeiter. Schnelle 4-Sekunden-Zyklen: 20 Eiswürfel pro Zyklus. Dein erster offizieller Mitarbeiter." },
+    longDesc: {
+      fr: "Ce palier ajoute 6 glaçons par seconde à la production de base. Fred travaille par cycles de 4 s. La quantité réellement produite dépend de tes équipements, de son salaire, de son moral et des événements. Consulte le débit affiché pour mesurer le résultat.",
+      en: "This tier adds 6 ice cubes per second to base production. Fred works in 4s cycles. Actual output depends on equipment, salary, morale and events. Check the displayed rate to see the result.",
+      es: "Este nivel añade 6 cubitos por segundo a la producción base. Fred trabaja en ciclos de 4s. La producción real depende del equipo, sueldo, moral y eventos. Consulta el ritmo mostrado para ver el resultado.",
+      de: "Diese Stufe erhöht die Grundproduktion um 6 Eiswürfel pro Sekunde. Fred arbeitet in 4s-Zyklen. Der tatsächliche Ertrag hängt von Ausstattung, Gehalt, Moral und Ereignissen ab. Die angezeigte Rate zeigt das Ergebnis.",
+      it: "Questo livello aggiunge 6 cubetti al secondo alla produzione base. Fred lavora in cicli di 4s. La produzione effettiva dipende da attrezzature, stipendio, morale ed eventi. Consulta il ritmo indicato per vedere il risultato.",
+      ru: "Этот уровень добавляет 6 кубиков в секунду к базовому производству. Фред работает циклами по 4 с. Фактический выпуск зависит от оборудования, зарплаты, морали и событий. Результат виден в показателе производства.",
+      zh: "此职级为基础产量增加每秒6个冰块。弗雷德以4秒为一个生产周期。实际产量取决于设备、薪资、士气和事件，请查看显示的生产速率。"
+    },
     apply: s => ({ ...s, passiveProd: s.passiveProd + 6 }) },
   { id: 'plateau_xl',      Icon: Grid2x2,   count: 1, destructible: false, phase: 1, name: { fr: 'Plateau industriel XL', en: 'Industrial XL Tray', es: 'Bandeja industrial XL', zh: "工业XL冰格", ru: "Промышленная форма XL", it: "Vaschetta XL industriale", de: "Industrie-XL-Form" }, desc: { fr: '+2 GL/s', en: '+2 IC/s', es: '+2 CB/s', zh: "+2 冰块/秒", ru: "+2 К/с", it: "+2 CB/s", de: "+2 EW/s" }, cost: 200,
     longDesc: { fr: "Un plateau de moules industriel grande capacité installé sur ta chaîne. À chaque cycle, Fred et son équipe sortent 2 glaçons supplémentaires par seconde, c'est le levier de volume absolu, particulièrement puissant en début de partie quand chaque cube compte.", en: "An industrial large-capacity mold tray installed on your line. Each cycle, Fred and his team output 2 extra ice cubes per second, the absolute volume lever, especially powerful in early game when every cube counts.", es: "Una bandeja de moldes industrial de gran capacidad instalada en tu cadena. En cada ciclo, Fred y su equipo sacan 2 cubitos adicionales por segundo, la palanca de volumen absoluto, especialmente potente al principio cuando cada cubito cuenta.", zh: "安装在生产线上的工业大容量模具冰格。每周期弗雷德团队每秒多产2块冰,,绝对的产量杠杆，游戏前期尤其强大，每块冰都关键。", ru: "Промышленная форма большой ёмкости, установленная на линию. Каждый цикл Фред с командой выдают на 2 кубика в секунду больше, абсолютный рычаг объёма, особенно мощный в начале игры, когда каждый кубик на счету.", it: "Una vaschetta-stampo industriale ad alta capacità installata sulla tua linea. Ogni ciclo, Fred e il suo team producono 2 cubetti in più al secondo, la leva di volume assoluta, particolarmente potente a inizio gioco quando ogni cubetto conta.", de: "Eine industrielle Großform an deiner Linie. Pro Zyklus liefern Fred und sein Team 2 zusätzliche Eiswürfel pro Sekunde, der absolute Volumenhebel, besonders stark im frühen Spiel, wenn jeder Würfel zählt." },
@@ -1456,7 +1465,15 @@ const UPGRADES = [
     apply: s => ({ ...s, truckColdMult: s.truckColdMult * 0.28 }) },
   { id: 'fred_perma',     Icon: User,      count: 1, destructible: false, phase: 1, name: { fr: 'Fred Senior', en: 'Fred Senior', es: 'Fred Senior', zh: "弗雷德, 资深", ru: "Фред, Сеньор", it: "Fred Senior", de: "Fred Senior" }, desc: { fr: '+7 GL/s · cycle 3s', en: '+7 IC/s · cycle 3s', es: '+7 CB/s · ciclo 3s', zh: "+7 冰块/秒 · 周期 3秒", ru: "+7 К/с · цикл 3с", it: "+7 CB/s · ciclo 3s", de: "+7 EW/s · Zyklus 3s" }, cost: 900,
     salary: { bas: 45, std: 90, haut: 135 }, salaryRole: 'fred', gradeName: { fr: "Senior", en: "Senior", es: "Senior", zh: "资深", ru: "Сеньор", it: "Senior", de: "Senior" },
-    longDesc: { fr: "Fred monte en grade : il devient Senior. Il maîtrise la machine, anticipe les pannes, cadence à 3s pour sortir 36 glaçons d'un coup. Tu peux quasi te reposer sur lui pour la prod de base.", en: "Fred levels up: he becomes Senior. He's mastered the machine, anticipates breakdowns, paces 3s cycles outputting 36 ice cubes at a time. You can almost rely on him for base production.", es: "Fred sube de nivel: pasa a Senior. Domina la máquina, anticipa las averías, cicla a 3s y saca 36 cubitos a la vez. Casi puedes confiar en él para la producción base.", zh: "弗雷德升级了：成为资深员工。他对机器了如指掌，能预判故障，3秒周期一次产36块冰。你几乎可以靠他来保障基础生产。", ru: "Фред растёт: становится Сеньором. Освоил машину, предвидит поломки, выдаёт цикл за 3 секунды по 36 кубиков. На него можно почти полагаться в базовом производстве.", it: "Fred sale di livello: diventa Senior. Padroneggia la macchina, anticipa i guasti, cadenza a 3s e produce 36 cubetti alla volta. Puoi quasi contare su di lui per la produzione di base.", de: "Fred steigt auf: er wird Senior. Er beherrscht die Maschine, antizipiert Pannen, taktet auf 3s und produziert 36 Eiswürfel auf einmal. Du kannst dich für die Grundproduktion fast auf ihn verlassen." },
+    longDesc: {
+      fr: "Ce palier ajoute 7 glaçons par seconde à la production de base. Fred travaille par cycles de 3 s. La quantité réellement produite dépend de tes équipements, de son salaire, de son moral et des événements. Consulte le débit affiché pour mesurer le résultat.",
+      en: "This tier adds 7 ice cubes per second to base production. Fred works in 3s cycles. Actual output depends on equipment, salary, morale and events. Check the displayed rate to see the result.",
+      es: "Este nivel añade 7 cubitos por segundo a la producción base. Fred trabaja en ciclos de 3s. La producción real depende del equipo, sueldo, moral y eventos. Consulta el ritmo mostrado para ver el resultado.",
+      de: "Diese Stufe erhöht die Grundproduktion um 7 Eiswürfel pro Sekunde. Fred arbeitet in 3s-Zyklen. Der tatsächliche Ertrag hängt von Ausstattung, Gehalt, Moral und Ereignissen ab. Die angezeigte Rate zeigt das Ergebnis.",
+      it: "Questo livello aggiunge 7 cubetti al secondo alla produzione base. Fred lavora in cicli di 3s. La produzione effettiva dipende da attrezzature, stipendio, morale ed eventi. Consulta il ritmo indicato per vedere il risultato.",
+      ru: "Этот уровень добавляет 7 кубиков в секунду к базовому производству. Фред работает циклами по 3 с. Фактический выпуск зависит от оборудования, зарплаты, морали и событий. Результат виден в показателе производства.",
+      zh: "此职级为基础产量增加每秒7个冰块。弗雷德以3秒为一个生产周期。实际产量取决于设备、薪资、士气和事件，请查看显示的生产速率。"
+    },
     apply: s => ({ ...s, passiveProd: s.passiveProd + 7 }) },
   { id: 'silicone_2',      Icon: Grid2x2,   count: 2, destructible: false, phase: 1, name: { fr: '2e bac silicone', en: '2nd silicone tray', es: '2ª bandeja silicona', zh: "第二个硅胶冰格", ru: "2-я силиконовая форма", it: "2ª vaschetta silicone", de: "2. Silikonform" }, desc: { fr: '+8 /cycle · +12 cap', en: '+8 /cycle · +12 cap', es: '+8 /ciclo · +12 cap', zh: "+8 /周期 · +12 容量", ru: "+8 /цикл · +12 ёмк", it: "+8 /ciclo · +12 cap", de: "+8 /Zyklus · +12 Kap" }, cost: 30,
     longDesc: { fr: "Un deuxième bac silicone à côté du premier. Tu doubles ta capacité de cycle dès le début.", en: "A second silicone tray next to the first. Double your cycle capacity from the start.", es: "Una segunda bandeja de silicona junto a la primera. Duplicas tu capacidad de ciclo desde el principio.", zh: "在第一个旁边放第二个硅胶冰格。从一开始就让你的周期容量翻倍。", ru: "Вторая силиконовая форма рядом с первой. Удваиваешь циклическую ёмкость с самого начала.", it: "Una seconda vaschetta in silicone accanto alla prima. Raddoppi la capacità di ciclo dall'inizio.", de: "Eine zweite Silikonform neben der ersten. Verdoppele deine Zykluskapazität von Anfang an." },
@@ -1503,14 +1520,30 @@ const UPGRADES = [
     apply: s => ({ ...s, linesBonus: s.linesBonus + 1, truckMaxCap: Math.max(s.truckMaxCap, 3000) }) },
   { id: 'fred_chef',      Icon: Users,     count: 1, destructible: false, phase: 2, name: { fr: "Fred Chef d'Atelier", en: 'Fred Workshop Manager', es: 'Fred Jefe de Taller', zh: "弗雷德, 车间主管", ru: "Фред, Начальник цеха", it: "Fred Capo Laboratorio", de: "Fred Werkstattleiter" }, desc: { fr: '+7 GL/s · cycle 2.5s', en: '+7 IC/s · cycle 2.5s', es: '+7 CB/s · ciclo 2.5s', zh: "+7 冰块/秒 · 周期 2.5秒", ru: "+7 К/с · цикл 2.5с", it: "+7 CB/s · ciclo 2.5s", de: "+7 EW/s · Zyklus 2.5s" }, cost: 8000,
     salary: { bas: 200, std: 400, haut: 600 }, salaryRole: 'fred', gradeName: { fr: "Chef d'Atelier", en: "Workshop Manager", es: "Jefe de Taller", zh: "车间主管", ru: "Начальник цеха", it: "Capo Laboratorio", de: "Werkstattleiter" },
-    longDesc: { fr: "Fred est promu chef d'atelier. Il manage la production et délègue. Cycles de 2.5s qui livrent 49 glaçons d'un coup.", en: "Fred is promoted to workshop manager. He manages production and delegates. 2.5-second cycles delivering 49 ice cubes at a time.", es: "Fred es ascendido a jefe de taller. Gestiona la producción y delega. Ciclos de 2.5s que entregan 49 cubitos a la vez.", zh: "弗雷德晋升为车间主管。他管理生产并下放任务。2.5秒周期，每次出49块冰。", ru: "Фред повышен до начальника цеха. Он управляет производством и делегирует. 2.5-секундные циклы, выдающие по 49 кубиков за раз.", it: "Fred è promosso a capo laboratorio. Gestisce la produzione e delega. Cicli da 2.5 secondi che producono 49 cubetti alla volta.", de: "Fred wird zum Werkstattleiter befördert. Er leitet die Produktion und delegiert. 2,5-Sekunden-Zyklen mit je 49 Eiswürfeln." },
+    longDesc: {
+      fr: "Ce palier ajoute 7 glaçons par seconde à la production de base. Fred travaille par cycles de 2,5 s. La quantité réellement produite dépend de tes équipements, de son salaire, de son moral et des événements. Consulte le débit affiché pour mesurer le résultat.",
+      en: "This tier adds 7 ice cubes per second to base production. Fred works in 2.5s cycles. Actual output depends on equipment, salary, morale and events. Check the displayed rate to see the result.",
+      es: "Este nivel añade 7 cubitos por segundo a la producción base. Fred trabaja en ciclos de 2.5s. La producción real depende del equipo, sueldo, moral y eventos. Consulta el ritmo mostrado para ver el resultado.",
+      de: "Diese Stufe erhöht die Grundproduktion um 7 Eiswürfel pro Sekunde. Fred arbeitet in 2.5s-Zyklen. Der tatsächliche Ertrag hängt von Ausstattung, Gehalt, Moral und Ereignissen ab. Die angezeigte Rate zeigt das Ergebnis.",
+      it: "Questo livello aggiunge 7 cubetti al secondo alla produzione base. Fred lavora in cicli di 2.5s. La produzione effettiva dipende da attrezzature, stipendio, morale ed eventi. Consulta il ritmo indicato per vedere il risultato.",
+      ru: "Этот уровень добавляет 7 кубиков в секунду к базовому производству. Фред работает циклами по 2.5 с. Фактический выпуск зависит от оборудования, зарплаты, морали и событий. Результат виден в показателе производства.",
+      zh: "此职级为基础产量增加每秒7个冰块。弗雷德以2.5秒为一个生产周期。实际产量取决于设备、薪资、士气和事件，请查看显示的生产速率。"
+    },
     apply: s => ({ ...s, passiveProd: s.passiveProd + 7 }) },
   { id: 'force_cadence',   Icon: Zap,       count: 1, destructible: false, phase: 2, name: { fr: 'Forcer la cadence', en: 'Force the pace', es: 'Forzar el ritmo', zh: "强行加速", ru: "Форсировать темп", it: "Forza il ritmo", de: "Tempo forcieren" }, desc: { fr: 'prod ×1.66', en: 'prod ×1.66', es: 'prod ×1.66', zh: "生产 ×1.66", ru: "произв ×1.66", it: "prod ×1.66", de: "Prod ×1.66" }, cost: 32000,
     longDesc: { fr: "Cadence forcée sur toutes les machines. Toutes les sources passives ×1.66 (cumul avec Renforcer la chaîne = ×2.21 sur la base). Production explosive, le pic de productivité de la Phase 2.", en: "Forced pace on all machines. All passive sources ×1.66 (stacks with Reinforce the line = ×2.21 on the base). Explosive production, the productivity peak of Phase 2.", es: "Ritmo forzado en todas las máquinas. Todas las fuentes pasivas ×1.66 (acumula con Reforzar la cadena = ×2.21 sobre la base). Producción explosiva, el pico de productividad de la Fase 2.", zh: "所有机器强行加速。所有被动来源 ×1.66（与强化产线叠加 = 基础上 ×2.21）。爆发式生产,,第2阶段的产能巅峰。", ru: "Форсированный темп на всех машинах. Все пассивные источники ×1.66 (складывается с Усилить линию = ×2.21 на базу). Взрывное производство, пик продуктивности Фазы 2.", it: "Ritmo forzato su tutte le macchine. Tutte le fonti passive ×1.66 (si cumula con Rinforza la linea = ×2.21 sulla base). Produzione esplosiva, il picco di produttività della Fase 2.", de: "Forciertes Tempo an allen Maschinen. Alle passiven Quellen ×1.66 (kumuliert mit Linie verstärken = ×2.21 auf der Basis). Explosive Produktion, der Produktivitätsgipfel von Phase 2." },
     apply: s => ({ ...s, prodSpeedMult: s.prodSpeedMult * 1.66 }) },
   { id: 'fred_dir',       Icon: Users,     count: 2, destructible: false, phase: 2, name: { fr: 'Fred Directeur des Opérations', en: 'Fred Operations Director', es: 'Fred Director de Operaciones', zh: "弗雷德, 运营总监", ru: "Фред, Операционный директор", it: "Fred Direttore Operativo", de: "Fred Betriebsdirektor" }, desc: { fr: '+12 GL/s · cycle 2s', en: '+12 IC/s · cycle 2s', es: '+12 CB/s · ciclo 2s', zh: "+12 冰块/秒 · 周期 2秒", ru: "+12 К/с · цикл 2с", it: "+12 CB/s · ciclo 2s", de: "+12 EW/s · Zyklus 2s" }, cost: 29000,
     salary: { bas: 1385, std: 2100, haut: 3275 }, salaryRole: 'fred', gradeName: { fr: "Directeur des Opérations", en: "Operations Director", es: "Director de Operaciones", zh: "运营总监", ru: "Операционный директор", it: "Direttore Operativo", de: "Betriebsdirektor" },
-    longDesc: { fr: "Fred atteint son palier ultime : Directeur des Opérations. Cycles de 2s qui sortent 66 glaçons d'un coup, le top de la hiérarchie opérationnelle.", en: "Fred reaches his ultimate tier: Operations Director. 2-second cycles outputting 66 ice cubes at a time, the top of the operational hierarchy.", es: "Fred alcanza su nivel máximo: Director de Operaciones. Ciclos de 2s que sacan 66 cubitos a la vez, el tope de la jerarquía operacional.", zh: "弗雷德达到最高级别：运营总监。2秒周期，每次出66块冰,,运营层级的顶峰。", ru: "Фред достигает высшего уровня: Операционный директор. 2-секундные циклы, выдающие по 66 кубиков за раз, вершина операционной иерархии.", it: "Fred raggiunge il suo livello finale: Direttore Operativo. Cicli da 2 secondi che producono 66 cubetti alla volta, il vertice della gerarchia operativa.", de: "Fred erreicht seine höchste Stufe: Betriebsdirektor. 2-Sekunden-Zyklen mit je 66 Eiswürfeln, die Spitze der operativen Hierarchie." },
+    longDesc: {
+      fr: "Ce palier ajoute 12 glaçons par seconde à la production de base. Fred travaille par cycles de 2 s. La quantité réellement produite dépend de tes équipements, de son salaire, de son moral et des événements. Consulte le débit affiché pour mesurer le résultat.",
+      en: "This tier adds 12 ice cubes per second to base production. Fred works in 2s cycles. Actual output depends on equipment, salary, morale and events. Check the displayed rate to see the result.",
+      es: "Este nivel añade 12 cubitos por segundo a la producción base. Fred trabaja en ciclos de 2s. La producción real depende del equipo, sueldo, moral y eventos. Consulta el ritmo mostrado para ver el resultado.",
+      de: "Diese Stufe erhöht die Grundproduktion um 12 Eiswürfel pro Sekunde. Fred arbeitet in 2s-Zyklen. Der tatsächliche Ertrag hängt von Ausstattung, Gehalt, Moral und Ereignissen ab. Die angezeigte Rate zeigt das Ergebnis.",
+      it: "Questo livello aggiunge 12 cubetti al secondo alla produzione base. Fred lavora in cicli di 2s. La produzione effettiva dipende da attrezzature, stipendio, morale ed eventi. Consulta il ritmo indicato per vedere il risultato.",
+      ru: "Этот уровень добавляет 12 кубиков в секунду к базовому производству. Фред работает циклами по 2 с. Фактический выпуск зависит от оборудования, зарплаты, морали и событий. Результат виден в показателе производства.",
+      zh: "此职级为基础产量增加每秒12个冰块。弗雷德以2秒为一个生产周期。实际产量取决于设备、薪资、士气和事件，请查看显示的生产速率。"
+    },
     apply: s => ({ ...s, passiveProd: s.passiveProd + 12 }) },
   // === PHASE 2 — MARK · DIRECTEUR DES ACHATS ===
   { id: 'comptable_senior', Icon: Briefcase, count: 1, destructible: false, phase: 2, name: { fr: 'Comptable senior', en: 'Senior accountant', es: 'Contable senior', zh: "高级会计", ru: "Старший бухгалтер", it: "Contabile senior", de: "Senior-Buchhalter" }, desc: { fr: 'prix ×1.05 · charges ×0.8', en: 'price ×1.05 · costs ×0.8', es: 'precio ×1.05 · cargas ×0.8', zh: "价格 ×1.05 · 费用 ×0.8", ru: "цена ×1.05 · расходы ×0.8", it: "prezzo ×1.05 · spese ×0.8", de: "Preis ×1.05 · Kosten ×0.8" }, cost: 56000,
@@ -1694,7 +1727,15 @@ const UPGRADES = [
   // === TIER LÉGENDE — Fred & Brigitte ===
   { id: 'fred_legende', Icon: Crown, count: 1, destructible: false, phase: 3, name: { fr: 'Fred Légende', en: 'Fred the Legend', es: 'Fred Leyenda', zh: "传奇弗雷德", ru: "Фред Легенда", it: "Fred Leggenda", de: "Fred die Legende" }, desc: { fr: '+30 GL/s · cycle 1.5s', en: '+30 IC/s · cycle 1.5s', es: '+30 CB/s · ciclo 1.5s', zh: "+30 冰/秒 · 周期 1.5秒", ru: "+30 К/с · цикл 1.5с", it: "+30 CB/s · ciclo 1.5s", de: "+30 EW/s · Zyklus 1.5s" }, cost: 210000, requireUnlock: 'fred_dir',
     salary: { bas: 3200, std: 4800, haut: 7400 }, salaryRole: 'fred', gradeName: { fr: "Légende vivante", en: "Living Legend", es: "Leyenda viva", zh: "活着的传奇", ru: "Живая легенда", it: "Leggenda vivente", de: "Lebende Legende" },
-    longDesc: { fr: "Fred a tout vu, tout fait. Six ans dans la boîte, du stagiaire au directeur ops, et maintenant Légende vivante du métier. Il gère 7 lignes en simultané, forme la relève, et son nom seul attire les meilleurs candidats. La consécration ultime de sa carrière.", en: "Fred has seen and done it all. Six years in the company, from intern to ops director, now Living Legend of the trade. He runs 7 lines simultaneously, trains successors, and his name alone attracts top candidates. The ultimate career consecration.", es: "Fred lo ha visto y hecho todo. Seis años en la casa, de becario a director ops, ahora Leyenda viva del oficio. Gestiona 7 líneas a la vez, forma sucesores, y su nombre solo atrae a los mejores candidatos. La consagración final de su carrera.", zh: "弗雷德见过、做过一切。在公司六年，从实习生到运营总监，现在是行业活传奇。同时管理7条生产线，培养接班人，光他的名字就吸引顶尖候选人。职业生涯的终极加冕。", ru: "Фред видел всё и делал всё. Шесть лет в компании, от стажёра до операционного директора, теперь Живая легенда профессии. Управляет 7 линиями одновременно, готовит преемников, его имя одно привлекает лучших кандидатов. Высшая коронация карьеры.", it: "Fred ha visto e fatto tutto. Sei anni in azienda, da stagista a direttore operativo, ora Leggenda vivente del mestiere. Gestisce 7 linee in contemporanea, forma i successori, e il suo nome attira i migliori candidati. La consacrazione ultima della carriera.", de: "Fred hat alles gesehen, alles gemacht. Sechs Jahre im Unternehmen, vom Praktikanten zum Betriebsleiter, jetzt Lebende Legende des Fachs. Er leitet 7 Linien gleichzeitig, bildet Nachfolger aus, sein Name allein zieht Spitzenkandidaten an. Die ultimative Krönung seiner Karriere." },
+    longDesc: {
+      fr: "Ce palier ajoute 30 glaçons par seconde à la production de base. Fred travaille par cycles de 1,5 s. La quantité réellement produite dépend de tes équipements, de son salaire, de son moral et des événements. Consulte le débit affiché pour mesurer le résultat.",
+      en: "This tier adds 30 ice cubes per second to base production. Fred works in 1.5s cycles. Actual output depends on equipment, salary, morale and events. Check the displayed rate to see the result.",
+      es: "Este nivel añade 30 cubitos por segundo a la producción base. Fred trabaja en ciclos de 1.5s. La producción real depende del equipo, sueldo, moral y eventos. Consulta el ritmo mostrado para ver el resultado.",
+      de: "Diese Stufe erhöht die Grundproduktion um 30 Eiswürfel pro Sekunde. Fred arbeitet in 1.5s-Zyklen. Der tatsächliche Ertrag hängt von Ausstattung, Gehalt, Moral und Ereignissen ab. Die angezeigte Rate zeigt das Ergebnis.",
+      it: "Questo livello aggiunge 30 cubetti al secondo alla produzione base. Fred lavora in cicli di 1.5s. La produzione effettiva dipende da attrezzature, stipendio, morale ed eventi. Consulta il ritmo indicato per vedere il risultato.",
+      ru: "Этот уровень добавляет 30 кубиков в секунду к базовому производству. Фред работает циклами по 1.5 с. Фактический выпуск зависит от оборудования, зарплаты, морали и событий. Результат виден в показателе производства.",
+      zh: "此职级为基础产量增加每秒30个冰块。弗雷德以1.5秒为一个生产周期。实际产量取决于设备、薪资、士气和事件，请查看显示的生产速率。"
+    },
     apply: s => ({ ...s, passiveProd: s.passiveProd + 30, fredCycle: 1.5 }) },
   { id: 'brigitte_legende', Icon: Crown, count: 1, destructible: false, phase: 3, name: { fr: 'Brigitte Légende', en: 'Brigitte the Legend', es: 'Brigitte Leyenda', zh: "传奇布丽吉特", ru: "Брижит Легенда", it: "Brigitte Leggenda", de: "Brigitte die Legende" }, desc: { fr: 'prix ×1.10 · contrats T7 +30%', en: 'price ×1.10 · T7 contracts +30%', es: 'precio ×1.10 · contratos T7 +30%', zh: "价格 ×1.10 · T7合同 +30%", ru: "цена ×1.10 · T7-контракты +30%", it: "prezzo ×1.10 · contratti T7 +30%", de: "Preis ×1.10 · T7-Verträge +30%" }, cost: 220000, requireUnlock: 'brigitte_ad',
     salary: { bas: 2800, std: 4200, haut: 6500 }, salaryRole: 'brigitte', gradeName: { fr: "Directrice Générale Adjointe", en: "Deputy CEO", es: "Directora General Adjunta", zh: "副总裁", ru: "Заместитель генерального", it: "Vice Direttrice Generale", de: "Stellvertretende Geschäftsführerin" },
@@ -1770,9 +1811,13 @@ const UPGRADE_FAMILIES = [
 
 const TUTORIAL_STEPS = [
   { id: 't_welcome', text: {
-      fr: "Un congélateur, un garage, et l'idée de vendre des glaçons pendant que la planète chauffe. Aucun consultant n'aurait approuvé ce business. Et pourtant te voilà. Congèle, vends avant que ça fonde, embauche, bâtis une marque, survis aux saisons. Stupide ? Peut-être. Addictif ? Définitivement.",
-      en: "A freezer, a garage, and the idea of selling ice cubes while the planet heats up. No consultant would have approved this business. And yet, here you are. Freeze, sell before it melts, hire, build a brand, survive the seasons. Stupid? Maybe. Addictive? Definitely.",
-      es: "Un congelador, un garaje, y la idea de vender cubitos mientras el planeta se calienta. Ningún consultor habría aprobado este negocio. Y aquí estás. Congela, vende antes de que se funda, contrata, construye una marca, sobrevive las estaciones. ¿Estúpido? Quizás. ¿Adictivo? Por supuesto.", zh: "一台冷冻柜、一间车库，以及在地球变暖时卖冰块的念头。没有顾问会批准这门生意。然而，你就在这里。冷冻、趁融化前卖出、招人、打造品牌、熬过四季。蠢吗？也许。上瘾吗？绝对。", ru: "Морозильник, гараж и идея продавать кубики льда, пока планета нагревается. Ни один консультант не одобрил бы этот бизнес. И всё же вы здесь. Замораживайте, продавайте до таяния, нанимайте, стройте бренд, выживайте в сезонах. Глупо? Может быть. Затягивает? Определённо.", it: "Un congelatore, un garage e l'idea di vendere cubetti di ghiaccio mentre il pianeta si surriscalda. Nessun consulente avrebbe approvato questo business. Eppure, eccoti qui. Congela, vendi prima che si sciolga, assumi, costruisci un marchio, sopravvivi alle stagioni. Stupido? Forse. Coinvolgente? Decisamente.", de: "Eine Gefriertruhe, eine Garage und die Idee, Eiswürfel zu verkaufen, während der Planet sich aufheizt. Kein Berater hätte dieses Geschäft abgesegnet. Und doch bist du hier. Einfrieren, verkaufen bevor es schmilzt, einstellen, eine Marke aufbauen, die Jahreszeiten überleben. Dumm? Vielleicht. Süchtig machend? Definitiv."
+      fr: "Un garage, un congélateur, une ambition : bâtir ton empire du glaçon. Commence par produire, vends avant la fonte, puis investis dans ton équipe. Tes premiers clients t’attendent.",
+      en: "A garage, a freezer, one ambition: build your ice empire. Start producing, sell before the ice melts, then invest in your team. Your first customers are waiting.",
+      es: "Un garaje, un congelador y una ambición: construir tu imperio del hielo. Produce, vende antes de que se derrita e invierte en tu equipo. Tus primeros clientes te esperan.",
+      de: "Eine Garage, eine Gefriertruhe, ein Ziel: dein Eiswürfelimperium aufbauen. Produziere, verkaufe vor der Schmelze und investiere in dein Team. Die ersten Kunden warten.",
+      it: "Un garage, un congelatore, un’ambizione: costruire il tuo impero del ghiaccio. Produci, vendi prima che si sciolga e investi nella squadra. I primi clienti ti aspettano.",
+      ru: "Гараж, морозильник и одна цель: построить ледяную империю. Производите, продавайте до таяния и вкладывайте в команду. Первые покупатели уже ждут.",
+      zh: "一间车库、一台冷冻柜、一个目标：建立你的冰块帝国。先生产，趁冰块融化前卖出，再投资你的团队。第一批顾客正在等你。"
     }, targetSel: null, side: 'center', delay: 100, isIntro: true,
     canShow: s => true, autoClose: null },
   { id: 't_congeler', text: {
@@ -1782,51 +1827,75 @@ const TUTORIAL_STEPS = [
     }, targetSel: '.acts .btn-primary', side: 'top', delay: 1000, chainFast: true,
     canShow: s => true, autoClose: s => s.totals.produced >= 8 },
   { id: 't_vendre', text: {
-      fr: 'Vends quelques glaçons pour gagner ton premier cash.',
+      fr: 'Vends quelques glaçons pour gagner tes premiers euros.',
       en: 'Sell a few ice cubes to earn your first cash.',
       es: 'Vende unos cubitos para ganar tu primer dinero.', zh: "卖几块冰赚到你的第一笔现金。", ru: "Продайте несколько кубиков, чтобы заработать первые деньги.", it: "Vendi qualche cubetto per guadagnare i tuoi primi soldi.", de: "Verkaufe ein paar Eiswürfel, um dein erstes Geld zu verdienen."
     }, targetSel: '.acts .btn:nth-child(2)', side: 'top', delay: 800, chainFast: true,
     canShow: s => s.totals.produced >= 8, autoClose: s => s.totals.sold > 0 },
   { id: 't_revenus', text: {
-      fr: "Bravo, première vente ! Le compteur en haut affiche ton cash disponible. C'est la trésorerie qui te servira à acheter des améliorations, payer les salaires et financer ta croissance.",
-      en: "Nice, first sale! The top counter shows your available cash. That's the cash flow you'll use to buy upgrades, pay salaries, and fund growth.",
-      es: "¡Bien, primera venta! El contador de arriba muestra tu cash disponible. Es la tesorería que usarás para comprar mejoras, pagar salarios y financiar el crecimiento.", zh: "漂亮，第一单！顶部计数器显示你的可用现金。这就是你用来购买升级、支付工资、资助增长的现金流。", ru: "Отлично, первая продажа! Верхний счётчик показывает доступные наличные. Это денежный поток, который вы будете использовать для покупки улучшений, выплаты зарплат и финансирования роста.", it: "Bene, prima vendita! Il contatore in alto mostra la liquidità disponibile. È la cassa che userai per comprare migliorie, pagare gli stipendi e finanziare la crescita.", de: "Stark, erster Verkauf! Der obere Zähler zeigt dein verfügbares Geld. Mit diesem Cashflow kaufst du Upgrades, zahlst Gehälter und finanzierst Wachstum."
+      fr: "Première vente ! Ce compteur affiche ta trésorerie disponible. Elle finance tes améliorations et les prochaines factures : garde une réserve avant chaque achat.",
+      en: "First sale! This counter shows your available cash. It pays for upgrades and upcoming bills: keep a reserve before each purchase.",
+      es: "¡Primera venta! Este contador muestra tu dinero disponible. Paga las mejoras y las próximas facturas: guarda una reserva antes de comprar.",
+      de: "Der erste Verkauf! Diese Anzeige zeigt dein verfügbares Geld. Es finanziert Upgrades und kommende Rechnungen: Behalte vor jedem Kauf eine Reserve.",
+      it: "Prima vendita! Questo contatore mostra la liquidità disponibile. Serve per migliorie e prossime bollette: conserva una riserva prima di ogni acquisto.",
+      ru: "Первая продажа! Счётчик показывает доступные деньги. Они нужны для улучшений и будущих счетов: оставляйте резерв перед каждой покупкой.",
+      zh: "第一笔销售！这里显示你的可用现金，用于升级和支付即将到来的账单。每次购买前都留出一些储备。"
     }, targetSel: '.cash-mini', side: 'bottom', delay: 800,
     canShow: s => s.totals.sold > 0 && s.money > 0, autoClose: null },
   { id: 't_rentab', text: {
-      fr: "Voici ta RENTABILITÉ MENSUELLE : ce qui te reste chaque mois après paiement des charges (salaires, charges courantes, prêt). Tape pour le détail. Si elle devient négative et clignote, tu perds de l'argent, réagis vite.",
-      en: "This is your MONTHLY PROFITABILITY: what's left each month after paying expenses (salaries, running costs, loan). Tap for the breakdown. If it goes negative and pulses, you're losing money, act fast.",
-      es: "Esta es tu RENTABILIDAD MENSUAL: lo que te queda cada mes tras pagar las cargas (salarios, cargas corrientes, préstamo). Toca para el desglose. Si se vuelve negativa y parpadea, pierdes dinero, reacciona rápido.", zh: "这是你的月度盈利能力：每月支付费用（工资、运营成本、贷款）后剩下的。点击查看明细。如果它变负并跳动，你在亏钱,,赶紧行动。", ru: "Это ваша МЕСЯЧНАЯ РЕНТАБЕЛЬНОСТЬ: то, что остаётся каждый месяц после оплаты расходов (зарплаты, текущие расходы, кредит). Нажмите для разбивки. Если она уходит в минус и пульсирует, вы теряете деньги, действуйте быстро.", it: "Questa è la tua REDDITIVITÀ MENSILE: ciò che resta ogni mese dopo aver pagato le spese (stipendi, costi correnti, prestito). Tocca per la scomposizione. Se diventa negativa e pulsa, stai perdendo soldi, agisci in fretta.", de: "Das ist deine MONATLICHE RENTABILITÄT: was jeden Monat nach Abzug der Kosten (Gehälter, laufende Kosten, Kredit) übrig bleibt. Tippe für die Aufschlüsselung. Wird sie negativ und pulsiert, verlierst du Geld, handle schnell."
+      fr: "La rentabilité mensuelle est une estimation : revenus récents moins charges prévues. Elle varie avec les ventes. Consulte le détail et la prochaine échéance pour savoir combien garder en réserve.",
+      en: "Monthly profit is an estimate: recent revenue minus expected expenses. It changes with sales. Check the breakdown and the next bill to plan your cash reserve.",
+      es: "La rentabilidad mensual es una estimación: ingresos recientes menos gastos previstos. Cambia con las ventas. Consulta el desglose y el próximo pago para planificar tu reserva.",
+      de: "Der Monatsgewinn ist eine Schätzung: aktuelle Einnahmen minus erwartete Kosten. Er schwankt mit den Verkäufen. Prüfe Details und nächste Fälligkeit für deine Geldreserve.",
+      it: "Il profitto mensile è una stima: ricavi recenti meno spese previste. Varia con le vendite. Consulta il dettaglio e la prossima scadenza per pianificare la riserva.",
+      ru: "Месячная прибыль — оценка: недавняя выручка минус ожидаемые расходы. Она меняется с продажами. Проверяйте расчёт и ближайший платёж, чтобы планировать резерв.",
+      zh: "月度利润是估算值：近期收入减去预计支出，会随销售变化。查看明细和下一次付款时间，规划现金储备。"
     }, targetSel: '.rate-profit', side: 'top', delay: 900,
     canShow: s => s.hasFred && s.hireDates && s.hireDates.fred != null && (s.gameTime - s.hireDates.fred) >= 15, autoClose: null },
   { id: 't_boost', text: {
-      fr: "Fred peut produire en mode rush : ce bouton BOOST lance un cycle ultra-rapide pendant quelques secondes. Pratique pour combler un stock en urgence avant un gros contrat. Mais chaque boost stresse Fred. À 100% de stress, il part en burnout et n'est plus capable d'être boosté pendant un bon moment. Utilise-le quand c'est vraiment nécessaire.",
-      en: "Fred can switch to rush mode: this BOOST button triggers an ultra-fast cycle for a few seconds. Handy to top up stock before a big contract. But each boost stresses Fred. At 100% stress, he burns out and can't be boosted for quite a while. Use it only when it really matters.",
-      es: "Fred puede pasar a modo rush: este botón BOOST lanza un ciclo ultra-rápido durante unos segundos. Útil para completar stock antes de un gran contrato. Pero cada boost estresa a Fred. Al 100% de estrés, sufre un burnout y no podrá ser boosteado durante un buen rato. Úsalo solo cuando sea realmente necesario.", zh: "弗雷德可以切换到冲刺模式：这个加速按钮触发几秒钟的超快周期。在大合同前补库存很方便。但每次加速都让弗雷德有压力。压力100%时他会倦怠，相当一段时间无法加速。只在真正关键时使用。", ru: "Фред может переключиться в режим рывка: эта кнопка БУСТ запускает сверхбыстрый цикл на несколько секунд. Удобно пополнить запас перед крупным контрактом. Но каждый буст напрягает Фреда. На 100% стресса он выгорает и его нельзя бустить довольно долго. Используйте только когда это действительно важно.", it: "Fred può passare in modalità rush: questo pulsante BOOST attiva un ciclo ultra-rapido per qualche secondo. Comodo per fare scorta prima di un grande contratto. Ma ogni boost stressa Fred. Al 100% di stress va in burnout e non può essere boostato per un bel po'. Usalo solo quando conta davvero.", de: "Fred kann in den Eilmodus schalten: Dieser BOOST-Knopf löst für ein paar Sekunden einen ultraschnellen Zyklus aus. Praktisch, um den Bestand vor einem großen Vertrag aufzufüllen. Aber jeder Boost stresst Fred. Bei 100% Stress brennt er aus und kann eine ganze Weile nicht geboostet werden. Nutze ihn nur, wenn es wirklich zählt."
+      fr: "Le BOOST accélère la production de Fred, mais augmente son stress et réduit son moral. À 100 de stress, les boosts sont bloqués et il produit deux fois moins jusqu’au retour à 0. Réserve ce coup d’accélérateur aux urgences.",
+      en: "BOOST speeds up Fred’s production, but raises his stress and lowers morale. At 100 stress, boosts lock and he produces at half speed until stress returns to 0. Save this burst for urgent orders.",
+      es: "El BOOST acelera la producción de Fred, pero aumenta su estrés y reduce la moral. A 100 de estrés, los impulsos se bloquean y produce a la mitad hasta volver a 0. Resérvalo para urgencias.",
+      de: "BOOST beschleunigt Freds Produktion, erhöht aber Stress und senkt Moral. Bei 100 Stress sind Boosts gesperrt und er produziert halb so schnell, bis der Stress auf 0 fällt. Nutze den Schub für dringende Aufträge.",
+      it: "Il BOOST accelera la produzione di Fred, ma aumenta lo stress e riduce il morale. A 100, i boost si bloccano e produce a metà velocità finché lo stress torna a 0. Usalo per gli ordini urgenti.",
+      ru: "БУСТ ускоряет производство Фреда, но повышает стресс и снижает мораль. При 100 стресса бусты блокируются, а скорость производства падает вдвое до возврата стресса к 0. Берегите рывок для срочных заказов.",
+      zh: "加速会提高弗雷德的生产速度，但也会增加压力、降低士气。压力达到100时，加速锁定，生产速度减半，直到压力回到0。把加速留给紧急订单。"
     }, targetSel: '.acts .boost-btn.compact', side: 'top', delay: 700,
     canShow: s => s.hasFred && s.hireDates && s.hireDates.fred != null && (s.gameTime - s.hireDates.fred) >= 10, autoClose: null },
   { id: 't_menubar', text: {
-      fr: "Au-dessus du panneau central, ta barre de menus. Six accès stratégiques : Personnel (équipe), Contrats (deals B2B), Marketing (campagnes), Banque (prêts), Appel (opportunités téléphoniques), RH (moral & équipe). Les boutons grisés se débloquent à mesure que tu progresses.",
-      en: "Above the central panel, your menu bar. Six strategic accesses: Personnel (team), Contracts (B2B deals), Marketing (campaigns), Bank (loans), Call (phone opportunities), HR (morale & team). Greyed buttons unlock as you progress.",
-      es: "Encima del panel central, tu barra de menús. Seis accesos estratégicos: Personal (equipo), Contratos (negocios B2B), Marketing (campañas), Banco (préstamos), Llamada (oportunidades), RR.HH. (moral y equipo). Los botones grises se desbloquean al progresar.", zh: "中央面板上方是你的菜单栏。六个战略入口：员工（团队）、合同（B2B交易）、营销（活动）、银行（贷款）、来电（电话机会）、人事（士气与团队）。灰色按钮随进度解锁。", ru: "Над центральной панелью ваша строка меню. Шесть стратегических доступов: Персонал (команда), Контракты (B2B-сделки), Маркетинг (кампании), Банк (кредиты), Звонок (телефонные возможности), HR (мораль и команда). Серые кнопки открываются по мере прогресса.", it: "Sopra il pannello centrale, la tua barra menu. Sei accessi strategici: Personale (team), Contratti (deal B2B), Marketing (campagne), Banca (prestiti), Chiamata (opportunità telefoniche), RU (morale e team). I pulsanti grigi si sbloccano col progredire.", de: "Über dem zentralen Panel deine Menüleiste. Sechs strategische Zugänge: Personal (Team), Verträge (B2B-Deals), Marketing (Kampagnen), Bank (Kredite), Anruf (Telefon-Gelegenheiten), HR (Moral & Team). Ausgegraute Knöpfe schalten sich mit dem Fortschritt frei."
+      fr: "Cette barre rassemble tes outils de gestion : équipe, contrats, marketing, banque, appels et RH. Les accès grisés se débloquent avec ta progression. Surveille les pastilles : elles signalent une action à examiner.",
+      en: "This bar holds your management tools: staff, contracts, marketing, bank, calls and HR. Greyed-out tools unlock as you progress. Badges flag actions to review.",
+      es: "Esta barra reúne tus herramientas: personal, contratos, marketing, banco, llamadas y RR.HH. Las opciones grises se desbloquean al progresar. Los indicadores señalan acciones que revisar.",
+      de: "Hier findest du deine Verwaltung: Team, Verträge, Marketing, Bank, Anrufe und Personalmaßnahmen. Graue Zugänge werden mit dem Fortschritt freigeschaltet. Markierungen weisen auf offene Aktionen hin.",
+      it: "Questa barra raccoglie gli strumenti: personale, contratti, marketing, banca, chiamate e risorse umane. Le voci grigie si sbloccano avanzando. Gli indicatori segnalano azioni da esaminare.",
+      ru: "Здесь собраны инструменты управления: сотрудники, контракты, маркетинг, банк, звонки и кадры. Серые разделы открываются по мере развития. Значки указывают на действия, требующие внимания.",
+      zh: "这里集中展示经营工具：员工、合同、营销、银行、来电和人事。灰色入口会随进度解锁，提示标记代表有待查看的事项。"
     }, targetSel: '.menu-bar', side: 'bottom', delay: 700,
     canShow: s => s.phase >= 3 && s.totals.sold > 0, autoClose: null },
   { id: 't_upgrades', text: {
-      fr: 'Investis ton cash dans des améliorations. Clique sur une carte pour son détail.',
+      fr: 'Investis ta trésorerie dans des améliorations. Clique sur une carte pour son détail.',
       en: 'Invest your cash in upgrades. Tap a card to see details.',
       es: 'Invierte tu dinero en mejoras. Toca una tarjeta para ver detalles.', zh: "把现金投入升级。点击卡片查看详情。", ru: "Вкладывайте наличные в улучшения. Нажмите на карточку для деталей.", it: "Investi la tua liquidità in migliorie. Tocca una carta per i dettagli.", de: "Investiere dein Geld in Upgrades. Tippe eine Karte für Details an."
     }, targetSel: '[data-family-id="prod_industrielle"]', side: 'top', delay: 600,
     canShow: s => s.money >= 5 && s.ownedCount === 0, autoClose: s => s.ownedCount > 0 },
   { id: 't_salary', text: {
-      fr: "Tu viens d'embaucher. Ouvre le panneau Personnel ici pour régler le salaire (BAS / STD / HAUT). La paie tombe chaque mois dès maintenant — surveille ton cash.",
-      en: "You just hired someone. Open the Staff panel here to set the salary (LOW / STD / HIGH). Pay falls every month starting now — watch your cash.",
-      es: "Acabas de contratar. Abre el panel Personal aquí para ajustar el salario (BAJO / STD / ALTO). El pago cae cada mes desde ya — vigila tu dinero.", zh: "你刚雇了人。在这里打开员工面板设置工资（低/标准/高）。工资从现在起每月扣 —— 留意现金。", ru: "Вы только что наняли кого-то. Откройте здесь панель Персонала, чтобы задать зарплату (НИЗКАЯ / СТД / ВЫСОКАЯ). Оплата начисляется каждый месяц с этого момента — следите за наличными.", it: "Hai appena assunto qualcuno. Apri qui il pannello Personale per impostare lo stipendio (BASSO / STD / ALTO). La paga scade ogni mese da ora — tieni d'occhio la liquidità.", de: "Du hast jemanden eingestellt. Öffne hier das Personal-Panel, um das Gehalt festzulegen (NIEDRIG / STD / HOCH). Die Zahlung fällt jeden Monat ab sofort an — behalte dein Geld im Auge."
+      fr: "Ton équipe commence à grandir. Ouvre le panneau ÉQUIPE pour voir les salaires et leurs effets. Le stage de Fred est gratuit ; ses promotions ajoutent un salaire mensuel à prévoir dans ta trésorerie.",
+      en: "Your team is growing. Open the STAFF panel to review pay and its effects. Fred’s internship is unpaid; his promotions add a monthly salary to your budget.",
+      es: "Tu equipo empieza a crecer. Abre PERSONAL para revisar los sueldos y sus efectos. Las prácticas de Fred no tienen sueldo; sus ascensos añaden un salario mensual a tu presupuesto.",
+      de: "Dein Team wächst. Öffne TEAM, um Gehälter und ihre Wirkung zu prüfen. Freds Praktikum ist unbezahlt; seine Beförderungen bringen ein monatliches Gehalt mit sich.",
+      it: "La squadra cresce. Apri PERSONALE per vedere stipendi ed effetti. Lo stage di Fred è gratuito; le promozioni aggiungono uno stipendio mensile da prevedere nel budget.",
+      ru: "Команда растёт. Откройте ПЕРСОНАЛ, чтобы узнать зарплаты и их эффекты. Стажировка Фреда бесплатна; после повышений нужно предусмотреть ежемесячную зарплату.",
+      zh: "你的团队正在成长。打开员工面板，查看薪资及其效果。弗雷德的实习无需工资；晋升后则需要将月薪计入预算。"
     }, targetSel: '.menu-btn-personnel', side: 'bottom', delay: 800,
     canShow: s => (s.hasFred || s.hasBrigitte) && !s.personnelOpen, autoClose: s => s.personnelOpen },
   { id: 't_moral', text: {
-      fr: "Voici la jauge de MORAL de chaque employé. Elle monte quand ils sont bien payés, promus, et que la boîte va bien. Elle descend en cas de salaire bas, refus d'augmentation, contrats louches ou rép pourrie. Moral haut → productivité boostée. Moral à zéro → grève. Tu peux aussi rehausser le moral instantanément avec le bouton PRIME EXCEPT. sous chaque employé (+20 moral, récupération 120s).",
-      en: "This is each employee's MORALE gauge. It rises with good pay, promotions, and a healthy company. It falls with low salary, refused raises, shady deals, or poor reputation. High morale → productivity boost. Zero → strike. You can also raise morale instantly with the BONUS button under each employee (+20 moral, 120s recovery).",
-      es: "Esta es la barra de MORAL de cada empleado. Sube cuando están bien pagados, ascendidos y la empresa va bien. Baja con salario bajo, aumento rechazado, tratos turbios o reputación pésima. Moral alta → productividad. A cero → huelga. También puedes subir la moral al instante con el botón PRIMA EXCEP. bajo cada empleado (+20 moral, enfriamiento 120s).", zh: "这是每位员工的士气计。它随良好薪资、晋升和健康的公司而上升。随低工资、被拒加薪、可疑交易或差声誉而下降。高士气→生产力提升。零→罢工。你也可以用每位员工下方的奖金按钮立即提升士气（+20士气，120秒冷却）。", ru: "Это индикатор МОРАЛИ каждого сотрудника. Растёт с хорошей оплатой, повышениями и здоровой компанией. Падает с низкой зарплатой, отказанными повышениями, мутными сделками или плохой репутацией. Высокая мораль → буст продуктивности. Ноль → забастовка. Можно также мгновенно поднять мораль кнопкой БОНУС под каждым сотрудником (+20 морали, перезарядка 120с).", it: "Questo è l'indicatore MORALE di ogni dipendente. Sale con buona paga, promozioni e un'azienda sana. Cala con stipendio basso, aumenti rifiutati, deal loschi o cattiva reputazione. Morale alto → boost produttività. Zero → sciopero. Puoi anche alzare il morale all'istante col pulsante BONUS sotto ogni dipendente (+20 morale, ricarica 120s).", de: "Das ist die MORAL-Anzeige jedes Mitarbeiters. Sie steigt mit guter Bezahlung, Beförderungen und einer gesunden Firma. Sie fällt bei niedrigem Gehalt, abgelehnten Erhöhungen, zwielichtigen Deals oder schlechtem Ruf. Hohe Moral → Produktivitätsschub. Null → Streik. Du kannst die Moral auch sofort mit dem BONUS-Knopf unter jedem Mitarbeiter heben (+20 Moral, 120s Abklingzeit)."
+      fr: "Sous 80 de moral, l’efficacité commence à baisser. Salaires, réputation et décisions RH font évoluer cette jauge. Une prime disponible rend 20 points de moral ; elle coûte deux fois le salaire et revient après 120 secondes de jeu.",
+      en: "Below 80 morale, efficiency starts to fall. Pay, reputation and HR decisions change this meter. An available bonus restores 20 morale, costs twice the salary and can be given again after 120 seconds of game time.",
+      es: "Por debajo de 80 de moral, la eficiencia baja. Sueldos, reputación y decisiones de RR.HH. cambian esta barra. Una prima disponible recupera 20 puntos, cuesta dos sueldos y puede repetirse tras 120 segundos de juego.",
+      de: "Unter 80 Moral sinkt die Effizienz. Gehalt, Ruf und Personalentscheidungen verändern die Anzeige. Eine verfügbare Prämie gibt 20 Moral, kostet zwei Gehälter und ist nach 120 Sekunden Spielzeit erneut möglich.",
+      it: "Sotto 80 di morale, l’efficienza cala. Stipendi, reputazione e decisioni del personale modificano la barra. Un bonus disponibile ridà 20 punti, costa due stipendi e torna disponibile dopo 120 secondi di gioco.",
+      ru: "При морали ниже 80 эффективность падает. На шкалу влияют зарплаты, репутация и кадровые решения. Доступная премия даёт 20 морали, стоит две зарплаты и повторяется через 120 секунд игрового времени.",
+      zh: "士气低于80时，效率开始下降。薪资、声誉和人事决策会改变这个数值。可用奖金能恢复20点士气，费用为两倍薪资，120秒游戏时间后可再次发放。"
     }, targetSel: '.personnel-modal .moral-bar-vertical', side: 'bottom', delay: 1100,
     canShow: s => s.personnelOpen && (s.hasFred || s.hasBrigitte), autoClose: s => !s.personnelOpen },
   { id: 't_stock_insuffisant', text: {
@@ -1836,9 +1905,13 @@ const TUTORIAL_STEPS = [
     }, targetSel: '.call-close-x', side: 'bottom', delay: 300,
     canShow: s => s.callModalOpen && s.callInsufficient && !s.hintShownThisSession, autoClose: s => !s.callModalOpen || !s.callInsufficient },
   { id: 't_level', text: {
-      fr: "Voici ton niveau. Il monte à chaque livraison, appel accepté ou objectif atteint. Plus tu montes, plus tu débloques d'appels téléphoniques et de contrats stratégiques.",
-      en: "This is your level. It rises with each delivery, accepted call, or milestone reached. The higher you go, the more phone calls and strategic contracts unlock.",
-      es: "Este es tu nivel. Sube con cada entrega, llamada aceptada u objetivo alcanzado. Cuanto más subes, más llamadas y contratos estratégicos desbloqueas.", zh: "这是你的等级。它随每次配送、接受的来电或达成的里程碑而上升。等级越高，解锁的电话和战略合同越多。", ru: "Это ваш уровень. Растёт с каждой доставкой, принятым звонком или достигнутым рубежом. Чем выше, тем больше открывается звонков и стратегических контрактов.", it: "Questo è il tuo livello. Sale a ogni consegna, chiamata accettata o traguardo raggiunto. Più sali, più si sbloccano chiamate e contratti strategici.", de: "Das ist dein Level. Es steigt mit jeder Lieferung, jedem angenommenen Anruf oder erreichten Meilenstein. Je höher du kommst, desto mehr Anrufe und strategische Verträge schalten sich frei."
+      fr: "Ton niveau résume l’activité de ton entreprise. Production, ventes, contrats terminés, appels acceptés et améliorations achetées alimentent ton expérience. Les fiches indiquent les conditions précises des prochains déblocages.",
+      en: "Your level reflects company activity. Production, sales, completed contracts, accepted calls and purchased upgrades build experience. Each card shows the exact requirements for its unlock.",
+      es: "Tu nivel refleja la actividad de la empresa. Producción, ventas, contratos completados, llamadas aceptadas y mejoras compradas dan experiencia. Cada ficha muestra sus requisitos de desbloqueo.",
+      de: "Dein Level spiegelt die Firmenaktivität wider. Produktion, Verkäufe, abgeschlossene Verträge, angenommene Anrufe und gekaufte Upgrades bringen Erfahrung. Die Karten zeigen die genauen Freischaltbedingungen.",
+      it: "Il livello riflette l’attività dell’azienda. Produzione, vendite, contratti completati, chiamate accettate e migliorie acquistate danno esperienza. Ogni scheda indica i requisiti precisi di sblocco.",
+      ru: "Уровень отражает активность компании. Производство, продажи, выполненные контракты, принятые звонки и купленные улучшения дают опыт. Точные условия открытия указаны в карточках.",
+      zh: "等级反映公司的经营活动。生产、销售、完成合同、接受来电和购买升级都会积累经验。各信息卡会显示具体的解锁条件。"
     }, targetSel: '.level-circle', side: 'bottom', delay: 1500,
     canShow: s => s.dismissedAt && s.dismissedAt.t_revenus && (s.now - s.dismissedAt.t_revenus) >= 3000, autoClose: null },
   { id: 't_rep', text: {
@@ -1860,9 +1933,13 @@ const TUTORIAL_STEPS = [
     }, targetSel: '.stock', side: 'bottom', delay: 200,
     canShow: s => s.stock / s.maxCap >= 0.8, autoClose: s => s.stock / s.maxCap < 0.5 },
   { id: 't_phone', text: {
-      fr: 'Un appel ! Réponds pour gagner cash ou réputation.',
-      en: 'A phone call! Answer to earn cash or reputation.',
-      es: '¡Una llamada! Responde para ganar dinero o reputación.', zh: "来电！接听以赚取现金或声誉。", ru: "Телефонный звонок! Ответьте, чтобы заработать наличные или репутацию.", it: "Una telefonata! Rispondi per guadagnare liquidità o reputazione.", de: "Ein Anruf! Geh ran, um Geld oder Ruf zu verdienen."
+      fr: "Un appel ! Découvre la proposition et ses conséquences avant de l’accepter.",
+      en: "A call! Read the offer and its consequences before accepting.",
+      es: "¡Una llamada! Revisa la propuesta y sus consecuencias antes de aceptar.",
+      de: "Ein Anruf! Prüfe Angebot und Folgen, bevor du annimmst.",
+      it: "Una chiamata! Leggi la proposta e le conseguenze prima di accettare.",
+      ru: "Звонок! Изучите предложение и последствия, прежде чем соглашаться.",
+      zh: "来电了！接受之前先查看提议及其后果。"
     }, targetSel: '.menu-btn-phone', side: 'bottom', delay: 0,
     canShow: s => s.currentCall !== null, autoClose: s => s.currentCall === null },
   { id: 't_phase2', text: {
@@ -1878,9 +1955,13 @@ const TUTORIAL_STEPS = [
     }, targetSel: '.menu-btn-contracts', side: 'bottom', delay: 600,
     canShow: s => s.linesBonus >= 1 && s.signedCount === 0, autoClose: s => s.signedCount > 0 },
   { id: 't_utilities', text: {
-      fr: "Chaque mois, toutes tes charges sont prélevées d'un coup : salaires + charges courantes (loyer, énergie, carburant…). Garde toujours du cash d'avance, sinon faillite.",
-      en: "Every month, all your charges are taken at once: salaries + running costs (rent, energy, fuel…). Always keep cash ahead, or you go bankrupt.",
-      es: "Cada mes, todas tus cargas se cobran de golpe: salarios + cargas corrientes (alquiler, energía, combustible…). Mantén siempre dinero por delante, o quiebras.", zh: "每个月，你所有的费用一次性扣除：工资 + 运营成本（租金、能源、燃料……）。始终保持现金有余，否则破产。", ru: "Каждый месяц все ваши расходы берутся за раз: зарплаты + текущие расходы (аренда, энергия, топливо…). Всегда держите наличные с запасом, иначе банкротство.", it: "Ogni mese, tutte le tue spese vengono prelevate in una volta: stipendi + costi correnti (affitto, energia, carburante…). Tieni sempre liquidità in anticipo, o vai in bancarotta.", de: "Jeden Monat werden alle Kosten auf einmal abgebucht: Gehälter + laufende Kosten (Miete, Energie, Sprit…). Halte stets Geld vor, sonst gehst du pleite."
+      fr: "Les salaires, charges courantes et échéances de prêt sont prélevés chaque mois. Le montant et le compte à rebours t’aident à préparer la prochaine facture. Garde une réserve pour éviter les impayés et leurs conséquences.",
+      en: "Salaries, running costs and loan payments are charged monthly. The amount and countdown help you prepare for the next bill. Keep a reserve to avoid missed payments and their consequences.",
+      es: "Los salarios, gastos corrientes y cuotas del préstamo se cobran cada mes. El importe y la cuenta atrás te ayudan a preparar el próximo pago. Guarda una reserva para evitar impagos y sus consecuencias.",
+      de: "Gehälter, laufende Kosten und Kreditraten werden monatlich fällig. Betrag und Countdown helfen bei der Planung. Halte eine Reserve, um Zahlungsausfälle und ihre Folgen zu vermeiden.",
+      it: "Stipendi, costi correnti e rate del prestito vengono addebitati ogni mese. Importo e conto alla rovescia aiutano a preparare il pagamento. Conserva una riserva per evitare insoluti e conseguenze.",
+      ru: "Зарплаты, текущие расходы и платежи по кредиту списываются ежемесячно. Сумма и таймер помогут подготовиться. Держите резерв, чтобы избежать просрочек и их последствий.",
+      zh: "工资、运营成本和贷款还款每月扣除。金额和倒计时有助于准备下一次账单。留出储备，避免欠款及其后果。"
     }, targetSel: '.charges-amt-bold', side: 'bottom', delay: 800,
     // N'apparaît qu'APRÈS que t_level ait été lu et fermé (le joueur a déjà
     // découvert le niveau, on lui présente ensuite les charges récurrentes).
@@ -1892,14 +1973,14 @@ const TUTORIAL_STEPS = [
     }, targetSel: null, side: 'center', delay: 500,
     canShow: s => s.gameTime >= SEASON_DURATION * 4 - MONTH_DURATION, autoClose: null },
   { id: 't_phase3', text: {
-      fr: "PHASE 03 · LA MARQUE. Le nouveau siège est prêt. Engage une agence marketing pour lancer des campagnes, faire grimper ta notoriété et débloquer les contrats retail.",
-      en: "PHASE 03 · THE BRAND. The new headquarters are ready. Hire a marketing agency to launch campaigns, boost your notoriety and unlock retail contracts.",
+      fr: "PHASE 03 · LA MARQUE. Le nouveau siège est prêt. Engage une agence marketing pour lancer des campagnes, faire grimper ta notoriété et débloquer les contrats avec les enseignes.",
+      en: "PHASE 03 · THE BRAND. The new headquarters are ready. Hire a marketing agency to launch campaigns, boost your awareness and unlock retail contracts.",
       es: "FASE 03 · LA MARCA. La nueva sede está lista. Contrata una agencia de marketing para lanzar campañas, subir tu notoriedad y desbloquear contratos retail.", zh: "第03阶段 · 品牌。新总部已就绪。聘请一家营销代理公司，启动营销活动，提升知名度，解锁零售合同。", ru: "ФАЗА 03 · БРЕНД. Новая штаб-квартира готова. Наймите маркетинговое агентство, чтобы запускать кампании, повышать известность и открывать розничные контракты.", it: "FASE 03 · IL MARCHIO. La nuova sede è pronta. Ingaggia un'agenzia marketing per lanciare campagne, aumentare la notorietà e sbloccare contratti retail.", de: "PHASE 03 · DIE MARKE. Die neue Firmenzentrale ist bereit. Engagiere eine Marketingagentur, um Kampagnen zu starten, deine Bekanntheit zu steigern und Einzelhandelsverträge freizuschalten."
     }, targetSel: '[data-family-id="pers_janice"]', side: 'top', delay: 1500,
     canShow: s => s.phase >= 3 && !s.hasJanice, autoClose: s => s.hasJanice },
   { id: 't_notoriety', text: {
       fr: "La notoriété, c'est à quel point ton nom est connu du grand public. Chaque livraison à une enseigne te fait gagner des points. Tes campagnes marketing aussi. Si tu ne fais rien, ta notoriété baisse lentement. Vise au-dessus de 65 pour intéresser les enseignes nationales, et au-dessus de 85 pour les très grandes chaînes.",
-      en: "Notoriety = how well-known your name is to the public. Each delivery to a retailer earns you points. Your marketing campaigns too. If you do nothing, notoriety drops slowly. Aim for 65+ to attract national chains, and 85+ for the largest brands.",
+      en: "Awareness = how well-known your name is to the public. Each delivery to a retailer earns you points. Your marketing campaigns too. If you do nothing, awareness drops slowly. Aim for 65+ to attract national chains, and 85+ for the largest brands.",
       es: "La notoriedad es lo conocido que es tu nombre por el público. Cada entrega a una cadena te suma puntos. Tus campañas de marketing también. Si no haces nada, la notoriedad baja lentamente. Apunta a más de 65 para interesar a las cadenas nacionales, y a más de 85 para las más grandes.", zh: "知名度 = 你的名号在公众中的知名程度。每次向零售商配送都让你得分。你的营销活动也是。如果什么都不做，知名度会缓慢下降。瞄准65+吸引全国连锁，85+吸引最大品牌。", ru: "Известность = насколько ваше имя знакомо публике. Каждая доставка ритейлеру приносит вам очки. Ваши маркетинговые кампании тоже. Если ничего не делать, известность медленно падает. Цельтесь на 65+ для привлечения национальных сетей и 85+ для крупнейших брендов.", it: "Notorietà = quanto il tuo nome è conosciuto dal pubblico. Ogni consegna a un retailer ti fa guadagnare punti. Anche le tue campagne marketing. Se non fai nulla, la notorietà cala lentamente. Punta a 65+ per attirare le catene nazionali, e 85+ per i marchi più grandi.", de: "Bekanntheit = wie gut dein Name beim Publikum bekannt ist. Jede Lieferung an einen Händler bringt Punkte. Deine Marketingkampagnen auch. Tust du nichts, sinkt die Bekanntheit langsam. Ziele auf 65+, um nationale Ketten anzuziehen, und 85+ für die größten Marken."
     }, targetSel: null, side: 'center', delay: 2500,
     canShow: s => s.phase >= 3 && s.notoriety >= 5 && s.campaignsLaunched >= 1, autoClose: null },
@@ -3672,8 +3753,7 @@ function makeInitialMarketplace(brigitteMaxTier, maxCap, truckMaxCap, notoriety,
   if (brigitteMaxTier === 0 || truckMaxCap === 0) return [];
   const eligible = B2B_CONTRACTS.filter(c =>
     c.brigitteTier <= brigitteMaxTier &&
-    c.qty <= maxCap &&
-    c.qty <= truckMaxCap &&
+    contractFitsCapacity(applyContractDynamics(c, owned, notoriety).qty, maxCap, truckMaxCap) &&
     (!c.notorietyMin || notoriety >= c.notorietyMin) &&
     !excludeIds.includes(c.id) &&
     !isContractInQuarantine(c.id, rejections, currentGameTime)
@@ -3873,6 +3953,14 @@ function applyContractDynamics(c, owned, notoriety, priceAdjust = 1.0) {
 //   ctx = { noSlot, reputation, segments: {famille, jeunesse, pro, luxe, eco} }
 function getContractAvailability(c, ctx) {
   const reasons = [];
+  if (typeof ctx.maxCap === 'number' && typeof ctx.truckMaxCap === 'number'
+      && !contractFitsCapacity(c.qty, ctx.maxCap, ctx.truckMaxCap)) {
+    reasons.push({
+      key: 'capacity',
+      label: { fr: 'Capacité insuffisante', en: 'Insufficient capacity', es: 'Capacidad insuficiente', de: 'Kapazität unzureichend', it: 'Capacità insufficiente', ru: 'Недостаточная вместимость', zh: '容量不足' },
+      hint: { fr: `${c.qty} GL requis · capacité ${Math.floor(Math.min(ctx.maxCap, ctx.truckMaxCap))}`, en: `${c.qty} cubes needed · capacity ${Math.floor(Math.min(ctx.maxCap, ctx.truckMaxCap))}` },
+    });
+  }
   // 1) Slot camion
   if (ctx.noSlot) {
     reasons.push({
@@ -3938,45 +4026,10 @@ function isContractInQuarantine(contractId, rejections, currentGameTime) {
 // Si globalDeadlineSec expire avant → échec (pénalité réputation, pas de bonus).
 //
 // La deadline est calculée sur du réel : (cycle aller-retour × nombre de livraisons) × marge.
-// CALIBRATION VOULUE :
-//   - Sprints (tier élevé) : marge SERRÉE voire NÉGATIVE → impossible sans boost. Force à booster.
-//   - Marathons (tier bas, retail) : marge GÉNÉREUSE → absorbe les aléas longue durée (pannes, pauses).
+// Les premiers clients demandent 6–8 livraisons, puis les engagements progressent
+// jusqu'à 12. Les enseignes conservent leurs tournées longues et régulières.
 function getContractProfile(c) {
-  if (!c) return { maxDeliveries: 1, globalDeadlineSec: 999999, completionBonusPct: 0 };
-  const dt = c.deliveryTime || 60;
-  let maxDeliveries, margin, completionBonusPct;
-  if (c.archetype === 'RETAIL') {
-    if (c.notorietyMin >= 70) { maxDeliveries = 25; margin = 1.35; completionBonusPct = 0.18; } // marathon long → marge ample
-    else if (c.notorietyMin >= 50) { maxDeliveries = 20; margin = 1.30; completionBonusPct = 0.15; }
-    else { maxDeliveries = 15; margin = 1.25; completionBonusPct = 0.12; }
-  } else {
-    const tier = c.brigitteTier || 1;
-    if (tier >= 5) { maxDeliveries = 3; margin = 0.95; completionBonusPct = 0.25; }            // sprint : -5% → BOOST OBLIGATOIRE
-    else if (tier >= 4) { maxDeliveries = 5; margin = 0.98; completionBonusPct = 0.20; }       // court tendu : -2% → boosts indispensables
-    else if (tier >= 3) { maxDeliveries = 8; margin = 1.08; completionBonusPct = 0.15; }       // standard : 8% pour 1 pépin
-    else { maxDeliveries = 12; margin = 1.20; completionBonusPct = 0.10; }                     // marathon doux : confortable
-  }
-  // === MULTIPLICATEUR DELIVERIES SELON CATÉGORIE ===
-  // Mai 2026 : on multiplie le nombre d'aller-retours d'un contrat selon sa catégorie
-  // pour éviter la surproduction de stock en P2/P3.
-  // Logique : petits contrats = longs et réguliers ; gros = courts mais juteux.
-  // Le total revenu reste équilibré : T1 ×8 × petit montant ≈ T3 ×3 × gros montant.
-  if (c.archetype !== 'RETAIL') {
-    const tier = c.brigitteTier || 1;
-    let multiplier;
-    if (tier <= 2) multiplier = 8;       // T1 catégorie (bars, brasseries, snacks) → 8× plus long
-    else if (tier <= 4) multiplier = 5;  // T2 catégorie (pizzerias, salons, restos) → 5× plus long
-    else multiplier = 3;                  // T3 catégorie (gros, prestige) → 3× plus long (déjà court à la base)
-    maxDeliveries = maxDeliveries * multiplier;
-  }
-  // Plafond raisonnable : tout contrat dépassant 40 livraisons est divisé par
-  // 2 (les marathons de 96 trajets T1-T2 deviennent ~48, plus jouable).
-  if (maxDeliveries > 40) maxDeliveries = Math.ceil(maxDeliveries / 2);
-  // Cycle aller-retour réel + overhead pause moyen (8s tous les ~4 trajets ≈ +2s/trajet)
-  const cycleSec = dt * 2 + 2;
-  const baseTotalSec = cycleSec * maxDeliveries;
-  const globalDeadlineSec = Math.round(baseTotalSec * margin);
-  return { maxDeliveries, globalDeadlineSec, completionBonusPct };
+  return contractProfile(c);
 }
 
 // === Indicateur d'alerte hors-écran ===
@@ -4403,6 +4456,8 @@ export default function App() {
   });
   // === ACHIEVEMENTS ===
   const [achievementsUnlocked, setAchievementsUnlocked] = useState([]); // array d'IDs
+  const [careerProgress, setCareerProgress] = useState(() => normalizeCareerProgress(null));
+  const careerProgressRef = useRef(careerProgress);
   const [achievementNotif, setAchievementNotif] = useState(null); // {id, name} pour le flash
   const [trophiesPanelOpen, setTrophiesPanelOpen] = useState(false);
   const [glossaryPanelOpen, setGlossaryPanelOpen] = useState(false);
@@ -6310,10 +6365,14 @@ export default function App() {
     if (!c) return 0;
     const bb = getBrigitteEffectiveBonus(owned, brigitteSalaryLevel, brigitteGrumpy);
     const camp = getCampaignMultipliers(activeCampaign, gameTime, stats.marketingMult, janiceGrumpy);
-    let priceMult = (1 + bb) * camp.allMult;
-    if (c.archetype === 'RETAIL') priceMult *= camp.retailMult;
-    priceMult *= getPremiumWaterMult(owned);
-    return c.qty * c.pricePerCube * priceMult;
+    const friction = aggregateFrictionEffects(activeFrictions, gameTime);
+    return contractRevenue(c.qty, c.pricePerCube, {
+      brigitteBonus: bb,
+      campaign: camp.allMult * (c.archetype === 'RETAIL' ? camp.retailMult : 1),
+      seasonal: getDynamicContractMult(gameTime), sellMult: stats.sellMult,
+      demand: friction.b2bDemMult,
+      premiumWater: friction.disablePremium ? 1 : getPremiumWaterMult(owned),
+    });
   };
 
   const maxCap = BASE_CAP + rawStats.capBonus;
@@ -6470,12 +6529,15 @@ export default function App() {
   // Proposition D — Comptage en Phase 3, désormais en MOIS (mensualisation)
   const lastSeasonIdxRef = useRef(seasonIdx);
   const _p3LastMonthRef = useRef(-1);
+  const _p3PreviousPhaseRef = useRef(phase);
+  const missionMonth = Math.floor(gameTime / MONTH_DURATION);
   useEffect(() => {
-    const _m = Math.floor(gameTime / MONTH_DURATION);
-    if (phase >= 3 && _p3LastMonthRef.current !== _m && _p3LastMonthRef.current >= 0) {
-      setPhase3Semesters(s => s + 1);
-    }
-    _p3LastMonthRef.current = _m;
+    const elapsed = elapsedMissionMonths(_p3LastMonthRef.current, missionMonth, phase, _p3PreviousPhaseRef.current);
+    if (elapsed > 0) setPhase3Semesters(s => s + elapsed);
+    _p3LastMonthRef.current = missionMonth;
+    _p3PreviousPhaseRef.current = phase;
+  }, [missionMonth, phase]);
+  useEffect(() => {
     if (phase >= 3 && lastSeasonIdxRef.current !== seasonIdx) {
       // === Snapshot notoriété pour sparkline (12 saisons max) ===
       setNotorietyHistory(prev => [...prev, Math.round(notorietyRef.current || 0)].slice(-12));
@@ -6504,9 +6566,8 @@ export default function App() {
   const autumnRushMult = inAutumnRush ? AUTUMN_RUSH_MULT : 1;
 
   // Salary modifiers
-  const fredTiers = ['fred_stage', 'fred', 'fred_perma', 'fred_chef', 'fred_dir'];
-  const currentFredTier = [...fredTiers].reverse().find(id => owned[id]);
-  const currentFredUpgrade = currentFredTier ? UPGRADES.find(u => u.id === currentFredTier) : null;
+  const currentFredTier = getStaffTier(owned, 'fred');
+  const currentFredUpgrade = getStaffUpgrade(owned, 'fred', UPGRADES);
   const hasFred = !!currentFredTier;
   // Arrêt maladie de Fred : sa production passive tombe à zéro (voir
   // _fredSickMult et fredCycleBlocked). L'interface repasse donc en mode manuel.
@@ -6527,9 +6588,8 @@ export default function App() {
     }
   }, [currentFredTier]);
 
-  const brigitteTiers = ['autosell', 'brigitte_compta', 'brigitte_ad'];
-  const currentBrigitteTier = [...brigitteTiers].reverse().find(id => owned[id]);
-  const currentBrigitteUpgrade = currentBrigitteTier ? UPGRADES.find(u => u.id === currentBrigitteTier) : null;
+  const currentBrigitteTier = getStaffTier(owned, 'brigitte');
+  const currentBrigitteUpgrade = getStaffUpgrade(owned, 'brigitte', UPGRADES);
   const hasBrigitte = !!currentBrigitteTier;
   const janiceTiers = ['janice_jr', 'janice_senior', 'janice_dir'];
   const currentJaniceTier = [...janiceTiers].reverse().find(id => owned[id]);
@@ -7062,7 +7122,12 @@ export default function App() {
           setPhase(Math.min(3, s.phase || 1));
           setReputation(s.reputation ?? 50);
           // Migration : si une save legacy n'a pas deliveriesTarget, on l'initialise depuis le profil contrat
+          const savedContractStats = computeStats(s.owned || {});
           const loadedLines = (s.lines || []).map(l => {
+            if (!s.contractRulesV2 && l && l.contractId && B2B_BY_ID[l.contractId]) {
+              l = migrateLegacyContractQuantity(B2B_BY_ID[l.contractId], l,
+                BASE_CAP + savedContractStats.capBonus, savedContractStats.truckMaxCap);
+            }
             if (l && l.contractId && (l.deliveriesTarget == null || l.deliveriesTarget === 0)) {
               const cContract = B2B_BY_ID[l.contractId];
               if (cContract) {
@@ -7096,6 +7161,9 @@ export default function App() {
             setTotals(s.totals);
             totalsRef.current = { ...s.totals };
           }
+          const loadedCareer = normalizeCareerProgress(s.careerProgress);
+          careerProgressRef.current = loadedCareer;
+          setCareerProgress(loadedCareer);
           if (typeof s.lastInsuranceCancel === 'number') {
             setLastInsuranceCancel(s.lastInsuranceCancel);
           }
@@ -7325,7 +7393,9 @@ export default function App() {
       notoriety, glacierBeats, phase3TriggerStage, phase3Semesters, exoIntroShown, securityIntroShown,
       sickUntil,
       monthlyV2: true, // refonte mensuelle : marqueur de migration
+      contractRulesV2: true, // quantités signées cohérentes ; migration legacy appliquée une fois
       achievementsUnlocked,
+      careerProgress,
       contractRejections,
       clientLoyalty,
       stolenTrucks,
@@ -7367,6 +7437,28 @@ export default function App() {
   };
   const saveNowRef = useRef(saveNow);
   useEffect(() => { saveNowRef.current = saveNow; });
+
+  const careerSnapshot = {
+    phase, owned, totals, reputation, notoriety,
+    completedCalls: completedCalls.length,
+    loyalClients: Object.values(clientLoyalty).filter(value => Number(value) >= 2).length,
+    signedRetailers: countSignedRetailers(lines),
+    victoryAchieved,
+  };
+  const claimCareer = (id: string) => {
+    if (!loaded || screen !== 'game' || gameOverRef.current) return;
+    const result = claimCareerReward(careerSnapshot, careerProgressRef.current, id);
+    if (!result) return;
+    // Commit the claim and its cash together, including on an immediate reload.
+    // A synchronous ref also prevents a fast double click from paying twice.
+    careerProgressRef.current = result.progress;
+    setCareerProgress(result.progress);
+    const nextMoney = moneyRef.current + result.reward;
+    moneyRef.current = nextMoney;
+    setMoney(nextMoney);
+    saveStateRef.current = { ...saveStateRef.current, careerProgress: result.progress, money: nextMoney };
+    saveNowRef.current();
+  };
 
   // Auto-save périodique toutes les 3 min (180 000ms réelles)
   useEffect(() => {
@@ -8195,7 +8287,6 @@ export default function App() {
         // En P3 et P4, le joueur a une production industrielle. Les petits appels
         // (20-30 GL pour 30-80€) deviennent absurdes par rapport au reste de l'économie.
         // P3 : on filtre les appels < 50 GL. P4 : on filtre les appels < 100 GL.
-        const phaseMinNeed = phaseRef.current >= 4 ? 100 : phaseRef.current >= 3 ? 50 : 0;
         // Exclusion : appels-offres (offerOnly) ne peuvent être déclenchés QUE par leur logique narrative spécifique.
         // PHASE 4 : table rase. Seuls les appels spécifiques P4 (minPhase === 4)
         // sont éligibles. TOUS les appels P1-3 (glaçon, B2B classique, etc.)
@@ -8214,18 +8305,9 @@ export default function App() {
         const eligible = PHONE_CALLS.filter(c =>
           !c.narrativeOnly &&
           !c.offerOnly &&
-          c.minPhase === phaseRef.current &&
-          // === DÉBLOCAGE STRUCTUREL (remplace minLevel/XP) ===
-          // P1 : par capacité de stockage atteinte (progresse en P1).
-          // P2/P3/P4 : par CA cumulé (capacité plate ensuite).
-          // Marqueurs permanents → cohérent quel que soit le rythme.
-          (c.minPhase === 1
-            ? curMaxCap >= (c.minCap || 0)
-            : (totalsRef.current.moneyEarned || 0) >= (c.minRevenue || 0)) &&
-          // Filtre d'échelle : exclut les contrats devenus dérisoires
-          (c.minCap || 1) >= curMaxCap * 0.05 &&
-          c.needStock <= curMaxCap &&
-          c.needStock >= phaseMinNeed &&
+          // P1 : capacité ; P2+ : chiffre d'affaires. La taille d'un appel
+          // industriel dépend du stock demandé, même sans propriété minCap.
+          phoneCallFitsProgress(c, phaseRef.current, curMaxCap, totalsRef.current.moneyEarned || 0) &&
           !completedCallsRef.current.includes(c.id)
         );
         if (eligible.length > 0) {
@@ -8346,15 +8428,11 @@ export default function App() {
           let salaryUnpaidThisSemester = false; // Bloque raiseRequest si grève en cours
           // Pay salaries for the month that just ended
           const semDurLocal = MONTH_DURATION;
-          const fredTierIds = ['fred_stage', 'fred', 'fred_perma', 'fred_chef', 'fred_dir'];
-          const curFredTier = [...fredTierIds].reverse().find(id => ownedRef.current[id]);
-          const curFredUpg = curFredTier ? UPGRADES.find(u => u.id === curFredTier) : null;
+          const curFredUpg = getStaffUpgrade(ownedRef.current, 'fred', UPGRADES);
           // La robotisation réduit de moitié la masse salariale versée.
           const _salaryMult = salaryMult(ownedRef.current);
           let fredSalary = curFredUpg ? Math.round(curFredUpg.salary[fredSalaryLevelRef.current] * _salaryMult / MONTHS_PER_SEMESTER) : 0;
-          const brigitteTierIds = ['autosell', 'brigitte_compta', 'brigitte_ad'];
-          const curBrigitteTier = [...brigitteTierIds].reverse().find(id => ownedRef.current[id]);
-          const brigitteUpg = curBrigitteTier ? UPGRADES.find(u => u.id === curBrigitteTier) : null;
+          const brigitteUpg = getStaffUpgrade(ownedRef.current, 'brigitte', UPGRADES);
           let brigitteSalary = brigitteUpg ? Math.round(brigitteUpg.salary[brigitteSalaryLevelRef.current] * _salaryMult / MONTHS_PER_SEMESTER) : 0;
           // L'agence marketing est un déblocage payant + campagnes payées à l'unité,
           // pas un·e salarié·e : aucun salaire mensuel récurrent.
@@ -8576,8 +8654,10 @@ export default function App() {
 
         const updated = linesRef.current.map((line, idx) => {
           if (!line.contractId) return line;
-          const c = B2B_BY_ID[line.contractId];
-          if (!c) return line;
+          const cBase = B2B_BY_ID[line.contractId];
+          if (!cBase) return line;
+          // Une même quantité signée alimente chargement, fonte, carburant et paiement.
+          const c = signedContract(cBase, line);
 
           // === Check expiration globale du contrat (avant tout)
           // Si déjà une modale de fin de contrat ouverte, on ne re-trigger pas
@@ -8633,13 +8713,12 @@ export default function App() {
           // 80-100 → 1.00 · 50-79 → 0.95 · 30-49 → 0.85 · <30 → 0.70
           const lm = lennyMoralRef.current;
           const lennyMoralFactor = lm >= 80 ? 1.00 : lm >= 50 ? 0.95 : lm >= 30 ? 0.85 : 0.70;
-          // deliverSpeed est divisé par deliverySpeedMult et lennyMult (qui montent
-          // avec les upgrades). Pour que MORAL BAS ralentisse, on multiplie ddeliv
-          // directement par lennyMoralFactor en sortie.
+          // deliverySpeedMult est un facteur de DURÉE (0.7 = trajet plus court).
+          // Le bonus de vitesse de Lenny multiplie la progression, au numérateur.
           // Friction "embouteillage" : truckSpeedMult > 1 ralentit (divise la vitesse).
           // Événement météo (grêle, smog) : transitMult > 1 ralentit aussi.
           const evModsForTruck = getEventMods();
-          const deliverSpeed = 1 / (curStats.deliverySpeedMult * lennyMult * fricTruck.truckSpeedMult * evModsForTruck.transitMult);
+          const deliverSpeed = deliverySpeedMultiplier(curStats.deliverySpeedMult, lennyMult, fricTruck.truckSpeedMult, evModsForTruck.transitMult);
           // Boost temporaire Lenny (vitesse trajet +50% pendant 10s game time)
           const lennySpeedMult = (gameTimeRef.current < lennyBoostUntilRef.current) ? 1.5 : 1;
           const ddeliv = (1 / c.deliveryTime) * deliverSpeed * lennySpeedMult * lennyMoralFactor * dt;
@@ -8736,9 +8815,7 @@ export default function App() {
               const meltPctInt = Math.floor(meltPct * 100);
               // Utilise les valeurs dynamiques de la ligne (figées à la signature) si dispo,
               // sinon fallback sur le contrat de base.
-              const effectiveQty = (typeof line.dynQty === 'number') ? line.dynQty : c.qty;
-              const effectivePrice = (typeof line.dynPrice === 'number') ? line.dynPrice : c.pricePerCube;
-              const deliveredQty = effectiveQty * (1 - meltPct);
+              const deliveredQty = c.qty * (1 - meltPct);
               const curBrigitteBonus = getBrigitteEffectiveBonus(ownedRef.current, brigitteSalaryLevelRef.current, brigitteGrumpyRef.current);
               // Campagnes marketing : multiplicateurs prix
               const camp = getCampaignMultipliers(activeCampaignRef.current, gameTimeRef.current, stats.marketingMult, janiceGrumpyRef.current);
@@ -8747,14 +8824,15 @@ export default function App() {
               // Les upgrades de qualité/marque (sellMult) profitent AUSSI aux contrats B2B —
               // c'est cohérent : une marque réputée vend plus cher en gros aussi.
               // Coefficient 0.7 : modéré pour ne pas faire exploser l'endgame.
-              const sellMultForContract = 1 + (stats.sellMult - 1) * 0.7;
               // Friction B2B (boycott, guerre des prix, mauvaise saison touriste)
               const fricForB2B = aggregateFrictionEffects(activeFrictionsRef.current, gameTimeRef.current);
-              let priceMult = (1 + curBrigitteBonus) * camp.allMult * seasonContractMult * sellMultForContract * fricForB2B.b2bDemMult;
-              if (c.archetype === 'RETAIL') priceMult *= camp.retailMult;
-              // Eau premium désactivable par friction "Scandale fournisseur"
-              if (!fricForB2B.disablePremium) priceMult *= getPremiumWaterMult(ownedRef.current);
-              const revenue = deliveredQty * effectivePrice * priceMult;
+              const revenue = contractRevenue(deliveredQty, c.pricePerCube, {
+                brigitteBonus: curBrigitteBonus,
+                campaign: camp.allMult * (c.archetype === 'RETAIL' ? camp.retailMult : 1),
+                seasonal: seasonContractMult, sellMult: stats.sellMult,
+                demand: fricForB2B.b2bDemMult,
+                premiumWater: fricForB2B.disablePremium ? 1 : getPremiumWaterMult(ownedRef.current),
+              });
               moneyDelta += revenue;
               // Accumule le revenu pour le bonus de complétion
               line.revenueAccum = (line.revenueAccum || 0) + revenue;
@@ -8924,6 +9002,7 @@ export default function App() {
                 const newNextPause = nextPauseRange[0] + Math.floor(Math.random() * nextPauseRange[1]);
                 meltAccum = 0;
                 return {
+                  ...line,
                   contractId: line.contractId, truckPos, truckPhase,
                   broken: isBroken, brokenMsg, meltAccum,
                   tripsCompleted: 0,
@@ -8938,6 +9017,7 @@ export default function App() {
                 truckPhase = 'waiting_stock';
                 meltAccum = 0;
                 return {
+                  ...line,
                   contractId: line.contractId, truckPos, truckPhase,
                   broken: isBroken, brokenMsg, meltAccum,
                   tripsCompleted: newTrips,
@@ -8956,6 +9036,7 @@ export default function App() {
             if (newPauseLeft <= 0) {
               truckPhase = 'waiting_stock';
               return {
+                ...line,
                 contractId: line.contractId, truckPos: 0, truckPhase,
                 broken: isBroken, brokenMsg, meltAccum: 0,
                 tripsCompleted: 0,
@@ -8968,6 +9049,7 @@ export default function App() {
               };
             }
             return {
+              ...line,
               contractId: line.contractId, truckPos: 0, truckPhase,
               broken: isBroken, brokenMsg, meltAccum: 0,
               tripsCompleted: line.tripsCompleted || 0,
@@ -8980,7 +9062,7 @@ export default function App() {
             };
           }
 
-          return { contractId: line.contractId, truckPos, truckPhase, broken: isBroken, brokenMsg, meltAccum,
+          return { ...line, contractId: line.contractId, truckPos, truckPhase, broken: isBroken, brokenMsg, meltAccum,
             tripsCompleted: line.tripsCompleted || 0,
             pauseLeft: line.pauseLeft || 0,
             nextPauseAt: line.nextPauseAt || (3 + Math.floor(Math.random() * 4)),
@@ -9040,8 +9122,7 @@ export default function App() {
           const curMaxCap = BASE_CAP + curStats.capBonus;
           let eligible = B2B_CONTRACTS.filter(c =>
             c.brigitteTier <= curMaxTier &&
-            c.qty <= curMaxCap &&
-            c.qty <= curStats.truckMaxCap &&
+            contractFitsCapacity(applyContractDynamics(c, ownedRef.current, notorietyRef.current).qty, curMaxCap, curStats.truckMaxCap) &&
             (!c.notorietyMin || notorietyRef.current >= c.notorietyMin) &&
             !usedIds.has(c.id)
           );
@@ -9102,8 +9183,7 @@ export default function App() {
             const curMaxCap = BASE_CAP + curStats.capBonus;
             const feasiblePool = B2B_CONTRACTS.filter(c =>
               c.brigitteTier <= curMaxTier &&
-              c.qty <= curMaxCap &&
-              c.qty <= curStats.truckMaxCap &&
+              contractFitsCapacity(applyContractDynamics(c, ownedRef.current, notorietyRef.current).qty, curMaxCap, curStats.truckMaxCap) &&
               (!c.notorietyMin || notorietyRef.current >= c.notorietyMin) &&
               !usedIds.has(c.id) &&
               isFeasibleNow(c)
@@ -9847,11 +9927,9 @@ export default function App() {
     if (u.id === 'janice_jr' && !hireDates.janice) { setHireDates(prev => ({ ...prev, janice: gameTime })); queuePopup({ type: 'character', speaker: t('agency.speaker'), text: t('hire_intro.janice') }); }
     if (u.id === 'camion_1' && !hireDates.lenny) { setHireDates(prev => ({ ...prev, lenny: gameTime })); setBirthdays(prev => ({ ...prev, lenny: genBirthday() })); queuePopup({ type: 'character', speaker: 'Lenny', text: t('hire_intro.lenny') }); }
     // Moral: promotion d'employé → +30
-    const FRED_TIERS = ['fred_stage', 'fred', 'fred_perma', 'fred_chef', 'fred_dir'];
-    const BRIGITTE_TIERS = ['autosell', 'brigitte_compta', 'brigitte_ad'];
     const LENNY_TIERS = ['camion_1', 'camion_2', 'camion_3', 'camion_4'];
-    if (FRED_TIERS.includes(u.id)) adjustMoralFor('fred', 30);
-    else if (BRIGITTE_TIERS.includes(u.id)) adjustMoralFor('brigitte', 30);
+    if (STAFF_TIERS.fred.some(id => id === u.id)) adjustMoralFor('fred', 30);
+    else if (STAFF_TIERS.brigitte.some(id => id === u.id)) adjustMoralFor('brigitte', 30);
     else if (LENNY_TIERS.includes(u.id)) adjustMoralFor('lenny', 30);
     if (u.phaseUnlock) {
       setPhase(u.phaseUnlock);
@@ -10502,6 +10580,15 @@ export default function App() {
     if (!cBase) return;
     // Applique les dynamiques (noto + qualité, priceAdjust=1 par défaut)
     const c = applyContractDynamics(cBase, owned, notoriety, 1.0);
+    const availability = getContractAvailability(c, {
+      noSlot: lines.filter(l => l.contractId).length >= maxLines,
+      reputation, maxCap: usableCap, truckMaxCap: stats.truckMaxCap,
+      segments: { famille: segFamille, jeunesse: segJeunesse, pro: segPro, luxe: segLuxe, eco: segEco },
+    });
+    if (!availability.available) {
+      setEventNotif(localizeField(availability.reasons[0].label, language));
+      return;
+    }
     const profile = getContractProfile(c);
     // Fidélité : un client déjà honoré paie une prime à la re-signature.
     const loyaltyCount = clientLoyaltyRef.current[contractId] || 0;
@@ -11152,6 +11239,9 @@ export default function App() {
   }, [loaded, screen, language]);
 
   const performReset = () => {
+    const freshCareer = normalizeCareerProgress(null);
+    careerProgressRef.current = freshCareer;
+    setCareerProgress(freshCareer);
     // New Game+ : capital de départ offert par les Dominations accumulées.
     const ngPlusCash = getPrestigeStartCash();
     setStock(0); setMoney(START_CASH + ngPlusCash); setOwned({});
@@ -11616,7 +11706,8 @@ export default function App() {
   const SeasonIcon = season.Icon;
 
   const renderProductionLine = (line, idx) => {
-    const c = line.contractId ? B2B_BY_ID[line.contractId] : null;
+    const cBase = line.contractId ? B2B_BY_ID[line.contractId] : null;
+    const c = cBase ? signedContract(cBase, line) : null;
     const popup = linePopups[idx];
     const totalRev = c ? getDisplayedRevenue(c) : 0;
     const repCost = c ? repairCostFor(c) : 0;
@@ -11818,7 +11909,7 @@ export default function App() {
     const c = applyContractDynamics(cBase, owned, notoriety, 1.0);
     const avail = getContractAvailability(c, {
       noSlot: false,
-      reputation,
+      reputation, maxCap: usableCap, truckMaxCap: stats.truckMaxCap,
       segments: { famille: segFamille, jeunesse: segJeunesse, pro: segPro, luxe: segLuxe, eco: segEco },
     });
     return avail.available ? n + 1 : n;
@@ -18044,7 +18135,7 @@ export default function App() {
                       // === Disponibilité globale (slot + rep + qualité + segment) ===
                       const _availability = getContractAvailability(c, {
                         noSlot,
-                        reputation,
+                        reputation, maxCap: usableCap, truckMaxCap: stats.truckMaxCap,
                         segments: { famille: segFamille, jeunesse: segJeunesse, pro: segPro, luxe: segLuxe, eco: segEco },
                       });
                       const _avail = _availability.available;
@@ -18435,15 +18526,7 @@ export default function App() {
                         {
                           key: 'moral',
                           term: { fr: 'MORAL', en: 'MORALE', es: 'MORAL', de: 'MORAL', it: 'MORALE', ru: 'МОРАЛЬНЫЙ ДУХ', zh: '士气' },
-                          desc: {
-                            fr: "État d'esprit de chaque employé. Monte avec salaires hauts, machine à café, salle de repos. Baisse avec robotisation, charges retardées. Sous 30 → grève. Sous 50 → productivité chute. Les actions RH, que tu pilotes toi-même, peuvent stabiliser.",
-                            en: "Each employee's state of mind. Rises with high salaries, coffee machine, break room. Falls with robotization, delayed charges. Below 30 → strike. Below 50 → productivity drops. Your hands-on HR actions can stabilize it.",
-                            es: "Estado de ánimo de cada empleado. Sube con salarios altos, máquina café, sala descanso. Baja con robotización, cargos retrasados. Bajo 30 → huelga. Bajo 50 → productividad cae. Tus acciones de RRHH, que gestionas tú, pueden estabilizar.",
-                            de: "Geisteszustand jedes Mitarbeiters. Steigt durch hohe Gehälter, Kaffeemaschine, Pausenraum. Sinkt durch Robotisierung, verspätete Zahlungen. Unter 30 → Streik. Unter 50 → Produktivität sinkt. Deine selbst gesteuerten HR-Aktionen können stabilisieren.",
-                            it: "Stato d'animo di ogni dipendente. Sale con stipendi alti, macchina caffè, sala relax. Scende con robotizzazione, spese ritardate. Sotto 30 → sciopero. Sotto 50 → produttività cala. Le tue azioni RU, gestite da te, possono stabilizzare.",
-                            ru: "Настроение каждого сотрудника. Растёт с высокими зарплатами, кофемашиной, комнатой отдыха. Падает с роботизацией, задержками. Ниже 30 → забастовка. Ниже 50 → производительность падает. Твои HR-действия, которыми ты управляешь сам, могут стабилизировать.",
-                            zh: "每位员工的状态。靠高薪、咖啡机、休息室来涨。被机器人化、延迟付款拖累。低于30 → 罢工。低于50 → 产能下降。你亲自操作的人事行动能稳定它。"
-                          }
+                          desc: TRANSLATIONS['staff.help_moral']
                         },
                         {
                           key: 'fonte',
@@ -18462,27 +18545,27 @@ export default function App() {
                           key: 'tiers',
                           term: { fr: 'TIERS DE CONTRATS', en: 'CONTRACT TIERS', es: 'TIERS DE CONTRATOS', de: 'VERTRAGSTIERS', it: 'TIER CONTRATTI', ru: 'ТИРЫ КОНТРАКТОВ', zh: '合同等级' },
                           desc: {
-                            fr: "Les contrats B2B vont de T1 (épiceries, ~10€/cycle) à T7 (palais, stations spatiales, ~5000€/cycle). Chaque tier exige plus de notoriété et plus de volume. Brigitte débloque T4-T6 (palier compta) puis T7 (palier ad).",
-                            en: "B2B contracts range from T1 (groceries, ~€10/cycle) to T7 (palaces, space stations, ~€5000/cycle). Each tier demands more awareness and bigger volume. Brigitte unlocks T4-T6 (accounting tier) then T7 (ad tier).",
-                            es: "Los contratos B2B van de T1 (ultramarinos, ~10€/ciclo) a T7 (palacios, estaciones espaciales, ~5000€/ciclo). Cada tier exige más notoriedad y mayor volumen. Brigitte desbloquea T4-T6 (tier contable) y T7 (tier ad).",
-                            de: "B2B-Verträge reichen von T1 (Lebensmittel, ~10€/Zyklus) bis T7 (Paläste, Raumstationen, ~5000€/Zyklus). Jeder Tier verlangt mehr Bekanntheit und größeres Volumen. Brigitte schaltet T4-T6 (Buchhaltungsstufe) dann T7 (Ad-Stufe) frei.",
-                            it: "I contratti B2B vanno da T1 (drogherie, ~10€/ciclo) a T7 (palazzi, stazioni spaziali, ~5000€/ciclo). Ogni tier richiede più notorietà e volume maggiore. Brigitte sblocca T4-T6 (livello contabile) poi T7 (livello ad).",
-                            ru: "B2B-контракты от T1 (бакалея, ~10€/цикл) до T7 (дворцы, космостанции, ~5000€/цикл). Каждый тир требует больше известности и больший объём. Брижит открывает T4-T6 (бухгалтерский тир), затем T7 (ad-тир).",
-                            zh: "B2B合同从T1（杂货店，约10€/周期）到T7（宫殿、空间站，约5000€/周期）。每个等级要求更高知名度和更大量。Brigitte解锁T4-T6（会计级）然后T7（广告级）。"
-                          }
+      fr: "Les contrats B2B vont de T1 à T7. Les niveaux supérieurs demandent davantage de capacité et peuvent exiger notoriété, réputation ou qualité de l’eau. Le grade et le salaire de Brigitte déterminent les niveaux qu’elle peut prospecter. Vérifie les conditions de chaque offre.",
+      en: "B2B contracts run from T1 to T7. Higher tiers need more capacity and may require awareness, reputation or water quality. Brigitte’s grade and salary determine which tiers she can prospect. Check each offer’s requirements.",
+      es: "Los contratos B2B van de T1 a T7. Los niveles altos exigen más capacidad y pueden requerir notoriedad, reputación o calidad del agua. El grado y sueldo de Brigitte determinan los niveles que puede buscar. Consulta cada oferta.",
+      de: "B2B-Verträge reichen von T1 bis T7. Höhere Stufen brauchen mehr Kapazität und können Bekanntheit, Ruf oder Wasserqualität voraussetzen. Brigittes Rang und Gehalt bestimmen ihre Akquisestufen. Prüfe jedes Angebot.",
+      it: "I contratti B2B vanno da T1 a T7. I livelli alti richiedono più capacità e possono esigere notorietà, reputazione o qualità dell’acqua. Grado e stipendio di Brigitte determinano i livelli che può cercare. Controlla ogni offerta.",
+      ru: "B2B-контракты делятся на T1–T7. Высокие уровни требуют большей вместимости, а также могут требовать известности, репутации или качества воды. Ранг и зарплата Брижит определяют доступные для поиска уровни. Проверяйте условия каждого предложения.",
+      zh: "B2B合同分为T1至T7。高等级需要更大容量，也可能要求知名度、声誉或水质。布丽吉特的职级和薪资决定她能寻找的合同等级。请查看每份报价的要求。"
+    }
                         },
                         {
                           key: 'banque',
                           term: { fr: 'BANQUE & PRÊTS', en: 'BANK & LOANS', es: 'BANCO Y PRÉSTAMOS', de: 'BANK & KREDITE', it: 'BANCA & PRESTITI', ru: 'БАНК И КРЕДИТЫ', zh: '银行与贷款' },
                           desc: {
-                            fr: "Disponible dès P2. Trois prêts : 1000€/15% (petit pari), 5000€/10% (investissement), 20000€/6% (gros coup). Versement mensuel sur 24 semestres. Un prêt à la fois. Pratique pour franchir un palier coûteux sans attendre.",
-                            en: "Available from P2. Three loans: €1000/15% (small bet), €5000/10% (investment), €20000/6% (big swing). Monthly repayment over 24 semesters. One loan at a time. Useful to cross a costly tier without waiting.",
-                            es: "Disponible desde F2. Tres préstamos: 1000€/15% (apuesta pequeña), 5000€/10% (inversión), 20000€/6% (gran golpe). Pago mensual a 24 semestres. Un préstamo a la vez. Útil para cruzar un tier costoso sin esperar.",
-                            de: "Verfügbar ab P2. Drei Kredite: 1000€/15% (kleine Wette), 5000€/10% (Investition), 20000€/6% (großer Coup). Monatliche Rückzahlung über 24 Halbjahre. Ein Kredit gleichzeitig. Nützlich, um eine teure Stufe ohne Warten zu überspringen.",
-                            it: "Disponibile da F2. Tre prestiti: 1000€/15% (piccola scommessa), 5000€/10% (investimento), 20000€/6% (colpo grosso). Rimborso mensile su 24 semestri. Un prestito alla volta. Utile per superare un livello costoso senza attendere.",
-                            ru: "Доступен с P2. Три кредита: 1000€/15% (малая ставка), 5000€/10% (инвестиция), 20000€/6% (крупный куш). Помесячная выплата на 24 полугодия. Один кредит за раз. Полезно для перехода на дорогой тир без ожидания.",
-                            zh: "P2阶段起开放。三种贷款：1000€/15%（小赌注）、5000€/10%（投资）、20000€/6%（大手笔）。月供24个半年。一次只能一笔。适合不等就跨过一个昂贵阶段。"
-                          }
+      fr: "Disponible dès la phase 2. Quatre prêts de 1 000 à 50 000 €, avec un coût total des intérêts de 15 % à 5 % selon le prêt. Remboursement sur 24 mois. Un seul prêt à la fois ; remboursement anticipé possible.",
+      en: "Available from Phase 2. Four loans from €1,000 to €50,000, with total interest of 15% to 5% depending on the loan. Repaid over 24 months. One active loan at a time; early repayment is available.",
+      es: "Disponible desde la fase 2. Cuatro préstamos de 1 000 a 50 000 €, con intereses totales del 15 % al 5 % según el préstamo. Se devuelven en 24 meses. Solo uno activo a la vez; se permite el pago anticipado.",
+      de: "Ab Phase 2 verfügbar. Vier Kredite von 1.000 bis 50.000 €, mit Gesamtzinsen von 15 % bis 5 % je nach Kredit. Rückzahlung über 24 Monate. Ein aktiver Kredit gleichzeitig; vorzeitige Tilgung ist möglich.",
+      it: "Disponibile dalla fase 2. Quattro prestiti da 1.000 a 50.000 €, con interessi totali dal 15% al 5% secondo il prestito. Rimborso in 24 mesi. Un solo prestito attivo; rimborso anticipato possibile.",
+      ru: "Доступно с фазы 2. Четыре кредита от 1 000 до 50 000 €, с общей суммой процентов от 15 % до 5 % в зависимости от кредита. Погашение за 24 месяца. Один активный кредит; можно погасить досрочно.",
+      zh: "第2阶段起开放。共有四种贷款，金额从1,000至50,000欧元，利息总额按贷款类型为本金的15%至5%。分24个月还款。同时只能有一笔贷款，可提前偿还。"
+    }
                         },
                         {
                           key: 'juridique',
@@ -18562,7 +18645,7 @@ export default function App() {
           const c0 = applyContractDynamics(cBase, owned, notoriety, 1.0);
           const loyCount = clientLoyalty[line.contractId] || 0;
           const loyMult = loyaltyPriceMult(loyCount);
-          const c = loyCount > 0 ? { ...c0, pricePerCube: c0.pricePerCube * loyMult } : c0;
+          const c = { ...c0, ...signedContract(cBase, line) };
           const done = line.deliveriesDone || 0;
           const target = line.deliveriesTarget || 0;
           const remaining = Math.max(0, target - done);
@@ -18699,6 +18782,7 @@ export default function App() {
           const baseRevenue = c.qty * c.pricePerCube;
           const displayedRevenue = getDisplayedRevenue ? getDisplayedRevenue(c) : baseRevenue;
           const qualityBlocked = c._qualityTooLow;
+          const capacityBlocked = !contractFitsCapacity(c.qty, usableCap, stats.truckMaxCap);
           return (
             <div className="modal-backdrop" onClick={() => setContractDetailId(null)}>
               <div className="modal contract-detail-modal" onClick={e => e.stopPropagation()}>
@@ -18773,6 +18857,7 @@ export default function App() {
                     </div>
                   );
                 })()}
+                {capacityBlocked && <div className="modal-narrative">{localizeField({ fr: 'Capacité insuffisante', en: 'Insufficient capacity', es: 'Capacidad insuficiente', de: 'Kapazität unzureichend', it: 'Capacità insufficiente', ru: 'Недостаточная вместимость', zh: '容量不足' }, language)} · {c.qty} / {Math.floor(Math.min(usableCap, stats.truckMaxCap))} GL</div>}
                 {marketItem && (() => {
                   // Phase 3 — Segment gating
                   const segMap = { famille: segFamille, jeunesse: segJeunesse, pro: segPro, luxe: segLuxe, eco: segEco };
@@ -18791,9 +18876,9 @@ export default function App() {
                       <div className="modal-actions">
                         <button
                           className="modal-btn modal-btn-accept"
-                          disabled={noSlot || reputation < 20 || segLow || qualityBlocked}
+                          disabled={noSlot || reputation < 20 || segLow || qualityBlocked || capacityBlocked}
                           onClick={() => {
-                            if (!noSlot && reputation >= 20 && !segLow && !qualityBlocked) {
+                            if (!noSlot && reputation >= 20 && !segLow && !qualityBlocked && !capacityBlocked) {
                               handleSign(contractDetailId);
                               setContractDetailId(null);
                               setShowMarket(false);
@@ -19654,6 +19739,10 @@ export default function App() {
             oldSalary = lennyGrade.salary[req.fromLevel];
             newSalary = lennyGrade.salary[req.toLevel];
           }
+          // Afficher le même montant mensuel que la paie, sans modifier la demande.
+          const monthlySalaryMult = salaryMult(owned) / MONTHS_PER_SEMESTER;
+          oldSalary = Math.round(oldSalary * monthlySalaryMult);
+          newSalary = Math.round(newSalary * monthlySalaryMult);
           const diff = newSalary - oldSalary;
           return (
             <div className="modal-backdrop" onClick={handleRaiseDecline}>
@@ -19797,7 +19886,7 @@ export default function App() {
         {victoryModalOpen && (() => {
           // Stats au moment de la victoire (ou actuelles si on rouvre la modale après)
           const mp = getMissionProgress();
-          const totalDays = Math.floor((victoryTimestamp || gameTime) / SEASON_DURATION) * 30;
+          const totalDays = Math.floor((victoryTimestamp ?? gameTime) / MONTH_DURATION) * 30;
           const totalYears = Math.floor(totalDays / 360);
           const totalMonthsRem = Math.floor((totalDays % 360) / 30);
           const finalEmployees = [
@@ -19805,7 +19894,8 @@ export default function App() {
             owned['janice_jr'],
           ].filter(Boolean).length;
           const ngPct = getPrestigeBonusPct();
-          const ngCash = prestigeRuns * PRESTIGE_START_CASH;
+          const ngProdPct = Math.round((getPrestigeProdMult() - 1) * 100);
+          const ngCash = getPrestigeStartCash();
           return (
             <div className="modal-backdrop victory-backdrop" onClick={() => setVictoryModalOpen(false)}>
               <div className="modal victory-modal" onClick={e => e.stopPropagation()}>
@@ -19863,13 +19953,13 @@ export default function App() {
                     <div className="victory-ngplus">
                       <div className="victory-ngplus-title">★ {t('ngplus.badge')} ×{prestigeRuns}</div>
                       <div className="victory-ngplus-text">{localizeField({
-                        fr: `Domination enregistrée. À ta prochaine partie : +${ngPct}% production & vente en permanence, et ${fmtInt(ngCash)}€ de capital de départ. Recommence — plus fort.`,
-                        en: `Domination recorded. Next run: +${ngPct}% production & sales, permanently, plus €${fmtInt(ngCash)} starting cash. Start over — stronger.`,
-                        es: `Dominación registrada. En tu próxima partida: +${ngPct}% producción y ventas permanente, y ${fmtInt(ngCash)}€ de capital inicial. Empieza de nuevo — más fuerte.`,
-                        zh: `统治已记录。下一局：永久 +${ngPct}% 生产与销售，外加 ${fmtInt(ngCash)}€ 启动资金。重新开始——更强大。`,
-                        ru: `Доминирование зафиксировано. В следующей партии: +${ngPct}% к производству и продажам навсегда и ${fmtInt(ngCash)}€ стартового капитала. Начни заново — сильнее.`,
-                        it: `Dominazione registrata. Alla prossima partita: +${ngPct}% produzione e vendite in permanenza, e ${fmtInt(ngCash)}€ di capitale iniziale. Ricomincia — più forte.`,
-                        de: `Dominanz erfasst. Im nächsten Spiel: dauerhaft +${ngPct}% Produktion & Verkauf und ${fmtInt(ngCash)}€ Startkapital. Fang neu an — stärker.`,
+                        fr: `Domination enregistrée. À ta prochaine partie : production +${ngProdPct}%, vente +${ngPct}% en permanence et ${fmtInt(ngCash)}€ de capital de départ, héritages inclus.`,
+                        en: `Domination recorded. Next run: production +${ngProdPct}%, sales +${ngPct}% permanently and €${fmtInt(ngCash)} starting cash, including legacies.`,
+                        es: `Dominación registrada. Próxima partida: producción +${ngProdPct}%, ventas +${ngPct}% permanentes y ${fmtInt(ngCash)}€ de capital inicial, incluidos los legados.`,
+                        zh: `统治已记录。下一局：永久生产 +${ngProdPct}%，销售 +${ngPct}%，启动资金 ${fmtInt(ngCash)}€，含传承加成。`,
+                        ru: `Доминирование зафиксировано. Следующая партия: производство +${ngProdPct}%, продажи +${ngPct}% навсегда и ${fmtInt(ngCash)}€ стартового капитала, включая наследия.`,
+                        it: `Dominazione registrata. Prossima partita: produzione +${ngProdPct}%, vendite +${ngPct}% permanenti e ${fmtInt(ngCash)}€ di capitale iniziale, eredità incluse.`,
+                        de: `Dominanz erfasst. Nächstes Spiel: dauerhaft Produktion +${ngProdPct}%, Verkauf +${ngPct}% und ${fmtInt(ngCash)}€ Startkapital, einschließlich Erbe.`,
                       }, language)}</div>
                     </div>
                   )}
@@ -20093,19 +20183,26 @@ export default function App() {
         })()}
 
         {personnelOpen && (hasFred || hasBrigitte || hasJanice || hasLenny) && (() => {
-          const semDur = SEASON_DURATION * 2;
+          const semDur = MONTH_DURATION;
           const semProgress = gameTime % semDur;
           const semLeft = semDur - semProgress;
           const semNum = Math.floor(gameTime / semDur);
           // Affichage aligné sur ce qui est réellement prélevé : la
           // robotisation divise la masse salariale par deux.
           const _salMult = salaryMult(owned);
-          const _sal = (v) => Math.round(v * _salMult);
+          const _sal = (v) => Math.round(v * _salMult / MONTHS_PER_SEMESTER);
           const fredSalary = currentFredUpgrade ? _sal(currentFredUpgrade.salary[fredSalaryLevel]) : 0;
           const brigitteSalary = hasBrigitte ? _sal(currentBrigitteUpgrade.salary[brigitteSalaryLevel]) : 0;
           const janiceSalary = 0; // agence marketing : pas de salaire
           const lennySalary = hasLenny ? _sal(lennyGrade.salary[lennySalaryLevel]) : 0;
           const totalSalary = fredSalary + brigitteSalary + janiceSalary + lennySalary;
+          // Le règlement d'urgence conserve son coût historique : seule la
+          // présentation des salaires devient mensuelle.
+          const emergencySalaryBase = [
+            currentFredUpgrade ? currentFredUpgrade.salary[fredSalaryLevel] : 0,
+            currentBrigitteUpgrade ? currentBrigitteUpgrade.salary[brigitteSalaryLevel] : 0,
+            hasLenny ? lennyGrade.salary[lennySalaryLevel] : 0,
+          ].reduce((sum, amount) => sum + Math.round(amount * _salMult), 0);
           const mins = Math.floor(semLeft / 60);
           const secs = Math.floor(semLeft % 60);
           const timeStr = `${mins}:${secs.toString().padStart(2, '0')}`;
@@ -20198,7 +20295,7 @@ export default function App() {
                             <ChevronRight size={12} strokeWidth={2.5} />
                           </button>
                         </div>
-                        <div className="salary-slider-amount">{fmtInt(currentFredUpgrade.salary[fredSalaryLevel])}€</div>
+                        <div className="salary-slider-amount">{fmtInt(_sal(currentFredUpgrade.salary[fredSalaryLevel]))}€ / {t('raise.per_week_short')}</div>
                       </div>
                       <div className="personnel-info">
                         {t('staff.perf')} : ×{(FRED_PERF_MULT[fredSalaryLevel] * (fredGrumpy ? 0 : 1)).toFixed(2)} ({fmt2(stats.passiveProd * stats.prodSpeedMult * fredMult)}/s){fredGrumpy ? ' · ' + t('staff.on_strike') : ''}
@@ -20251,7 +20348,7 @@ export default function App() {
                           </button>
                         </div>
                         <div className="salary-slider-amount">
-                          {fmtInt(currentBrigitteUpgrade.salary[brigitteSalaryLevel])}€
+                          {fmtInt(_sal(currentBrigitteUpgrade.salary[brigitteSalaryLevel]))}€ / {t('raise.per_week_short')}
                           <span className="salary-slider-tier">T1-{BRIGITTE_TIER_MATRIX[brigitteTierLevel] ? BRIGITTE_TIER_MATRIX[brigitteTierLevel][brigitteSalaryLevel] : 0}</span>
                         </div>
                       </div>
@@ -20310,7 +20407,7 @@ export default function App() {
                               <ChevronRight size={12} strokeWidth={2.5} />
                             </button>
                           </div>
-                          <div className="salary-slider-amount">{fmtInt(lennyGrade.salary[lennySalaryLevel])}€</div>
+                          <div className="salary-slider-amount">{fmtInt(_sal(lennyGrade.salary[lennySalaryLevel]))}€ / {t('raise.per_week_short')}</div>
                         </div>
                         <div className="personnel-info">
                           {lennyGrumpy ? t('staff.lenny_unpaid') : `${t('staff.trip_speed')} : +${Math.round(effectiveBonus * 100)}% · ${lennyGrade.count} ${lennyGrade.count > 1 ? t('staff.trucks_managed') : t('staff.truck_managed')}`}
@@ -20331,8 +20428,8 @@ export default function App() {
                   <div className="provision-section">
                     <div className="provision-section-title">{t('provision.upcoming_title')}</div>
                     {upSalaryRaw > 0 && (() => {
-                      const m = Math.floor(_secondsToNextSemester / 60);
-                      const s = Math.floor(_secondsToNextSemester % 60);
+                      const m = Math.floor(_secondsToNextMonth / 60);
+                      const s = Math.floor(_secondsToNextMonth % 60);
                       return (
                         <div className="provision-row">
                           <span>{t('provision.salaries')}{upSalaryOffered ? ' (' + t('provision.offered') + ')' : ''}</span>
@@ -20342,8 +20439,8 @@ export default function App() {
                       );
                     })()}
                     {phase < 4 && (() => {
-                      const m = Math.floor(_secondsToNextSeason / 60);
-                      const s = Math.floor(_secondsToNextSeason % 60);
+                      const m = Math.floor(_secondsToNextMonth / 60);
+                      const s = Math.floor(_secondsToNextMonth % 60);
                       return (
                         <div className="provision-row">
                           <span>{t('provision.utilities')} <span className="provision-row-mute">({t('provision.estimate')})</span></span>
@@ -20353,8 +20450,8 @@ export default function App() {
                       );
                     })()}
                     {activeLoan && upLoan > 0 && (() => {
-                      const m = Math.floor(_secondsToNextSemester / 60);
-                      const s = Math.floor(_secondsToNextSemester % 60);
+                      const m = Math.floor(_secondsToNextMonth / 60);
+                      const s = Math.floor(_secondsToNextMonth % 60);
                       return (
                         <div className="provision-row">
                           <span>{t('provision.bank_payment')} ({LOAN_DURATION_SEMESTERS - activeLoan.semestersLeft + 1}/{LOAN_DURATION_SEMESTERS})</span>
@@ -20371,7 +20468,7 @@ export default function App() {
                   </div>
 
                   {(fredGrumpy || brigitteGrumpy || janiceGrumpy || lennyGrumpy) && (() => {
-                    const emergencyCost = Math.ceil(totalSalary * 1.5);
+                    const emergencyCost = Math.ceil(emergencySalaryBase * 1.5);
                     const canAfford = money >= emergencyCost;
                     return (
                       <button
@@ -20462,6 +20559,7 @@ export default function App() {
 
         {/* Hero stock display (both phases) */}
         {renderHero()}
+        <CareerPanel snapshot={careerSnapshot} progress={careerProgress} onClaim={claimCareer} language={language} />
 
         {phase < 4 && hasFred && fredCycleTotal > 0 && (() => {
           const progress = 1 - fredCycleLeft / fredCycleTotal;
